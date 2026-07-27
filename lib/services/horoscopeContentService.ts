@@ -406,14 +406,12 @@ return null;
 
 const content = await Horoscope.findOne({
 
-zodiac:slug,
+slug: slug,
 
 status:"published",
 
 })
-
 .lean();
-
 
 
 

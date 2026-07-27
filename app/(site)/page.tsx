@@ -16,8 +16,6 @@ import {
 import FuturePlatformBanner 
 from "@/components/home/FuturePlatformBanner";
 
-import FlashNewsBar 
-from "@/components/FlashNewsBar";
 
 import AdRenderer 
 from "@/components/ads/AdRenderer";
@@ -681,37 +679,6 @@ placement="homepage_top"
 
 
 </div>
-
-
-
-
-
-
-
-
-
-{/* ==================================================
-    FLASH NEWS
-================================================== */}
-
-
-<section
-
-className="
-mb-10
-"
-
->
-
-
-<FlashNewsBar />
-
-
-</section>
-
-
-
-
 
 
 

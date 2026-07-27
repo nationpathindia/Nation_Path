@@ -759,7 +759,7 @@ md:text-left
 >
 
 © {new Date().getFullYear()} NationPath India.
-All rights reserved.
+All rights reserved. Crafted by : TitanArt Studio, India
 
 </p>
 

@@ -1,33 +1,123 @@
-import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
-import { verifyToken } from "./auth";
+import { getServerSession } from "next-auth";
+import { authOptions } 
+from "@/lib/auth";
 
-type TokenPayload = {
-  id: string;
-  role: string;
-};
+import User from "@/app/models/User";
+import dbConnect from "@/lib/mongodb";
+
+
 
 export async function getCurrentUser() {
+
+
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
 
-    if (!token) return null;
 
-    const decoded = verifyToken(token) as TokenPayload;
-    if (!decoded?.id) return null;
+    await dbConnect();
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-    });
 
-    if (!user) return null;
 
-    if (!user.isActive) return null;
+
+    const session =
+      await getServerSession(
+        authOptions
+      );
+
+
+
+    if (
+      !session?.user?.email
+    ) {
+
+      console.log(
+        "NO NEXTAUTH SESSION"
+      );
+
+      return null;
+
+    }
+
+
+
+
+
+    const email =
+      session.user.email
+      .toLowerCase()
+      .trim();
+
+
+
+
+
+
+    const user =
+      await User.findOne({
+
+        email: {
+          $regex:
+          new RegExp(
+            `^${email}$`,
+            "i"
+          )
+        }
+
+      });
+
+
+
+
+
+
+    if(!user){
+
+      console.log(
+        "USER NOT FOUND:",
+        email
+      );
+
+      return null;
+
+    }
+
+
+
+
+
+    if(
+      user.status === "blocked"
+    ){
+
+      console.log(
+        "USER BLOCKED:",
+        email
+      );
+
+      return null;
+
+    }
+
+
+
+
 
     return user;
-  } catch (error) {
-    console.error("getCurrentUser error:", error);
+
+
+
+  } catch(error){
+
+
+    console.error(
+      "CURRENT USER ERROR:",
+      error
+    );
+
+
     return null;
+
+
   }
+
+
 }

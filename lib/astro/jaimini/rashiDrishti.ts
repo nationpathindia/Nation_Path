@@ -1,0 +1,12 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO ENGINE
+// Rashi Drishti Foundation
+//////////////////////////////////////////////////////////////
+
+import type { RashiDrishtiResult } from "./types";
+
+export function calculateRashiDrishti(): RashiDrishtiResult[] {
+
+  return [];
+
+}

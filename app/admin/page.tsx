@@ -1,7 +1,4 @@
 "use client"
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-import VisitorMessages from "@/components/admin/VisitorMessages"
 import { useEffect, useState } from "react"
 import {
 LineChart,
@@ -241,7 +238,7 @@ value={`${a.views} views`}
 
 <div className="grid lg:grid-cols-2 gap-8">
 
-<VisitorMessages />
+
 
 <div className="bg-[#0e1726] border border-gray-800 rounded-xl p-8">
 

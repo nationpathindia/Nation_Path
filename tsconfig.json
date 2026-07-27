@@ -36,8 +36,11 @@
     "**/*.tsx",
     "**/*.js",
     "**/*.jsx",
-    ".next/types/**/*.ts"
-  ],
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
+, "app/models/data_zodiac_fut", "app/(site)/oldy.disabled"  ],
 
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

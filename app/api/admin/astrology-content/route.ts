@@ -1,0 +1,857 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO HOROSCOPE CMS ADMIN API
+//
+// GET  -> List Horoscope CMS content
+// POST -> Create Horoscope CMS content
+//
+// CMS FIRST ARCHITECTURE
+//
+// Responsibility:
+// Store premium horoscope experience content.
+//
+// Does NOT:
+// - calculate astrology
+// - run Swiss Ephemeris
+// - generate prediction
+// - use AI engine
+//////////////////////////////////////////////////////////////
+
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
+
+import Horoscope from "@/app/models/Horoscope";
+
+
+import {
+  connectMongoDB,
+} from "@/lib/mongodb";
+
+
+
+
+
+export const dynamic = "force-dynamic";
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// TYPES
+//////////////////////////////////////////////////////////////
+
+type HoroscopeStatus =
+  | "draft"
+  | "published";
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// GET HOROSCOPE CMS CONTENT
+//////////////////////////////////////////////////////////////
+
+export async function GET(
+
+  req:NextRequest
+
+){
+
+
+try{
+
+
+await connectMongoDB();
+
+
+
+
+
+const {
+
+searchParams
+
+}=
+
+new URL(req.url);
+
+
+
+
+
+const zodiac =
+
+searchParams.get("zodiac");
+
+
+
+
+
+const status =
+
+searchParams.get("status");
+
+
+
+
+
+const limit =
+
+Number(
+
+searchParams.get("limit")
+
+||
+
+50
+
+);
+
+
+
+
+
+
+
+const filter:any = {};
+
+
+
+
+
+if(zodiac){
+
+
+filter.zodiac =
+
+zodiac
+
+.trim()
+
+.toLowerCase();
+
+
+}
+
+
+
+
+
+if(status){
+
+
+filter.status = status;
+
+
+}
+
+
+
+
+
+
+
+const data =
+
+await (Horoscope as any)
+
+.find(filter)
+
+.sort({
+
+createdAt:-1,
+
+})
+
+.limit(limit)
+
+.lean();
+
+
+
+
+
+
+
+return NextResponse.json({
+
+success:true,
+
+count:data.length,
+
+data,
+
+});
+
+
+
+
+
+}
+
+catch(error){
+
+
+
+console.error(
+
+"[HOROSCOPE_GET_ERROR]",
+
+error
+
+);
+
+
+
+
+
+return NextResponse.json(
+
+{
+
+success:false,
+
+message:
+
+"Failed to fetch horoscope content",
+
+},
+
+{
+
+status:500,
+
+}
+
+);
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CREATE HOROSCOPE CMS
+//////////////////////////////////////////////////////////////
+
+export async function POST(
+
+req:NextRequest
+
+){
+
+
+
+try{
+
+
+
+await connectMongoDB();
+
+
+
+
+
+const body =
+
+await req.json();
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// BASIC VALIDATION
+//////////////////////////////////////////////////////////////
+
+if(
+
+!body.zodiac ||
+
+!body.slug
+
+){
+
+
+
+return NextResponse.json(
+
+{
+
+success:false,
+
+message:
+
+"zodiac and slug are required",
+
+},
+
+{
+
+status:400,
+
+}
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// NORMALIZATION
+//////////////////////////////////////////////////////////////
+
+const zodiac =
+
+String(body.zodiac)
+
+.trim()
+
+.toLowerCase();
+
+
+
+
+
+const slug =
+
+String(body.slug)
+
+.trim()
+
+.toLowerCase();
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// DUPLICATE CHECK
+//////////////////////////////////////////////////////////////
+
+const existing =
+
+await (Horoscope as any)
+
+.findOne({
+
+$or:[
+
+
+{
+
+zodiac,
+
+},
+
+
+{
+
+slug,
+
+},
+
+
+],
+
+
+});
+
+
+
+
+
+
+
+if(existing){
+
+
+
+return NextResponse.json(
+
+{
+
+success:false,
+
+message:
+
+"Horoscope already exists for this zodiac or slug",
+
+},
+
+{
+
+status:409,
+
+}
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// STATUS CONTROL
+//////////////////////////////////////////////////////////////
+
+const status:HoroscopeStatus =
+
+
+body.status === "published"
+
+?
+
+"published"
+
+:
+
+"draft";
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CREATE CMS DOCUMENT
+//////////////////////////////////////////////////////////////
+
+const horoscope =
+
+await (Horoscope as any).create(
+
+{
+  //////////////////////////////////////////////////////////////
+// BASIC
+//////////////////////////////////////////////////////////////
+
+zodiac,
+
+slug,
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// ZODIAC MASTER SNAPSHOT
+//////////////////////////////////////////////////////////////
+
+symbol:
+
+body.symbol || "",
+
+
+
+element:
+
+body.element || "",
+
+
+
+modality:
+
+body.modality || "",
+
+
+
+rulingPlanet:
+
+body.rulingPlanet || "",
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HERO EXPERIENCE
+//////////////////////////////////////////////////////////////
+
+hero:
+
+body.hero || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// IDENTITY
+//////////////////////////////////////////////////////////////
+
+identity:
+
+body.identity || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// TRAITS
+//////////////////////////////////////////////////////////////
+
+traits:
+
+body.traits || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// EDITORIAL
+//////////////////////////////////////////////////////////////
+
+editorial:
+
+body.editorial || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// LIFE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+life:
+
+body.life || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// COSMIC INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+insights:
+
+body.insights || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PLANETS
+//////////////////////////////////////////////////////////////
+
+planets:
+
+body.planets || [],
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// FORTUNE
+//////////////////////////////////////////////////////////////
+
+lucky:
+
+body.lucky || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// REMEDY
+//////////////////////////////////////////////////////////////
+
+remedy:
+
+body.remedy || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// VEDIC
+//////////////////////////////////////////////////////////////
+
+vedic:
+
+body.vedic || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// COMPATIBILITY
+//////////////////////////////////////////////////////////////
+
+compatibility:
+
+body.compatibility || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PREMIUM
+//////////////////////////////////////////////////////////////
+
+premium:
+
+body.premium || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SEO
+//////////////////////////////////////////////////////////////
+
+seo:
+
+body.seo || {},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// STATUS
+//////////////////////////////////////////////////////////////
+
+status,
+
+
+}
+
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+return NextResponse.json(
+
+{
+
+success:true,
+
+message:
+
+"Horoscope created successfully",
+
+data:
+
+horoscope,
+
+},
+
+{
+
+status:201,
+
+}
+
+);
+
+
+
+
+
+
+}
+
+catch(error:any){
+
+
+
+console.error(
+
+"[HOROSCOPE_CREATE_ERROR]",
+
+error
+
+);
+
+
+
+
+
+
+
+if(
+
+error?.code === 11000
+
+){
+
+
+
+return NextResponse.json(
+
+{
+
+success:false,
+
+message:
+
+"Duplicate zodiac or slug found",
+
+},
+
+{
+
+status:409,
+
+}
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+return NextResponse.json(
+
+{
+
+success:false,
+
+message:
+
+"Failed to create horoscope",
+
+error:
+
+process.env.NODE_ENV === "development"
+
+?
+
+error?.message
+
+:
+
+undefined,
+
+},
+
+{
+
+status:500,
+
+}
+
+);
+
+
+
+}
+
+
+
+}

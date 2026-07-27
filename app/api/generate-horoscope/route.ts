@@ -9,42 +9,37 @@ const zodiacSigns = [
 ];
 
 export async function GET(request: Request) {
-
   try {
-
-    /* 🔐 SECRET PROTECTION */
-
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
 
-    if (!secret || secret !== process.env.CRON_SECRET) {
+    // 🔐 CRON SECURITY (optional but recommended)
+    if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
-    /* 📅 TODAY DATE */
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const dateString = today.toISOString().split("T")[0];
 
-    for (const sign of zodiacSigns) {
+    let generated = 0;
+    let skipped = 0;
 
+    for (const sign of zodiacSigns) {
       const slug = `${sign.toLowerCase()}-${dateString}`;
 
-      /* 🛑 CHECK DUPLICATE */
-
+      // 🛑 skip if already exists
       const existing = await prisma.article.findUnique({
-        where: { slug }
+        where: { slug },
       });
 
       if (existing) {
-        console.log(`Horoscope already exists for ${sign}`);
+        skipped++;
         continue;
       }
 
-      /* 🔥 CALL OPENAI */
-
+      // 🔥 OPENAI CALL
       const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -53,99 +48,109 @@ export async function GET(request: Request) {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
+          temperature: 0.8,
           messages: [
             {
               role: "system",
               content:
-                "You are a professional astrologer writing daily horoscope predictions in a medium, punchy and confident tone."
+                "You are a professional astrologer. Always return ONLY valid JSON. No markdown, no extra text.",
             },
             {
               role: "user",
               content: `
-Write today's detailed horoscope for ${sign}.
+Write today's horoscope for ${sign}.
 
-Include sections:
-- Career
-- Love
-- Health
-- Finance
-- Lucky Color
-- Lucky Number
+Return ONLY this JSON format:
 
-Format STRICTLY in clean HTML like:
+{
+  "career": number (0-100),
+  "love": number (0-100),
+  "finance": number (0-100),
+  "health": number (0-100),
 
-<h3>Career</h3>
-<p>...</p>
+  "dayEnergy": "High" | "Medium" | "Low",
+  "mood": "short emotional description",
+  "bestTime": "e.g. 10 AM - 2 PM",
+  "warning": "short caution line",
 
-<h3>Love</h3>
-<p>...</p>
+  "content": "<h3>Career</h3><p>...</p><h3>Love</h3><p>...</p><h3>Health</h3><p>...</p><h3>Finance</h3><p>...</p><h3>Lucky Insights</h3><ul><li><strong>Lucky Color:</strong> ...</li><li><strong>Lucky Number:</strong> ...</li></ul>"
+}
 
-<h3>Health</h3>
-<p>...</p>
-
-<h3>Finance</h3>
-<p>...</p>
-
-<h3>Lucky Insights</h3>
-<ul>
-<li><strong>Lucky Color:</strong> ...</li>
-<li><strong>Lucky Number:</strong> ...</li>
-</ul>
-
-Keep content between 350–450 words.
-Do not include markdown.
-Only valid HTML.
-`
-            }
+Rules:
+- 350–450 words inside content
+- Human, emotional tone
+- No markdown, no backticks
+`,
+            },
           ],
-          temperature: 0.8,
         }),
       });
 
       const aiData = await aiRes.json();
 
-      if (!aiData?.choices?.[0]?.message?.content) {
-        console.error("OpenAI Error:", aiData);
+      const raw = aiData?.choices?.[0]?.message?.content;
+
+      if (!raw) {
+        console.log(`No response for ${sign}`);
+        skipped++;
         continue;
       }
 
-      const content = aiData.choices[0].message.content;
+      // 🧠 SAFE JSON PARSE
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (err) {
+        console.log(`JSON parse failed for ${sign}`);
+        skipped++;
+        continue;
+      }
 
-      /* 💾 SAVE TO DATABASE */
-
+      // 💾 SAVE TO DATABASE
       await prisma.article.create({
         data: {
           title: `${sign} Horoscope Today`,
           slug,
-          content,
+          content: parsed.content,
+
           isAstrology: true,
-          status: "approved",
           zodiacSign: sign,
           horoscopeDate: today,
+          status: "approved",
           publishedAt: today,
-        }
+
+          // AI POWERED FIELDS
+          careerScore: parsed.career,
+          loveScore: parsed.love,
+          financeScore: parsed.finance,
+          healthScore: parsed.health,
+
+          dayEnergy: parsed.dayEnergy,
+          mood: parsed.mood,
+          bestTime: parsed.bestTime,
+          warning: parsed.warning,
+        },
       });
 
+      generated++;
       console.log(`Generated horoscope for ${sign}`);
     }
 
     return NextResponse.json({
       success: true,
-      message: "Horoscope generation completed"
+      message: "Horoscope generation completed",
+      generated,
+      skipped,
     });
-
   } catch (error) {
-
     console.error("CRON ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: "Generation failed"
+        error: "Generation failed",
       },
       { status: 500 }
     );
-
   }
-
 }

@@ -1,50 +1,524 @@
 "use client";
 
-export default function BreakingNewsBar() {
-  return (
-    <div className="relative bg-gradient-to-r from-[#111827] via-[#1E293B] to-[#0F172A] text-white border-b border-white/10">
+import {
+  useEffect,
+  useState
+} from "react";
 
-      {/* Subtle moving light line */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
 
-      <div className="max-w-7xl mx-auto flex items-center py-3 relative z-10">
+type BreakingArticle = {
 
-        {/* Sharp Label */}
-        <div className="bg-[#E11D48] px-5 py-2 text-xs font-semibold tracking-[2px] uppercase">
-          Breaking News
-        </div>
+  id:string;
 
-        {/* Animated News */}
-        <div className="overflow-hidden ml-8 flex-1">
-          <div className="whitespace-nowrap animate-marquee text-sm font-medium tracking-wide text-gray-200">
-            Premium Investment Plans Available Now • Trade MCX with Zero Brokerage • 
-            Open Demat Account Today • Grow Your Portfolio with NationPath Partners
-          </div>
-        </div>
+  title:string;
 
-      </div>
+  slug:string;
 
-      <style jsx>{`
-        .animate-marquee {
-          display: inline-block;
-          animation: marquee 18s linear infinite;
-        }
+};
 
-        @keyframes marquee {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
 
-        .animate-shimmer {
-          animation: shimmer 3s linear infinite;
-        }
 
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
 
-    </div>
-  );
+
+export default function BreakingNewsBar(){
+
+
+const [
+breaking,
+setBreaking
+] = useState<BreakingArticle[]>([]);
+
+
+
+const [
+loading,
+setLoading
+] = useState(true);
+
+
+
+
+
+
+async function loadBreaking(){
+
+
+try{
+
+
+const res =
+await fetch(
+"/api/push-breaking",
+{
+cache:"no-store"
+}
+);
+
+
+
+const data =
+await res.json();
+
+
+
+
+if(data.success){
+
+setBreaking(
+data.breaking || []
+);
+
+}
+
+
+}
+
+catch(error){
+
+
+console.error(
+"BREAKING BAR ERROR:",
+error
+);
+
+
+}
+
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+useEffect(()=>{
+
+
+loadBreaking();
+
+
+
+const interval =
+setInterval(
+loadBreaking,
+60000
+);
+
+
+
+return ()=>{
+
+clearInterval(interval);
+
+};
+
+
+},[]);
+
+
+
+
+
+
+
+
+
+const headlines =
+
+loading
+
+?
+
+[
+"Loading breaking news..."
+]
+
+:
+
+breaking.length
+
+?
+
+breaking.map(
+(item)=>item.title
+)
+
+:
+
+[
+"Latest news updates from NationPath India"
+];
+
+
+
+
+
+
+
+const ticker = [
+
+...headlines,
+
+...headlines
+
+];
+
+
+
+
+
+
+
+return (
+
+
+<div
+
+
+className="
+
+relative
+
+news-breaking
+
+overflow-hidden
+
+group
+
+"
+
+
+>
+
+
+
+
+
+
+
+<div
+
+
+className="
+
+news-container
+
+flex
+
+items-center
+
+h-9
+
+md:h-10
+
+relative
+
+z-10
+
+"
+
+
+>
+
+
+
+
+
+
+
+
+
+
+{/* BREAKING LABEL */}
+
+
+<div
+
+
+className="
+
+flex
+
+items-center
+
+gap-2
+
+bg-[var(--news-breaking-badge)]
+
+px-2.5
+
+py-1
+
+rounded-sm
+
+shrink-0
+
+"
+
+
+>
+
+
+<span
+
+
+className="
+
+w-1.5
+
+h-1.5
+
+rounded-full
+
+bg-white
+
+animate-pulse
+
+"
+
+
+/>
+
+
+
+
+
+<span
+
+
+className="
+
+text-[10px]
+
+font-bold
+
+uppercase
+
+tracking-[0.18em]
+
+text-white
+
+"
+
+
+>
+
+Breaking
+
+</span>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+{/* TICKER */}
+
+
+<div
+
+
+className="
+
+overflow-hidden
+
+ml-3
+
+flex-1
+
+"
+
+
+>
+
+
+
+<div
+
+
+className="
+
+flex
+
+whitespace-nowrap
+
+animate-marquee
+
+group-hover:[animation-play-state:paused]
+
+"
+
+
+>
+
+
+{
+
+
+ticker.map(
+
+(item,index)=>(
+
+
+<span
+
+
+key={index}
+
+
+className="
+
+text-xs
+
+md:text-sm
+
+font-medium
+
+text-[var(--news-breaking-text)]
+
+mx-4
+
+"
+
+
+>
+
+
+{item}
+
+
+
+
+
+<span
+
+
+className="
+
+ml-4
+
+text-[var(--news-breaking-dot)]
+
+"
+
+
+>
+
+•
+
+</span>
+
+
+
+
+</span>
+
+
+)
+
+
+)
+
+
+}
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<style jsx>{`
+
+.animate-marquee {
+
+display:inline-flex;
+
+width:max-content;
+
+animation:
+
+marquee 35s linear infinite;
+
+}
+
+
+
+@keyframes marquee {
+
+
+from {
+
+transform:
+
+translateX(0);
+
+}
+
+
+
+to {
+
+transform:
+
+translateX(-50%);
+
+}
+
+
+}
+
+
+
+`}</style>
+
+
+
+
+
+
+</div>
+
+
+);
+
+
 }

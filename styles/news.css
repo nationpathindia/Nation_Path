@@ -1,0 +1,1007 @@
+/*
+====================================================
+ NationPath India News Theme
+ Production Design System v7
+ Premium Editorial Newspaper Style
+ Typography Final Polish
+====================================================
+*/
+
+
+.news-theme {
+
+
+/* ==================================================
+   BRAND COLORS
+================================================== */
+
+
+--news-navy:#163C80;
+
+--news-navy-soft:#234E9A;
+
+
+/* Authority */
+
+--news-breaking:#0b1220;
+
+--news-footer:#080F1C;
+
+
+/* Breaking */
+
+--news-breaking-badge:#E11D48;
+
+--news-breaking-dot:#E11D48;
+
+--news-breaking-text:
+rgba(255,255,255,.85);
+
+
+
+/* Editorial */
+
+--news-cream:#FAF7F1;
+
+--news-orange:#EA661B;
+
+--news-editorial-gold:#8B6A25;
+
+--news-editorial-gold-soft:#B8862D;
+
+
+
+
+/* ==================================================
+   TEXT SYSTEM
+================================================== */
+
+
+--news-text:#111111;
+
+--news-white:#ffffff;
+
+--news-muted:#5f6368;
+
+--news-light-text:#8b8f97;
+
+
+
+
+
+
+/* ==================================================
+   SURFACE SYSTEM
+================================================== */
+
+
+--news-bg:#F7F5EF;
+
+--news-surface:#ffffff;
+
+--news-soft:#F3F1EA;
+
+
+
+
+
+
+/* ==================================================
+   BORDER SYSTEM
+================================================== */
+
+
+--news-border:#E7DFD2;
+
+--news-border-light:
+rgba(17,17,17,.08);
+
+
+--news-dark-border:
+rgba(255,255,255,.12);
+
+
+
+
+
+
+/* ==================================================
+   SHADOW SYSTEM
+================================================== */
+
+
+--news-shadow-sm:
+0 4px 14px rgba(0,0,0,.06);
+
+
+--news-shadow:
+0 12px 35px rgba(0,0,0,.10);
+
+
+--news-shadow-hover:
+0 18px 40px rgba(0,0,0,.12);
+
+
+
+
+
+
+/* ==================================================
+   TYPOGRAPHY SYSTEM FINAL
+================================================== */
+
+
+--news-heading-font:
+var(--font-heading);
+
+
+--news-body-font:
+var(--font-body);
+
+
+
+/* Main headlines */
+
+--news-headline-weight:600;
+
+--news-headline-spacing:-0.012em;
+
+--news-headline-line:1.18;
+
+
+
+/* Hero editorial headline */
+
+--news-display-weight:700;
+
+--news-display-spacing:-0.018em;
+
+--news-display-line:1.06;
+
+
+
+/* Section */
+
+--news-section-weight:700;
+
+--news-section-spacing:-0.015em;
+
+
+
+/* Body */
+
+--news-body-weight:400;
+
+--news-body-line:1.75;
+
+
+
+
+/* ==================================================
+   CONTAINER
+================================================== */
+
+
+--news-container:
+1400px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ PAPER CONTENT
+====================================================
+*/
+
+
+.news-theme .news-paper {
+
+
+background:
+
+linear-gradient(
+180deg,
+#FAF7F1,
+#F7F5EF
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ CONTAINER SYSTEM
+====================================================
+*/
+
+
+.news-theme .news-container {
+
+
+width:100%;
+
+max-width:
+var(--news-container);
+
+margin:auto;
+
+padding-left:1rem;
+
+padding-right:1rem;
+
+
+}
+
+
+
+
+@media(min-width:640px){
+
+.news-theme .news-container{
+
+padding-left:1.5rem;
+
+padding-right:1.5rem;
+
+}
+
+}
+
+
+
+
+@media(min-width:1024px){
+
+.news-theme .news-container{
+
+padding-left:2rem;
+
+padding-right:2rem;
+
+}
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ TOP HEADER
+====================================================
+*/
+
+
+.news-theme .news-topbar {
+
+
+background:
+var(--news-breaking);
+
+
+color:
+var(--news-white);
+
+
+border-bottom:
+1px solid var(--news-dark-border);
+
+
+}
+
+
+
+
+.news-theme .news-topbar a {
+
+
+color:
+var(--news-white);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ MASTHEAD
+====================================================
+*/
+
+
+.news-theme .news-masthead {
+
+
+background:
+var(--news-cream);
+
+
+border-bottom:
+1px solid var(--news-border);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ NAVIGATION
+====================================================
+*/
+
+
+.news-theme .news-navigation {
+
+
+background:
+var(--news-cream);
+
+
+border-bottom:
+1px solid var(--news-border);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ BREAKING BAR
+====================================================
+*/
+
+
+.news-theme .news-breaking {
+
+
+background:
+var(--news-breaking);
+
+
+color:
+var(--news-white);
+
+
+border-bottom:
+1px solid var(--news-dark-border);
+
+
+}
+
+
+
+
+.news-theme .news-breaking-label {
+
+
+background:
+var(--news-breaking-badge);
+
+
+color:
+var(--news-white);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ HEADLINES FINAL
+====================================================
+*/
+
+
+.news-theme .news-headline {
+
+
+font-family:
+var(--news-heading-font);
+
+
+font-weight:
+var(--news-headline-weight);
+
+
+letter-spacing:
+var(--news-headline-spacing);
+
+
+line-height:
+var(--news-headline-line);
+
+
+color:
+var(--news-text);
+
+
+}
+
+
+
+
+
+/*
+ HERO LEAD STORY TITLE
+
+Used by:
+LeadStory
+Featured Stories
+
+*/
+
+
+.news-theme .news-display {
+
+
+font-family:
+var(--news-heading-font);
+
+
+font-size:
+
+clamp(
+2rem,
+3.2vw,
+3.35rem
+);
+
+
+font-weight:
+var(--news-display-weight);
+
+
+line-height:
+var(--news-display-line);
+
+
+letter-spacing:
+var(--news-display-spacing);
+
+
+color:
+var(--news-text);
+
+
+max-width:
+18ch;
+
+
+}
+
+
+
+
+
+/*
+ CATEGORY / CARD HEADLINES
+
+Used by:
+CategoryBlock
+FeaturedGrid
+LatestNews
+
+*/
+
+
+.news-theme .news-card .news-headline {
+
+
+font-size:
+
+clamp(
+1.05rem,
+1.5vw,
+1.35rem
+);
+
+
+line-height:
+1.25;
+
+
+}
+
+
+
+
+
+
+/*
+ SECTION TITLE
+*/
+
+
+.news-theme .news-section-title {
+
+
+font-family:
+var(--news-heading-font);
+
+
+font-size:
+
+clamp(
+1.35rem,
+2vw,
+1.8rem
+);
+
+
+font-weight:
+var(--news-section-weight);
+
+
+letter-spacing:
+var(--news-section-spacing);
+
+
+line-height:
+1.2;
+
+
+color:
+var(--news-text);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ BODY
+====================================================
+*/
+
+
+.news-theme .news-body {
+
+
+font-family:
+var(--news-body-font);
+
+
+font-size:
+1rem;
+
+
+font-weight:
+var(--news-body-weight);
+
+
+line-height:
+var(--news-body-line);
+
+
+color:
+var(--news-muted);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ CARD SYSTEM
+====================================================
+*/
+
+
+.news-theme .news-card {
+
+
+background:
+var(--news-surface);
+
+
+border:
+1px solid var(--news-border);
+
+
+border-radius:
+12px;
+
+
+overflow:hidden;
+
+
+transition:
+.3s ease;
+
+
+}
+
+
+
+
+
+.news-theme .news-card:hover {
+
+
+transform:
+translateY(-2px);
+
+
+box-shadow:
+var(--news-shadow-hover);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ IMAGE SYSTEM
+====================================================
+*/
+
+
+.news-theme .news-image {
+
+
+overflow:hidden;
+
+
+border-radius:
+12px;
+
+
+}
+
+
+
+
+.news-theme .news-image img {
+
+
+transition:
+transform .6s ease;
+
+
+}
+
+
+
+
+
+.news-theme .news-card:hover img {
+
+
+transform:
+scale(1.04);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ CATEGORY SYSTEM
+====================================================
+*/
+
+
+.news-theme .category-badge {
+
+
+display:inline-flex;
+
+
+align-items:center;
+
+
+gap:.5rem;
+
+
+color:
+var(--news-editorial-gold);
+
+
+font-size:
+11px;
+
+
+font-weight:
+700;
+
+
+letter-spacing:
+.16em;
+
+
+text-transform:
+uppercase;
+
+
+}
+
+
+
+
+
+.news-theme .category-line {
+
+
+width:
+32px;
+
+
+height:
+2px;
+
+
+background:
+var(--news-editorial-gold-soft);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ FOOTER
+====================================================
+*/
+
+
+.news-theme .news-footer {
+
+
+background:
+var(--news-footer);
+
+
+color:
+var(--news-white);
+
+
+border-top:
+1px solid var(--news-dark-border);
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ BUTTON
+====================================================
+*/
+
+
+.news-theme .news-primary-btn {
+
+
+background:
+var(--news-orange);
+
+
+color:
+var(--news-white);
+
+
+font-weight:
+700;
+
+
+border-radius:
+999px;
+
+
+padding:
+.65rem 1.25rem;
+
+
+transition:
+.25s ease;
+
+
+}
+
+
+
+
+
+.news-theme .news-primary-btn:hover {
+
+
+transform:
+translateY(-2px);
+
+
+opacity:.9;
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ TEXT SAFETY
+====================================================
+*/
+
+
+.news-theme h1,
+.news-theme h2,
+.news-theme h3,
+.news-theme h4,
+.news-theme p {
+
+
+overflow-wrap:
+break-word;
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ MOBILE FIRST
+====================================================
+*/
+
+
+@media(max-width:640px){
+
+
+
+.news-theme .news-display{
+
+
+font-size:
+1.85rem;
+
+
+line-height:
+1.12;
+
+
+letter-spacing:
+-0.012em;
+
+
+max-width:
+100%;
+
+
+}
+
+
+
+
+.news-theme .news-headline{
+
+
+line-height:
+1.22;
+
+
+}
+
+
+
+
+.news-theme .news-section{
+
+
+padding-top:
+2rem;
+
+
+padding-bottom:
+2rem;
+
+
+}
+
+
+
+}

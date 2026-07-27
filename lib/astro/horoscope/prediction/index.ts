@@ -1,0 +1,209 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO HOROSCOPE ENGINE
+// Horoscope Prediction Public API
+// Production Intelligence Export Layer
+//////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////
+// TYPES
+//////////////////////////////////////////////////////////////
+
+export type {
+
+  HoroscopePrediction,
+
+  PredictionCategory,
+
+  PredictionMessage,
+
+  PlanetPrediction,
+
+  LifePrediction,
+
+  PredictionInsight,
+
+  PredictionRanking,
+
+  PredictionNarrative,
+
+  PredictionQuality,
+
+} from "./types";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// RULES
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  PLANET_PREDICTION_THEMES,
+
+  PLANET_PREDICTION_AREAS,
+
+  PREDICTION_THRESHOLDS,
+
+
+} from "./rules";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HELPERS
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  getPredictionPlanetId,
+
+
+  isStrongPredictionPlanet,
+
+
+  isWeakPredictionPlanet,
+
+
+  getPredictionThemes,
+
+
+  getPredictionStrengthLabel,
+
+
+  buildPredictionMessage,
+
+
+  getPredictionSources,
+
+
+  getPlanetKeywords,
+
+
+  uniqueStrings,
+
+
+} from "./helpers";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CONFIDENCE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  calculatePredictionConfidence,
+
+
+} from "./confidence";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PRIORITIZER
+//////////////////////////////////////////////////////////////
+
+export {
+
+  buildPredictionRanking,
+
+} from "./prioritizer";
+
+//////////////////////////////////////////////////////////////
+// NATURAL LANGUAGE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  generateNaturalSummary,
+
+
+  generateNarrative,
+
+
+  generateLifeNarrative,
+
+
+  generateOpening,
+
+
+  generateDevelopment,
+
+
+  generateAdvice,
+
+
+  generateClosing,
+
+
+  buildCompleteNarrative,
+
+
+} from "./language";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// QUALITY INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  optimizePredictionMessages,
+
+
+  optimizeInsights,
+
+
+  optimizeLifePredictions,
+
+
+  optimizePlanetPredictions,
+
+
+  calculatePredictionQuality,
+
+
+  buildPredictionQuality,
+
+
+} from "./quality";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// ENGINE
+//////////////////////////////////////////////////////////////
+
+export {
+
+
+  predictHoroscope,
+
+
+} from "./engine";

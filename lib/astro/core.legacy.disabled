@@ -1,0 +1,74 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO ENGINE
+// Central Orchestrator
+//////////////////////////////////////////////////////////////
+
+import {
+  createAstrologyContext,
+  normalizeZodiac,
+} from "./helpers";
+
+import type {
+  AstrologyContext,
+  AstrologyRequest,
+} from "./types";
+
+import { getPanchang } from "./panchang";
+import { getMoonTransit } from "./moonTransit";
+import { getCompatibility } from "./compatibility";
+
+//////////////////////////////////////////////////////////////
+// ASTROLOGY CONTEXT
+//////////////////////////////////////////////////////////////
+
+export async function getAstrologyContext(
+  request: AstrologyRequest
+): Promise<AstrologyContext> {
+  const zodiacSign = normalizeZodiac(request.zodiacSign);
+
+  const horoscopeDate =
+    request.horoscopeDate ?? new Date();
+
+  const [panchang, moon, compatibility] =
+    await Promise.all([
+      getPanchang(horoscopeDate),
+      getMoonTransit(horoscopeDate),
+      getCompatibility(zodiacSign),
+    ]);
+
+  return createAstrologyContext(
+    {
+      ...request,
+      zodiacSign,
+      horoscopeDate,
+    },
+    panchang,
+    moon,
+    compatibility
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// HEALTH CHECK
+//////////////////////////////////////////////////////////////
+
+export async function isAstroEngineReady(): Promise<boolean> {
+  try {
+    await getAstrologyContext({
+      zodiacSign: "Aries",
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+//////////////////////////////////////////////////////////////
+// DEFAULT EXPORT
+//////////////////////////////////////////////////////////////
+
+export default {
+  getAstrologyContext,
+  isAstroEngineReady,
+};

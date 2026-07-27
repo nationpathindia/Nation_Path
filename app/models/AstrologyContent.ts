@@ -1,0 +1,464 @@
+import mongoose from "mongoose";
+
+
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO
+//
+// ASTROLOGY CONTENT CMS MODEL
+//
+// Purpose:
+// CMS managed horoscope intelligence content
+//
+// Flow:
+//
+// Admin CMS
+//      ↓
+// AstrologyContent
+//      ↓
+// Horoscope Content API
+//      ↓
+// Premium Horoscope Experience
+//
+//////////////////////////////////////////////////////////////
+
+
+const AstrologyContentSchema = new mongoose.Schema(
+{
+
+  ////////////////////////////////////////////////////////////
+  // CONTENT TYPE
+  ////////////////////////////////////////////////////////////
+
+  type: {
+
+    type: String,
+
+    required: true,
+
+    default: "horoscope",
+
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  // HOROSCOPE DATE
+  ////////////////////////////////////////////////////////////
+
+  date: {
+
+    type: String,
+
+    required: true,
+
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  // ZODIAC IDENTIFIER
+  ////////////////////////////////////////////////////////////
+
+  zodiac: {
+
+    type: String,
+
+    required: true,
+
+    lowercase: true,
+
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  // BASIC HOROSCOPE CONTENT
+  ////////////////////////////////////////////////////////////
+
+  headline: {
+
+    type: String,
+
+    required: true,
+
+  },
+
+
+  prediction: {
+
+    type: String,
+
+    required: true,
+
+  },
+
+
+  quote: {
+
+    type: String,
+
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  // LEGACY LUCKY DATA
+  // Kept for compatibility
+  ////////////////////////////////////////////////////////////
+
+  luckyNumber: {
+
+    type: String,
+
+  },
+
+
+  luckyColor: {
+
+    type: String,
+
+  },
+
+
+  luckyTime: {
+
+    type: String,
+
+  },
+
+
+  energy: {
+
+    type: Number,
+
+    default: 0,
+
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  // MEDIA
+  ////////////////////////////////////////////////////////////
+
+  image: {
+
+    type: String,
+
+  },
+
+
+
+  ////////////////////////////////////////////////////////////
+  // PREMIUM HOROSCOPE EXPERIENCE CONTENT
+  ////////////////////////////////////////////////////////////
+
+  experience: {
+
+
+    //////////////////////////////////////////////////////////
+    // HERO SECTION
+    //////////////////////////////////////////////////////////
+
+    hero: {
+
+      title: {
+
+        type: String,
+
+      },
+
+
+      subtitle: {
+
+        type: String,
+
+      },
+
+
+      description: {
+
+        type: String,
+
+      },
+
+
+      image: {
+
+        type: String,
+
+      },
+
+
+    },
+
+
+
+    //////////////////////////////////////////////////////////
+    // INSIGHT CARDS
+    //////////////////////////////////////////////////////////
+
+    insights: [
+
+      {
+
+        category: {
+
+          type: String,
+
+        },
+
+
+        title: {
+
+          type: String,
+
+        },
+
+
+        content: {
+
+          type: String,
+
+        },
+
+
+      }
+
+    ],
+
+
+
+    //////////////////////////////////////////////////////////
+    // PLANETARY INFLUENCE CONTENT
+    //////////////////////////////////////////////////////////
+
+    planetaryInfluence: {
+
+
+      title: {
+
+        type: String,
+
+      },
+
+
+      planets: [
+
+        {
+
+          planet: {
+
+            type: String,
+
+          },
+
+
+          influence: {
+
+            type: String,
+
+          },
+
+
+          description: {
+
+            type: String,
+
+          },
+
+
+        }
+
+      ]
+
+
+    },
+
+
+
+    //////////////////////////////////////////////////////////
+    // LUCKY FACTORS PREMIUM BLOCK
+    //////////////////////////////////////////////////////////
+
+    luckyFactors: {
+
+
+      numbers: [
+
+        String
+
+      ],
+
+
+      colors: [
+
+        String
+
+      ],
+
+
+      days: [
+
+        String
+
+      ],
+
+
+      times: [
+
+        String
+
+      ],
+
+
+      directions: [
+
+        String
+
+      ]
+
+
+    },
+
+
+
+    //////////////////////////////////////////////////////////
+    // DAILY REMEDY
+    //////////////////////////////////////////////////////////
+
+    remedy: {
+
+
+      title: {
+
+        type: String,
+
+      },
+
+
+      description: {
+
+        type: String,
+
+      },
+
+
+      steps: [
+
+        String
+
+      ]
+
+
+    },
+
+
+  },
+
+
+
+  ////////////////////////////////////////////////////////////
+  // SEO
+  ////////////////////////////////////////////////////////////
+
+  seoTitle: {
+
+    type: String,
+
+  },
+
+
+  seoDescription: {
+
+    type: String,
+
+  },
+
+
+
+  ////////////////////////////////////////////////////////////
+  // PUBLISH CONTROL
+  ////////////////////////////////////////////////////////////
+
+  status: {
+
+    type: String,
+
+    enum: [
+
+      "draft",
+
+      "published",
+
+    ],
+
+    default: "draft",
+
+  },
+
+
+  publishedAt: {
+
+    type: Date,
+
+  },
+
+
+
+  ////////////////////////////////////////////////////////////
+  // AUDIT
+  ////////////////////////////////////////////////////////////
+
+  createdBy: {
+
+    type: mongoose.Schema.Types.ObjectId,
+
+    ref: "User",
+
+  },
+
+
+},
+{
+
+  timestamps: true,
+
+});
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// INDEXES
+//////////////////////////////////////////////////////////////
+
+AstrologyContentSchema.index({
+
+  zodiac: 1,
+
+  date: 1,
+
+  status: 1,
+
+});
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// MONGOOSE HOT RELOAD SAFE MODEL
+//////////////////////////////////////////////////////////////
+
+const AstrologyContent =
+
+  mongoose.models.AstrologyContent ||
+
+  mongoose.model(
+
+    "AstrologyContent",
+
+    AstrologyContentSchema
+
+  );
+
+
+
+export default AstrologyContent;

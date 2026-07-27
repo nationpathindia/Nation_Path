@@ -60,28 +60,84 @@ enum AdType {
 //////////////////////////////////////////////////////
 // CATEGORY
 //////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+// CATEGORY
+//////////////////////////////////////////////////////
 
 model Category {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+
+
+  //////////////////////////////////////////////////////
+  // BASIC INFORMATION
+  //////////////////////////////////////////////////////
+
   name        String
-  slug        String   @unique
+  slug        String  @unique
   description String?
 
-  status      String   @default("active")
-  priority    Int      @default(0)
+
+
+  //////////////////////////////////////////////////////
+  // NATIONPATH INTELLIGENCE
+  //////////////////////////////////////////////////////
+
+  intelligenceLabel String?
+
+
+
+  //////////////////////////////////////////////////////
+  // UI / BRAND CONTROL
+  //////////////////////////////////////////////////////
+
+  color String?
+
+
+
+  //////////////////////////////////////////////////////
+  // STATUS & ORDER
+  //////////////////////////////////////////////////////
+
+  status   String @default("active")
+  priority Int    @default(0)
+
+
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
 
   seoTitle       String?
   seoDescription String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime? @updatedAt
 
-  articles    Article[]
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  articles Article[]
+
+
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
 
   @@index([status])
   @@index([priority])
-
   @@map("Category")
+
 }
 
 //////////////////////////////////////////////////////
@@ -89,56 +145,222 @@ model Category {
 //////////////////////////////////////////////////////
 
 model Article {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  title     String
-  slug      String @unique
+  title String
+  slug  String @unique
 
-  content   String
-  excerpt   String?
+  content String
+  excerpt String?
 
-  images    String[]
-  videoUrl  String?
+  images   String[]
+  videoUrl String?
 
   //////////////////////////////////////////////////////
   // FLAGS
   //////////////////////////////////////////////////////
 
-  breaking         Boolean @default(false)
-  flash            Boolean @default(false)
-  featured         Boolean @default(false)
-  isEditorial      Boolean @default(false)
-  isAstrology      Boolean @default(false)
-  isDeleted        Boolean @default(false)
-  isEditorsPick    Boolean @default(false)
-  isLive           Boolean @default(false)
+  breaking      Boolean @default(false)
+  flash         Boolean @default(false)
+  featured      Boolean @default(false)
+  isEditorial   Boolean @default(false)
+  isAstrology   Boolean @default(false)
+  isDeleted     Boolean @default(false)
+  isEditorsPick Boolean @default(false)
+  isLive        Boolean @default(false)
 
   homepagePriority Int @default(0)
 
   breakingPriority Int @default(0)
   flashPriority    Int @default(0)
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+  // ASTROLOGY
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  //////////////////////////////////////////////////////
-  // HOROSCOPE
-  //////////////////////////////////////////////////////
+  // ==========================================================
+  // BASIC HOROSCOPE
+  // ==========================================================
 
-  zodiacSign     String?
-  horoscopeDate  DateTime?
+  zodiacSign      String?
+  horoscopeDate   DateTime?
+  zodiacDateRange String?
+
+  // ==========================================================
+  // DAILY HOROSCOPE
+  // ==========================================================
+
+  lovePrediction    String?
+  careerPrediction  String?
+  financePrediction String?
+  healthPrediction  String?
+  travelPrediction  String?
+  moodPrediction    String?
+
+  dailyTheme       String?
+  dailyAffirmation String?
+  featuredQuote    String?
+
+  // ==========================================================
+  // LUCKY INSIGHTS
+  // ==========================================================
+
+  luckyColor     String?
+  luckyColorHex  String?
+  luckyNumber    String?
+  luckyTime      String?
+  luckyDirection String?
+  luckyGemstone  String?
+  luckyMantra    String?
+
+  luckyFlower String?
+  luckyPlant  String?
+  luckyFood   String?
+  luckyMetal  String?
+
+  // ==========================================================
+  // ENERGY SCORES
+  // ==========================================================
+
+  loveScore    Int?
+  careerScore  Int?
+  financeScore Int?
+  healthScore  Int?
+  dayEnergy String?
+mood String?
+bestTime String?
+warning String?
+
+  loveCompatibility Int?
+  careerGrowth      Int?
+  wealthEnergy      Int?
+  mentalPeace       Int?
+  familyHarmony     Int?
+  travelLuck        Int?
+  overallLuck       Int?
+
+  // ==========================================================
+  // FEATURED
+  // ==========================================================
+
+  isFeaturedZodiac Boolean @default(false)
+
+  // ==========================================================
+  // ASTROLOGY SEO
+  // ==========================================================
+
+  astroTitle       String?
+  astroDescription String?
+
+  // ==========================================================
+  // PANCHANG
+  // ==========================================================
+
+  tithi     String?
+  nakshatra String?
+  yoga      String?
+  karana    String?
+
+  sunrise  String?
+  sunset   String?
+  moonrise String?
+  moonset  String?
+
+  rahuKaal   String?
+  yamaganda  String?
+  gulikaKaal String?
+
+  abhijitMuhurat String?
+  brahmaMuhurat  String?
+  amritKaal      String?
+
+  // ==========================================================
+  // PLANETARY DETAILS
+  // ==========================================================
+
+  moonSign  String?
+  sunSign   String?
+  ascendant String?
+  moonPhase String?
+
+  currentTransit  String?
+  planetInfluence String?
+
+  mercuryStatus String?
+  venusStatus   String?
+  marsStatus    String?
+  jupiterStatus String?
+  saturnStatus  String?
+  rahuStatus    String?
+  ketuStatus    String?
+
+  // ==========================================================
+  // COMPATIBILITY
+  // ==========================================================
+
+  compatibleSigns String[]
+  avoidSigns      String[]
+
+  // ==========================================================
+  // REMEDIES
+  // ==========================================================
+
+  todayRemedy    String?
+  chantMantra    String?
+  donation       String?
+  auspiciousWork String?
+  avoidToday     String?
+
+  fastingSuggestion String?
+  deityOfTheDay     String?
+
+  // ==========================================================
+  // IMAGES
+  // ==========================================================
+
+  horoscopeImage String?
+  instagramImage String?
+  storyImage     String?
+  squareImage    String?
+  bannerImage    String?
+
+  // ==========================================================
+  // SOCIAL SHARE
+  // ==========================================================
+
+  shareTitle       String?
+  shareDescription String?
+  shareUrl         String?
+
+  // ==========================================================
+  // AI
+  // ==========================================================
+
+  aiGenerated Boolean   @default(false)
+  aiVersion   String?
+  aiPrompt    String?
+  generatedAt DateTime?
+
+  // ==========================================================
+  // INTERNAL
+  // ==========================================================
+
+  astrologyVersion Int?      @default(1)
+  lastAstroUpdate  DateTime?
 
   //////////////////////////////////////////////////////
   // STATUS
   //////////////////////////////////////////////////////
 
-  status       PostStatus @default(pending)
-  publishedAt  DateTime?
+  status      PostStatus @default(pending)
+  publishedAt DateTime?
 
   //////////////////////////////////////////////////////
   // ENGAGEMENT
   //////////////////////////////////////////////////////
 
-  views      Int @default(0)
-  likes      Int @default(0)
-  shares     Int @default(0)
+  views  Int @default(0)
+  likes  Int @default(0)
+  shares Int @default(0)
 
   insightful Int @default(0)
   important  Int @default(0)
@@ -149,7 +371,7 @@ model Article {
   // TRENDING
   //////////////////////////////////////////////////////
 
-  trendingScore Int      @default(0)
+  trendingScore Int       @default(0)
   lastViewAt    DateTime?
 
   //////////////////////////////////////////////////////
@@ -162,19 +384,19 @@ model Article {
   // SEO
   //////////////////////////////////////////////////////
 
-  readingTime       Int?
-  metaTitle         String?
-  metaDescription   String?
-  metaKeywords      String?
-  canonicalUrl      String?
-  ogImage           String?
-  structuredData    String?
+  readingTime     Int?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  canonicalUrl    String?
+  ogImage         String?
+  structuredData  String?
 
   //////////////////////////////////////////////////////
   // TIMESTAMPS
   //////////////////////////////////////////////////////
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
   //////////////////////////////////////////////////////
@@ -206,7 +428,6 @@ model Article {
   @@index([isEditorial])
   @@index([isAstrology])
   @@index([isDeleted])
-
   @@map("Article")
 }
 
@@ -215,21 +436,20 @@ model Article {
 //////////////////////////////////////////////////////
 
 model Comment {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  content   String
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  content String
 
-  userId    String? @db.ObjectId
-  user      User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
 
   articleId String  @db.ObjectId
   article   Article @relation(fields: [articleId], references: [id])
 
-  isDeleted Boolean @default(false)
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([articleId])
   @@index([createdAt])
-
   @@map("Comment")
 }
 
@@ -238,29 +458,28 @@ model Comment {
 //////////////////////////////////////////////////////
 
 model User {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name      String?
-  email     String @unique
-  password  String
+  name     String?
+  email    String  @unique
+  password String
 
-  role      Role @default(user)
-  isActive  Boolean @default(true)
-  avatar    String?
+  role     Role    @default(user)
+  isActive Boolean @default(true)
+  avatar   String?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  articles  Article[]
-  comments  Comment[]
-  activity  ActivityLog[]
+  articles Article[]
+  comments Comment[]
+  activity ActivityLog[]
 
   sentMessages     ChatMessage[] @relation("MessageSender")
   receivedMessages ChatMessage[] @relation("MessageReceiver")
 
   @@index([role])
   @@index([isActive])
-
   @@map("User")
 }
 
@@ -269,23 +488,22 @@ model User {
 //////////////////////////////////////////////////////
 
 model ChatMessage {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  senderId   String? @db.ObjectId
-  sender     User?   @relation("MessageSender", fields:[senderId], references:[id])
+  senderId String? @db.ObjectId
+  sender   User?   @relation("MessageSender", fields: [senderId], references: [id])
 
   receiverId String? @db.ObjectId
-  receiver   User?   @relation("MessageReceiver", fields:[receiverId], references:[id])
+  receiver   User?   @relation("MessageReceiver", fields: [receiverId], references: [id])
 
-  message    String
-  isRead     Boolean  @default(false)
+  message String
+  isRead  Boolean @default(false)
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([senderId])
   @@index([receiverId])
   @@index([createdAt])
-
   @@map("ChatMessage")
 }
 
@@ -294,37 +512,36 @@ model ChatMessage {
 //////////////////////////////////////////////////////
 
 model Ad {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  title       String
-  placement   AdPlacement
-  type        AdType
+  title     String
+  placement AdPlacement
+  type      AdType
 
   imageUrl    String?
   link        String?
   adsenseCode String?
 
-  priority    Int     @default(1)
-  status      String  @default("active")
+  priority Int    @default(1)
+  status   String @default("active")
 
-  startDate   DateTime?
-  endDate     DateTime?
+  startDate DateTime?
+  endDate   DateTime?
 
   totalBudget Float?
   cpc         Float?
   maxClicks   Int?
 
-  views       Int @default(0)
-  clicks      Int @default(0)
-  completed   Boolean @default(false)
+  views     Int     @default(0)
+  clicks    Int     @default(0)
+  completed Boolean @default(false)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 
   @@index([placement])
   @@index([status])
   @@index([priority])
-
   @@map("Ad")
 }
 
@@ -338,7 +555,6 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
-
   @@map("NewsletterSubscriber")
 }
 
@@ -347,20 +563,19 @@ model NewsletterSubscriber {
 //////////////////////////////////////////////////////
 
 model ActivityLog {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  action    String
-  entity    String?
-  entityId  String?
+  action   String
+  entity   String?
+  entityId String?
 
-  userId    String?  @db.ObjectId
-  user      User?    @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([userId])
-
   @@map("ActivityLog")
 }
 
@@ -369,23 +584,22 @@ model ActivityLog {
 //////////////////////////////////////////////////////
 
 model VisitorChat {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name      String?
-  email     String?
-  message   String
+  name    String?
+  email   String?
+  message String
 
   ip        String?
   userAgent String?
 
-  isRead    Boolean  @default(false)
-  status    String   @default("open")
+  isRead Boolean @default(false)
+  status String  @default("open")
 
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([isRead])
   @@index([status])
-
   @@map("VisitorChat")
 }

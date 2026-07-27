@@ -1,0 +1,114 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO HOROSCOPE ENGINE
+//
+// HOROSCOPE EXPERIENCE TYPES
+//
+// Prediction JSON
+//        ↓
+// Premium Experience JSON
+//////////////////////////////////////////////////////////////
+
+
+import type {
+
+  PredictionCategory,
+
+} from "../types";
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// EXPERIENCE INFLUENCE
+//////////////////////////////////////////////////////////////
+
+export interface ExperienceInfluence {
+
+
+  name:string;
+
+
+  score:number;
+
+
+  reason:string;
+
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// EXPERIENCE SECTION
+//////////////////////////////////////////////////////////////
+
+export interface HoroscopeExperienceSection {
+
+
+  title:string;
+
+
+  category:PredictionCategory;
+
+
+  score:number;
+
+
+  insight:string;
+
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// FINAL HOROSCOPE EXPERIENCE
+//////////////////////////////////////////////////////////////
+
+export interface HoroscopeExperience {
+
+
+  headline:string;
+
+
+  overview:string;
+
+
+
+  topInfluences:
+
+    ExperienceInfluence[];
+
+
+
+
+  sections:
+
+    HoroscopeExperienceSection[];
+
+
+
+
+  guidance:
+
+    string[];
+
+
+
+
+  narrative:
+
+    string;
+
+
+
+}

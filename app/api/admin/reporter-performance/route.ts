@@ -1,62 +1,101 @@
-import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic"
+import User from "@/app/models/User";
+import Article from "@/app/models/Article";
 
-export async function GET(){
+export const dynamic = "force-dynamic";
 
-try{
 
-const reporters = await prisma.user.findMany({
+export async function GET() {
 
-where:{ role:"reporter" },
+  try {
 
-include:{
-articles:{
-select:{
-views:true
-}
-}
-}
 
-})
+    const reporters = await User.find({
+      role: "reporter",
+    })
+    .select(
+      "name email"
+    );
 
-const data = reporters.map(r=>{
 
-const totalViews = r.articles.reduce(
-(sum,a)=>sum + (a.views || 0),0
-)
 
-return{
+    const data = await Promise.all(
 
-id:r.id,
-name:r.name,
-email:r.email,
-articles:r.articles.length,
-views:totalViews,
+      reporters.map(async (r) => {
 
-avgViews: r.articles.length
-? Math.round(totalViews / r.articles.length)
-:0
 
-}
+        const articles = await Article.find({
+          authorId: r._id,
+        })
+        .select("views");
 
-})
 
-return NextResponse.json({
-success:true,
-reporters:data
-})
 
-}catch(error){
+        const totalViews = articles.reduce(
+          (sum, a) =>
+            sum + (a.views || 0),
+          0
+        );
 
-console.error("Reporter performance API error:",error)
 
-return NextResponse.json(
-{ error:"Failed to load reporter performance" },
-{ status:500 }
-)
 
-}
+        return {
+
+          id: r._id.toString(),
+
+          name: r.name,
+
+          email: r.email,
+
+          articles: articles.length,
+
+          views: totalViews,
+
+          avgViews: articles.length
+            ? Math.round(
+                totalViews / articles.length
+              )
+            : 0,
+
+        };
+
+
+      })
+
+    );
+
+
+
+    return NextResponse.json({
+
+      success: true,
+
+      reporters: data,
+
+    });
+
+
+
+  } catch (error) {
+
+
+    console.error(
+      "Reporter performance API error:",
+      error
+    );
+
+
+    return NextResponse.json(
+      {
+        error:
+          "Failed to load reporter performance",
+      },
+      {
+        status: 500,
+      }
+    );
+
+  }
 
 }

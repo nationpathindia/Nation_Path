@@ -2,82 +2,240 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { PostStatus } from "@prisma/client";
 
-/* IMPORTANT: prevents build-time execution */
 export const dynamic = "force-dynamic";
+
 
 export async function GET() {
 
   try {
 
+
+    const newsFilter = {
+
+      isDeleted: false,
+
+      isAstrology: false,
+
+    };
+
+
+
     const [
-      total,
-      pending,
-      approved,
-      rejected,
-      draft,
-      featured,
-      breaking,
-      editorial
+      totalArticles,
+      pendingArticles,
+      approvedArticles,
+      rejectedArticles,
+      draftArticles,
+      featuredArticles,
+      breakingArticles,
+      editorialArticles,
+      liveArticles,
+      totalViews
     ] = await Promise.all([
 
-      prisma.article.count(),
 
+      // TOTAL NEWS
       prisma.article.count({
-        where: { status: PostStatus.pending }
+        where: newsFilter
       }),
 
+
+
+      // PENDING
       prisma.article.count({
-        where: { status: PostStatus.approved }
+
+        where:{
+          ...newsFilter,
+          status:PostStatus.pending
+        }
+
       }),
 
+
+
+      // APPROVED
       prisma.article.count({
-        where: { status: PostStatus.rejected }
+
+        where:{
+          ...newsFilter,
+          status:PostStatus.approved
+        }
+
       }),
 
+
+
+      // REJECTED
       prisma.article.count({
-        where: { status: PostStatus.draft }
+
+        where:{
+          ...newsFilter,
+          status:PostStatus.rejected
+        }
+
       }),
 
+
+
+      // DRAFT
       prisma.article.count({
-        where: { featured: true }
+
+        where:{
+          ...newsFilter,
+          status:PostStatus.draft
+        }
+
       }),
 
+
+
+      // FEATURED
       prisma.article.count({
-        where: { breaking: true }
+
+        where:{
+          ...newsFilter,
+          featured:true
+        }
+
       }),
 
+
+
+      // BREAKING
       prisma.article.count({
-        where: { isEditorial: true }
+
+        where:{
+          ...newsFilter,
+          breaking:true
+        }
+
       }),
+
+
+
+      // EDITORIAL
+      prisma.article.count({
+
+        where:{
+          ...newsFilter,
+          isEditorial:true
+        }
+
+      }),
+
+
+
+      // LIVE NEWS
+      prisma.article.count({
+
+        where:{
+          ...newsFilter,
+          isLive:true
+        }
+
+      }),
+
+
+
+      // TOTAL VIEWS
+      prisma.article.aggregate({
+
+        where:newsFilter,
+
+        _sum:{
+          views:true
+        }
+
+      })
+
+
 
     ]);
 
+
+
+
     return NextResponse.json({
-      success: true,
-      stats: {
-        total,
-        pending,
-        approved,
-        rejected,
-        draft,
-        featured,
-        breaking,
-        editorial
+
+      success:true,
+
+
+      stats:{
+
+
+        // MAIN
+
+        totalArticles,
+
+
+        pendingArticles,
+
+
+        approvedArticles,
+
+
+        rejectedArticles,
+
+
+        draftArticles,
+
+
+
+        // CONTENT TYPES
+
+        editorialArticles,
+
+
+        featuredArticles,
+
+
+        breakingArticles,
+
+
+        liveArticles,
+
+
+
+        // ANALYTICS
+
+        totalViews:
+          totalViews._sum.views ?? 0,
+
+
       }
+
+
     });
 
-  } catch (error) {
 
-    console.error("ARTICLE STATS ERROR:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch article stats"
-      },
-      { status: 500 }
+  } catch(error){
+
+
+    console.error(
+      "ARTICLE STATS ERROR:",
+      error
     );
 
+
+    return NextResponse.json(
+
+      {
+
+        success:false,
+
+        error:"Failed to fetch article stats",
+
+      },
+
+      {
+        status:500
+      }
+
+    );
+
+
   }
+
 
 }

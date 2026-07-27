@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+
 /* =========================
    SLUG GENERATOR
 ========================= */
@@ -15,130 +16,305 @@ function generateSlug(name: string) {
     .replace(/\s+/g, "-");
 }
 
+
+
 /* =========================
    GET ACTIVE CATEGORIES
 ========================= */
 
 export async function GET() {
+
   try {
 
     const categories = await prisma.category.findMany({
+
       where: {
         status: "active",
       },
-      orderBy: {
-        name: "asc",
-      },
+
+      orderBy: [
+        {
+          priority: "desc",
+        },
+        {
+          name: "asc",
+        },
+      ],
+
+
       select: {
+
         id: true,
+
         name: true,
+
         slug: true,
+
+        description: true,
+
+        intelligenceLabel: true,
+
+        color: true,
+
         status: true,
-        createdAt: true
+
+        priority: true,
+
+        seoTitle: true,
+
+        seoDescription: true,
+
+        createdAt: true,
+
       }
+
     });
 
+
     return NextResponse.json({
+
       success: true,
-      categories
+
+      categories,
+
     });
+
 
   } catch (error) {
 
-    console.error("CATEGORY GET ERROR:", error);
+
+    console.error(
+      "CATEGORY GET ERROR:",
+      error
+    );
+
 
     return NextResponse.json(
+
       {
-        success: false,
-        error: "Failed to fetch categories"
+        success:false,
+        error:"Failed to fetch categories"
       },
-      { status: 500 }
+
+      {
+        status:500
+      }
+
     );
 
   }
+
 }
+
+
+
 
 /* =========================
    CREATE CATEGORY
 ========================= */
 
-export async function POST(req: Request) {
+export async function POST(
+  req:Request
+) {
+
 
   try {
 
-    let body;
 
-    try {
-      body = await req.json();
-    } catch {
+    const body = await req.json();
+
+
+
+    const name =
+      body?.name?.trim();
+
+
+
+    if(!name){
+
+
       return NextResponse.json(
-        { success: false, error: "Invalid request body" },
-        { status: 400 }
+
+        {
+          success:false,
+          error:"Category name required"
+        },
+
+        {
+          status:400
+        }
+
       );
+
     }
 
-    const name = body?.name?.trim();
 
-    if (!name) {
+
+
+    const slug =
+      generateSlug(name);
+
+
+
+
+
+    const existing =
+      await prisma.category.findUnique({
+
+        where:{
+          slug
+        }
+
+      });
+
+
+
+
+
+    if(existing){
+
+
       return NextResponse.json(
-        { success: false, error: "Category name required" },
-        { status: 400 }
+
+        {
+          success:false,
+          error:"Category already exists"
+        },
+
+        {
+          status:409
+        }
+
       );
+
     }
 
-    const slug = generateSlug(name);
 
-    /* =========================
-       CHECK EXISTING CATEGORY
-    ========================= */
 
-    const existing = await prisma.category.findUnique({
-      where: { slug },
-    });
 
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: "Category already exists" },
-        { status: 409 }
-      );
-    }
 
-    /* =========================
-       CREATE CATEGORY
-    ========================= */
+    const category =
+      await prisma.category.create({
 
-    const newCategory = await prisma.category.create({
-      data: {
-        name,
-        slug,
-        status: "active",
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        status: true,
-        createdAt: true
-      }
-    });
+
+        data:{
+
+
+          name,
+
+
+          slug,
+
+
+          description:
+            body.description || null,
+
+
+
+          intelligenceLabel:
+            body.intelligenceLabel || null,
+
+
+
+          color:
+            body.color || null,
+
+
+
+          priority:
+            Number(body.priority) || 0,
+
+
+
+          seoTitle:
+            body.seoTitle || null,
+
+
+
+          seoDescription:
+            body.seoDescription || null,
+
+
+
+          status:
+            body.status || "active",
+
+
+        },
+
+
+        select:{
+
+
+          id:true,
+
+          name:true,
+
+          slug:true,
+
+          description:true,
+
+          intelligenceLabel:true,
+
+          color:true,
+
+          priority:true,
+
+          status:true,
+
+          seoTitle:true,
+
+          seoDescription:true,
+
+          createdAt:true,
+
+
+        }
+
+
+      });
+
+
+
+
 
     return NextResponse.json({
-      success: true,
-      category: newCategory
+
+      success:true,
+
+      category,
+
     });
 
-  } catch (error) {
 
-    console.error("CATEGORY CREATE ERROR:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to create category"
-      },
-      { status: 500 }
+
+  } catch(error){
+
+
+
+    console.error(
+      "CATEGORY CREATE ERROR:",
+      error
     );
 
+
+
+    return NextResponse.json(
+
+      {
+        success:false,
+        error:"Failed to create category"
+      },
+
+      {
+        status:500
+      }
+
+    );
+
+
   }
+
 
 }

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+
+import User from "@/app/models/User";
 import { signToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-
   try {
 
     /* ================= SAFE BODY PARSE ================= */
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
 
     const { email, password } = body;
 
+
     /* ================= VALIDATION ================= */
 
     if (!email || !password) {
@@ -33,20 +34,16 @@ export async function POST(req: Request) {
       );
     }
 
+
     const normalizedEmail = email.toLowerCase().trim();
+
 
     /* ================= FIND USER ================= */
 
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: {
-        id: true,
-        email: true,
-        password: true,
-        role: true,
-        isActive: true
-      }
+    const user = await User.findOne({
+      email: normalizedEmail,
     });
+
 
     if (!user) {
       return NextResponse.json(
@@ -55,9 +52,14 @@ export async function POST(req: Request) {
       );
     }
 
+
     /* ================= PASSWORD CHECK ================= */
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(
+      password,
+      user.password
+    );
+
 
     if (!match) {
       return NextResponse.json(
@@ -66,32 +68,36 @@ export async function POST(req: Request) {
       );
     }
 
+
     /* ================= ACCOUNT STATUS ================= */
 
-    if (!user.isActive) {
+    if (user.status === "blocked") {
       return NextResponse.json(
         { success: false, error: "Account blocked" },
         { status: 403 }
       );
     }
 
+
     /* ================= CREATE TOKEN ================= */
 
     const token = signToken({
-      id: user.id,
-      role: user.role
+      id: user._id.toString(),
+      role: user.role,
     });
+
 
     /* ================= RESPONSE ================= */
 
     const response = NextResponse.json({
       success: true,
       user: {
-        id: user.id,
+        id: user._id.toString(),
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
+
 
     /* ================= COOKIE ================= */
 
@@ -100,20 +106,26 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
 
+
     return response;
+
 
   } catch (error) {
 
     console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
-      { success: false, error: "Server error" },
-      { status: 500 }
+      {
+        success: false,
+        error: "Server error",
+      },
+      {
+        status: 500,
+      }
     );
 
   }
-
 }

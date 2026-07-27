@@ -3,7 +3,7 @@ import nextDynamic from "next/dynamic";
 import { useState } from "react";
 import imageCompression from "browser-image-compression";
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+
 const ReactQuill = nextDynamic(() => import("react-quill"), {
   ssr: false,
 });

@@ -1,0 +1,192 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTROLOGY TYPES
+//////////////////////////////////////////////////////////////
+
+import type { ZodiacSign } from "./constants";
+
+//////////////////////////////////////////////////////////////
+// COMMON
+//////////////////////////////////////////////////////////////
+
+export type AstroLanguage =
+  | "english"
+  | "hindi"
+  | "marathi"
+  | "tamil"
+  | "telugu"
+  | "nepali";
+
+//////////////////////////////////////////////////////////////
+// PANCHANG
+//////////////////////////////////////////////////////////////
+
+export interface Panchang {
+  date: string;
+
+  tithi: string;
+  nakshatra: string;
+  yoga: string;
+  karana: string;
+
+  sunrise: string;
+  sunset: string;
+
+  moonrise: string;
+  moonset: string;
+
+  rahuKaal: string;
+  abhijitMuhurat: string;
+  amritKaal: string;
+}
+
+//////////////////////////////////////////////////////////////
+// MOON TRANSIT
+//////////////////////////////////////////////////////////////
+
+export interface MoonTransit {
+  moonSign: ZodiacSign;
+
+  moonPhase: string;
+
+  currentTransit: string;
+
+  planetInfluence: string;
+}
+
+//////////////////////////////////////////////////////////////
+// COMPATIBILITY
+//////////////////////////////////////////////////////////////
+
+export interface CompatibilityResult {
+  compatibleSigns: ZodiacSign[];
+
+  avoidSigns: ZodiacSign[];
+
+  score: number;
+}
+
+//////////////////////////////////////////////////////////////
+// ASTROLOGY CONTEXT
+//////////////////////////////////////////////////////////////
+
+export interface AstrologyContext {
+  zodiacSign: ZodiacSign;
+
+  horoscopeDate: Date;
+
+  panchang: Panchang;
+
+  moon: MoonTransit;
+
+  compatibility: CompatibilityResult;
+}
+
+//////////////////////////////////////////////////////////////
+// IMAGE PROMPT
+//////////////////////////////////////////////////////////////
+
+export interface HoroscopeImagePrompt {
+  title: string;
+
+  prompt: string;
+
+  negativePrompt?: string;
+
+  width: number;
+
+  height: number;
+}
+
+//////////////////////////////////////////////////////////////
+// LUCK
+//////////////////////////////////////////////////////////////
+
+export interface LuckyDetails {
+  luckyColor: string;
+
+  luckyNumber: string;
+
+  luckyTime: string;
+
+  luckyDirection: string;
+
+  luckyGemstone: string;
+
+  luckyFlower: string;
+
+  luckyPlant: string;
+
+  luckyFood: string;
+
+  luckyMetal: string;
+
+  luckyMantra: string;
+}
+
+//////////////////////////////////////////////////////////////
+// SCORES
+//////////////////////////////////////////////////////////////
+
+export interface HoroscopeScores {
+  love: number;
+
+  career: number;
+
+  finance: number;
+
+  health: number;
+
+  travel: number;
+
+  family: number;
+
+  wealth: number;
+
+  peace: number;
+
+  compatibility: number;
+
+  overall: number;
+}
+
+//////////////////////////////////////////////////////////////
+// CORE ASTRO DATA
+//////////////////////////////////////////////////////////////
+
+export interface AstrologyFacts {
+  zodiacSign: ZodiacSign;
+
+  zodiacDateRange: string;
+
+  moonSign: ZodiacSign;
+
+  moonPhase: string;
+
+  planetInfluence: string;
+
+  currentTransit: string;
+}
+
+//////////////////////////////////////////////////////////////
+// ENGINE REQUEST
+//////////////////////////////////////////////////////////////
+
+export interface AstrologyRequest {
+  zodiacSign: ZodiacSign;
+
+  horoscopeDate?: Date;
+
+  language?: AstroLanguage;
+}
+
+//////////////////////////////////////////////////////////////
+// ENGINE RESPONSE
+//////////////////////////////////////////////////////////////
+
+export interface AstrologyResponse {
+  success: boolean;
+
+  context?: AstrologyContext;
+
+  error?: string;
+}

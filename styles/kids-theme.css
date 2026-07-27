@@ -1,0 +1,61 @@
+/*
+====================================================
+ NATIONPATH KIDS THEME
+ Learning Universe
+====================================================
+*/
+
+
+.kids-theme {
+
+
+--kids-primary:#2563EB;      /* Explorer Blue */
+
+--kids-secondary:#F59E0B;    /* Energy Yellow */
+
+--kids-sky:#38BDF8;           /* Sky */
+
+--kids-yellow:#FBBF24;        /* Creativity */
+
+--kids-purple:#A855F7;        /* Imagination */
+
+--kids-pink:#EC4899;          /* Fun */
+
+--kids-green:#22C55E;         /* Growth */
+
+
+
+--kids-background:
+
+linear-gradient(
+135deg,
+#EFF6FF 0%,
+#FFFFFF 45%,
+#FEF3C7 75%,
+#F3E8FF 100%
+);
+
+
+
+--kids-heading:#172554;
+
+--kids-text:#334155;
+
+--kids-muted:#64748B;
+
+
+
+--kids-border:
+
+rgba(37,99,235,.18);
+
+
+
+--kids-shadow:
+
+0 30px 90px
+rgba(37,99,235,.15);
+
+
+
+}

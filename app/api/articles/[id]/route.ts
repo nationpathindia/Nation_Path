@@ -43,14 +43,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-
     if (!params?.id) {
       return NextResponse.json({ success: false }, { status: 400 });
     }
 
     const article = await prisma.article.findUnique({
       where: { id: params.id },
-      include: { category: true },
+      include: {
+        category: true,
+        author: true,
+        comments: true,
+      },
     });
 
     if (!article) {
@@ -61,16 +64,10 @@ export async function GET(
       success: true,
       article,
     });
-
   } catch (error) {
-
     console.error("GET ARTICLE ERROR:", error);
 
-    return NextResponse.json(
-      { success: false },
-      { status: 500 }
-    );
-
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
 
@@ -81,7 +78,6 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-
     const body = await req.json();
 
     const existing = await prisma.article.findUnique({
@@ -96,7 +92,7 @@ export async function PATCH(
 
     if (
       body.status &&
-      Object.values(PostStatus).includes(body.status)
+      Object.values(PostStatus).includes(body.status as PostStatus)
     ) {
       status = body.status;
     }
@@ -116,16 +112,10 @@ export async function PATCH(
       success: true,
       article: updated,
     });
-
   } catch (error) {
-
     console.error("PATCH ERROR:", error);
 
-    return NextResponse.json(
-      { success: false },
-      { status: 500 }
-    );
-
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
 
@@ -136,7 +126,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-
     const body = await req.json();
 
     const existing = await prisma.article.findUnique({
@@ -147,56 +136,52 @@ export async function PUT(
       return NextResponse.json({ success: false }, { status: 404 });
     }
 
+    /* ---------- clean images ---------- */
     const cleanImages = Array.isArray(body.images)
       ? body.images.filter(
-          (img: any) =>
-            typeof img === "string" && img.trim()
+          (img: any) => typeof img === "string" && img.trim()
         )
       : existing.images;
 
-    const cleanContent = stripHtml(
-      body.content || existing.content
-    );
+    /* ---------- clean content ---------- */
+    const cleanContent = stripHtml(body.content ?? existing.content);
 
-    const slug =
-      body.title && body.title !== existing.title
-        ? await generateUniqueSlug(body.title, params.id)
-        : existing.slug;
+    /* ---------- slug ---------- */
+    const shouldUpdateSlug =
+      body.title?.trim() &&
+      body.title.trim() !== existing.title;
 
+    const slug = shouldUpdateSlug
+      ? await generateUniqueSlug(body.title, params.id)
+      : existing.slug;
+
+    /* ---------- date ---------- */
     let horoscopeDate = existing.horoscopeDate;
 
-    if (body.horoscopeDate) {
+    if (
+      body.horoscopeDate &&
+      !isNaN(Date.parse(body.horoscopeDate))
+    ) {
       horoscopeDate = new Date(body.horoscopeDate);
     }
 
+    /* ---------- update ---------- */
     const updated = await prisma.article.update({
       where: { id: params.id },
-
       data: {
-        title: body.title || existing.title,
-
+        title: body.title ?? existing.title,
         slug,
-
-        content: body.content || existing.content,
-
+        content: body.content ?? existing.content,
         excerpt: body.excerpt ?? existing.excerpt,
-
         images: cleanImages,
-
         videoUrl: body.videoUrl ?? existing.videoUrl,
-
         breaking: body.breaking ?? existing.breaking,
-
         featured: body.featured ?? existing.featured,
-
         status: body.status ?? existing.status,
-
         isEditorial: body.isEditorial ?? existing.isEditorial,
-
         isAstrology: body.isAstrology ?? existing.isAstrology,
 
         zodiacSign: body.zodiacSign ?? existing.zodiacSign,
-
         horoscopeDate,
 
         categoryId:
@@ -205,16 +190,16 @@ export async function PUT(
             : body.categoryId ?? existing.categoryId,
 
         metaTitle:
-          body.metaTitle ||
-          body.title ||
+          body.metaTitle ??
+          body.title ??
           existing.title,
 
         metaDescription:
-          body.metaDescription ||
+          body.metaDescription ??
           cleanContent.substring(0, 160),
 
         metaKeywords:
-          body.metaKeywords ||
+          body.metaKeywords ??
           (body.title || existing.title)
             .toLowerCase()
             .split(" ")
@@ -227,9 +212,7 @@ export async function PUT(
       success: true,
       article: updated,
     });
-
   } catch (error: any) {
-
     console.error("UPDATE ERROR:", error);
 
     return NextResponse.json(
@@ -239,7 +222,6 @@ export async function PUT(
       },
       { status: 500 }
     );
-
   }
 }
 
@@ -250,23 +232,26 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-
+    // 🔥 OPTION 1: HARD DELETE (current)
     await prisma.article.delete({
       where: { id: params.id },
     });
 
+    // 🔥 OPTION 2 (recommended): SOFT DELETE
+    // await prisma.article.update({
+    //   where: { id: params.id },
+    //   data: { status: "deleted" as PostStatus },
+    // });
+
     return NextResponse.json({
       success: true,
     });
-
   } catch (error) {
-
     console.error("DELETE ERROR:", error);
 
     return NextResponse.json(
       { success: false },
       { status: 500 }
     );
-
   }
 }

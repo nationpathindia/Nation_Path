@@ -1,92 +1,492 @@
+@import "../styles/kids-theme.css";
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
+
+/*
+====================================================
+ GLOBAL FOUNDATION
+ NationPath Platform Core
+====================================================
+*/
+
+
 html {
-  scroll-behavior: smooth;
+
+  scroll-behavior:smooth;
+
 }
+
+
 
 body {
-  margin: 0;
-  padding: 0;
+
+  margin:0;
+
+  padding:0;
+
+  background:#ffffff;
+
+  color:#111111;
+
+  -webkit-font-smoothing:antialiased;
+
+  -moz-osx-font-smoothing:grayscale;
+
 }
 
-/* Serif headlines */
-h1, h2, h3 {
-  font-family: var(--font-heading);
-}
 
-/* Thin professional borders */
-.section-border {
-  border-top: 1px solid #e5e7eb;
-}
-@keyframes marquee {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
 
-.animate-marquee {
-  display: inline-block;
-  animation: marquee 25s linear infinite;
-}
+
+
+/*
+====================================================
+ GLOBAL TOKENS
+ Neutral Platform Foundation
+====================================================
+*/
+
+
 :root {
-  --brand-navy: #0f172a;        /* deep navy */
-  --brand-navy-light: #1e3a8a;  /* hover navy */
-}
-footer ul li a {
-  transition: 0.2s ease;
+
+
+  --text-primary:#111111;
+
+  --text-secondary:#666666;
+
+
+  --surface:#ffffff;
+
+
+  --border:#e5e7eb;
+
+
+
+  --container-width:1280px;
+
+
 }
 
-footer ul li a:hover {
-  color: white;
-}
-body {
-  background-color: #ffffff;
-  background-image: url('/texture.png'); /* your uploaded texture */
-  background-size: cover;
-  background-repeat: repeat;
-  background-blend-mode: multiply;
+
+
+
+
+/*
+====================================================
+ PLATFORM THEME SYSTEM
+====================================================
+*/
+
+
+.news-theme,
+.astro-theme,
+.kids-theme {
+
+
+  position:relative;
+
+
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.96);
-  pointer-events: none;
-  z-index: -1;
+
+
+
+
+
+
+/*
+====================================================
+ TYPOGRAPHY
+====================================================
+*/
+
+
+.heading-font {
+
+
+  font-family:
+  var(--font-heading);
+
+
 }
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+
+
+
+.body-font {
+
+
+  font-family:
+  var(--font-body);
+
+
 }
+
+
+
+
+
+
+
+/*
+====================================================
+ COMMON UTILITIES
+====================================================
+*/
+
+
+.section-border {
+
+
+  border-top:
+  1px solid var(--border);
+
+
+}
+
+
+
+
+
+.surface-card {
+
+
+  background:
+  var(--surface);
+
+
+  border:
+  1px solid var(--border);
+
+
+}
+
+
+
+
+
+
+
+/*
+====================================================
+ GLASS EFFECT
+====================================================
+*/
+
+
+.glass {
+
+
+  background:
+  rgba(255,255,255,.65);
+
+
+  backdrop-filter:
+  blur(18px);
+
+
+  -webkit-backdrop-filter:
+  blur(18px);
+
+
+}
+
+
+
+
+
+
+
+/*
+====================================================
+ ANIMATION HELPERS
+====================================================
+*/
+
 
 .fade-in {
-  animation: fadeInUp 0.8s ease-out both;
-}
-.ticker{
-display:flex;
-animation:tickerMove 30s linear infinite;
+
+
+  animation:
+  fadeInUp .8s ease-out both;
+
+
 }
 
-.ticker:hover{
-animation-play-state:paused;
+
+
+
+
+
+.animate-marquee {
+
+
+  display:inline-block;
+
+
+  animation:
+  marquee 25s linear infinite;
+
+
 }
 
-@keyframes tickerMove{
 
-0%{
-transform:translateX(0);
+
+
+
+.ticker {
+
+
+  display:flex;
+
+
+  animation:
+  tickerMove 30s linear infinite;
+
+
 }
 
-100%{
-transform:translateX(-50%);
+
+
+.ticker:hover {
+
+
+  animation-play-state:
+  paused;
+
+
 }
+
+
+
+
+
+
+
+/*
+====================================================
+ ANIMATIONS
+====================================================
+*/
+
+
+@keyframes fadeInUp {
+
+
+from {
+
+
+opacity:0;
+
+
+transform:
+translateY(15px);
+
+
+}
+
+
+
+to {
+
+
+opacity:1;
+
+
+transform:
+translateY(0);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+@keyframes marquee {
+
+
+from {
+
+
+transform:
+translateX(100%);
+
+
+}
+
+
+
+to {
+
+
+transform:
+translateX(-100%);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+@keyframes tickerMove {
+
+
+from {
+
+
+transform:
+translateX(0);
+
+
+}
+
+
+
+to {
+
+
+transform:
+translateX(-50%);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+/*
+====================================================
+ FORM FOUNDATION
+====================================================
+*/
+
+
+.input {
+
+
+@apply
+
+w-full
+
+rounded-lg
+
+border
+
+border-gray-300
+
+p-3
+
+text-gray-900
+
+outline-none
+
+transition;
+
+
+}
+
+
+
+
+.input:focus {
+
+
+@apply
+
+border-blue-500
+
+ring-2
+
+ring-blue-100;
+
+
+}
+
+
+
+
+
+
+
+
+/*
+====================================================
+ RESPONSIVE CONTAINER
+====================================================
+*/
+
+
+.container-nationpath {
+
+
+width:100%;
+
+
+max-width:
+var(--container-width);
+
+
+margin-inline:auto;
+
+
+padding-inline:1rem;
+
+
+}
+
+
+
+
+@media(min-width:640px){
+
+
+.container-nationpath {
+
+
+padding-inline:2rem;
+
+
+}
+
+
+}
+
+
+
+
+
+@media(min-width:1024px){
+
+
+.container-nationpath {
+
+
+padding-inline:4rem;
+
+
+}
+
 
 }

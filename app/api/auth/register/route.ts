@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+
+import User from "@/app/models/User";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, email, password, role } = body;
+
+    const { name, email, password } = body;
+
 
     /* ================= VALIDATION ================= */
 
@@ -31,12 +34,14 @@ export async function POST(req: Request) {
       );
     }
 
+
     if (!email?.trim()) {
       return NextResponse.json(
         { success: false, error: "Email is required" },
         { status: 400 }
       );
     }
+
 
     if (!password || password.length < 6) {
       return NextResponse.json(
@@ -45,13 +50,16 @@ export async function POST(req: Request) {
       );
     }
 
+
     const normalizedEmail = email.toLowerCase().trim();
+
 
     /* ================= CHECK EXISTING USER ================= */
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
     });
+
 
     if (existingUser) {
       return NextResponse.json(
@@ -60,41 +68,37 @@ export async function POST(req: Request) {
       );
     }
 
+
     /* ================= HASH PASSWORD ================= */
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    /* ================= ROLE SAFETY ================= */
-
-    const allowedRoles = ["admin", "editor", "reporter"];
-    const safeRole = allowedRoles.includes(role) ? role : "admin";
 
     /* ================= CREATE USER ================= */
 
-    const user = await prisma.user.create({
-      data: {
-        name: name.trim(),
-        email: normalizedEmail,
-        password: hashedPassword,
-        role: safeRole,
-        isActive: true
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true
-      }
+    const user = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+      role: "user",
+      status: "active",
     });
+
 
     /* ================= RESPONSE ================= */
 
     return NextResponse.json({
       success: true,
       message: "User registered successfully",
-      user
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
     });
+
 
   } catch (error) {
 
@@ -103,9 +107,11 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: "Registration failed"
+        error: "Registration failed",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
 
   }

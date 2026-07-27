@@ -1,0 +1,14 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH ASTRO ENGINE
+// Pada Foundation
+//////////////////////////////////////////////////////////////
+
+import type { PadaResult } from "./types";
+
+export function calculatePada(): PadaResult {
+
+  return {
+    house: 0,
+  };
+
+}

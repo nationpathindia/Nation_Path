@@ -48,13 +48,16 @@ import {
 //////////////////////////////////////////////////////////////
 // TYPES
 //////////////////////////////////////////////////////////////
-
 export type HoroscopePeriod =
+
   | "daily"
+
   | "weekly"
-  | "monthly";
 
+  | "monthly"
 
+  | "yearly";
+  
 
 export type HoroscopeLanguage =
   | "english"

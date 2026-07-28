@@ -3,21 +3,24 @@
 //
 // CMS FIRST HOROSCOPE DELIVERY
 //
+// Supports:
+//
+// Daily Horoscope
+// Weekly Horoscope
+// Monthly Horoscope
+// Yearly Horoscope
+//
 // Flow:
 //
 // UI
 //   ↓
-// useHoroscope()
-//   ↓
 // /api/astro/horoscope/cms
 //   ↓
-// Horoscope CMS Mongo
+// Horoscope Content Service
 //   ↓
-// Editorial Layer
+// MongoDB Horoscope CMS
 //   ↓
-// Experience Layer
-//   ↓
-// Premium UI
+// Premium Experience UI
 //
 // LOCKED:
 //
@@ -25,23 +28,34 @@
 // ✅ No Swiss Ephemeris
 // ✅ No Engine dependency
 // ✅ No Prediction modification
+// ✅ No AI generation
 //
 // Purpose:
-// Pure CMS content delivery
+//
+// Pure CMS Content Delivery
 //////////////////////////////////////////////////////////////
+
 
 import { z } from "zod";
 
 
 import {
+
   astroSuccess,
+
   astroError,
+
 } from "@/lib/astro/api/response";
 
 
+
 import {
-  getHoroscopeContent,
+
+  getHoroscopeByPeriod,
+
 } from "@/lib/services/horoscopeContentService";
+
+
 
 
 
@@ -61,49 +75,139 @@ export const dynamic = "force-dynamic";
 
 
 
+
+
 //////////////////////////////////////////////////////////////
 // REQUEST CONTRACT
 //////////////////////////////////////////////////////////////
 
 const RequestSchema = z.object({
 
-  zodiacSign:
-    z.string()
-      .trim()
-      .toLowerCase()
-      .min(1),
 
 
-  horoscopeDate:
-    z.coerce.date()
-      .optional(),
+zodiacSign:
 
 
-  language:
-    z.enum([
-      "english",
-      "hindi",
-      "marathi",
-      "tamil",
-      "telugu",
-      "nepali",
-    ])
-    .optional()
-    .default("english"),
+z.string()
+
+.trim()
+
+.toLowerCase()
+
+.min(1),
 
 
 
-  period:
-    z.enum([
-      "daily",
-      "weekly",
-      "monthly",
-    ])
-    .optional()
-    .default("daily"),
+
+
+
+horoscopeDate:
+
+
+z.coerce.date()
+
+.optional(),
+
+
+
+
+
+
+language:
+
+
+z.enum([
+
+
+"english",
+
+"hindi",
+
+"marathi",
+
+"tamil",
+
+"telugu",
+
+"nepali",
+
+
+])
+
+.optional()
+
+.default("english"),
+
+
+
+
+
+
+period:
+
+
+z.enum([
+
+
+"daily",
+
+"weekly",
+
+"monthly",
+
+"yearly",
+
+
+])
+
+.optional()
+
+.default("daily"),
+
+
 
 
 });
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// DATE FORMATTER
+//////////////////////////////////////////////////////////////
+
+function formatDate(
+
+date?:Date
+
+){
+
+
+if(!date){
+
+return new Date()
+
+.toISOString()
+
+.split("T")[0];
+
+}
+
+
+
+return date
+
+.toISOString()
+
+.split("T")[0];
+
+
+}
 
 
 
@@ -118,26 +222,35 @@ const RequestSchema = z.object({
 //////////////////////////////////////////////////////////////
 
 export async function POST(
+
 req:Request
+
 ){
 
 
-const startedAt =
-Date.now();
+
+const startedAt = Date.now();
 
 
 
-try{
+
+try {
 
 
 
-const body =
-await req.json();
+
+
+//////////////////////////////////////////////////////////////
+// REQUEST PARSE
+//////////////////////////////////////////////////////////////
+
+const body = await req.json();
 
 
 
 
 const validated =
+
 RequestSchema.parse(body);
 
 
@@ -145,22 +258,30 @@ RequestSchema.parse(body);
 
 
 
+
 console.log(
+
 "NATIONPATH HOROSCOPE CMS REQUEST",
+
 {
 
-zodiacSign:
+zodiac:
+
 validated.zodiacSign,
 
 
 period:
+
 validated.period,
 
 
 language:
+
 validated.language,
 
+
 }
+
 );
 
 
@@ -170,15 +291,28 @@ validated.language,
 
 
 
+
 //////////////////////////////////////////////////////////////
-// CMS FETCH
+// FETCH CMS CONTENT
 //////////////////////////////////////////////////////////////
 
 const content =
 
-await getHoroscopeContent(
+await getHoroscopeByPeriod(
 
-validated.zodiacSign
+
+validated.zodiacSign,
+
+
+validated.period,
+
+
+validated.horoscopeDate,
+
+
+validated.language
+
+
 
 );
 
@@ -191,70 +325,55 @@ validated.zodiacSign
 
 
 //////////////////////////////////////////////////////////////
-// CMS NOT FOUND
-//////////////////////////////////////////////////////////////
-
-if(!content){
-
-
-console.warn(
-
-"[HOROSCOPE_CMS_EMPTY]",
-
-validated.zodiacSign
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// RESPONSE CONTRACT
+// RESPONSE
 //////////////////////////////////////////////////////////////
 
 const response = {
 
 
+
+//////////////////////////////////////////////////////////////
+// REQUEST META
+//////////////////////////////////////////////////////////////
+
 zodiacSign:
 
 validated.zodiacSign,
 
 
 
+
+
 date:
 
-validated.horoscopeDate
-
-?
+formatDate(
 
 validated.horoscopeDate
-.toISOString()
-.split("T")[0]
 
-:
+),
 
-new Date()
-.toISOString()
-.split("T")[0],
 
 
 
 
 language:
 
+content?.meta?.language
+
+||
+
 validated.language,
 
 
 
+
+
+
 period:
+
+content?.meta?.period
+
+||
 
 validated.period,
 
@@ -264,15 +383,17 @@ validated.period,
 
 
 
+
+
 //////////////////////////////////////////////////////////////
-// COMPLETE CMS PAYLOAD
+// COMPLETE CMS
 //////////////////////////////////////////////////////////////
 
 cms:
 
-
 content
-??
+
+||
 
 null,
 
@@ -282,18 +403,17 @@ null,
 
 
 
+
+
 //////////////////////////////////////////////////////////////
-// EDITORIAL SHORTCUT
-//
-// Direct UI access
+// EDITORIAL
 //////////////////////////////////////////////////////////////
 
 editorial:
 
-
 content?.editorial
 
-??
+||
 
 null,
 
@@ -304,20 +424,16 @@ null,
 
 
 
+
 //////////////////////////////////////////////////////////////
-// EXPERIENCE SHORTCUT
-//
-// Premium components
+// PREMIUM EXPERIENCE
 //////////////////////////////////////////////////////////////
 
 experience:
 
 
-content?.hero
-||
-content?.insights
-||
-content?.remedy
+
+content
 
 ?
 
@@ -327,6 +443,18 @@ content?.remedy
 hero:
 
 content.hero,
+
+
+
+identity:
+
+content.identity,
+
+
+
+traits:
+
+content.traits,
 
 
 
@@ -365,7 +493,16 @@ cautions:
 content.vedic?.avoid,
 
 
+
+premium:
+
+content.premium,
+
+
+
 }
+
+
 
 :
 
@@ -379,36 +516,125 @@ null,
 
 
 
-
 //////////////////////////////////////////////////////////////
-// IDENTITY
+// HOROSCOPE SECTIONS
 //////////////////////////////////////////////////////////////
 
 identity:
 
 content?.identity
 
-??
+||
 
 null,
 
 
 
 
+traits:
+
+content?.traits
+
+||
+
+null,
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-// LIFE AREAS
-//////////////////////////////////////////////////////////////
 
 life:
 
 content?.life
 
-??
+||
+
+null,
+
+
+
+
+insights:
+
+content?.insights
+
+||
+
+null,
+
+
+
+
+planets:
+
+content?.planets
+
+||
+
+[],
+
+
+
+
+lucky:
+
+content?.lucky
+
+||
+
+null,
+
+
+
+
+remedy:
+
+content?.remedy
+
+||
+
+null,
+
+
+
+
+vedic:
+
+content?.vedic
+
+||
+
+null,
+
+
+
+
+compatibility:
+
+content?.compatibility
+
+||
+
+null,
+
+
+
+
+premium:
+
+content?.premium
+
+||
+
+null,
+
+
+
+
+seo:
+
+content?.seo
+
+||
 
 null,
 
@@ -419,15 +645,16 @@ null,
 
 
 
+
 //////////////////////////////////////////////////////////////
-// PLANETS
+// ZODIAC EXPLORER
 //////////////////////////////////////////////////////////////
 
-planets:
+zodiacList:
 
-content?.planets
+content?.zodiacList
 
-??
+||
 
 [],
 
@@ -438,89 +665,9 @@ content?.planets
 
 
 
-//////////////////////////////////////////////////////////////
-// LUCK
-//////////////////////////////////////////////////////////////
-
-lucky:
-
-content?.lucky
-
-??
-
-null,
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
-// REMEDY
-//////////////////////////////////////////////////////////////
-
-remedy:
-
-content?.remedy
-
-??
-
-null,
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PREMIUM
-//////////////////////////////////////////////////////////////
-
-premium:
-
-content?.premium
-
-??
-
-null,
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SEO
-//////////////////////////////////////////////////////////////
-
-seo:
-
-content?.seo
-
-??
-
-null,
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// ENGINE PLACEHOLDER
-//
-// Engine remains separate
+// ENGINE SEPARATION
 //////////////////////////////////////////////////////////////
 
 prediction:
@@ -534,6 +681,11 @@ null,
 
 
 
+
+//////////////////////////////////////////////////////////////
+// SYSTEM META
+//////////////////////////////////////////////////////////////
+
 meta:{
 
 
@@ -543,27 +695,43 @@ source:
 
 
 
+
+architecture:
+
+"cms-first",
+
+
+
+
 version:
 
-"2.0",
+"3.1",
+
 
 
 
 generatedAt:
 
 new Date()
+
 .toISOString(),
+
 
 
 
 responseTime:
 
 Date.now()
+
 -
+
 startedAt,
 
 
+
 }
+
+
 
 };
 
@@ -575,16 +743,21 @@ startedAt,
 
 
 
-
 console.log(
 
-"NATIONPATH CMS HOROSCOPE RESPONSE",
+"NATIONPATH HOROSCOPE CMS RESPONSE",
 
 {
+
 
 zodiac:
 
 response.zodiacSign,
+
+
+period:
+
+response.period,
 
 
 found:
@@ -602,10 +775,10 @@ hasExperience:
 !!response.experience,
 
 
+
 }
 
 );
-
 
 
 
@@ -620,6 +793,7 @@ response,
 
 {
 
+
 source:
 
 "cms",
@@ -627,7 +801,7 @@ source:
 
 version:
 
-"2.0",
+"3.1",
 
 
 }
@@ -636,11 +810,13 @@ version:
 
 
 
+
+
 }
 
-
-
 catch(error){
+
+
 
 
 
@@ -660,6 +836,7 @@ error
 if(error instanceof z.ZodError){
 
 
+
 return astroError(
 
 "VALIDATION_ERROR",
@@ -674,8 +851,6 @@ error.flatten()
 
 
 }
-
-
 
 
 

@@ -3,14 +3,24 @@
 //
 // SCHEDULE SECTION
 //
+// FINAL META CMS VERSION
+//
 // Responsibility:
-// Manage horoscope publishing schedule
+//
+// Manage horoscope timeline metadata
+//
+// Controls:
+//
+// - Start Date
+// - End Date
+// - Published At
+// - Scheduled At
 //
 // Does NOT:
-// - execute cron jobs
-// - generate horoscope content
+//
+// - execute cron
+// - publish automatically
 // - calculate astrology
-// - call API
 //////////////////////////////////////////////////////////////
 
 "use client";
@@ -24,23 +34,23 @@ import Input from "../components/Input";
 
 
 
-
-
 interface ScheduleSectionProps {
 
 
-  form:any;
+form:any;
 
 
-  updateSection:(
 
-    section:string,
+updateSection:(
 
-    key:string,
+section:string,
 
-    value:any
+key:string,
 
-  )=>void;
+value:any
+
+)=>void;
+
 
 
 }
@@ -55,23 +65,63 @@ interface ScheduleSectionProps {
 
 export default function ScheduleSection({
 
-  form,
+form,
 
-  updateSection,
+updateSection,
 
 }:ScheduleSectionProps){
 
 
 
+
+
+const meta = form.meta || {};
+
+
+
+
+
+
+
+const updateMeta = (
+
+key:string,
+
+value:any
+
+)=>{
+
+
+updateSection(
+
+"meta",
+
+key,
+
+value
+
+);
+
+
+};
+
+
+
+
+
+
+
+
 return (
+
 
 <SectionCard
 
-title="⏰ Publishing Automation"
+title="📅 Schedule Control"
 
-subtitle="Schedule horoscope visibility"
+subtitle="Manage horoscope publishing timeline"
 
-icon="⏰"
+icon="📅"
 
 >
 
@@ -79,82 +129,189 @@ icon="⏰"
 
 
 
+<div className="space-y-6">
 
+
+
+
+
+
+
+{/* DATE RANGE */}
+
+
+
+<div className="grid gap-4 md:grid-cols-2">
+
+
+
+<Input
+
+label="Content Start Date"
+
+type="datetime-local"
+
+value={meta.startDate || ""}
+
+onChange={(value)=>
+
+updateMeta(
+
+"startDate",
+
+value
+
+)
+
+}
+
+/>
+
+
+
+
+
+
+<Input
+
+label="Content End Date"
+
+type="datetime-local"
+
+value={meta.endDate || ""}
+
+onChange={(value)=>
+
+updateMeta(
+
+"endDate",
+
+value
+
+)
+
+}
+
+/>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* PUBLISHED AT */}
+
+
+
+<Input
+
+label="Published At"
+
+type="datetime-local"
+
+value={meta.publishedAt || ""}
+
+onChange={(value)=>
+
+updateMeta(
+
+"publishedAt",
+
+value
+
+)
+
+}
+
+/>
+
+
+
+
+
+
+
+
+
+{/* SCHEDULED AT */}
+
+
+
+<Input
+
+label="Scheduled Publish Time"
+
+type="datetime-local"
+
+value={meta.scheduledAt || ""}
+
+onChange={(value)=>
+
+updateMeta(
+
+"scheduledAt",
+
+value
+
+)
+
+}
+
+/>
+
+
+
+
+
+
+
+
+
+{/* INFORMATION */}
 
 
 
 <div
 
 className="
-flex
-items-center
-justify-between
 rounded-xl
 border
-border-white/10
-bg-black/20
+border-yellow-400/20
+bg-yellow-400/5
 p-4
+text-sm
+text-gray-300
 "
 
 >
 
 
-<div>
 
+<p className="font-semibold text-yellow-400">
 
-<p className="font-semibold">
-
-Enable Schedule
+CMS Scheduling Flow
 
 </p>
 
 
-<p className="text-sm text-gray-400">
 
-Future automated publishing control
+
+<p className="mt-2 leading-relaxed">
+
+Schedule metadata is stored inside horoscope CMS.
+Future automation services may consume this data.
 
 </p>
 
-
-</div>
-
-
-
-
-
-
-
-<input
-
-type="checkbox"
-
-checked={
-
-form.schedule?.enabled || false
-
-}
-
-onChange={(e)=>
-
-updateSection(
-
-"schedule",
-
-"enabled",
-
-e.target.checked
-
-)
-
-}
-
-className="
-h-5
-w-5
-accent-yellow-400
-"
-
-/>
 
 
 </div>
@@ -166,72 +323,14 @@ accent-yellow-400
 
 
 
-
-<Input
-
-label="Publish Date"
-
-type="datetime-local"
-
-value={form.schedule?.publishDate}
-
-onChange={(value)=>
-
-updateSection(
-
-"schedule",
-
-"publishDate",
-
-value
-
-)
-
-}
-
-/>
-
-
-
-
-
-
-
-
-
-<Input
-
-label="Expiry Date"
-
-type="datetime-local"
-
-value={form.schedule?.expiryDate}
-
-onChange={(value)=>
-
-updateSection(
-
-"schedule",
-
-"expiryDate",
-
-value
-
-)
-
-}
-
-/>
-
-
-
-
+</div>
 
 
 
 
 
 </SectionCard>
+
 
 );
 

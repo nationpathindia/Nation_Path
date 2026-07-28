@@ -5,7 +5,7 @@ import "./globals.css";
 
 import { cn } from "@/lib/utils";
 
-
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -349,7 +349,7 @@ export default function RootLayout({
         "
 
       >
-
+    <GoogleAnalytics />
 
 
         <Providers>

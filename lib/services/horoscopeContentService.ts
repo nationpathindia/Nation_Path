@@ -1,50 +1,51 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH HOROSCOPE CONTENT SERVICE
 //
-// CMS FIRST CONTENT FETCH LAYER
+// CMS FIRST CONTENT DELIVERY LAYER
+//
+// FINAL LOCKED META CMS ARCHITECTURE
 //
 // Responsibility:
 //
-// Fetch horoscope experience content
-// Fetch zodiac master explorer data
-//
-// Flow:
-//
-// Horoscope CMS Mongo
-//          ↓
+// Mongo Horoscope CMS
+//        ↓
 // Service Layer
-//          ↓
+//        ↓
 // Horoscope API
-//          ↓
+//        ↓
 // Premium Experience UI
-//
-// Zodiac Explorer:
-//
-// Zodiac Master Mongo
-//          ↓
-// zodiacList
-//          ↓
-// ZodiacExplorerPanel
 //
 // LOCKED:
 //
+// ✅ CMS ONLY
 // ✅ No Swiss Ephemeris
 // ✅ No Calculation
-// ✅ No Engine
+// ✅ No Prediction Engine
 // ✅ No AI Generation
+//
+// Supports:
+//
+// ✅ Daily
+// ✅ Weekly
+// ✅ Monthly
+// ✅ Yearly
+// ✅ Archive System
+// ✅ SEO History
+//
 //////////////////////////////////////////////////////////////
 
 
 import Horoscope from "@/app/models/Horoscope";
-
 import Zodiac from "@/app/models/Zodiac";
-
 
 import {
   connectMongoDB,
 } from "@/lib/mongodb";
 
-
+import type {
+  HoroscopeStatus,
+  HoroscopePeriod,
+} from "@/components/astro-new/horoscope-cms/types";
 
 
 
@@ -53,259 +54,150 @@ import {
 // TYPES
 //////////////////////////////////////////////////////////////
 
+export type HoroscopeLanguage =
+| "english"
+| "hindi"
+| "marathi"
+| "tamil"
+| "telugu"
+| "nepali";
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// RESPONSE TYPE
+//////////////////////////////////////////////////////////////
+
 export interface HoroscopeCMSResult {
 
 
-  hero?: {
 
-    badge?: string;
+meta?: {
 
-    title?: string;
 
-    subtitle?: string;
+period?: HoroscopePeriod;
 
-    description?: string;
 
-    image?: string;
+language?: HoroscopeLanguage;
 
-    cosmicLabel?: string;
 
-    theme?: string;
+status?: HoroscopeStatus;
 
-  };
 
 
+startDate?: Date;
 
 
-  identity?: {
+endDate?: Date;
 
-    rashi?: string;
 
-    sanskritName?: string;
 
-    dates?: string;
+publishedAt?: Date;
 
-    symbol?: string;
 
-    element?: string;
+scheduledAt?: Date;
 
-    nature?: string;
 
-    rulingPlanet?: string;
 
-    energy?: string;
+//////////////////////////////////////////////////////////////
+// ARCHIVE META
+//////////////////////////////////////////////////////////////
 
-    description?: string;
+archivedAt?: Date;
 
-  };
 
+slugDate?: string;
 
 
+contentVersion?: number;
 
 
-  editorial?: {
 
-    headline?: string;
 
-    overview?: string;
 
-    prediction?: string;
+version?: string;
 
-    quote?: string;
 
-  };
+priority?: number;
 
 
 
 
 
-  life?: {
+featured?: {
 
-    career?: string;
 
-    love?: string;
+homepage?: boolean;
 
-    finance?: string;
 
-    health?: string;
+trending?: boolean;
 
-  };
 
+seo?: boolean;
 
 
+};
 
 
-  insights?: {
 
-    planetaryInfluence?: string;
+};
 
-    energy?: string;
 
-    guidance?: string;
 
-    remedy?: string;
 
-    strengths?: string[];
 
-    challenges?: string[];
 
-  };
 
+hero?:any;
 
 
+identity?:any;
 
 
+traits?:any;
 
-  planets?: Array<{
 
-    planetKey?: string;
+editorial?:any;
 
-    name?: string;
 
-    title?: string;
+life?:any;
 
-    message?: string;
 
-    strength?: string;
+insights?:any;
 
-    icon?: string;
 
-    energyLevel?: string;
+planets?:any[];
 
-  }>;
 
+lucky?:any;
 
 
+remedy?:any;
 
 
+vedic?:any;
 
-  lucky?: {
 
-    number?: string;
+compatibility?:any;
 
-    color?: string;
 
-    direction?: string;
+premium?:any;
 
-    time?: string;
 
-    gemstone?: string;
+seo?:any;
 
-    metal?: string;
 
-  };
+media?:any;
 
 
 
-
-
-
-  remedy?: {
-
-    category?: string;
-
-    title?: string;
-
-    practice?: string;
-
-    guidance?: string;
-
-    reason?: string;
-
-  };
-
-
-
-
-
-
-  vedic?: {
-
-    favorable?: string[];
-
-    avoid?: string[];
-
-  };
-
-
-
-
-
-
-  compatibility?: {
-
-    title?: string;
-
-    description?: string;
-
-    link?: string;
-
-  };
-
-
-
-
-
-
-  premium?: {
-
-    title?: string;
-
-    description?: string;
-
-    features?: string[];
-
-  };
-
-
-
-
-
-
-
-  seo?: {
-
-    title?: string;
-
-    description?: string;
-
-    keywords?: string[];
-
-    ogImage?: string;
-
-    canonical?: string;
-
-  };
-
-
-
-
-
-
-
-  ////////////////////////////////////////////////////////////
-  // ZODIAC EXPLORER
-  ////////////////////////////////////////////////////////////
-
-  zodiacList?: Array<{
-
-    zodiac:string;
-
-    slug:string;
-
-    name?:string;
-
-    symbol?:string;
-
-    planet?:string;
-
-    element?:string;
-
-    energy?:string;
-
-    image?:string;
-
-  }>;
+zodiacList?:any[];
 
 
 
@@ -320,162 +212,11 @@ export interface HoroscopeCMSResult {
 
 
 //////////////////////////////////////////////////////////////
-// GET HOROSCOPE CMS CONTENT
+// ZODIAC ORDER
 //////////////////////////////////////////////////////////////
-
-export async function getHoroscopeContent(
-
-  zodiacSign:string
-
-):Promise<HoroscopeCMSResult|null>{
-
-
-
-try{
-
-
-
-//////////////////////////////////////////////////////////////
-// DATABASE CONNECTION
-//////////////////////////////////////////////////////////////
-
-await connectMongoDB();
-
-
-
-
-
-console.log(
-  "HOROSCOPE DB",
-  Horoscope.db.name
-);
-
-
-
-console.log(
-  "HOROSCOPE COLLECTION",
-  Horoscope.collection.name
-);
-
-
-
-console.log(
-  "ZODIAC COLLECTION",
-  Zodiac.collection.name
-);
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// NORMALIZE SIGN
-//////////////////////////////////////////////////////////////
-
-const slug =
-
-zodiacSign
-
-.trim()
-
-.toLowerCase();
-
-
-
-
-
-if(!slug){
-
-return null;
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// FETCH HOROSCOPE CONTENT
-//////////////////////////////////////////////////////////////
-
-const content = await Horoscope.findOne({
-
-slug: slug,
-
-status:"published",
-
-})
-.lean();
-
-
-
-
-
-if(!content){
-
-
-console.warn(
-
-"[HOROSCOPE_CMS_NOT_FOUND]",
-
-slug
-
-);
-
-
-return null;
-
-
-}
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// FETCH ZODIAC MASTER LIST
-//////////////////////////////////////////////////////////////
-const zodiacList = await Zodiac.find({
-
-status:"published",
-
-})
-
-.select({
-
-zodiac:1,
-
-slug:1,
-
-names:1,
-
-symbol:1,
-
-element:1,
-
-rulingPlanet:1,
-
-identity:1,
-
-media:1,
-
-})
-
-.lean();
-
-
 
 const zodiacOrder = [
+
 
 "aries",
 
@@ -501,7 +242,108 @@ const zodiacOrder = [
 
 "pisces",
 
+
 ];
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// DATE NORMALIZER
+//////////////////////////////////////////////////////////////
+
+function normalizeDate(
+
+date?:Date|string
+
+){
+
+
+
+if(!date){
+
+
+return new Date();
+
+
+}
+
+
+
+
+return new Date(date);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// ZODIAC EXPLORER
+//////////////////////////////////////////////////////////////
+
+async function getZodiacExplorer(){
+
+
+
+const zodiacList = await Zodiac.find({
+
+
+status:"published",
+
+
+})
+
+.select({
+
+
+zodiac:1,
+
+
+slug:1,
+
+
+names:1,
+
+
+symbol:1,
+
+
+element:1,
+
+
+rulingPlanet:1,
+
+
+identity:1,
+
+
+media:1,
+
+
+})
+
+.lean();
+
+
+
+
 
 
 
@@ -530,18 +372,22 @@ zodiacOrder.indexOf(b.zodiac)
 
 
 
-//////////////////////////////////////////////////////////////
-// MAP ZODIAC EXPLORER DATA
-//////////////////////////////////////////////////////////////
-const explorer = zodiacList.map(
+
+return zodiacList.map(
+
 
 (z:any)=>(
 
+
+
 {
+
 
 zodiac:z.zodiac,
 
+
 slug:z.slug,
+
 
 
 name:
@@ -551,6 +397,9 @@ z.names?.english
 ||
 
 z.zodiac,
+
+
+
 
 
 
@@ -572,6 +421,9 @@ z.identity?.symbol
 
 
 
+
+
+
 image:
 
 z.media?.icon
@@ -579,6 +431,9 @@ z.media?.icon
 ||
 
 "",
+
+
+
 
 
 
@@ -592,6 +447,9 @@ z.rulingPlanet
 
 
 
+
+
+
 element:
 
 z.element
@@ -599,6 +457,9 @@ z.element
 ||
 
 "",
+
+
+
 
 
 
@@ -611,23 +472,362 @@ z.identity?.energy
 "",
 
 
+
 }
 
+
+
 )
+
+
 
 );
 
 
+
+}
 //////////////////////////////////////////////////////////////
-// RESPONSE CONTRACT
+// CORE HOROSCOPE FETCH
 //////////////////////////////////////////////////////////////
 
+export async function getHoroscopeByPeriod(
+
+zodiacSign:string,
+
+period:HoroscopePeriod,
+
+date?:Date|string,
+
+language:HoroscopeLanguage="english"
+
+):Promise<HoroscopeCMSResult|null>{
+
+
+
+try{
+
+
+await connectMongoDB();
+
+
+
+
+
+const zodiac = zodiacSign
+
+.trim()
+
+.toLowerCase();
+
+
+
+
+
+
+const selectedDate = normalizeDate(date);
+
+
+
+
+
+
+
+console.log(
+
+"NATIONPATH HOROSCOPE CMS SEARCH",
+
+{
+
+zodiac,
+
+period,
+
+language,
+
+selectedDate
+
+}
+
+);
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CURRENT PUBLISHED CMS QUERY
+//////////////////////////////////////////////////////////////
+
+const content = await Horoscope.findOne({
+
+
+
+zodiac,
+
+
+
+"meta.period":
+
+period,
+
+
+
+
+"meta.language":
+
+language,
+
+
+
+
+
+"meta.status":
+
+"published",
+
+
+
+
+
+"meta.startDate":
+
+{
+
+$lte:selectedDate
+
+},
+
+
+
+
+
+"meta.endDate":
+
+{
+
+$gte:selectedDate
+
+},
+
+
+
+})
+
+.sort({
+
+"meta.priority":-1,
+
+
+"meta.publishedAt":-1,
+
+
+})
+
+.lean();
+
+
+
+
+
+
+
+
+
+console.log(
+
+"NATIONPATH HOROSCOPE CMS FOUND",
+
+content ? content.slug : null
+
+);
+
+
+
+
+
+
+
+
+
+if(!content){
+
+
+
+console.warn(
+
+"[HOROSCOPE_CONTENT_NOT_FOUND]",
+
+{
+
+zodiac,
+
+period,
+
+language,
+
+date:selectedDate
+
+}
+
+);
+
+
+
+return null;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+const zodiacList = await getZodiacExplorer();
+
+
+
+
+
+
+
+
+
 return {
+
+
+
+meta:{
+
+
+
+period:
+
+content.meta?.period,
+
+
+
+
+
+language:
+
+content.meta?.language,
+
+
+
+
+
+status:
+
+content.meta?.status,
+
+
+
+
+
+startDate:
+
+content.meta?.startDate,
+
+
+
+
+
+endDate:
+
+content.meta?.endDate,
+
+
+
+
+
+publishedAt:
+
+content.meta?.publishedAt,
+
+
+
+
+
+scheduledAt:
+
+content.meta?.scheduledAt,
+
+
+
+
+
+
+archivedAt:
+
+content.meta?.archivedAt,
+
+
+
+
+
+slugDate:
+
+content.meta?.slugDate,
+
+
+
+
+
+
+version:
+
+content.meta?.version,
+
+
+
+
+
+contentVersion:
+
+content.meta?.contentVersion,
+
+
+
+
+
+priority:
+
+content.meta?.priority,
+
+
+
+
+
+featured:
+
+content.meta?.featured,
+
+
+
+
+
+},
+
+
+
+
+
 
 
 hero:
 
 content.hero,
+
+
 
 
 
@@ -637,9 +837,21 @@ content.identity,
 
 
 
+
+
+traits:
+
+content.traits,
+
+
+
+
+
 editorial:
 
 content.editorial,
+
+
 
 
 
@@ -649,9 +861,13 @@ content.life,
 
 
 
+
+
 insights:
 
 content.insights,
+
+
 
 
 
@@ -661,9 +877,13 @@ content.planets,
 
 
 
+
+
 lucky:
 
 content.lucky,
+
+
 
 
 
@@ -673,9 +893,13 @@ content.remedy,
 
 
 
+
+
 vedic:
 
 content.vedic,
+
+
 
 
 
@@ -685,9 +909,13 @@ content.compatibility,
 
 
 
+
+
 premium:
 
 content.premium,
+
+
 
 
 
@@ -698,14 +926,23 @@ content.seo,
 
 
 
-zodiacList: explorer,
+
+media:
+
+content.media,
+
+
+
+
+
+
+zodiacList,
+
+
 
 
 
 };
-
-
-
 
 
 
@@ -730,7 +967,718 @@ error
 return null;
 
 
+
 }
+
+
+
+}
+//////////////////////////////////////////////////////////////
+// ARCHIVED HOROSCOPE FETCH
+//////////////////////////////////////////////////////////////
+
+export async function getArchivedHoroscope(
+
+zodiacSign:string,
+
+date:Date|string,
+
+period:HoroscopePeriod="daily",
+
+language:HoroscopeLanguage="english"
+
+):Promise<HoroscopeCMSResult|null>{
+
+
+
+try{
+
+
+await connectMongoDB();
+
+
+
+
+
+const zodiac = zodiacSign
+
+.trim()
+
+.toLowerCase();
+
+
+
+
+
+const selectedDate = normalizeDate(date);
+
+
+
+
+
+
+
+const content = await Horoscope.findOne({
+
+
+
+zodiac,
+
+
+
+"meta.period":
+
+period,
+
+
+
+
+
+"meta.language":
+
+language,
+
+
+
+
+
+"meta.status":
+
+"archived",
+
+
+
+
+
+"meta.startDate":
+
+{
+
+$lte:selectedDate
+
+},
+
+
+
+
+
+"meta.endDate":
+
+{
+
+$gte:selectedDate
+
+},
+
+
+
+})
+
+.sort({
+
+"meta.publishedAt":-1
+
+})
+
+.lean();
+
+
+
+
+
+
+
+
+if(!content){
+
+
+
+return null;
+
+
+
+}
+
+
+
+
+
+
+
+const zodiacList = await getZodiacExplorer();
+
+
+
+
+
+
+
+return {
+
+
+
+meta:{
+
+
+
+period:
+
+content.meta?.period,
+
+
+
+
+
+language:
+
+content.meta?.language,
+
+
+
+
+
+status:
+
+content.meta?.status,
+
+
+
+
+
+startDate:
+
+content.meta?.startDate,
+
+
+
+
+
+endDate:
+
+content.meta?.endDate,
+
+
+
+
+
+publishedAt:
+
+content.meta?.publishedAt,
+
+
+
+
+
+scheduledAt:
+
+content.meta?.scheduledAt,
+
+
+
+
+
+archivedAt:
+
+content.meta?.archivedAt,
+
+
+
+
+
+slugDate:
+
+content.meta?.slugDate,
+
+
+
+
+
+version:
+
+content.meta?.version,
+
+
+
+
+
+contentVersion:
+
+content.meta?.contentVersion,
+
+
+
+
+
+priority:
+
+content.meta?.priority,
+
+
+
+
+
+featured:
+
+content.meta?.featured,
+
+
+
+
+
+},
+
+
+
+
+
+hero:
+
+content.hero,
+
+
+
+
+
+identity:
+
+content.identity,
+
+
+
+
+
+traits:
+
+content.traits,
+
+
+
+
+
+editorial:
+
+content.editorial,
+
+
+
+
+
+life:
+
+content.life,
+
+
+
+
+
+insights:
+
+content.insights,
+
+
+
+
+
+planets:
+
+content.planets,
+
+
+
+
+
+lucky:
+
+content.lucky,
+
+
+
+
+
+remedy:
+
+content.remedy,
+
+
+
+
+
+vedic:
+
+content.vedic,
+
+
+
+
+
+compatibility:
+
+content.compatibility,
+
+
+
+
+
+premium:
+
+content.premium,
+
+
+
+
+
+seo:
+
+content.seo,
+
+
+
+
+
+media:
+
+content.media,
+
+
+
+
+
+zodiacList,
+
+
+
+
+
+};
+
+
+
+}
+
+
+
+catch(error){
+
+
+
+console.error(
+
+"[ARCHIVED_HOROSCOPE_SERVICE_ERROR]",
+
+error
+
+);
+
+
+
+return null;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HOROSCOPE ARCHIVE DATES
+//////////////////////////////////////////////////////////////
+
+export async function getHoroscopeArchiveDates(
+
+zodiacSign:string,
+
+period:HoroscopePeriod="daily",
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+
+try{
+
+
+await connectMongoDB();
+
+
+
+
+
+const zodiac = zodiacSign
+
+.trim()
+
+.toLowerCase();
+
+
+
+
+
+
+const archives = await Horoscope.find({
+
+
+
+zodiac,
+
+
+
+"meta.period":
+
+period,
+
+
+
+
+
+"meta.language":
+
+language,
+
+
+
+
+
+"meta.status":
+
+"archived",
+
+
+
+})
+
+.select({
+
+"meta.startDate":1,
+
+"meta.slugDate":1,
+
+"meta.publishedAt":1,
+
+})
+
+.sort({
+
+"meta.startDate":-1
+
+})
+
+.lean();
+
+
+
+
+
+
+
+return archives;
+
+
+
+}
+
+
+
+catch(error){
+
+
+
+console.error(
+
+"[HOROSCOPE_ARCHIVE_DATES_ERROR]",
+
+error
+
+);
+
+
+
+return [];
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SHORTCUT SERVICES
+//////////////////////////////////////////////////////////////
+
+export async function getDailyHoroscopeContent(
+
+zodiacSign:string,
+
+date?:Date|string,
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+return getHoroscopeByPeriod(
+
+zodiacSign,
+
+"daily",
+
+date,
+
+language
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+export async function getWeeklyHoroscopeContent(
+
+zodiacSign:string,
+
+date?:Date|string,
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+return getHoroscopeByPeriod(
+
+zodiacSign,
+
+"weekly",
+
+date,
+
+language
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+export async function getMonthlyHoroscopeContent(
+
+zodiacSign:string,
+
+date?:Date|string,
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+return getHoroscopeByPeriod(
+
+zodiacSign,
+
+"monthly",
+
+date,
+
+language
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+export async function getYearlyHoroscopeContent(
+
+zodiacSign:string,
+
+date?:Date|string,
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+return getHoroscopeByPeriod(
+
+zodiacSign,
+
+"yearly",
+
+date,
+
+language
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// LEGACY COMPATIBILITY
+//////////////////////////////////////////////////////////////
+
+export async function getHoroscopeContent(
+
+zodiacSign:string,
+
+language:HoroscopeLanguage="english"
+
+){
+
+
+
+return getDailyHoroscopeContent(
+
+zodiacSign,
+
+new Date(),
+
+language
+
+);
 
 
 

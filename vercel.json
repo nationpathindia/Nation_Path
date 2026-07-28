@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/horoscope/publish",
+      "schedule": "32 18 * * *"
+    },
+    {
+      "path": "/api/cron/horoscope/archive",
+      "schedule": "29 18 * * *"
+    }
+  ]
+}

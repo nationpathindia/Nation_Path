@@ -7,6 +7,12 @@
 //
 // CMS FIRST ARCHITECTURE
 //
+// Supports:
+//
+// Daily Horoscope
+// Weekly Horoscope
+// Monthly Horoscope
+//
 // Does NOT:
 // - calculate astrology
 // - use Swiss Ephemeris
@@ -29,10 +35,8 @@ import {
 
 
 
-
-
 //////////////////////////////////////////////////////////////
-// SECTIONS
+// CMS SECTIONS
 //////////////////////////////////////////////////////////////
 
 import ZodiacMasterSection from "./sections/ZodiacMasterSection";
@@ -61,9 +65,9 @@ import CompatibilitySection from "./sections/CompatibilitySection";
 
 import ScheduleSection from "./sections/ScheduleSection";
 
+import PublicationSection from "./sections/PublicationSection";
+
 import CompletenessScore from "./components/CompletenessScore";
-
-
 
 
 
@@ -84,17 +88,10 @@ mode?:
 "edit";
 
 
-
-id?:
-
-string;
+id?:string;
 
 
-
-initialData?:
-
-any;
-
+initialData?:any;
 
 
 }
@@ -104,20 +101,20 @@ any;
 
 
 
-
-
-
 //////////////////////////////////////////////////////////////
-// DEFAULT CMS FORM
+// DEFAULT FORM
 //////////////////////////////////////////////////////////////
 
 const DEFAULT_FORM = {
 
 
+//////////////////////////////////////////////////////////////
+// MASTER
+//////////////////////////////////////////////////////////////
+
 zodiac:"",
 
 slug:"",
-
 
 
 symbol:"",
@@ -131,23 +128,78 @@ rulingPlanet:"",
 
 
 
+//////////////////////////////////////////////////////////////
+// PUBLICATION META
+//////////////////////////////////////////////////////////////
+
+meta:{
+
+
+period:"daily",
+
+
+startDate:"",
+
+endDate:"",
+
+
+publishedAt:"",
+
+
+scheduledAt:"",
+
+
+status:"draft",
+
+
+priority:0,
+
+
+featured:false,
+
+
+version:"1.0",
+
+
+language:"en",
+
+
+},
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HERO
+//////////////////////////////////////////////////////////////
 
 hero:{
 
 
 badge:"",
 
+
 title:"",
+
 
 subtitle:"",
 
+
 description:"",
+
 
 image:"",
 
+
 cosmicLabel:"",
 
+
 theme:"",
+
+
+background:"",
 
 
 },
@@ -155,25 +207,41 @@ theme:"",
 
 
 
+
+
+//////////////////////////////////////////////////////////////
+// IDENTITY
+//////////////////////////////////////////////////////////////
 
 identity:{
 
 
 rashi:"",
 
+
 sanskritName:"",
+
+
+sanskrit:"",
+
 
 dates:"",
 
+
 symbol:"",
+
 
 element:"",
 
+
 rulingPlanet:"",
+
 
 nature:"",
 
+
 energy:"",
+
 
 description:"",
 
@@ -184,12 +252,19 @@ description:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// TRAITS
+//////////////////////////////////////////////////////////////
+
 traits:{
 
 
 strengths:[],
 
+
 weaknesses:[],
+
 
 personality:"",
 
@@ -200,14 +275,22 @@ personality:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// EDITORIAL
+//////////////////////////////////////////////////////////////
+
 editorial:{
 
 
 headline:"",
 
+
 overview:"",
 
+
 prediction:"",
+
 
 quote:"",
 
@@ -218,14 +301,22 @@ quote:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// LIFE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
 life:{
 
 
 career:"",
 
+
 love:"",
 
+
 finance:"",
+
 
 health:"",
 
@@ -236,18 +327,28 @@ health:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// INSIGHTS
+//////////////////////////////////////////////////////////////
+
 insights:{
 
 
 planetaryInfluence:"",
 
+
 energy:"",
+
 
 guidance:"",
 
+
 remedy:"",
 
+
 strengths:[],
+
 
 challenges:[],
 
@@ -258,24 +359,39 @@ challenges:[],
 
 
 
+
+//////////////////////////////////////////////////////////////
+// PLANETS
+//////////////////////////////////////////////////////////////
+
 planets:[],
 
 
 
 
 
+
+//////////////////////////////////////////////////////////////
+// LUCK
+//////////////////////////////////////////////////////////////
+
 lucky:{
 
 
 number:"",
 
+
 color:"",
+
 
 direction:"",
 
+
 time:"",
 
+
 gemstone:"",
+
 
 metal:"",
 
@@ -286,16 +402,25 @@ metal:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// REMEDY
+//////////////////////////////////////////////////////////////
+
 remedy:{
 
 
 category:"",
 
+
 title:"",
+
 
 practice:"",
 
+
 guidance:"",
+
 
 reason:"",
 
@@ -306,10 +431,16 @@ reason:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// VEDIC
+//////////////////////////////////////////////////////////////
+
 vedic:{
 
 
 favorable:[],
+
 
 avoid:[],
 
@@ -320,12 +451,19 @@ avoid:[],
 
 
 
+
+//////////////////////////////////////////////////////////////
+// COMPATIBILITY
+//////////////////////////////////////////////////////////////
+
 compatibility:{
 
 
 title:"",
 
+
 description:"",
+
 
 link:"",
 
@@ -336,16 +474,48 @@ link:"",
 
 
 
+
+//////////////////////////////////////////////////////////////
+// PREMIUM
+//////////////////////////////////////////////////////////////
+
+premium:{
+
+
+title:"",
+
+
+description:"",
+
+
+features:[],
+
+
+},
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SEO
+//////////////////////////////////////////////////////////////
+
 seo:{
 
 
 title:"",
 
+
 description:"",
+
 
 keywords:[],
 
+
 ogImage:"",
+
 
 canonical:"",
 
@@ -355,47 +525,14 @@ canonical:"",
 
 
 
-
-schedule:{
-
-
-enabled:false,
-
-publishDate:"",
-
-expiryDate:"",
-
-
-},
-
-
-
-
-
-status:"draft",
-
-
-
 };
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
 // SAFE DEEP MERGE
 //////////////////////////////////////////////////////////////
 
 function mergeHoroscopeData(
-
 data:any
-
 ){
-
 
 return {
 
@@ -409,14 +546,23 @@ return {
 
 
 
-hero:{
+meta:{
 
+...DEFAULT_FORM.meta,
+
+...(data?.meta || {}),
+
+},
+
+
+
+
+
+hero:{
 
 ...DEFAULT_FORM.hero,
 
-
 ...(data?.hero || {}),
-
 
 },
 
@@ -426,12 +572,9 @@ hero:{
 
 identity:{
 
-
 ...DEFAULT_FORM.identity,
 
-
 ...(data?.identity || {}),
-
 
 },
 
@@ -441,12 +584,9 @@ identity:{
 
 traits:{
 
-
 ...DEFAULT_FORM.traits,
 
-
 ...(data?.traits || {}),
-
 
 },
 
@@ -456,12 +596,9 @@ traits:{
 
 editorial:{
 
-
 ...DEFAULT_FORM.editorial,
 
-
 ...(data?.editorial || {}),
-
 
 },
 
@@ -471,12 +608,9 @@ editorial:{
 
 life:{
 
-
 ...DEFAULT_FORM.life,
 
-
 ...(data?.life || {}),
-
 
 },
 
@@ -486,12 +620,9 @@ life:{
 
 insights:{
 
-
 ...DEFAULT_FORM.insights,
 
-
 ...(data?.insights || {}),
-
 
 },
 
@@ -501,12 +632,9 @@ insights:{
 
 lucky:{
 
-
 ...DEFAULT_FORM.lucky,
 
-
 ...(data?.lucky || {}),
-
 
 },
 
@@ -516,12 +644,9 @@ lucky:{
 
 remedy:{
 
-
 ...DEFAULT_FORM.remedy,
 
-
 ...(data?.remedy || {}),
-
 
 },
 
@@ -531,12 +656,9 @@ remedy:{
 
 vedic:{
 
-
 ...DEFAULT_FORM.vedic,
 
-
 ...(data?.vedic || {}),
-
 
 },
 
@@ -546,12 +668,21 @@ vedic:{
 
 compatibility:{
 
-
 ...DEFAULT_FORM.compatibility,
-
 
 ...(data?.compatibility || {}),
 
+},
+
+
+
+
+
+premium:{
+
+...DEFAULT_FORM.premium,
+
+...(data?.premium || {}),
 
 },
 
@@ -561,27 +692,9 @@ compatibility:{
 
 seo:{
 
-
 ...DEFAULT_FORM.seo,
 
-
 ...(data?.seo || {}),
-
-
-},
-
-
-
-
-
-schedule:{
-
-
-...DEFAULT_FORM.schedule,
-
-
-...(data?.schedule || {}),
-
 
 },
 
@@ -591,10 +704,6 @@ schedule:{
 
 
 }
-
-
-
-
 
 
 
@@ -625,12 +734,9 @@ const router = useRouter();
 
 
 
-
 const [loading,setLoading] =
 
 useState(false);
-
-
 
 
 
@@ -658,6 +764,14 @@ mergeHoroscopeData({})
 
 
 );
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
 // ZODIAC MASTER
 //////////////////////////////////////////////////////////////
@@ -681,6 +795,7 @@ zodiacLoading,
 setZodiacLoading
 
 ] = useState(true);
+
 
 
 
@@ -775,7 +890,7 @@ loadZodiac();
 
 
 //////////////////////////////////////////////////////////////
-// ROOT FIELD UPDATE
+// ROOT UPDATE
 //////////////////////////////////////////////////////////////
 
 const updateField = (
@@ -930,7 +1045,7 @@ value:string
 setForm((prev:any)=>{
 
 
-const updated = [
+const updated=[
 
 ...(prev[section]?.[key] || [])
 
@@ -938,9 +1053,7 @@ const updated = [
 
 
 
-
 updated[index]=value;
-
 
 
 
@@ -1079,7 +1192,6 @@ icon:"",
 energyLevel:""
 
 
-
 }
 
 
@@ -1125,7 +1237,6 @@ const planets=[
 
 
 
-
 planets[index]={
 
 
@@ -1136,7 +1247,6 @@ planets[index]={
 
 
 };
-
 
 
 
@@ -1185,7 +1295,6 @@ setForm((prev:any)=>({
 
 planets:
 
-
 prev.planets.filter(
 
 (_:any,i:number)=>i!==index
@@ -1198,15 +1307,6 @@ prev.planets.filter(
 
 
 };
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
 // ZODIAC MASTER AUTO FILL
 //////////////////////////////////////////////////////////////
@@ -1228,13 +1328,9 @@ item.zodiac === value
 
 
 
-
-
 if(!selected){
 
-
 return;
-
 
 }
 
@@ -1248,25 +1344,40 @@ setForm((prev:any)=>({
 ...prev,
 
 
-zodiac:selected.zodiac || "",
 
+zodiac:
 
-slug:selected.slug || "",
-
-
+selected.zodiac || "",
 
 
 
-symbol:selected.symbol || "",
+slug:
+
+selected.slug || "",
 
 
-element:selected.element || "",
+
+symbol:
+
+selected.symbol || "",
 
 
-modality:selected.modality || "",
+
+element:
+
+selected.element || "",
 
 
-rulingPlanet:selected.rulingPlanet || "",
+
+modality:
+
+selected.modality || "",
+
+
+
+rulingPlanet:
+
+selected.rulingPlanet || "",
 
 
 
@@ -1279,31 +1390,65 @@ identity:{
 ...prev.identity,
 
 
-rashi:selected.identity?.rashi || "",
+
+rashi:
+
+selected.identity?.rashi || "",
 
 
-sanskritName:selected.identity?.sanskritName || "",
+
+sanskritName:
+
+selected.identity?.sanskritName || "",
 
 
-dates:selected.identity?.dates || "",
+
+sanskrit:
+
+selected.identity?.sanskrit || "",
 
 
-symbol:selected.symbol || "",
+
+dates:
+
+selected.identity?.dates || "",
 
 
-element:selected.element || "",
+
+symbol:
+
+selected.symbol || "",
 
 
-rulingPlanet:selected.rulingPlanet || "",
+
+element:
+
+selected.element || "",
 
 
-nature:selected.identity?.nature || "",
+
+rulingPlanet:
+
+selected.rulingPlanet || "",
 
 
-energy:selected.identity?.energy || "",
+
+nature:
+
+selected.identity?.nature || "",
 
 
-description:selected.identity?.description || "",
+
+energy:
+
+selected.identity?.energy || "",
+
+
+
+description:
+
+selected.identity?.description || "",
+
 
 
 },
@@ -1320,13 +1465,23 @@ traits:{
 ...prev.traits,
 
 
-strengths:selected.traits?.strengths || [],
+
+strengths:
+
+selected.traits?.strengths || [],
 
 
-weaknesses:selected.traits?.weaknesses || [],
+
+weaknesses:
+
+selected.traits?.weaknesses || [],
 
 
-personality:selected.traits?.personality || "",
+
+personality:
+
+selected.traits?.personality || "",
+
 
 
 }
@@ -1347,23 +1502,33 @@ personality:selected.traits?.personality || "",
 
 
 //////////////////////////////////////////////////////////////
-// COMPLETENESS DATA
+// COMPLETENESS SCORE
 //////////////////////////////////////////////////////////////
 
 const completeness = {
 
 
-zodiac:!!form.zodiac,
+zodiac:
 
-
-hero:!!form.hero.title,
-
-
-identity:!!form.identity.rashi,
+Boolean(form.zodiac),
 
 
 
-editorial:!!form.editorial.headline,
+hero:
+
+Boolean(form.hero?.title),
+
+
+
+identity:
+
+Boolean(form.identity?.rashi),
+
+
+
+editorial:
+
+Boolean(form.editorial?.headline),
 
 
 
@@ -1371,41 +1536,59 @@ life:
 
 Boolean(
 
-form.life.career ||
+form.life?.career ||
 
-form.life.love ||
+form.life?.love ||
 
-form.life.finance ||
+form.life?.finance ||
 
-form.life.health
+form.life?.health
 
 ),
 
 
 
-insights:!!form.insights.guidance,
+insights:
+
+Boolean(form.insights?.guidance),
 
 
 
 planets:
 
-form.planets.length > 0,
+form.planets?.length > 0,
 
 
 
-remedy:!!form.remedy.title,
+remedy:
+
+Boolean(form.remedy?.title),
 
 
 
 vedic:
 
-form.vedic.favorable.length > 0,
+form.vedic?.favorable?.length > 0,
 
+
+
+seo:
+
+Boolean(form.seo?.title),
 
 
 };
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// SUBMIT CREATE / UPDATE HOROSCOPE
+// SUBMIT CREATE / UPDATE
 //////////////////////////////////////////////////////////////
 
 const submit = async()=>{
@@ -1416,6 +1599,7 @@ if(loading){
 return;
 
 }
+
 
 
 
@@ -1438,6 +1622,7 @@ return;
 
 
 
+
 try{
 
 
@@ -1449,7 +1634,7 @@ setLoading(true);
 
 
 //////////////////////////////////////////////////////////////
-// PREPARE PAYLOAD
+// PAYLOAD PREPARATION
 //////////////////////////////////////////////////////////////
 
 const payload = {
@@ -1459,15 +1644,66 @@ const payload = {
 
 
 
-publishAt:
 
-form.schedule?.publishDate
+
+period:
+
+form.meta?.period || "daily",
+
+
+
+
+
+startDate:
+
+form.meta?.startDate
 
 ?
 
 new Date(
 
-form.schedule.publishDate
+form.meta.startDate
+
+)
+
+:
+
+new Date(),
+
+
+
+
+
+endDate:
+
+form.meta?.endDate
+
+?
+
+new Date(
+
+form.meta.endDate
+
+)
+
+:
+
+new Date(),
+
+
+
+
+
+
+publishedAt:
+
+form.meta?.publishedAt
+
+?
+
+new Date(
+
+form.meta.publishedAt
 
 )
 
@@ -1480,21 +1716,66 @@ null,
 
 
 
-expireAt:
+scheduledAt:
 
-form.schedule?.expiryDate
+form.meta?.scheduledAt
 
 ?
 
 new Date(
 
-form.schedule.expiryDate
+form.meta.scheduledAt
 
 )
 
 :
 
 null,
+
+
+
+
+
+
+status:
+
+form.meta?.status || "draft",
+
+
+
+
+
+
+priority:
+
+Number(
+
+form.meta?.priority || 0
+
+),
+
+
+
+
+
+
+featured:
+
+Boolean(
+
+form.meta?.featured
+
+),
+
+
+
+
+
+
+language:
+
+form.meta?.language || "en",
+
 
 
 
@@ -1503,6 +1784,7 @@ null,
 updatedBy:
 
 "admin",
+
 
 
 
@@ -1517,20 +1799,25 @@ updatedBy:
 
 
 //////////////////////////////////////////////////////////////
-// API MODE SWITCH
+// API MODE
 //////////////////////////////////////////////////////////////
 
 const endpoint =
+
 
 mode === "edit"
 
 && id
 
+
 ?
+
 
 `/api/admin/horoscope/${id}`
 
+
 :
+
 
 "/api/admin/horoscope";
 
@@ -1539,19 +1826,27 @@ mode === "edit"
 
 
 
+
 const method =
+
 
 mode === "edit"
 
 && id
 
+
 ?
+
 
 "PUT"
 
+
 :
 
+
 "POST";
+
+
 
 
 
@@ -1590,7 +1885,6 @@ JSON.stringify(payload)
 
 }
 
-
 );
 
 
@@ -1608,20 +1902,29 @@ const result = await response.json();
 
 
 
+
 if(result.success){
+
 
 
 alert(
 
+
 mode === "edit"
+
 
 ?
 
+
 "✨ Horoscope Updated Successfully"
+
 
 :
 
-"✨ Horoscope Experience Created"
+
+"✨ Horoscope Created Successfully"
+
+
 
 );
 
@@ -1637,6 +1940,8 @@ router.push(
 
 
 
+
+
 }
 
 else{
@@ -1649,7 +1954,6 @@ result.message ||
 "Operation failed"
 
 );
-
 
 
 }
@@ -1695,15 +1999,6 @@ setLoading(false);
 
 
 };
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
 // RENDER
 //////////////////////////////////////////////////////////////
@@ -1713,17 +2008,11 @@ return (
 <div
 
 className="
-
 min-h-screen
-
 bg-[#050816]
-
 p-5
-
 md:p-10
-
 text-white
-
 "
 
 >
@@ -1732,16 +2021,13 @@ text-white
 <div
 
 className="
-
 mx-auto
-
 max-w-7xl
-
 space-y-8
-
 "
 
 >
+
 
 
 
@@ -1754,6 +2040,7 @@ space-y-8
 form={form}
 
 />
+
 
 
 
@@ -1783,6 +2070,25 @@ handleZodiacChange={handleZodiacChange}
 
 
 
+
+{/* PUBLICATION CONTROL */}
+
+<PublicationSection
+
+form={form}
+
+updateSection={updateSection}
+
+/>
+
+
+
+
+
+
+
+
+
 {/* HERO */}
 
 <HeroSection
@@ -1800,6 +2106,7 @@ updateSection={updateSection}
 
 
 
+
 {/* IDENTITY */}
 
 <IdentitySection
@@ -1809,6 +2116,7 @@ form={form}
 updateSection={updateSection}
 
 />
+
 
 
 
@@ -1840,6 +2148,7 @@ removeArrayItem={removeArrayItem}
 
 
 
+
 {/* EDITORIAL */}
 
 <EditorialSection
@@ -1857,7 +2166,8 @@ updateSection={updateSection}
 
 
 
-{/* LIFE */}
+
+{/* LIFE INTELLIGENCE */}
 
 <LifeSection
 
@@ -1874,7 +2184,8 @@ updateSection={updateSection}
 
 
 
-{/* INSIGHTS */}
+
+{/* COSMIC INSIGHTS */}
 
 <InsightsSection
 
@@ -1897,7 +2208,8 @@ removeArrayItem={removeArrayItem}
 
 
 
-{/* PLANETS */}
+
+{/* PLANETARY INTELLIGENCE */}
 
 <PlanetSection
 
@@ -1910,6 +2222,7 @@ updatePlanet={updatePlanet}
 removePlanet={removePlanet}
 
 />
+
 
 
 
@@ -1935,6 +2248,7 @@ updateSection={updateSection}
 
 
 
+
 {/* REMEDY */}
 
 <RemedySection
@@ -1944,6 +2258,7 @@ form={form}
 updateSection={updateSection}
 
 />
+
 
 
 
@@ -1973,6 +2288,7 @@ removeArrayItem={removeArrayItem}
 
 
 
+
 {/* COMPATIBILITY */}
 
 <CompatibilitySection
@@ -1982,6 +2298,7 @@ form={form}
 updateSection={updateSection}
 
 />
+
 
 
 
@@ -2007,18 +2324,15 @@ updateSection={updateSection}
 
 
 
-{/* SAVE BUTTON */}
+
+{/* SAVE */}
 
 <div
 
 className="
-
 flex
-
 justify-end
-
-pt-6
-
+pt-8
 "
 
 >
@@ -2026,11 +2340,15 @@ pt-6
 
 <button
 
+
 type="button"
+
 
 disabled={loading}
 
+
 onClick={submit}
+
 
 className="
 
@@ -2050,36 +2368,51 @@ font-bold
 
 text-black
 
+shadow-lg
+
 transition
 
 hover:scale-105
 
+disabled:cursor-not-allowed
+
 disabled:opacity-50
 
 "
+
 
 >
 
 
 {
 
+
 loading
 
+
 ?
+
 
 "Saving Horoscope..."
 
+
 :
+
 
 mode === "edit"
 
+
 ?
+
 
 "Update Horoscope"
 
+
 :
 
+
 "Create Horoscope"
+
 
 }
 
@@ -2101,7 +2434,9 @@ mode === "edit"
 
 </div>
 
+
 </div>
+
 
 );
 

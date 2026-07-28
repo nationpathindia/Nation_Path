@@ -1,14 +1,101 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO
 //
-// CMS HOROSCOPE EXPERIENCE TYPES
+// PREMIUM HOROSCOPE EXPERIENCE TYPES
 //
-// CMS SINGLE SOURCE OF TRUTH
+// CMS FIRST ARCHITECTURE
 //
-// NO ENGINE
-// NO CALCULATION
-// NO AI GENERATION
+// SUPPORTS:
+//
+// Daily Horoscope
+// Weekly Horoscope
+// Monthly Horoscope
+//
+// SINGLE SOURCE OF TRUTH:
+// MongoDB Horoscope CMS
+//
+// LOCKED:
+//
+// ✅ No Engine
+// ✅ No Calculation
+// ✅ No AI Generation
 //////////////////////////////////////////////////////////////
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HOROSCOPE PERIOD
+//////////////////////////////////////////////////////////////
+export type HoroscopePeriod =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly";
+
+//////////////////////////////////////////////////////////////
+// HOROSCOPE STATUS
+//////////////////////////////////////////////////////////////
+
+export type HoroscopeStatus =
+
+  | "draft"
+  | "review"
+  | "approved"
+  | "published"
+  | "archived";
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CMS META
+//////////////////////////////////////////////////////////////
+
+export interface CmsHoroscopeMeta {
+
+
+  period?: HoroscopePeriod;
+
+
+  startDate?: Date | string;
+
+
+  endDate?: Date | string;
+
+
+  publishedAt?: Date | string;
+
+
+  scheduledAt?: Date | string;
+
+
+  status?: HoroscopeStatus;
+
+
+  version?: string;
+
+featured?: {
+
+  homepage?: boolean;
+
+  trending?: boolean;
+
+  seo?: boolean;
+
+};
+
+
+  priority?: number;
+
+
+}
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////
@@ -17,23 +104,35 @@
 
 export interface CmsHoroscopeHero {
 
+
   badge?: string;
+
 
   title?: string;
 
+
   subtitle?: string;
+
 
   description?: string;
 
+
   image?: string;
+
 
   cosmicLabel?: string;
 
+
   theme?: string;
+
 
   background?: string;
 
+
 }
+
+
+
 
 
 
@@ -45,27 +144,41 @@ export interface CmsHoroscopeHero {
 
 export interface CmsHoroscopeIdentity {
 
+
   rashi?: string;
+
 
   sanskritName?: string;
 
+
   sanskrit?: string;
+
 
   dates?: string;
 
+
   symbol?: string;
+
 
   element?: string;
 
+
   rulingPlanet?: string;
+
 
   nature?: string;
 
+
   energy?: string;
+
 
   description?: string;
 
+
 }
+
+
+
 
 
 
@@ -77,13 +190,20 @@ export interface CmsHoroscopeIdentity {
 
 export interface CmsHoroscopeTraits {
 
+
   strengths?: string[];
+
 
   weaknesses?: string[];
 
+
   personality?: string;
 
+
 }
+
+
+
 
 
 
@@ -95,15 +215,23 @@ export interface CmsHoroscopeTraits {
 
 export interface CmsHoroscopeEditorial {
 
+
   headline?: string;
+
 
   overview?: string;
 
+
   prediction?: string;
+
 
   quote?: string;
 
+
 }
+
+
+
 
 
 
@@ -115,15 +243,23 @@ export interface CmsHoroscopeEditorial {
 
 export interface CmsHoroscopeLife {
 
+
   career?: string;
+
 
   love?: string;
 
+
   finance?: string;
+
 
   health?: string;
 
+
 }
+
+
+
 
 
 
@@ -135,19 +271,29 @@ export interface CmsHoroscopeLife {
 
 export interface CmsHoroscopeInsights {
 
+
   planetaryInfluence?: string;
+
 
   energy?: string;
 
+
   guidance?: string;
+
 
   remedy?: string;
 
+
   strengths?: string[];
+
 
   challenges?: string[];
 
+
 }
+
+
+
 
 
 
@@ -159,21 +305,32 @@ export interface CmsHoroscopeInsights {
 
 export interface CmsHoroscopePlanet {
 
+
   planetKey?: string;
+
 
   name?: string;
 
+
   title?: string;
+
 
   message?: string;
 
+
   strength?: string;
+
 
   icon?: string;
 
+
   energyLevel?: string;
 
+
 }
+
+
+
 
 
 
@@ -182,27 +339,45 @@ export interface CmsHoroscopePlanet {
 //////////////////////////////////////////////////////////////
 // ZODIAC EXPLORER CMS
 //////////////////////////////////////////////////////////////
+
 export interface CmsZodiacItem {
+
 
   zodiac: string;
 
+
   slug: string;
+
 
   name?: string;
 
+
   image?: string;
+
 
   symbol?: string;
 
+
   planet?: string;
+
 
   energy?: string;
 
+
   element?: string;
+
 
   active?: boolean;
 
+
 }
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 // LUCKY FACTORS CMS
@@ -210,19 +385,29 @@ export interface CmsZodiacItem {
 
 export interface CmsHoroscopeLucky {
 
+
   number?: string;
+
 
   color?: string;
 
+
   direction?: string;
+
 
   time?: string;
 
+
   gemstone?: string;
+
 
   metal?: string;
 
+
 }
+
+
+
 
 
 
@@ -234,17 +419,26 @@ export interface CmsHoroscopeLucky {
 
 export interface CmsHoroscopeRemedy {
 
+
   category?: string;
+
 
   title?: string;
 
+
   practice?: string;
+
 
   guidance?: string;
 
+
   reason?: string;
 
+
 }
+
+
+
 
 
 
@@ -256,11 +450,17 @@ export interface CmsHoroscopeRemedy {
 
 export interface CmsHoroscopeVedic {
 
+
   favorable?: string[];
+
 
   avoid?: string[];
 
+
 }
+
+
+
 
 
 
@@ -272,13 +472,20 @@ export interface CmsHoroscopeVedic {
 
 export interface CmsHoroscopeCompatibility {
 
+
   title?: string;
+
 
   description?: string;
 
+
   link?: string;
 
+
 }
+
+
+
 
 
 
@@ -290,13 +497,23 @@ export interface CmsHoroscopeCompatibility {
 
 export interface CmsHoroscopePremium {
 
+
   title?: string;
+
 
   description?: string;
 
+
   features?: string[];
 
+
+  lockedSections?: string[];
+
+
 }
+
+
+
 
 
 
@@ -308,17 +525,26 @@ export interface CmsHoroscopePremium {
 
 export interface CmsHoroscopeSEO {
 
+
   title?: string;
+
 
   description?: string;
 
+
   keywords?: string[];
+
 
   ogImage?: string;
 
+
   canonical?: string;
 
+
 }
+
+
+
 
 
 
@@ -330,20 +556,45 @@ export interface CmsHoroscopeSEO {
 
 export interface CmsHoroscopeData {
 
+
+
+  ////////////////////////////////////////////////////////////
+  // META
+  ////////////////////////////////////////////////////////////
+
+  meta?: CmsHoroscopeMeta;
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // BASIC
+  ////////////////////////////////////////////////////////////
+
   zodiac?: string;
+
 
   slug?: string;
 
 
   symbol?: string;
 
+
   element?: string;
 
+
   modality?: string;
+
 
   rulingPlanet?: string;
 
 
+
+
+
+  ////////////////////////////////////////////////////////////
+  // EXPERIENCE SECTIONS
+  ////////////////////////////////////////////////////////////
 
   hero?: CmsHoroscopeHero;
 
@@ -367,11 +618,21 @@ export interface CmsHoroscopeData {
 
 
 
-  // NEW
-  // Zodiac Explorer Rail
+
+
+  ////////////////////////////////////////////////////////////
+  // EXPLORER
+  ////////////////////////////////////////////////////////////
+
   zodiacList?: CmsZodiacItem[];
 
 
+
+
+
+  ////////////////////////////////////////////////////////////
+  // OTHER MODULES
+  ////////////////////////////////////////////////////////////
 
   lucky?: CmsHoroscopeLucky;
 
@@ -390,7 +651,21 @@ export interface CmsHoroscopeData {
 
   seo?: CmsHoroscopeSEO;
 
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // FUTURE LANGUAGE SUPPORT
+  ////////////////////////////////////////////////////////////
+
+  language?: string;
+
+
 }
+
+
+
 
 
 
@@ -402,6 +677,7 @@ export interface CmsHoroscopeData {
 
 export interface CmsHoroscopeResponse {
 
+
   success?: boolean;
 
 
@@ -412,5 +688,6 @@ export interface CmsHoroscopeResponse {
 
 
   message?: string;
+
 
 }

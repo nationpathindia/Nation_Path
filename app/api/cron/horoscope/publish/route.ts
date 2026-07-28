@@ -3,21 +3,73 @@ import mongoose from "mongoose";
 import Horoscope from "@/app/models/Horoscope";
 
 
-export async function GET() {
+export async function GET(request: Request) {
 
   const now = new Date();
 
+
   try {
 
-    if (!process.env.MONGODB_URI) {
-      throw new Error("MONGODB_URI missing");
+    //////////////////////////////////////////////////////////////
+    // CRON AUTHENTICATION
+    //////////////////////////////////////////////////////////////
+
+    const authHeader =
+      request.headers.get("authorization");
+
+
+    const cronSecret =
+      process.env.CRON_SECRET;
+
+
+
+    if (
+      !cronSecret ||
+      authHeader !== `Bearer ${cronSecret}`
+    ) {
+
+      return NextResponse.json(
+
+        {
+          success:false,
+
+          message:
+            "Unauthorized cron request",
+        },
+
+        {
+          status:401,
+        }
+
+      );
+
     }
+
+
+
+    //////////////////////////////////////////////////////////////
+    // DATABASE CONNECTION
+    //////////////////////////////////////////////////////////////
+
+    if (!process.env.MONGODB_URI) {
+
+      throw new Error(
+        "MONGODB_URI missing"
+      );
+
+    }
+
 
 
     await mongoose.connect(
       process.env.MONGODB_URI
     );
 
+
+
+    //////////////////////////////////////////////////////////////
+    // FIND APPROVED SCHEDULED HOROSCOPE
+    //////////////////////////////////////////////////////////////
 
     const scheduledHoroscopes =
       await Horoscope.find({
@@ -34,16 +86,18 @@ export async function GET() {
       );
 
 
+
+
     if (!scheduledHoroscopes.length) {
 
       return NextResponse.json({
 
-        success: true,
+        success:true,
 
         message:
           "No scheduled horoscope found",
 
-        published: 0,
+        published:0,
 
       });
 
@@ -51,30 +105,44 @@ export async function GET() {
 
 
 
+
+    //////////////////////////////////////////////////////////////
+    // PUBLISH CONTENT
+    //////////////////////////////////////////////////////////////
+
     let publishedCount = 0;
 
 
 
-    for (const horoscope of scheduledHoroscopes) {
+    for (
+      const horoscope of scheduledHoroscopes
+    ) {
 
 
       await Horoscope.updateOne(
 
         {
+
           _id: horoscope._id,
 
           "meta.status": "approved",
+
         },
 
 
         {
+
           $set: {
 
-            "meta.status": "published",
+            "meta.status":
+              "published",
 
-            "meta.publishedAt": now,
+
+            "meta.publishedAt":
+              now,
 
           },
+
         }
 
       );
@@ -87,18 +155,28 @@ export async function GET() {
 
 
 
+
+
+    //////////////////////////////////////////////////////////////
+    // RESPONSE
+    //////////////////////////////////////////////////////////////
+
     return NextResponse.json({
 
-      success: true,
+      success:true,
 
       message:
         "Scheduled horoscope publish completed",
 
-      published: publishedCount,
+      published:
+        publishedCount,
 
-      timestamp: now.toISOString(),
+
+      timestamp:
+        now.toISOString(),
 
     });
+
 
 
 
@@ -106,20 +184,30 @@ export async function GET() {
 
 
     console.error(
+
       "Horoscope Publish Cron Failed",
+
       error
+
     );
+
 
 
     return NextResponse.json(
 
       {
+
         success:false,
-        message:"Cron execution failed",
+
+        message:
+          "Cron execution failed",
+
       },
 
       {
+
         status:500,
+
       }
 
     );
@@ -127,7 +215,9 @@ export async function GET() {
 
   } finally {
 
+
     await mongoose.disconnect();
+
 
   }
 

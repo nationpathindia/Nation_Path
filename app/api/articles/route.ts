@@ -14,39 +14,93 @@ function stripHtml(html: string) {
 }
 
 
+function generateExcerpt(content:string){
+
+  const clean =
+    stripHtml(content)
+      .replace(/\s+/g," ")
+      .trim();
+
+
+  if(!clean) return "";
+
+
+  const words =
+    clean.split(" ");
+
+
+  const excerpt =
+    words.slice(0,35).join(" ");
+
+
+  return excerpt.length < clean.length
+    ? `${excerpt}...`
+    : excerpt;
+
+}
+
+
+
+function calculateReadingTime(content:string){
+
+  const clean =
+    stripHtml(content)
+      .replace(/\s+/g," ")
+      .trim();
+
+
+  const words =
+    clean
+      ? clean.split(" ").length
+      : 0;
+
+
+  return Math.max(
+    1,
+    Math.ceil(words / 200)
+  );
+
+}
+
+
+
 
 async function generateUniqueSlug(
-  title: string,
-  currentId?: string
-) {
+  title:string,
+  currentId?:string
+){
 
-  const baseSlug = title
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "");
+  const baseSlug =
+    title
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g,"-")
+      .replace(/[^\w-]+/g,"");
 
 
   let slug = baseSlug;
+
   let counter = 1;
 
 
-  while (true) {
+  while(true){
 
     const existing =
       await prisma.article.findFirst({
 
-        where: {
+        where:{
 
           slug,
 
           ...(currentId
-            ? {
-                NOT:{
-                  id: currentId
-                }
+            ?
+            {
+              NOT:{
+                id:currentId
               }
-            : {})
+            }
+            :
+            {})
 
         }
 
@@ -103,47 +157,33 @@ const status =
 searchParams.get("status");
 
 
-
 const search =
 searchParams.get("search") || "";
-
 
 
 const editorial =
 searchParams.get("editorial");
 
 
-
 const category =
 searchParams.get("category");
-
 
 
 const breaking =
 searchParams.get("breaking");
 
 
-
 const featured =
 searchParams.get("featured");
-
-
-
-const flash =
-searchParams.get("flash");
-
 
 
 const sort =
 searchParams.get("sort") || "latest";
 
 
-
 const lightweight =
 searchParams.get("lightweight")
-===
-"true";
-
+==="true";
 
 
 const skip =
@@ -159,13 +199,7 @@ isDeleted:false
 
 
 
-
-
-/* ================= STATUS ================= */
-
-
 if(status){
-
 
 const value =
 status.toLowerCase();
@@ -178,27 +212,17 @@ value as PostStatus
 )
 ){
 
-where.status =
-value;
+where.status=value;
 
 }
 
-
 }
 
-
-
-
-
-
-
-/* ================= SEARCH ================= */
 
 
 if(search){
 
-
-where.OR = [
+where.OR=[
 
 {
 title:{
@@ -206,7 +230,6 @@ contains:search,
 mode:"insensitive"
 }
 },
-
 
 {
 excerpt:{
@@ -217,65 +240,43 @@ mode:"insensitive"
 
 ];
 
-
 }
 
 
 
 
-
-
-
-/* ================= EDITORIAL ================= */
-
-
-if(editorial==="true"){
-
+if(editorial==="true")
 where.isEditorial=true;
 
-}
 
-
-
-if(editorial==="false"){
-
+if(editorial==="false")
 where.isEditorial=false;
 
-}
 
-
-
-
-
-
-
-/* ================= CATEGORY ================= */
 
 
 if(category){
 
+where.category={
 
-where.category = {
-
-slug: category
+slug:category
 
 };
-
 
 }
 
 
-
-
-
-
-
-/* ================= BREAKING ================= */
 
 
 if(breaking==="true"){
 
 where.breaking=true;
+
+where.breakingEnd={
+
+gt:new Date()
+
+};
 
 }
 
@@ -290,56 +291,16 @@ where.breaking=false;
 
 
 
-
-
-
-/* ================= FEATURED ================= */
-
-
-if(featured==="true"){
-
+if(featured==="true")
 where.featured=true;
 
-}
 
-
-
-if(featured==="false"){
-
+if(featured==="false")
 where.featured=false;
 
-}
 
 
-
-
-
-
-
-/* ================= FLASH ================= */
-
-
-if(flash==="true"){
-
-where.flash=true;
-
-}
-
-
-
-if(flash==="false"){
-
-where.flash=false;
-
-}
-
-
-
-
-
-
-
-let orderBy:any = {
+let orderBy:any={
 
 createdAt:"desc"
 
@@ -361,7 +322,6 @@ createdAt:"asc"
 
 if(sort==="views"){
 
-
 orderBy={
 
 views:"desc"
@@ -372,7 +332,21 @@ views:"desc"
 
 
 
+if(sort==="featured"){
 
+orderBy=[
+
+{
+homepagePriority:"desc"
+},
+
+{
+createdAt:"desc"
+}
+
+];
+
+}
 
 
 
@@ -382,7 +356,6 @@ total
 ]
 =
 await Promise.all([
-
 
 
 prisma.article.findMany({
@@ -403,6 +376,8 @@ excerpt:true,
 
 images:true,
 
+videoUrl:true,
+
 createdAt:true,
 
 updatedAt:true,
@@ -412,23 +387,32 @@ views:true,
 
 breaking:true,
 
-flash:true,
+breakingStart:true,
 
-featured:true,
-
+breakingEnd:true,
 
 breakingPriority:true,
 
-flashPriority:true,
+
+featured:true,
 
 homepagePriority:true,
 
 
+keyHighlights:true,
+
+whyItMatters:true,
+
+faqItems:true,
+
+readingTime:true,
+
+
+publishedAt:true,
+
 status:true,
 
-
 isEditorial:true,
-
 
 
 category:
@@ -451,7 +435,6 @@ slug:true
 },
 
 
-
 author:
 lightweight
 ?
@@ -470,9 +453,7 @@ name:true
 }
 
 
-
 },
-
 
 
 orderBy,
@@ -483,10 +464,7 @@ skip,
 take:limit
 
 
-
 }),
-
-
 
 
 
@@ -497,12 +475,7 @@ where
 })
 
 
-
 ]);
-
-
-
-
 
 
 
@@ -522,28 +495,22 @@ totalArticles:total,
 
 totalPages:
 Math.ceil(
-total / limit
+total/limit
 )
 
 }
 
-
-
 });
-
-
 
 
 }
 
 catch(error){
 
-
 console.error(
 "GET ARTICLES ERROR:",
 error
 );
-
 
 
 return NextResponse.json(
@@ -552,8 +519,7 @@ return NextResponse.json(
 
 success:false,
 
-error:
-"Failed to fetch articles"
+error:"Failed to fetch articles"
 
 },
 
@@ -566,19 +532,10 @@ status:500
 
 }
 
-
 }
-
-
-
-
-
-
-
 /* =====================================================
    CREATE ARTICLE
 ===================================================== */
-
 
 export async function POST(req:Request){
 
@@ -591,16 +548,11 @@ await req.json();
 
 
 const isEditorial =
-Boolean(
-body.isEditorial
-);
+Boolean(body.isEditorial);
 
 
 
-
-if(
-!body.title?.trim()
-){
+if(!body.title?.trim()){
 
 return NextResponse.json(
 
@@ -619,11 +571,7 @@ status:400
 
 
 
-
-
-if(
-!body.content?.trim()
-){
+if(!body.content?.trim()){
 
 return NextResponse.json(
 
@@ -639,8 +587,6 @@ status:400
 );
 
 }
-
-
 
 
 
@@ -668,8 +614,6 @@ status:400
 
 
 
-
-
 if(
 body.categoryId &&
 !isEditorial
@@ -686,9 +630,7 @@ id:body.categoryId
 });
 
 
-
 if(!category){
-
 
 return NextResponse.json(
 
@@ -703,14 +645,9 @@ status:400
 
 );
 
-
 }
 
-
 }
-
-
-
 
 
 
@@ -723,12 +660,61 @@ body.title
 
 
 
+let breakingStart:null|Date = null;
 
-const cleanContent =
-stripHtml(
-body.content
+let breakingEnd:null|Date = null;
+
+
+
+if(body.breaking){
+
+
+const duration =
+Number(body.breakingDuration) || 60;
+
+
+breakingStart =
+new Date();
+
+
+
+breakingEnd =
+new Date(
+Date.now()
++
+duration * 60 * 1000
 );
 
+
+}
+
+
+
+
+let publishedAt:null|Date = null;
+
+
+
+if(body.publishedAt){
+
+
+const scheduleDate =
+new Date(body.publishedAt);
+
+
+
+if(
+!isNaN(
+scheduleDate.getTime()
+)
+){
+
+publishedAt =
+scheduleDate;
+
+}
+
+}
 
 
 
@@ -746,8 +732,7 @@ typeof img==="string"
 img.trim()
 )
 .map(
-(img:string)=>
-img.trim()
+(img:string)=>img.trim()
 )
 
 :
@@ -759,22 +744,16 @@ img.trim()
 
 
 
-
 let validStatus:
-PostStatus
-=
+PostStatus =
 PostStatus.pending;
-
-
 
 
 
 if(body.status){
 
-
 const value =
 body.status.toLowerCase();
-
 
 
 if(
@@ -789,7 +768,6 @@ value as PostStatus;
 
 }
 
-
 }
 
 
@@ -798,7 +776,6 @@ value as PostStatus;
 
 
 const article =
-
 await prisma.article.create({
 
 data:{
@@ -808,7 +785,9 @@ title:
 body.title.trim(),
 
 
+
 slug,
+
 
 
 content:
@@ -818,11 +797,12 @@ body.content,
 
 excerpt:
 body.excerpt ||
-cleanContent.substring(0,200),
+generateExcerpt(body.content),
 
 
 
 images,
+
 
 
 videoUrl:
@@ -830,8 +810,18 @@ body.videoUrl || null,
 
 
 
+
 breaking:
 Boolean(body.breaking),
+
+
+
+breakingStart,
+
+
+
+breakingEnd,
+
 
 
 
@@ -842,6 +832,7 @@ Boolean(body.flash),
 
 featured:
 Boolean(body.featured),
+
 
 
 
@@ -860,7 +851,102 @@ Number(body.homepagePriority)||0,
 
 
 
+
+
+keyHighlights:
+
+Array.isArray(body.keyHighlights)
+
+?
+
+body.keyHighlights
+.filter(
+(item:any)=>
+typeof item==="string"
+&&
+item.trim()
+)
+
+:
+
+[],
+
+
+
+
+
+whyItMatters:
+
+body.whyItMatters || null,
+
+
+
+
+
+faqItems:
+
+Array.isArray(body.faqItems)
+
+?
+
+body.faqItems
+.filter(
+(item:any)=>
+
+item.question?.trim()
+&&
+item.answer?.trim()
+
+)
+
+.map(
+(item:any)=>({
+
+question:
+item.question.trim(),
+
+answer:
+item.answer.trim()
+
+})
+
+)
+
+:
+
+[],
+
+
+
+
+
+readingTime:
+
+body.readingTime
+
+?
+
+Number(body.readingTime)
+
+:
+
+calculateReadingTime(
+body.content
+),
+
+
+
+
+
+publishedAt,
+
+
+
+
+
 isEditorial,
+
+
 
 
 
@@ -869,20 +955,28 @@ validStatus,
 
 
 
+
+
 metaTitle:
+
 body.metaTitle ||
 body.title,
 
 
 
+
 metaDescription:
+
 body.metaDescription ||
-cleanContent.substring(0,160),
+generateExcerpt(body.content),
+
 
 
 
 metaKeywords:
+
 body.metaKeywords ||
+
 body.title
 .toLowerCase()
 .split(" ")
@@ -891,12 +985,21 @@ body.title
 
 
 
+
+
 categoryId:
+
 isEditorial
+
 ?
+
 null
+
 :
+
 body.categoryId
+
+
 
 
 
@@ -906,16 +1009,12 @@ body.categoryId
 
 include:{
 
-
 category:true
-
 
 }
 
 
-
 });
-
 
 
 
@@ -926,18 +1025,13 @@ return NextResponse.json({
 
 success:true,
 
-id:
-article.id,
+id:article.id,
 
-slug:
-article.slug,
+slug:article.slug,
 
-category:
-article.category
+category:article.category
 
 });
-
-
 
 
 
@@ -974,7 +1068,6 @@ status:500
 
 }
 
-
 }
 
 
@@ -986,7 +1079,6 @@ status:500
 /* =====================================================
    DELETE ARTICLE
 ===================================================== */
-
 
 export async function DELETE(req:Request){
 
@@ -1018,7 +1110,6 @@ status:400
 
 
 
-
 await prisma.article.delete({
 
 where:{
@@ -1030,13 +1121,11 @@ id:body.id
 
 
 
-
 return NextResponse.json({
 
 success:true
 
 });
-
 
 
 
@@ -1072,6 +1161,5 @@ status:500
 
 
 }
-
 
 }

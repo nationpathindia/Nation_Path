@@ -4,103 +4,161 @@ import connectDB from "@/lib/mongodb";
 import Horoscope from "@/app/models/Horoscope";
 
 const dailyHoroscopes = [
-
 {
   zodiac: "pisces",
+
   slug: "pisces-daily",
 
   meta: {
+
     period: "daily",
+
     language: "english",
+
     status: "published",
 
-    startDate: new Date("2026-07-28T00:00:00.000Z"),
-    endDate: new Date("2026-07-28T23:59:59.000Z"),
+    startDate:
+      new Date("2026-07-28T18:30:00.000Z"),
 
-    publishedAt: new Date("2026-07-28T00:00:00.000Z"),
+    endDate:
+      new Date("2026-07-29T18:29:59.000Z"),
+
+    publishedAt:
+      new Date("2026-07-28T18:30:00.000Z"),
+
     scheduledAt: null,
 
+    slugDate:
+      "2026-07-29",
+
     version: "1.0",
+
+    contentVersion: 1,
+
     priority: 1,
 
     featured: {
+
       homepage: true,
+
       trending: false,
+
       seo: true,
+
     },
+
+    visibility: {
+
+      public: true,
+
+      premium: false,
+
+      featured: true,
+
+    },
+
   },
 
 
-  symbol: "/zodiac/pisces.png",
+  symbol:
+    "/zodiac/pisces.png",
 
-  element: "water",
+  element:
+    "water",
 
-  modality: "mutable",
+  modality:
+    "mutable",
 
-  rulingPlanet: "Jupiter",
+  rulingPlanet:
+    "Jupiter",
+
 
 
   hero: {
 
-    badge: "Daily Horoscope",
+    badge:
+      "Daily Horoscope",
 
-    title: "Pisces Daily Horoscope",
+    title:
+      "Pisces Daily Horoscope",
 
-    subtitle: "Intuition, compassion and spiritual growth",
+    subtitle:
+      "Intuition, compassion and spiritual growth",
 
     description:
       "A day to trust your intuition, embrace creativity and move forward with emotional clarity.",
 
-    image: "/zodiac/pisces.png",
+    image:
+      "/zodiac/pisces.png",
 
-    cosmicLabel: "Jupiter Energy",
+    cosmicLabel:
+      "Jupiter Energy",
 
-    theme: "water",
+    theme:
+      "water",
 
   },
+
 
 
   identity: {
 
-    rashi: "Meena",
+    rashi:
+      "Meena",
 
-    sanskritName: "Meena Rashi",
+    sanskritName:
+      "Meena Rashi",
 
-    dates: "February 19 - March 20",
+    dates:
+      "February 19 - March 20",
 
-    symbol: "♓",
+    symbol:
+      "♓",
 
-    element: "water",
+    element:
+      "water",
 
-    nature: "Sensitive and intuitive",
+    nature:
+      "Sensitive and intuitive",
 
-    rulingPlanet: "Jupiter",
+    rulingPlanet:
+      "Jupiter",
 
-    energy: "Creative and spiritual",
+    energy:
+      "Creative and spiritual",
 
     description:
-      "Pisces represents intuition, imagination, compassion and spiritual awareness."
+      "Meena Rashi represents intuition, imagination, compassion and spiritual awareness.",
 
   },
+
 
 
   traits: {
 
     strengths: [
+
       "Compassion",
+
       "Creativity",
-      "Intuition"
+
+      "Intuition",
+
     ],
 
     weaknesses: [
-      "Overly Sensitive",
-      "Escapism"
+
+      "Emotional sensitivity",
+
+      "Escapism",
+
     ],
 
     personality:
-      "A deeply intuitive water sign guided by imagination, empathy and emotional wisdom."
+      "A deeply intuitive water sign guided by imagination, empathy and emotional wisdom.",
 
   },
+
 
 
   editorial: {
@@ -115,9 +173,10 @@ const dailyHoroscopes = [
       "Your creativity and intuition help you discover meaningful opportunities.",
 
     quote:
-      "Inner wisdom guides the path forward."
+      "Inner wisdom guides the path forward.",
 
   },
+
 
 
   life: {
@@ -132,9 +191,10 @@ const dailyHoroscopes = [
       "Follow practical planning while trusting your instincts.",
 
     health:
-      "Focus on emotional balance and peaceful routines."
+      "Focus on emotional balance and peaceful routines.",
 
   },
+
 
 
   insights: {
@@ -142,99 +202,135 @@ const dailyHoroscopes = [
     planetaryInfluence:
       "Jupiter enhances wisdom, spirituality and creative expression.",
 
-    energy: "Calm",
+    energy:
+      "Calm",
 
     guidance:
       "Trust your intuition while staying grounded in reality.",
 
     remedy:
-      "Practice meditation and peaceful reflection.",
+      "Practice meditation, gratitude and peaceful reflection.",
 
     strengths: [
+
       "Intuition",
-      "Creativity"
+
+      "Creativity",
+
+      "Compassion",
+
     ],
 
     challenges: [
-      "Emotional sensitivity"
-    ]
+
+      "Emotional sensitivity",
+
+      "Overthinking",
+
+    ],
 
   },
+
 
 
   planets: [
 
     {
 
-      planetKey: "jupiter",
+      planetKey:
+        "jupiter",
 
-      name: "Jupiter",
+      name:
+        "Jupiter",
 
-      title: "Dominant Planet",
+      title:
+        "Dominant Planet",
 
       message:
         "Jupiter strengthens wisdom, compassion and spiritual growth.",
 
-      strength: "High",
+      strength:
+        "High",
 
-      icon: "/planets/jupiter.png",
+      icon:
+        "/planets/jupiter.png",
 
-      energyLevel: "Strong"
+      energyLevel:
+        "Strong",
 
-    }
+    },
 
   ],
 
 
+
   lucky: {
 
-    number: "3",
+    number:
+      "3",
 
-    color: "Sea Green",
+    color:
+      "Sea Green",
 
-    direction: "North-East",
+    direction:
+      "North-East",
 
-    time: "Morning",
+    time:
+      "Morning",
 
-    gemstone: "Yellow Sapphire",
+    gemstone:
+      "Yellow Sapphire",
 
-    metal: "Gold"
+    metal:
+      "Gold",
 
   },
+
 
 
   remedy: {
 
-    category: "Spiritual Practice",
+    category:
+      "Jupiter Energy Practice",
 
-    title: "Jupiter Wisdom Meditation",
+    title:
+      "Jupiter Wisdom Meditation",
 
     practice:
-      "Spend peaceful time in meditation, gratitude and creative expression.",
+      "Begin the day with meditation, gratitude and peaceful spiritual reflection.",
 
     guidance:
-      "Maintain emotional balance and trust your inner guidance.",
+      "Strengthen Jupiter energy through devotion and positive thoughts. Chant: ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
 
     reason:
-      "Helps strengthen Jupiter's positive energy."
+      "Helps enhance wisdom, spiritual balance and positive growth.",
 
   },
+
 
 
   vedic: {
 
     favorable: [
-      "Creative work",
+
+      "Creative activities",
+
       "Learning",
-      "Spiritual practices"
+
+      "Spiritual practices",
+
     ],
 
     avoid: [
+
       "Emotional decisions",
-      "Ignoring practical matters"
-    ]
+
+      "Ignoring practical matters",
+
+    ],
 
   },
+
 
 
   compatibility: {
@@ -246,9 +342,10 @@ const dailyHoroscopes = [
       "Pisces connects naturally with compassionate, creative and emotionally aware zodiac signs.",
 
     link:
-      "/astro/compatibility/pisces"
+      "/astro/compatibility/pisces",
 
   },
+
 
 
   premium: {
@@ -257,15 +354,20 @@ const dailyHoroscopes = [
       "Unlock Pisces Personal Intelligence",
 
     description:
-      "Discover personalized birth chart insights, spiritual guidance and AI astrology reports.",
+      "Discover personalized birth chart insights, planetary strengths and deeper life guidance.",
 
     features: [
+
       "Birth Chart",
+
       "Life Intelligence",
-      "AI Astro Reports"
-    ]
+
+      "AI Astro Reports",
+
+    ],
 
   },
+
 
 
   seo: {
@@ -274,21 +376,26 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope Today | NationPath Astro",
 
     description:
-      "Read Pisces daily horoscope with Vedic astrology insights and personalized guidance.",
+      "Read Pisces daily horoscope with Vedic astrology insights, Jupiter guidance and personalized cosmic wisdom.",
 
     keywords: [
+
       "Pisces Horoscope",
+
       "Meena Rashi",
-      "Daily Horoscope"
+
+      "Daily Horoscope",
+
     ],
 
     ogImage:
       "/zodiac/pisces.png",
 
     canonical:
-      "/astro/horoscope/pisces"
+      "/astro/horoscope/pisces",
 
   },
+
 
 
   media: {
@@ -296,12 +403,14 @@ const dailyHoroscopes = [
     heroImage:
       "/zodiac/pisces.png",
 
-    backgroundImage: "",
+    backgroundImage:
+      "",
 
     zodiacIcon:
-      "/zodiac/pisces.png"
+      "/zodiac/pisces.png",
 
   },
+
 
 
   analytics: {
@@ -310,14 +419,16 @@ const dailyHoroscopes = [
 
     clicks: 0,
 
-    premiumClicks: 0
+    premiumClicks: 0,
 
   },
 
 
-  createdBy: "admin",
+  createdBy:
+    "admin",
 
-  updatedBy: "admin"
+  updatedBy:
+    "admin",
 }
 
 

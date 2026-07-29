@@ -5,13 +5,21 @@ export const dynamic = "force-dynamic";
 
 
 /* =====================================================
-   GET BREAKING NEWS
+   GET ACTIVE BREAKING NEWS
+
    Used by BreakingNewsBar
+
+   Only returns:
+   breaking = true
+   AND
+   breakingEnd > current time
 ===================================================== */
 
 export async function GET() {
 
   try {
+
+    const now = new Date();
 
 
     const breakingArticles =
@@ -23,7 +31,11 @@ export async function GET() {
 
           isDeleted: false,
 
-          status: "approved"
+          status: "approved",
+
+          breakingEnd: {
+            gt: now
+          }
 
         },
 
@@ -36,7 +48,15 @@ export async function GET() {
 
           slug: true,
 
+          excerpt: true,
+
+          images: true,
+
           breakingPriority: true,
+
+          breakingStart: true,
+
+          breakingEnd: true,
 
           createdAt: true
 
@@ -64,9 +84,9 @@ export async function GET() {
 
     return NextResponse.json({
 
-      success: true,
+      success:true,
 
-      breaking: breakingArticles
+      breaking:breakingArticles
 
     });
 
@@ -105,8 +125,9 @@ export async function GET() {
 
 /* =====================================================
    POST BREAKING REFRESH
-   Future use:
-   cache refresh / revalidation / realtime trigger
+
+   Future:
+   cache refresh / realtime trigger
 ===================================================== */
 
 export async function POST() {

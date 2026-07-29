@@ -4,11 +4,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRenderer";
-
 import ArticleHeader from "@/components/article/ArticleHeader";
 import ArticleHero from "@/components/article/ArticleHero";
 import ArticleAISummary from "@/components/article/ArticleAISummary";
 import ArticleBody from "@/components/article/ArticleBody";
+import ArticleFAQ from "@/components/article/ArticleFAQ";
 import ArticleRelated from "@/components/article/ArticleRelated";
 import ArticleShareBar from "@/components/article/ArticleShareBar";
 import ArticleNextStory from "@/components/article/ArticleNextStory";
@@ -23,12 +23,51 @@ export const revalidate = 0;
 
 interface Props {
 
-  params:{
+  params: Promise<{
+
     category:string;
+
     slug:string;
+
+  }>;
+
+}
+
+
+
+/* =====================================================
+   PUBLISH FILTER
+
+   Supports:
+
+   1. Old published articles
+      publishedAt = null
+
+   2. Scheduled articles
+      publishedAt <= now
+
+===================================================== */
+function isPublishedFilter(){
+
+  return {
+
+    OR:[
+      {
+        publishedAt:{
+          equals:null
+        }
+      },
+      {
+        publishedAt:{
+          lte:new Date()
+        }
+      }
+    ]
+
   };
 
 }
+
 
 
 
@@ -38,180 +77,274 @@ interface Props {
 
 
 export async function generateMetadata({
-  params,
+
+params,
+
 }:Props):Promise<Metadata>{
 
 
-  const category = await prisma.category.findUnique({
+const {
 
-    where:{
-      slug:params.category,
-    },
+category:categorySlug,
 
-  });
+slug
 
+}=await params;
 
 
-  if(!category) return {};
 
+const category =
 
+await prisma.category.findUnique({
 
-  const article = await prisma.article.findFirst({
+where:{
 
-    where:{
+slug:categorySlug
 
-      slug:params.slug,
+}
 
-      categoryId:category.id,
+});
 
-      status:"approved",
 
-    },
 
-  });
+if(!category)
 
+return {};
 
 
-  if(!article) return {};
 
 
 
+const article =
 
-  const canonical =
-  `https://www.nationpathindia.com/${category.slug}/${article.slug}`;
+await prisma.article.findFirst({
 
+where:{
 
 
+slug,
 
-  const keywords = [
 
-    category.name,
+categoryId:category.id,
 
-    article.title,
 
-    article.excerpt || "",
+status:"approved",
 
-    "Nation Path India",
 
-    "Latest India News",
+isDeleted:false,
 
-    "Breaking News",
 
-  ];
+...isPublishedFilter()
 
 
+}
 
 
+});
 
-  return {
 
 
-    title:
-    article.metaTitle ||
-    article.title,
 
+if(!article)
 
+return {};
 
-    description:
-    article.metaDescription ||
-    article.excerpt ||
-    "",
 
 
 
-    keywords,
 
+const canonical =
 
+`https://www.nationpathindia.com/${category.slug}/${article.slug}`;
 
-    alternates:{
 
-      canonical,
 
-    },
 
 
+const title =
 
-    robots:{
+article.metaTitle ||
 
-      index:true,
+article.title;
 
-      follow:true,
 
-    },
 
 
 
-    openGraph:{
+const description =
 
+article.metaDescription ||
 
-      type:"article",
+article.excerpt ||
 
+"";
 
-      title:
-      article.metaTitle ||
-      article.title,
 
 
-      description:
-      article.metaDescription ||
-      article.excerpt ||
-      "",
 
 
-      url:canonical,
+return {
 
 
-      siteName:"Nation Path India",
+title,
 
 
-      images:
-      article.images?.[0]
-      ? [
-          {
-            url:article.images[0],
-            width:1200,
-            height:675,
-            alt:article.title,
-          }
-        ]
-      :
-      [],
+description,
 
 
-    },
 
+keywords:[
 
 
+category.name,
 
-    twitter:{
 
+article.title,
 
-      card:"summary_large_image",
 
+article.excerpt || "",
 
-      title:
-      article.metaTitle ||
-      article.title,
 
+"Nation Path India",
 
-      description:
-      article.metaDescription ||
-      article.excerpt ||
-      "",
 
+"Latest India News",
 
-      images:
-      article.images?.[0]
-      ?
-      [article.images[0]]
-      :
-      [],
 
+"Breaking News"
 
-    },
 
+],
 
-  };
+
+
+
+
+alternates:{
+
+
+canonical
+
+
+},
+
+
+
+
+
+robots:{
+
+
+index:true,
+
+
+follow:true
+
+
+},
+
+
+
+
+
+
+openGraph:{
+
+
+type:"article",
+
+
+title,
+
+
+description,
+
+
+url:canonical,
+
+
+siteName:"Nation Path India",
+
+
+
+images:
+
+article.images?.[0]
+
+?
+
+[
+
+{
+
+url:article.images[0],
+
+
+width:1200,
+
+
+height:675,
+
+
+alt:article.title
+
+
+}
+
+]
+
+
+:
+
+[]
+
+
+
+},
+
+
+
+
+
+
+twitter:{
+
+
+card:"summary_large_image",
+
+
+title,
+
+
+description,
+
+
+
+images:
+
+article.images?.[0]
+
+?
+
+[
+
+article.images[0]
+
+]
+
+
+:
+
+[]
+
+
+
+}
+
+
+
+};
+
 
 
 }
@@ -220,14 +353,12 @@ export async function generateMetadata({
 
 
 
-/* =====================================================
-   PAGE
-===================================================== */
+
 
 
 export default async function ArticlePage({
 
-  params,
+params,
 
 }:Props){
 
@@ -235,17 +366,40 @@ export default async function ArticlePage({
 
 
 
-const category = await prisma.category.findUnique({
+const {
 
-  where:{
-    slug:params.category,
-  },
+
+category:categorySlug,
+
+
+slug
+
+
+}=await params;
+
+
+
+
+
+
+const category =
+
+await prisma.category.findUnique({
+
+where:{
+
+slug:categorySlug
+
+}
 
 });
+
+
 
 
 
 if(!category)
+
 return notFound();
 
 
@@ -254,73 +408,98 @@ return notFound();
 
 
 
-const article = await prisma.article.findFirst({
 
-  where:{
+/* =====================================================
+   MAIN ARTICLE FETCH
 
+===================================================== */
 
-    slug:params.slug,
+const article =
 
+await prisma.article.findFirst({
 
-    categoryId:category.id,
+where:{
 
+slug,
 
-    status:"approved",
+categoryId:category.id,
 
+status:"approved",
 
-  },
+},
 
+include:{
 
-  include:{
+category:true
 
-
-    category:true,
-
-
-  },
-
+}
 
 });
 
 
-
-
-
 if(!article)
-return notFound();
+  return notFound();
+
+
+if(
+  article.publishedAt &&
+  article.publishedAt > new Date()
+){
+  return notFound();
+}
 
 
 
 
 
 
-/* VIEW UPDATE */
+/* =====================================================
+   VIEW UPDATE
+
+===================================================== */
 
 
 await prisma.article.update({
 
-  where:{
-    id:article.id,
-  },
+where:{
 
 
-  data:{
+id:article.id
 
 
-    views:{
-      increment:1,
-    },
+},
 
 
-    lastViewAt:new Date(),
+data:{
 
 
-    trendingScore:{
-      increment:1,
-    },
+views:{
 
 
-  },
+increment:1
+
+
+},
+
+
+
+lastViewAt:new Date(),
+
+
+
+trendingScore:{
+
+
+increment:1
+
+
+}
+
+
+
+}
+
+
 
 });
 
@@ -330,123 +509,224 @@ await prisma.article.update({
 
 
 
+/* =====================================================
+   MOST READ
 
-/* MOST READ */
+===================================================== */
 
-const mostRead = await prisma.article.findMany({
+
+const mostRead =
+
+await prisma.article.findMany({
 
 where:{
 
-  status:"approved",
 
-  isDeleted:false,
+status:"approved",
 
-  categoryId:category.id,
 
-  NOT:{
-    id:article.id,
-  },
+isDeleted:false,
+
+
+...isPublishedFilter(),
+
+
+
+categoryId:category.id,
+
+
+
+NOT:{
+
+
+id:article.id
+
+
+}
+
 
 },
+
+
 
 orderBy:{
 
-  views:"desc",
+
+views:"desc"
+
 
 },
+
+
 
 take:5,
 
+
+
 include:{
 
-  category:true,
+
+category:true
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+/* =====================================================
+   RELATED ARTICLES
+
+===================================================== */
+
+
+const related =
+
+await prisma.article.findMany({
+
+where:{
+
+
+status:"approved",
+
+
+isDeleted:false,
+
+
+...isPublishedFilter(),
+
+
+
+categoryId:category.id,
+
+
+
+NOT:{
+
+
+id:article.id
+
+
+}
+
 
 },
 
-});
 
 
-/* ================= RELATED ================= */
+orderBy:{
 
 
-const related = await prisma.article.findMany({
-
-  where:{
-
-    status:"approved",
-
-    isDeleted:false,
+createdAt:"desc"
 
 
-    categoryId:category.id,
+},
 
 
-    NOT:{
 
-      id:article.id,
-
-    },
+take:6,
 
 
-  },
+
+include:{
 
 
-  orderBy:{
-
-    createdAt:"desc",
-
-  },
+category:true
 
 
-  take:6,
+}
 
-
-  include:{
-
-    category:true,
-
-  },
 
 
 });
 
 
 
-/* NEXT STORY */
 
-const nextArticle = await prisma.article.findFirst({
 
-  where:{
 
-    status:"approved",
 
-    isDeleted:false,
 
-    categoryId: category.id,
 
-    id:{
-      not: article.id,
-    },
+/* =====================================================
+   NEXT STORY
 
-  },
+===================================================== */
 
-  orderBy:{
 
-    createdAt:"desc",
+const nextArticle =
 
-  },
+await prisma.article.findFirst({
 
-  include:{
+where:{
 
-    category:true,
 
-  },
+status:"approved",
+
+
+isDeleted:false,
+
+
+...isPublishedFilter(),
+
+
+
+categoryId:category.id,
+
+
+
+id:{
+
+
+not:article.id
+
+
+}
+
+
+},
+
+
+
+orderBy:{
+
+
+createdAt:"desc"
+
+
+},
+
+
+
+include:{
+
+
+category:true
+
+
+}
+
+
 
 });
 
 
 
 
+
+
+/* =====================================================
+   READING TIME
+
+===================================================== */
 
 
 function cleanText(html:string){
@@ -466,19 +746,28 @@ return html
 
 
 
-
 const wordCount =
+
 cleanText(article.content || "")
+
 .split(" ")
+
+.filter(Boolean)
+
 .length;
 
 
 
 
+
 const readingTime =
+
 Math.max(
+
 1,
+
 Math.ceil(wordCount / 200)
+
 );
 
 
@@ -486,8 +775,8 @@ Math.ceil(wordCount / 200)
 
 
 
-
 const articleUrl =
+
 `https://www.nationpathindia.com/${category.slug}/${article.slug}`;
 
 
@@ -495,31 +784,30 @@ const articleUrl =
 
 
 
-const keywords = [
+const keywords=[
+
 
 category.name,
 
+
 article.title,
+
 
 article.excerpt || "",
 
+
 "Nation Path India",
+
 
 "India News",
 
-"Breaking News",
+
+"Breaking News"
+
 
 ];
 
-
-
-
-
-
-
 return (
-
-
 
 <div
 
@@ -538,6 +826,9 @@ lg:px-8
 >
 
 
+{/* =====================================================
+    NEWS ARTICLE SCHEMA
+===================================================== */}
 
 
 <script
@@ -560,8 +851,11 @@ headline:article.title,
 
 
 description:
+
 article.metaDescription ||
+
 article.excerpt ||
+
 "",
 
 
@@ -577,10 +871,15 @@ article.images?.[0]
 ?
 
 [
+
 {
+
 "@type":"ImageObject",
+
 url:article.images[0],
+
 }
+
 ]
 
 :
@@ -589,17 +888,31 @@ url:article.images[0],
 
 
 
+
+
 datePublished:
+
+article.publishedAt ||
+
 article.createdAt,
 
 
+
+
+
 dateModified:
+
 article.updatedAt,
 
 
 
+
+
 articleSection:
+
 category.name,
+
+
 
 
 
@@ -607,52 +920,76 @@ wordCount,
 
 
 
+
+
 timeRequired:
+
 `PT${readingTime}M`,
+
 
 
 
 
 mainEntityOfPage:{
 
+
 "@type":"WebPage",
 
-"@id":articleUrl,
+"@id":articleUrl
+
 
 },
+
+
+
 
 
 
 author:{
 
+
 "@type":"Organization",
 
-name:"Nation Path India",
+name:"Nation Path India"
+
 
 },
+
+
+
 
 
 
 publisher:{
 
+
 "@type":"Organization",
 
 name:"Nation Path India",
 
+
+
 logo:{
+
 
 "@type":"ImageObject",
 
 url:
-"https://www.nationpathindia.com/logo.png",
 
-},
+"https://www.nationpathindia.com/logo.png"
 
-},
+
+}
+
+
+}
+
+
 
 
 
 })
+
 
 }}
 
@@ -665,11 +1002,108 @@ url:
 
 
 
+{/* =====================================================
+    FAQ SCHEMA
+===================================================== */}
+
+
+{
+
+Array.isArray(article.faqItems)
+
+&&
+
+article.faqItems.length > 0
+
+&&
+
+(
+
+<script
+
+type="application/ld+json"
+
+dangerouslySetInnerHTML={{
+
+__html:JSON.stringify({
+
+"@context":"https://schema.org",
+
+"@type":"FAQPage",
+
+
+
+mainEntity:
+
+article.faqItems
+
+.filter(
+
+(item:any)=>
+
+item.question && item.answer
+
+)
+
+.map(
+
+(item:any)=>(
+
+{
+
+"@type":"Question",
+
+
+name:item.question,
+
+
+
+acceptedAnswer:{
+
+
+"@type":"Answer",
+
+
+text:item.answer
+
+
+}
+
+
+
+}
+
+)
+
+)
+
+
+
+})
+
+
+}}
+
+
+/>
+
+)
+
+}
+
+
+
+
+
+
+
 
 <div
 
 className="
+
 grid
+
 grid-cols-1
 
 gap-10
@@ -688,8 +1122,10 @@ lg:gap-14
 
 
 
-
 <main>
+
+
+
 
 
 
@@ -697,22 +1133,31 @@ lg:gap-14
 <nav
 
 className="
+
 mb-6
+
 text-xs
+
 uppercase
+
 tracking-wide
+
 text-gray-500
+
 "
 
 >
 
 
-<Link href="/" >
+<Link href="/">
+
 Home
+
 </Link>
 
 
 {" / "}
+
 
 
 <Link href={`/${category.slug}`}>
@@ -730,19 +1175,29 @@ Home
 
 
 
+
 <div
 
 className="
+
 my-8
+
 flex
+
 justify-center
+
 "
 
 >
 
+
 <AdRenderer placement="article_top"/>
 
+
 </div>
+
+
+
 
 
 
@@ -766,13 +1221,19 @@ readingTime={readingTime}
 
 
 
+
+
+
+
 <ArticleHero
 
-image={article.images?.[0]}
+images={article.images}
 
 title={article.title}
 
 />
+
+
 
 
 
@@ -797,10 +1258,11 @@ url={articleUrl}
 
 <ArticleAISummary
 
-categoryName={category.name}
+  categoryName={category.name}
+
+  summary={article.aiSummary as any}
 
 />
-
 
 
 
@@ -812,7 +1274,43 @@ categoryName={category.name}
 
 content={article.content}
 
+keyHighlights={article.keyHighlights}
+
+whyItMatters={article.whyItMatters}
+
 />
+
+
+
+
+
+
+
+
+
+{
+
+Array.isArray(article.faqItems)
+
+&&
+
+article.faqItems.length > 0
+
+&&
+
+(
+
+<ArticleFAQ
+
+faqItems={article.faqItems as any}
+
+/>
+
+)
+
+}
+
+
 
 
 
@@ -823,16 +1321,24 @@ content={article.content}
 <div
 
 className="
+
 my-14
+
 flex
+
 justify-center
+
 "
 
 >
 
+
 <AdRenderer placement="article_bottom"/>
 
+
 </div>
+
+
 
 
 
@@ -845,6 +1351,7 @@ justify-center
 article={nextArticle}
 
 />
+
 
 
 
@@ -868,6 +1375,7 @@ categorySlug={category.slug}
 
 
 
+
 <ArticleRelated
 
 articles={related}
@@ -878,8 +1386,9 @@ articles={related}
 
 
 
-</main>
 
+
+</main>
 
 
 
@@ -899,18 +1408,16 @@ mostRead={mostRead}
 
 
 
-</div>
-
-
-
-
-
 
 </div>
 
 
+
+
+
+
+
+</div>
 
 );
-
-
 }

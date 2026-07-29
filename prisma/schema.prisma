@@ -156,6 +156,7 @@ model Article {
   images   String[]
   videoUrl String?
 
+
   //////////////////////////////////////////////////////
   // FLAGS
   //////////////////////////////////////////////////////
@@ -169,10 +170,16 @@ model Article {
   isEditorsPick Boolean @default(false)
   isLive        Boolean @default(false)
 
+  breakingStart DateTime?
+
+  breakingEnd DateTime?
+  
   homepagePriority Int @default(0)
 
   breakingPriority Int @default(0)
   flashPriority    Int @default(0)
+
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   // ASTROLOGY
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,7 +346,7 @@ warning String?
   aiVersion   String?
   aiPrompt    String?
   generatedAt DateTime?
-
+  aiSummary   Json?
   // ==========================================================
   // INTERNAL
   // ==========================================================
@@ -367,6 +374,16 @@ warning String?
   surprising Int @default(0)
   concerning Int @default(0)
 
+
+  //////////////////////////////////////////////////////
+  // EDITORIAL INTELLIGENCE
+  //////////////////////////////////////////////////////
+
+  keyHighlights String[]
+
+  whyItMatters String?
+
+
   //////////////////////////////////////////////////////
   // TRENDING
   //////////////////////////////////////////////////////
@@ -387,6 +404,7 @@ warning String?
   readingTime     Int?
   metaTitle       String?
   metaDescription String?
+ faqItems        Json?
   metaKeywords    String?
   canonicalUrl    String?
   ogImage         String?

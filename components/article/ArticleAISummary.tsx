@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+
 interface ArticleAISummaryProps {
 
   categoryName:string;
@@ -6,705 +12,684 @@ interface ArticleAISummaryProps {
 
     overview?:string;
 
-    points?:string[];
-
     impact?:string;
+
+    perspective?:string;
 
     takeaway?:string;
 
   };
 
-  premium?:boolean;
-
 }
-
 
 
 
 
 export default function ArticleAISummary({
 
-  categoryName,
+categoryName,
 
-  summary,
-
-  premium=false,
+summary,
 
 }:ArticleAISummaryProps){
 
 
 
-  const points = summary?.points || [
+const insights = [
 
-    "Key developments explained in a simple format.",
+{
 
-    "Important context behind the latest update.",
+label:"AI PERSPECTIVE",
 
-    "Major factors readers should understand.",
+icon:"◈",
 
-  ];
+text:
 
+summary?.overview ||
 
+"Understanding the deeper context behind this development."
 
+},
 
 
 
-  return (
+{
 
+label:"READER IMPACT",
 
-    <section
+icon:"◉",
 
-      className="
-      relative
-      my-12
+text:
 
-      overflow-hidden
+summary?.impact ||
 
-      rounded-3xl
+"Understanding the possible impact of this story."
 
-      border
-      border-[#D4AF37]/40
+},
 
-      bg-[#FAF7F1]
 
-      p-5
 
-      sm:p-8
+{
 
-      "
+label:"KEY INTELLIGENCE",
 
-    >
+icon:"◆",
 
+text:
 
+summary?.perspective ||
 
+summary?.takeaway ||
 
+summary?.overview ||
 
-      {/* GOLD EFFECT */}
+"The essential insight readers should remember."
 
+}
 
-      <div
 
-        className="
-        pointer-events-none
-        absolute
-        -right-16
-        -top-16
+];
 
-        h-48
-        w-48
 
-        rounded-full
 
-        bg-[#D4AF37]/20
 
-        blur-3xl
 
-        "
 
-      />
+const [active,setActive]=useState(0);
 
+const [compact,setCompact]=useState(false);
 
 
 
 
 
 
-      <div className="relative">
+useEffect(()=>{
 
 
+let timer:any;
 
 
 
+if(!compact){
 
 
-        {/* HEADER */}
+timer=setInterval(()=>{
 
 
-        <div
+setActive(prev=>{
 
-          className="
-          flex
-          flex-col
-          gap-4
 
-          sm:flex-row
-          sm:items-start
-          sm:justify-between
+if(prev===insights.length-1){
 
-          "
 
-        >
+setCompact(true);
 
 
+return 0;
 
-          <div>
 
+}
 
-            <p
 
-              className="
-              text-[10px]
-              font-bold
-              uppercase
-              tracking-[0.35em]
+return prev+1;
 
-              text-[#8B5E00]
 
-              "
+});
 
-            >
 
-              NationPath AI Brief
+},5000);
 
-            </p>
 
 
+}
 
+else{
 
 
-            <h2
+timer=setTimeout(()=>{
 
-              className="
-              mt-3
 
-              max-w-2xl
+setCompact(false);
 
-              font-serif
+setActive(0);
 
-              text-2xl
 
-              font-bold
 
-              leading-tight
+},10000);
 
-              text-[#163C80]
-
-              sm:text-3xl
-
-              "
-
-            >
-
-              Understand the story beyond headlines
-
-            </h2>
-
-
-
-          </div>
-
-
-
-
-
-
-          <span
-
-            className="
-            inline-flex
-            w-fit
-
-            rounded-full
-
-            border
-            border-green-200
-
-            bg-green-50
-
-            px-3
-            py-1
-
-            text-[11px]
-
-            font-semibold
-
-            text-green-700
-
-            "
-
-          >
-
-            AI Assisted
-
-          </span>
-
-
-
-
-
-        </div>
-
-
-
-
-
-
-
-
-
-        {/* INTRO */}
-
-
-
-        <p
-
-          className="
-          mt-5
-
-          max-w-3xl
-
-          text-sm
-
-          leading-relaxed
-
-          text-gray-600
-
-          sm:text-base
-
-          "
-
-        >
-
-          A quick intelligence layer analysing this{" "}
-
-
-          <span className="font-semibold text-gray-900">
-
-            {categoryName}
-
-          </span>
-
-
-          {" "}story with context, important developments
-          and reader-focused insights.
-
-
-
-        </p>
-
-
-
-
-
-
-
-
-
-        {/* INSIGHTS */}
-
-
-
-        <div
-
-          className="
-          mt-8
-
-          grid
-
-          gap-4
-
-          md:grid-cols-3
-
-          "
-
-        >
-
-
-
-          <InsightCard
-
-            title="WHAT HAPPENED"
-
-            text={
-              summary?.overview ||
-              "A concise explanation of the latest developments and events."
-            }
-
-          />
-
-
-
-          <InsightCard
-
-            title="WHY IT MATTERS"
-
-            text={
-              summary?.impact ||
-              "The broader impact and significance of this development."
-            }
-
-          />
-
-
-
-          <InsightCard
-
-            title="KEY TAKEAWAY"
-
-            text={
-              summary?.takeaway ||
-              "The most important point readers should remember."
-            }
-
-          />
-
-
-
-        </div>
-
-
-
-
-
-
-
-
-
-        {/* KEY POINTS */}
-
-
-
-        <div
-
-          className="
-          mt-8
-
-          rounded-2xl
-
-          border
-          border-black/5
-
-          bg-white
-
-          p-5
-
-          "
-
-        >
-
-
-
-          <h3
-
-            className="
-            text-sm
-
-            font-bold
-
-            uppercase
-
-            tracking-wide
-
-            text-[#163C80]
-
-            "
-
-          >
-
-            Key Points
-
-          </h3>
-
-
-
-
-
-
-          <ul
-
-            className="
-            mt-4
-
-            space-y-3
-
-            "
-
-          >
-
-
-
-            {
-              points.map((point,index)=>(
-
-
-                <li
-
-                  key={index}
-
-                  className="
-                  flex
-
-                  gap-3
-
-                  text-sm
-
-                  leading-relaxed
-
-                  text-gray-600
-
-                  "
-
-                >
-
-
-
-                  <span
-
-                    className="
-                    mt-2
-
-                    h-1.5
-                    w-1.5
-
-                    shrink-0
-
-                    rounded-full
-
-                    bg-[#EA661B]
-
-                    "
-
-                  />
-
-
-
-                  <span>
-
-                    {point}
-
-                  </span>
-
-
-
-                </li>
-
-
-              ))
-            }
-
-
-
-          </ul>
-
-
-
-        </div>
-
-
-
-
-
-
-
-
-
-        {/* FOOTER CTA */}
-
-
-
-        <div
-
-          className="
-          mt-8
-
-          flex
-
-          flex-col
-
-          gap-4
-
-
-          sm:flex-row
-
-          sm:items-center
-
-          sm:justify-between
-
-          "
-
-        >
-
-
-
-          <p
-
-            className="
-            text-xs
-
-            text-gray-500
-
-            "
-
-          >
-
-            AI insights help readers understand news faster.
-
-          </p>
-
-
-
-
-
-          <a
-
-            href="/astro"
-
-            className="
-            inline-flex
-
-            items-center
-            justify-center
-
-            rounded-full
-
-            bg-[#163C80]
-
-            px-6
-
-            py-3
-
-            text-sm
-
-            font-semibold
-
-            text-white
-
-            transition
-
-            hover:bg-[#102d61]
-
-            "
-
-          >
-
-            {
-              premium
-              ?
-              "Unlock Full Intelligence →"
-              :
-              "Explore Intelligence →"
-            }
-
-
-          </a>
-
-
-
-        </div>
-
-
-
-
-
-
-      </div>
-
-
-
-
-
-    </section>
-
-
-  );
 
 
 }
 
 
 
+return ()=>clearTimeout(timer);
+
+
+
+},[compact]);
 
 
 
 
 
 
-function InsightCard({
 
-  title,
-
-  text,
-
-}:{
-
-  title:string;
-
-  text:string;
-
-}){
+return (
 
 
-  return (
+<section
 
+className="
+relative
+my-10
+overflow-hidden
+rounded-3xl
+border
+border-[#D4AF37]/30
+bg-[#08111F]
+p-5
+shadow-xl
+"
 
-    <div
-
-      className="
-      rounded-xl
-
-      border
-
-      border-black/5
-
-      bg-white
-
-      p-5
-
-      "
-
-    >
+>
 
 
 
-      <p
+<div
 
-        className="
-        text-xs
+className="
+absolute
+-right-20
+-top-20
+h-52
+w-52
+rounded-full
+bg-[#D4AF37]/20
+blur-3xl
+"
 
-        font-bold
-
-        tracking-wide
-
-        text-[#163C80]
-
-        "
-
-      >
-
-        {title}
-
-      </p>
+/>
 
 
 
 
 
-      <p
 
-        className="
-        mt-3
-
-        text-sm
-
-        leading-relaxed
-
-        text-gray-500
-
-        "
-
-      >
-
-        {text}
-
-      </p>
+<div className="relative">
 
 
 
 
-    </div>
+
+<div
+
+className="
+flex
+items-center
+justify-between
+"
+
+>
 
 
-  );
+
+<div>
+
+
+
+<p
+
+className="
+text-[10px]
+tracking-[0.35em]
+uppercase
+font-bold
+text-[#D4AF37]
+"
+
+>
+
+NationPath AI Intelligence
+
+</p>
+
+
+
+
+
+<h2
+
+className="
+mt-2
+text-xl
+font-serif
+font-bold
+text-white
+"
+
+>
+
+Beyond The Headline
+
+</h2>
+
+
+
+
+
+<p
+
+className="
+text-xs
+text-gray-400
+mt-1
+"
+
+>
+
+AI analysis of this {categoryName} story
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div
+
+className="
+rounded-full
+border
+border-green-400/30
+bg-green-400/10
+px-3
+py-1
+text-[10px]
+text-green-300
+"
+
+>
+
+AI ASSISTED
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+mt-5
+h-[170px]
+rounded-2xl
+border
+border-white/10
+bg-white/[0.04]
+p-5
+overflow-hidden
+"
+
+>
+
+
+
+<AnimatePresence mode="wait">
+
+
+
+
+
+{
+
+compact ?
+
+
+
+<motion.div
+
+key="compact"
+
+initial={{
+
+opacity:0
+
+}}
+
+animate={{
+
+opacity:1
+
+}}
+
+transition={{
+
+duration:.5
+
+}}
+
+className="
+grid
+grid-cols-3
+gap-3
+h-full
+items-center
+"
+
+>
+
+
+
+{
+
+insights.map((item,index)=>(
+
+
+
+<div
+
+key={index}
+
+className="
+rounded-xl
+border
+border-white/10
+bg-white/[0.05]
+p-3
+h-[110px]
+"
+
+>
+
+
+
+<p
+
+className="
+text-[9px]
+tracking-widest
+text-[#D4AF37]
+font-bold
+"
+
+>
+
+{item.label}
+
+</p>
+
+
+
+
+
+<p
+
+className="
+mt-2
+text-xs
+leading-relaxed
+text-gray-300
+line-clamp-4
+"
+
+>
+
+{item.text}
+
+</p>
+
+
+
+</div>
+
+
+
+))
+
+
+}
+
+
+
+</motion.div>
+
+
+
+:
+
+
+
+
+
+<motion.div
+
+key={active}
+
+initial={{
+
+opacity:0,
+
+y:15
+
+}}
+
+animate={{
+
+opacity:1,
+
+y:0
+
+}}
+
+exit={{
+
+opacity:0,
+
+y:-15
+
+}}
+
+transition={{
+
+duration:.4
+
+}}
+
+className="
+h-full
+"
+
+>
+
+
+
+<div
+
+className="
+flex
+items-center
+gap-3
+"
+
+>
+
+
+
+<span
+
+className="
+text-xl
+text-[#D4AF37]
+"
+
+>
+
+{insights[active].icon}
+
+</span>
+
+
+
+
+
+<p
+
+className="
+text-xs
+font-bold
+tracking-[0.25em]
+text-[#D4AF37]
+"
+
+>
+
+{insights[active].label}
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+<p
+
+className="
+mt-4
+text-sm
+leading-relaxed
+text-gray-300
+"
+
+>
+
+{insights[active].text}
+
+</p>
+
+
+
+
+
+</motion.div>
+
+
+
+}
+
+
+
+</AnimatePresence>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+mt-4
+flex
+justify-center
+gap-2
+"
+
+>
+
+
+
+{
+
+[0,1,2].map(index=>(
+
+
+
+<span
+
+key={index}
+
+className={`
+
+h-1.5
+
+rounded-full
+
+transition-all
+
+${
+
+active===index && !compact
+
+?
+
+"w-8 bg-[#D4AF37]"
+
+:
+
+"w-2 bg-white/30"
+
+}
+
+`}
+
+/>
+
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+);
 
 
 }

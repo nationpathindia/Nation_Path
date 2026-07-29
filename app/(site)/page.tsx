@@ -81,7 +81,27 @@ export const revalidate = 60;
 const SITE_URL =
 process.env.NEXT_PUBLIC_SITE_URL ||
 "https://nationpathindia.com";
+function publishedFilter(){
 
+  return {
+
+    OR:[
+
+      {
+        publishedAt:null
+      },
+
+      {
+        publishedAt:{
+          lte:new Date()
+        }
+      }
+
+    ]
+
+  };
+
+}
 
 
 
@@ -270,21 +290,17 @@ prisma.article.findMany({
 
 where:{
 
-
 status:PostStatus.approved,
-
 
 isDeleted:false,
 
-
 isEditorial:false,
 
+isAstrology:false,
 
-isAstrology:false
-
+...publishedFilter()
 
 },
-
 
 
 include:{
@@ -319,18 +335,19 @@ take:40
 
 prisma.article.findMany({
 
-
 where:{
 
 
 status:PostStatus.approved,
 
 
-isDeleted:false
+isDeleted:false,
+
+
+...publishedFilter()
 
 
 },
-
 
 
 include:{
@@ -363,9 +380,7 @@ take:5
 
 
 
-
 prisma.article.findMany({
-
 
 where:{
 
@@ -376,11 +391,13 @@ status:PostStatus.approved,
 isDeleted:false,
 
 
-isEditorial:true
+isEditorial:true,
+
+
+...publishedFilter()
 
 
 },
-
 
 
 include:{

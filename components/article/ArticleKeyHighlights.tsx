@@ -1,8 +1,12 @@
 "use client";
 
+
 interface Props {
+
   highlights?: string[];
+
 }
+
 
 
 export default function ArticleKeyHighlights({
@@ -13,55 +17,70 @@ export default function ArticleKeyHighlights({
 
 
   if(!highlights.length){
+
     return null;
+
   }
+
 
 
 
   return (
 
+
     <section
 
       className="
-      my-14
+
+      my-10
 
       relative
+
       overflow-hidden
 
-      rounded-[32px]
+      rounded-2xl
 
       border
+
       border-[#D7E3FF]
 
-      bg-gradient-to-br
-      from-[#F8FBFF]
-      via-white
-      to-[#EEF5FF]
+      bg-white
 
-      p-6
-      sm:p-8
+      p-5
 
-      shadow-[0_20px_50px_rgba(22,60,128,0.10)]
+      sm:p-6
+
+      shadow-[0_12px_35px_rgba(22,60,128,0.08)]
 
       "
 
     >
 
 
-      {/* subtle accent */}
+
+
+
+      {/* Accent Line */}
+
 
       <div
 
         className="
+
         absolute
-        top-0
+
         left-0
 
+        top-0
+
         h-full
-        w-1.5
+
+        w-1
 
         bg-gradient-to-b
+
         from-[#163C80]
+
         to-[#EA661B]
 
         "
@@ -71,16 +90,23 @@ export default function ArticleKeyHighlights({
 
 
 
+
+
+
       {/* HEADER */}
+
 
       <div
 
         className="
-        flex
-        items-center
-        justify-between
 
-        mb-8
+        flex
+
+        items-center
+
+        gap-3
+
+        mb-5
 
         "
 
@@ -91,90 +117,91 @@ export default function ArticleKeyHighlights({
         <div
 
           className="
+
           flex
+
+          h-9
+
+          w-9
+
           items-center
-          gap-4
+
+          justify-center
+
+          rounded-xl
+
+          bg-[#163C80]
+
+          text-white
+
+          text-sm
+
+          shadow
 
           "
 
         >
 
+          ★
 
-          <div
+        </div>
+
+
+
+
+
+        <div>
+
+
+          <p
 
             className="
-            w-12
-            h-12
 
-            rounded-2xl
+            text-[10px]
 
-            bg-[#163C80]
+            uppercase
 
-            flex
-            items-center
-            justify-center
+            tracking-[0.25em]
 
-            text-white
+            font-bold
 
-            text-xl
-
-            shadow-lg
+            text-[#EA661B]
 
             "
 
           >
 
-            ⭐
+            Editorial Insight
 
-          </div>
-
-
-
-          <div>
-
-
-            <p
-
-              className="
-              text-xs
-              tracking-[0.2em]
-
-              uppercase
-
-              text-[#EA661B]
-
-              font-semibold
-
-              "
-
-            >
-
-              Editorial Insight
-
-            </p>
+          </p>
 
 
 
-            <h2
 
-              className="
-              text-2xl
-              sm:text-3xl
+          <h2
 
-              font-bold
+            className="
 
-              text-[#163C80]
+            mt-0.5
 
-              "
+            text-xl
 
-            >
+            sm:text-2xl
 
-              Key Highlights
+            font-serif
 
-            </h2>
+            font-bold
 
+            text-[#163C80]
 
-          </div>
+            "
+
+          >
+
+            Key Highlights
+
+          </h2>
+
 
 
         </div>
@@ -189,13 +216,18 @@ export default function ArticleKeyHighlights({
 
 
 
-      {/* HIGHLIGHTS */}
+
+
+      {/* ITEMS */}
 
 
       <div
 
         className="
-        space-y-4
+
+        grid
+
+        gap-3
 
         "
 
@@ -203,107 +235,130 @@ export default function ArticleKeyHighlights({
 
 
         {
-          highlights.map(
 
-            (item,index)=>(
+          highlights
+
+          .slice(0,6)
+
+          .map((item,index)=>(
 
 
-              <div
 
-                key={index}
+            <div
+
+              key={index}
+
+              className="
+
+              group
+
+              flex
+
+              items-start
+
+              gap-3
+
+              rounded-xl
+
+              border
+
+              border-[#EDF2FF]
+
+              bg-[#FAFCFF]
+
+              px-3
+
+              py-3
+
+              transition
+
+              hover:border-[#163C80]/20
+
+              hover:shadow-sm
+
+              "
+
+            >
+
+
+
+
+
+              <span
 
                 className="
-                group
+
+                shrink-0
 
                 flex
-                gap-4
 
-                rounded-2xl
+                h-7
 
-                bg-white
+                w-7
 
-                border
-                border-[#E5EDFF]
+                items-center
 
-                p-4
-                sm:p-5
+                justify-center
 
-                transition-all
+                rounded-lg
 
-                hover:shadow-md
+                bg-[#163C80]
+
+                text-white
+
+                text-[11px]
+
+                font-bold
 
                 "
 
               >
 
+                {index + 1}
 
-
-                <div
-
-                  className="
-                  shrink-0
-
-                  w-9
-                  h-9
-
-                  rounded-xl
-
-                  bg-[#163C80]
-
-                  flex
-                  items-center
-                  justify-center
-
-                  text-white
-
-                  text-sm
-
-                  font-bold
-
-                  "
-
-                >
-
-                  {String(index + 1).padStart(2,"0")}
-
-
-                </div>
+              </span>
 
 
 
 
 
-                <p
-
-                  className="
-                  text-[#333]
-
-                  leading-relaxed
-
-                  text-[15px]
-                  sm:text-base
-
-                  "
-
-                >
-
-                  {item}
 
 
-                </p>
+              <p
+
+                className="
+
+                text-sm
+
+                leading-relaxed
+
+                text-[#374151]
+
+                "
+
+              >
+
+                {item}
+
+              </p>
 
 
 
-              </div>
 
 
-            )
+            </div>
 
-          )
+
+
+          ))
+
         }
 
 
+
       </div>
+
+
 
 
 

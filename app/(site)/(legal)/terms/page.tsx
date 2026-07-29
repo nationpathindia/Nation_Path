@@ -141,7 +141,7 @@ export default function TermsPage() {
         </h2>
 
         <p className="text-gray-600">
-          Nation Path is operated by <strong>SuryaPath Media, India</strong>.
+          Nation Path is operated by <strong>Nationpath, India</strong>.
           If you have any questions regarding these Terms &
           Conditions, please contact us at{" "}
           <a

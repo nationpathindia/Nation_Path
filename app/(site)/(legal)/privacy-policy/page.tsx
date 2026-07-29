@@ -143,7 +143,7 @@ export default function PrivacyPolicyPage() {
         </h2>
 
         <p className="text-gray-600">
-          Nation Path is operated by <strong>SuryaPath Media, India</strong>.
+          NationPath Online Meidia is operated by <strong>Nationpath, India</strong>.
           For any privacy-related questions, please contact us at{" "}
           <a
             href="mailto:info@nationpathindia.com"

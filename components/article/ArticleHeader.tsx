@@ -1,5 +1,4 @@
 import Link from "next/link";
-import LikeButton from "@/components/LikeButton";
 
 
 interface ArticleHeaderProps {
@@ -27,15 +26,25 @@ export default function ArticleHeader({
 
 
   const publishedDate = new Date(
+
     article.createdAt
+
   ).toLocaleDateString(
+
     "en-IN",
+
     {
+
       day:"numeric",
+
       month:"long",
+
       year:"numeric",
+
     }
+
   );
+
 
 
 
@@ -47,10 +56,11 @@ export default function ArticleHeader({
     <header
 
       className="
-      mb-12
+      mb-10
       "
 
     >
+
 
 
 
@@ -63,25 +73,61 @@ export default function ArticleHeader({
         href={`/${category.slug}`}
 
         className="
+        group
+
         inline-flex
+
         items-center
-        border-l-4
-        border-[#EA661B]
-        pl-3
-        text-xs
+
+        gap-3
+
+        text-[11px]
+
         font-bold
+
         uppercase
-        tracking-[0.2em]
+
+        tracking-[0.28em]
+
         text-[#163C80]
+
         transition
+
         hover:text-[#EA661B]
+
         "
 
       >
 
-        {category.name}
+
+
+        <span
+
+          className="
+          h-7
+
+          w-1
+
+          rounded-full
+
+          bg-[#EA661B]
+
+          "
+
+        />
+
+
+
+        <span>
+
+          {category.name}
+
+        </span>
+
+
 
       </Link>
+
 
 
 
@@ -97,18 +143,31 @@ export default function ArticleHeader({
 
         className="
         mt-6
-        max-w-5xl
+
+        max-w-4xl
+
         font-serif
+
+        font-bold
+
         text-3xl
-        leading-[1.12]
-        tracking-tight
+
+        leading-[1.16]
+
+        tracking-[-0.025em]
+
         text-[#111]
 
-        sm:text-5xl
-        sm:leading-[1.08]
 
-        lg:text-[4.5rem]
-        lg:leading-[1.04]
+        sm:text-4xl
+
+        sm:leading-[1.12]
+
+
+        lg:text-[3.75rem]
+
+        lg:leading-[1.05]
+
         "
 
       >
@@ -116,42 +175,6 @@ export default function ArticleHeader({
         {article.title}
 
       </h1>
-
-
-
-
-
-
-
-
-      {/* ================= EXCERPT ================= */}
-
-
-      {
-        article.excerpt && (
-
-
-          <p
-
-            className="
-            mt-6
-            max-w-3xl
-            text-base
-            leading-relaxed
-            text-gray-600
-
-            sm:text-xl
-            "
-
-          >
-
-            {article.excerpt}
-
-          </p>
-
-
-        )
-      }
 
 
 
@@ -168,24 +191,36 @@ export default function ArticleHeader({
 
         className="
         mt-8
+
         flex
-        flex-col
-        gap-3
+
+        flex-wrap
+
+        items-center
+
+        gap-x-3
+
+        gap-y-3
+
 
         border-y
+
         border-black/10
 
-        py-5
+        py-4
 
-        text-sm
+
+        text-xs
+
+        tracking-wide
+
         text-gray-500
 
-        sm:flex-row
-        sm:flex-wrap
-        sm:items-center
         "
 
       >
+
+
 
 
 
@@ -193,7 +228,9 @@ export default function ArticleHeader({
 
           className="
           font-semibold
+
           text-[#111]
+
           "
 
         >
@@ -206,9 +243,19 @@ export default function ArticleHeader({
 
 
 
-        <span className="hidden sm:block">
 
-          •
+
+
+        <span
+
+          className="
+          text-gray-300
+
+          "
+
+        >
+
+          |
 
         </span>
 
@@ -216,21 +263,37 @@ export default function ArticleHeader({
 
 
 
-        <span>
+
+
+
+        <time>
 
           {publishedDate}
 
+        </time>
+
+
+
+
+
+
+
+
+        <span
+
+          className="
+          text-gray-300
+
+          "
+
+        >
+
+          |
+
         </span>
 
 
 
-
-
-        <span>
-
-          •
-
-        </span>
 
 
 
@@ -246,54 +309,52 @@ export default function ArticleHeader({
 
 
 
-        <span>
-
-          •
-
-        </span>
 
 
+        {
+
+          article.views > 0 && (
 
 
+            <>
 
-        <span>
+              <span
 
-          {article.views} views
+                className="
+                text-gray-300
 
-        </span>
+                "
 
+              >
 
+                |
 
-
-      </div>
-
-
-
+              </span>
 
 
 
 
+              <span>
 
-      {/* ================= LIKE ================= */}
+                {article.views.toLocaleString()} views
+
+              </span>
 
 
-      <div
+            </>
 
-        className="
-        mt-6
-        "
 
-      >
+          )
 
-        <LikeButton
+        }
 
-          articleId={article.id}
 
-          initialLikes={article.likes || 0}
 
-        />
+
+
 
       </div>
+
 
 
 

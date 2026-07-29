@@ -55,20 +55,15 @@ export default function ArticleSidebar({
       <section
 
         className="
-        rounded-3xl
+        border-t
 
-        border
-        border-black/5
+        border-black/10
 
-        bg-white
-
-        p-5
+        pt-6
 
         "
 
       >
-
-
 
 
 
@@ -115,7 +110,7 @@ export default function ArticleSidebar({
 
             tracking-[0.35em]
 
-            text-[#111]
+            text-[#163C80]
 
             "
 
@@ -123,14 +118,11 @@ export default function ArticleSidebar({
 
             Most Read
 
-
           </h3>
 
 
 
-
         </div>
-
 
 
 
@@ -152,7 +144,6 @@ export default function ArticleSidebar({
 
 
 
-
           {
             mostRead
             .slice(0,5)
@@ -162,12 +153,9 @@ export default function ArticleSidebar({
 
               <Link
 
-
                 key={item.id}
 
-
                 href={`/${item.category?.slug}/${item.slug}`}
-
 
                 className="
                 group
@@ -179,8 +167,6 @@ export default function ArticleSidebar({
                 py-5
 
                 first:pt-0
-
-                last:pb-0
 
                 "
 
@@ -194,17 +180,17 @@ export default function ArticleSidebar({
                 <span
 
                   className="
-                  min-w-[42px]
+                  min-w-[38px]
 
                   font-serif
 
-                  text-4xl
+                  text-3xl
 
                   font-bold
 
                   leading-none
 
-                  text-[#163C80]/15
+                  text-[#163C80]/20
 
                   transition-colors
 
@@ -218,7 +204,6 @@ export default function ArticleSidebar({
                     String(index+1)
                     .padStart(2,"0")
                   }
-
 
                 </span>
 
@@ -241,7 +226,7 @@ export default function ArticleSidebar({
 
 
 
-                  <p
+                  <h4
 
                     className="
                     font-serif
@@ -249,6 +234,8 @@ export default function ArticleSidebar({
                     text-[15px]
 
                     leading-snug
+
+                    tracking-tight
 
                     text-[#111]
 
@@ -262,8 +249,8 @@ export default function ArticleSidebar({
 
                     {item.title}
 
+                  </h4>
 
-                  </p>
 
 
 
@@ -271,6 +258,7 @@ export default function ArticleSidebar({
 
 
                   {
+
                     item.category?.name && (
 
 
@@ -295,13 +283,12 @@ export default function ArticleSidebar({
 
                         {item.category.name}
 
-
                       </p>
 
 
                     )
-                  }
 
+                  }
 
 
 
@@ -313,15 +300,11 @@ export default function ArticleSidebar({
 
 
 
-
-
               </Link>
-
 
 
             ))
           }
-
 
 
 
@@ -346,6 +329,7 @@ export default function ArticleSidebar({
 
 
 
+
       {/* ================= TRENDING ================= */}
 
 
@@ -353,13 +337,13 @@ export default function ArticleSidebar({
       <section
 
         className="
-        rounded-3xl
+        rounded-2xl
 
         border
 
         border-[#163C80]/15
 
-        bg-[#F8FAFC]
+        bg-[#163C80]/5
 
         p-5
 
@@ -368,12 +352,13 @@ export default function ArticleSidebar({
       >
 
 
-
         <TrendingWidget />
 
 
-
       </section>
+
+
+
 
 
 
@@ -399,13 +384,11 @@ export default function ArticleSidebar({
       >
 
 
-
         <AdRenderer
 
           placement="article_sidebar"
 
         />
-
 
 
       </div>
@@ -430,10 +413,10 @@ export default function ArticleSidebar({
 
 
 
+
     </aside>
 
 
   );
-
 
 }

@@ -37,6 +37,7 @@ summary,
 
 const insights = [
 
+
 {
 
 label:"AI PERSPECTIVE",
@@ -95,9 +96,12 @@ summary?.overview ||
 
 
 
+
 const [active,setActive]=useState(0);
 
 const [compact,setCompact]=useState(false);
+
+
 
 
 
@@ -176,6 +180,7 @@ return ()=>clearTimeout(timer);
 
 
 
+
 return (
 
 
@@ -184,17 +189,80 @@ return (
 className="
 relative
 my-10
+
 overflow-hidden
-rounded-3xl
+
+rounded-xl
+
 border
-border-[#D4AF37]/30
-bg-[#08111F]
-p-5
-shadow-xl
+border-[#163C80]/40
+
+bg-[#163C80]/10
+
+backdrop-blur-md
+
+px-5
+py-5
+
+sm:px-6
+sm:py-6
+
+shadow-lg
+
 "
 
 >
 
+
+
+
+
+
+
+{/* ACCENT LINE */}
+
+<div
+
+className="
+absolute
+top-0
+left-0
+
+h-[2px]
+
+w-full
+
+overflow-hidden
+
+"
+
+>
+
+<div
+
+className="
+h-full
+w-1/3
+
+bg-[#EA661B]
+
+animate-[slide_3s_linear_infinite]
+
+"
+
+/>
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* SOFT GLOW */}
 
 
 <div
@@ -203,14 +271,20 @@ className="
 absolute
 -right-20
 -top-20
+
 h-52
 w-52
+
 rounded-full
-bg-[#D4AF37]/20
+
+bg-[#EA661B]/15
+
 blur-3xl
+
 "
 
 />
+
 
 
 
@@ -223,15 +297,25 @@ blur-3xl
 
 
 
+
+
+{/* HEADER */}
+
+
 <div
 
 className="
 flex
+
 items-center
+
 justify-between
+
 "
 
 >
+
+
 
 
 
@@ -243,10 +327,15 @@ justify-between
 
 className="
 text-[10px]
+
 tracking-[0.35em]
+
 uppercase
+
 font-bold
-text-[#D4AF37]
+
+text-[#EA661B]
+
 "
 
 >
@@ -259,14 +348,21 @@ NationPath AI Intelligence
 
 
 
+
+
 <h2
 
 className="
 mt-2
+
 text-xl
+
 font-serif
+
 font-bold
-text-white
+
+text-[#111]
+
 "
 
 >
@@ -279,12 +375,17 @@ Beyond The Headline
 
 
 
+
+
 <p
 
 className="
-text-xs
-text-gray-400
 mt-1
+
+text-xs
+
+text-gray-600
+
 "
 
 >
@@ -303,17 +404,29 @@ AI analysis of this {categoryName} story
 
 
 
+
+
 <div
 
 className="
 rounded-full
+
 border
-border-green-400/30
-bg-green-400/10
+
+border-[#163C80]/30
+
+bg-[#163C80]/10
+
 px-3
+
 py-1
+
 text-[10px]
-text-green-300
+
+font-semibold
+
+text-[#163C80]
+
 "
 
 >
@@ -324,6 +437,8 @@ AI ASSISTED
 
 
 
+
+
 </div>
 
 
@@ -334,20 +449,37 @@ AI ASSISTED
 
 
 
+
+
+
+
+{/* CONTENT AREA */}
+
+
 <div
 
 className="
 mt-5
+
 h-[170px]
-rounded-2xl
+
+rounded-xl
+
 border
-border-white/10
-bg-white/[0.04]
+
+border-black/10
+
+bg-white/[0.45]
+
 p-5
+
 overflow-hidden
+
 "
 
 >
+
+
 
 
 
@@ -360,6 +492,8 @@ overflow-hidden
 {
 
 compact ?
+
+
 
 
 
@@ -387,10 +521,15 @@ duration:.5
 
 className="
 grid
+
 grid-cols-3
+
 gap-3
+
 h-full
+
 items-center
+
 "
 
 >
@@ -398,6 +537,7 @@ items-center
 
 
 {
+
 
 insights.map((item,index)=>(
 
@@ -409,14 +549,22 @@ key={index}
 
 className="
 rounded-xl
+
 border
-border-white/10
-bg-white/[0.05]
+
+border-black/10
+
+bg-white/[0.55]
+
 p-3
+
 h-[110px]
+
 "
 
 >
+
+
 
 
 
@@ -424,9 +572,13 @@ h-[110px]
 
 className="
 text-[9px]
+
 tracking-widest
-text-[#D4AF37]
+
+text-[#EA661B]
+
 font-bold
+
 "
 
 >
@@ -439,14 +591,21 @@ font-bold
 
 
 
+
+
 <p
 
 className="
 mt-2
+
 text-xs
+
 leading-relaxed
-text-gray-300
+
+text-gray-600
+
 line-clamp-4
+
 "
 
 >
@@ -457,11 +616,14 @@ line-clamp-4
 
 
 
+
+
 </div>
 
 
 
 ))
+
 
 
 }
@@ -472,7 +634,12 @@ line-clamp-4
 
 
 
+
+
+
 :
+
+
 
 
 
@@ -514,9 +681,13 @@ duration:.4
 
 className="
 h-full
+
 "
 
 >
+
+
+
 
 
 
@@ -524,11 +695,16 @@ h-full
 
 className="
 flex
+
 items-center
+
 gap-3
+
 "
 
 >
+
+
 
 
 
@@ -536,7 +712,9 @@ gap-3
 
 className="
 text-xl
-text-[#D4AF37]
+
+text-[#EA661B]
+
 "
 
 >
@@ -549,13 +727,19 @@ text-[#D4AF37]
 
 
 
+
+
 <p
 
 className="
 text-xs
+
 font-bold
+
 tracking-[0.25em]
-text-[#D4AF37]
+
+text-[#163C80]
+
 "
 
 >
@@ -563,6 +747,9 @@ text-[#D4AF37]
 {insights[active].label}
 
 </p>
+
+
+
 
 
 
@@ -578,9 +765,13 @@ text-[#D4AF37]
 
 className="
 mt-4
+
 text-sm
+
 leading-relaxed
-text-gray-300
+
+text-gray-600
+
 "
 
 >
@@ -588,6 +779,8 @@ text-gray-300
 {insights[active].text}
 
 </p>
+
+
 
 
 
@@ -601,7 +794,11 @@ text-gray-300
 
 
 
+
+
 </AnimatePresence>
+
+
 
 
 
@@ -615,13 +812,20 @@ text-gray-300
 
 
 
+{/* INDICATORS */}
+
+
 <div
 
 className="
 mt-4
+
 flex
+
 justify-center
+
 gap-2
+
 "
 
 >
@@ -629,6 +833,7 @@ gap-2
 
 
 {
+
 
 [0,1,2].map(index=>(
 
@@ -646,17 +851,18 @@ rounded-full
 
 transition-all
 
+
 ${
 
 active===index && !compact
 
 ?
 
-"w-8 bg-[#D4AF37]"
+"w-8 bg-[#EA661B]"
 
 :
 
-"w-2 bg-white/30"
+"w-2 bg-[#163C80]/30"
 
 }
 
@@ -685,8 +891,10 @@ active===index && !compact
 
 
 
-</section>
 
+
+
+</section>
 
 
 );

@@ -25,7 +25,7 @@ export default function AboutPage() {
         </p>
 
         <p className="text-gray-500 mt-4">
-          Operated by <strong>SuryaPath Media, India</strong>
+          Operated by <strong>NationPath, India</strong>
         </p>
       </section>
 
@@ -113,7 +113,7 @@ export default function AboutPage() {
         </h2>
 
         <p className="text-gray-600">
-          Nation Path is operated by <strong>SuryaPath Media</strong>, an
+          Nation Path is operated by <strong>Nationpath </strong>, an
           independent media initiative based in India focused on building
           credible digital journalism platforms.
         </p>

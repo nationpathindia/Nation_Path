@@ -1,44 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
+
 import Link from "next/link";
 
 
 type Item = {
 
-id:string;
+  id:string;
 
-title:string;
+  title:string;
 
-slug:string;
+  slug:string;
 
-excerpt?:string;
+  excerpt?:string;
 
-category?:{
-name?:string;
+  category?:{
+
+    name?:string;
+
+    slug?:string;
+
+  };
+
 };
 
-};
 
 
 
 
 export default function BreakingSpotlight({
 
-items=[],
+  items=[],
 
 }:{
 
-items:Item[];
+  items:Item[];
 
 }){
 
 
-const [list,setList]=useState<Item[]>(items);
+const [list,setList] = useState<Item[]>(items);
 
-const [index,setIndex]=useState(0);
+const [index,setIndex] = useState(0);
 
-const [paused,setPaused]=useState(false);
+const [paused,setPaused] = useState(false);
+
+
+
+
+
+
+/*
+====================================
+ SYNC SERVER ITEMS
+====================================
+*/
+
+
+useEffect(()=>{
+
+setList(items);
+
+
+},[items]);
+
+
+
+
 
 
 
@@ -54,7 +86,10 @@ const [paused,setPaused]=useState(false);
 useEffect(()=>{
 
 
-if(!list.length) return;
+if(!list.length)
+
+return;
+
 
 
 const timer=setInterval(()=>{
@@ -62,9 +97,13 @@ const timer=setInterval(()=>{
 
 if(!paused){
 
-setIndex(
-prev=>(prev+1)%list.length
+
+setIndex(prev=>
+
+(prev + 1) % list.length
+
 );
+
 
 }
 
@@ -73,7 +112,9 @@ prev=>(prev+1)%list.length
 
 
 
+
 return()=>clearInterval(timer);
+
 
 
 },[list,paused]);
@@ -85,9 +126,13 @@ return()=>clearInterval(timer);
 
 
 
+
 /*
 ====================================
  LIVE BREAKING STREAM
+
+ Future realtime layer
+
 ====================================
 */
 
@@ -95,7 +140,7 @@ return()=>clearInterval(timer);
 useEffect(()=>{
 
 
-const source=new EventSource(
+const source = new EventSource(
 "/api/breaking/stream"
 );
 
@@ -107,32 +152,41 @@ source.onmessage=(event)=>{
 try{
 
 
-const data=JSON.parse(event.data);
+const data = JSON.parse(event.data);
 
 
 
 if(data?.id){
 
 
+
 setList(prev=>{
 
 
-const exists=
+const exists =
+
 prev.some(
+
 item=>item.id===data.id
+
 );
 
 
 
 if(exists)
+
 return prev;
 
 
 
 return [
+
 data,
+
 ...prev
+
 ].slice(0,8);
+
 
 
 });
@@ -142,11 +196,13 @@ data,
 setIndex(0);
 
 
-}
-
-
 
 }
+
+
+
+}
+
 catch{}
 
 
@@ -167,20 +223,29 @@ return()=>source.close();
 
 
 
+
+
+/*
+====================================
+ SAFETY
+====================================
+*/
+
+
 if(!list.length)
+
 return null;
 
 
 
+const current = list[index] || list[0];
 
-const current=list[index];
 
 
 
 
 
 return (
-
 
 <section
 
@@ -202,13 +267,17 @@ onMouseEnter={()=>setPaused(true)}
 
 onMouseLeave={()=>setPaused(false)}
 
+aria-label="Breaking News Spotlight"
+
 >
 
 
 
 
-{/* MOVING BORDER LINE */}
 
+
+
+{/* MOVING BORDER */}
 
 <div
 
@@ -223,7 +292,6 @@ overflow-hidden
 
 >
 
-
 <div
 
 className="
@@ -235,7 +303,6 @@ animate-[slide_3s_linear_infinite]
 
 />
 
-
 </div>
 
 
@@ -244,8 +311,9 @@ animate-[slide_3s_linear_infinite]
 
 
 
-{/* HEADER */}
 
+
+{/* HEADER */}
 
 <div
 
@@ -310,6 +378,7 @@ bg-red-500
 />
 
 
+
 </span>
 
 
@@ -333,7 +402,9 @@ Breaking News
 </span>
 
 
+
 </div>
+
 
 
 
@@ -350,9 +421,10 @@ tracking-widest
 
 >
 
-{index+1}/{list.length}
+{index + 1}/{list.length}
 
 </span>
+
 
 
 
@@ -366,8 +438,7 @@ tracking-widest
 
 
 
-{/* CONTENT */}
-
+{/* CATEGORY */}
 
 <p
 
@@ -390,6 +461,11 @@ mb-1
 
 
 
+
+
+
+
+{/* TITLE */}
 
 <h2
 
@@ -416,6 +492,10 @@ line-clamp-2
 
 
 
+
+
+{/* EXCERPT */}
+
 <p
 
 className="
@@ -429,8 +509,11 @@ line-clamp-2
 >
 
 {
+
 current.excerpt ||
+
 "Latest updates from Nation Path India newsroom."
+
 }
 
 </p>
@@ -441,6 +524,9 @@ current.excerpt ||
 
 
 
+
+
+{/* FOOTER */}
 
 <div
 
@@ -454,9 +540,13 @@ justify-between
 >
 
 
+{
+
+current.category?.slug && (
+
 <Link
 
-href={`/article/${current.slug}`}
+href={`/${current.category.slug}/${current.slug}`}
 
 className="
 text-xs
@@ -473,6 +563,12 @@ transition
 Read Story →
 
 </Link>
+
+)
+
+}
+
+
 
 
 
@@ -495,6 +591,7 @@ Live Desk
 
 
 
+
 </div>
 
 
@@ -505,7 +602,7 @@ Live Desk
 
 </section>
 
-
 );
+
 
 }

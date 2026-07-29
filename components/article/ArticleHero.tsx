@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import ArticleShareBar from "@/components/article/ArticleShareBar";
 
 
 interface ArticleHeroProps {
@@ -11,6 +12,8 @@ interface ArticleHeroProps {
   images?: string[];
 
   title:string;
+
+  shareUrl:string;
 
 }
 
@@ -23,6 +26,8 @@ export default function ArticleHero({
   images = [],
 
   title,
+
+  shareUrl,
 
 }:ArticleHeroProps){
 
@@ -39,6 +44,7 @@ export default function ArticleHero({
     ? [image]
 
     : [];
+
 
 
 
@@ -88,11 +94,13 @@ export default function ArticleHero({
 
 
 
+
   if(!gallery.length){
 
     return null;
 
   }
+
 
 
 
@@ -114,6 +122,7 @@ export default function ArticleHero({
 
 
   }
+
 
 
 
@@ -142,6 +151,7 @@ export default function ArticleHero({
 
 
 
+
   return (
 
 
@@ -155,19 +165,30 @@ export default function ArticleHero({
 
 
 
+
       <div
 
         className="
+        group
         relative
-        aspect-[4/3]
+
+        aspect-[16/10]
+
         sm:aspect-[16/9]
+
         w-full
+
         overflow-hidden
+
         rounded-2xl
-        bg-[#F5F5F5]
+
+        bg-black/5
+
         "
 
       >
+
+
 
 
 
@@ -181,7 +202,7 @@ export default function ArticleHero({
 
           fill
 
-          priority={activeIndex===0}
+          priority={activeIndex === 0}
 
           sizes="
           (max-width:640px) 100vw,
@@ -191,11 +212,22 @@ export default function ArticleHero({
 
           className="
           object-cover
-          transition
-          duration-700
+
+          scale-100
+
+          group-hover:scale-105
+
+          transition-all
+
+          duration-[1200ms]
+
+          ease-out
+
           "
 
         />
+
+
 
 
 
@@ -210,21 +242,45 @@ export default function ArticleHero({
 
             <button
 
+              type="button"
+
               onClick={previousImage}
 
               aria-label="Previous image"
 
               className="
               absolute
+
               left-4
+
               top-1/2
+
               -translate-y-1/2
-              bg-black/40
-              text-white
-              w-10
+
+              flex
+
+              items-center
+
+              justify-center
+
               h-10
+
+              w-10
+
               rounded-full
-              backdrop-blur-sm
+
+              bg-black/40
+
+              backdrop-blur-md
+
+              border
+
+              border-white/20
+
+              text-white
+
+              text-xl
+
               "
 
             >
@@ -237,7 +293,11 @@ export default function ArticleHero({
 
 
 
+
+
             <button
+
+              type="button"
 
               onClick={nextImage}
 
@@ -245,15 +305,37 @@ export default function ArticleHero({
 
               className="
               absolute
+
               right-4
+
               top-1/2
+
               -translate-y-1/2
-              bg-black/40
-              text-white
-              w-10
+
+              flex
+
+              items-center
+
+              justify-center
+
               h-10
+
+              w-10
+
               rounded-full
-              backdrop-blur-sm
+
+              bg-black/40
+
+              backdrop-blur-md
+
+              border
+
+              border-white/20
+
+              text-white
+
+              text-xl
+
               "
 
             >
@@ -267,15 +349,23 @@ export default function ArticleHero({
 
 
 
+
+
             <div
 
               className="
               absolute
-              bottom-4
+
+              bottom-5
+
               left-1/2
+
               -translate-x-1/2
+
               flex
+
               gap-2
+
               "
 
             >
@@ -289,28 +379,41 @@ export default function ArticleHero({
 
                     key={index}
 
+                    type="button"
+
                     onClick={()=>setActiveIndex(index)}
 
-                    aria-label={`Go to image ${index+1}`}
+                    aria-label={`Go to image ${index + 1}`}
 
                     className={`
-                    w-2
+
                     h-2
+
                     rounded-full
 
+                    transition-all
+
+
                     ${
-                      activeIndex===index
+                      activeIndex === index
+
                       ?
-                      "bg-white"
+
+                      "w-6 bg-white"
+
                       :
-                      "bg-white/50"
+
+                      "w-2 bg-white/60"
+
                     }
 
                     `}
 
                   />
 
+
                 ))
+
               }
 
 
@@ -326,6 +429,7 @@ export default function ArticleHero({
 
 
 
+
       </div>
 
 
@@ -335,38 +439,103 @@ export default function ArticleHero({
 
 
 
+
+      {/* ================= HERO FOOTER ================= */}
+
+
       <figcaption
 
         className="
-        mt-3
+        mt-2
+
         flex
-        items-center
-        gap-2
-        text-xs
-        tracking-wide
-        text-gray-500
+
+        flex-col
+
+        gap-3
+
+
+        sm:flex-row
+
+        sm:items-center
+
+        sm:justify-between
+
         "
 
       >
 
 
-        <span
+
+
+
+        {/* LEFT */}
+
+        <div
 
           className="
-          h-[1px]
-          w-6
-          bg-[#EA661B]
+          flex
+
+          items-center
+
+          gap-3
+
+          text-xs
+
+          uppercase
+
+          tracking-[0.18em]
+
+          text-gray-500
+
           "
+
+        >
+
+
+          <span
+
+            className="
+            h-[1px]
+
+            w-8
+
+            bg-[#EA661B]
+
+            "
+
+          />
+
+
+          NationPath Visual Report
+
+
+        </div>
+
+
+
+
+
+
+
+
+        {/* RIGHT */}
+
+        <ArticleShareBar
+
+          title={title}
+
+          url={shareUrl}
 
         />
 
 
 
-        Nation Path Visual Report
-
 
 
       </figcaption>
+
+
 
 
 

@@ -18,12 +18,11 @@ export default function ArticleRelated({
 
 
 
-  if(!articles || articles.length === 0){
+  if(!articles || articles.length===0){
 
     return null;
 
   }
-
 
 
 
@@ -38,6 +37,7 @@ export default function ArticleRelated({
       mt-16
 
       border-t
+
       border-black/10
 
       pt-10
@@ -50,8 +50,7 @@ export default function ArticleRelated({
 
 
 
-
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
 
 
       <div
@@ -63,7 +62,7 @@ export default function ArticleRelated({
 
         items-center
 
-        gap-4
+        gap-3
 
         "
 
@@ -71,11 +70,24 @@ export default function ArticleRelated({
 
 
 
+        <span
+
+          className="
+          h-[2px]
+
+          w-8
+
+          bg-[#EA661B]
+
+          "
+
+        />
+
+
+
         <h2
 
           className="
-          shrink-0
-
           text-[11px]
 
           font-bold
@@ -84,7 +96,7 @@ export default function ArticleRelated({
 
           tracking-[0.35em]
 
-          text-[#111]
+          text-[#163C80]
 
           "
 
@@ -92,25 +104,7 @@ export default function ArticleRelated({
 
           Related Stories
 
-
         </h2>
-
-
-
-
-
-        <div
-
-          className="
-          h-px
-
-          flex-1
-
-          bg-black/10
-
-          "
-
-        />
 
 
 
@@ -124,7 +118,7 @@ export default function ArticleRelated({
 
 
 
-      {/* ================= GRID ================= */}
+      {/* GRID */}
 
 
       <div
@@ -132,7 +126,8 @@ export default function ArticleRelated({
         className="
         grid
 
-        gap-8
+        gap-10
+
 
         sm:grid-cols-2
 
@@ -141,8 +136,6 @@ export default function ArticleRelated({
         "
 
       >
-
-
 
 
 
@@ -164,8 +157,6 @@ export default function ArticleRelated({
 
 
 
-
-
               <Link
 
                 href={`/${article.category?.slug}/${article.slug}`}
@@ -182,9 +173,6 @@ export default function ArticleRelated({
 
 
 
-                {/* IMAGE */}
-
-
 
                 {
                   article.images?.[0] && (
@@ -199,7 +187,7 @@ export default function ArticleRelated({
 
                       overflow-hidden
 
-                      rounded-2xl
+                      rounded-xl
 
                       bg-[#F5F5F5]
 
@@ -241,6 +229,7 @@ export default function ArticleRelated({
 
 
                   )
+
                 }
 
 
@@ -248,10 +237,6 @@ export default function ArticleRelated({
 
 
 
-
-
-
-                {/* CATEGORY */}
 
 
 
@@ -268,14 +253,13 @@ export default function ArticleRelated({
 
                   tracking-[0.3em]
 
-                  text-[#8B6A25]
+                  text-[#EA661B]
 
                   "
 
                 >
 
                   {article.category?.name || "News"}
-
 
                 </p>
 
@@ -287,14 +271,10 @@ export default function ArticleRelated({
 
 
 
-                {/* TITLE */}
-
-
-
                 <h3
 
                   className="
-                  mt-3
+                  mt-2
 
                   font-serif
 
@@ -304,7 +284,10 @@ export default function ArticleRelated({
 
                   leading-snug
 
+                  tracking-tight
+
                   text-[#111]
+
 
                   transition-colors
 
@@ -316,7 +299,6 @@ export default function ArticleRelated({
 
                   {article.title}
 
-
                 </h3>
 
 
@@ -327,28 +309,22 @@ export default function ArticleRelated({
 
 
 
-                {/* DATE */}
-
-
-
                 <p
 
                   className="
-                  mt-4
+                  mt-3
 
                   text-[11px]
 
                   uppercase
 
-                  tracking-[0.15em]
+                  tracking-[0.18em]
 
                   text-gray-500
 
                   "
 
                 >
-
-
 
                   {
                     new Date(article.createdAt)
@@ -369,9 +345,6 @@ export default function ArticleRelated({
                     )
                   }
 
-
-
-
                 </p>
 
 
@@ -386,8 +359,8 @@ export default function ArticleRelated({
 
 
 
-            </article>
 
+            </article>
 
 
           ))
@@ -395,9 +368,9 @@ export default function ArticleRelated({
 
 
 
-
-
       </div>
+
+
 
 
 

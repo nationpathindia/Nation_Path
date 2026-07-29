@@ -83,7 +83,7 @@ export default function EditorialPolicyPage() {
         </h2>
 
         <p className="text-gray-600 leading-relaxed">
-          Nation Path is operated by <strong>SuryaPath Media, India</strong>.
+          Nation Path is operated by <strong> NationPath India</strong>.
           The editorial team follows established journalism practices and
           strives to maintain credibility, transparency and integrity in
           every report published on the platform.

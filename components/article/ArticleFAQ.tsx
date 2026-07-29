@@ -13,6 +13,7 @@ interface FAQItem {
 }
 
 
+
 interface ArticleFAQProps {
 
   faqItems?: FAQItem[];
@@ -21,269 +22,475 @@ interface ArticleFAQProps {
 
 
 
+
+
 export default function ArticleFAQ({
 
   faqItems = []
 
-}: ArticleFAQProps){
+}:ArticleFAQProps){
 
 
-const [openIndex,setOpenIndex] =
-useState<number | null>(0);
 
+  const [openIndex,setOpenIndex] =
+  useState<number | null>(0);
 
 
-if(
-!faqItems.length
-){
 
-return null;
 
-}
 
+  if(!faqItems.length){
 
+    return null;
 
-return (
+  }
 
-<section
 
-className="
-my-10
-md:my-14
-"
 
->
 
 
-<div
 
-className="
-rounded-2xl
-border
-border-blue-100
-bg-white
-shadow-sm
-overflow-hidden
-"
 
->
+  return (
 
 
-<div
+    <section
 
-className="
-px-5
-py-5
-md:px-8
-border-b
-border-blue-100
-bg-gradient-to-r
-from-blue-50
-to-orange-50
-"
+      className="
+      my-12
 
->
+      md:my-16
 
+      "
 
-<h2
+    >
 
-className="
-text-xl
-md:text-2xl
-font-bold
-text-slate-900
-"
 
->
 
-Frequently Asked Questions
 
-</h2>
 
+      {/* HEADER */}
 
-<p
 
-className="
-text-sm
-text-slate-600
-mt-2
-"
+      <div
 
->
+        className="
+        mb-8
 
-Important questions explained for readers.
+        "
 
-</p>
+      >
 
 
-</div>
 
+        <div
 
+          className="
+          flex
 
+          items-center
 
+          gap-3
 
-<div
+          mb-4
 
-className="
-divide-y
-divide-gray-100
-"
+          "
 
->
+        >
 
 
-{
 
-faqItems.map(
+          <span
 
-(item,index)=>(
+            className="
+            h-[2px]
 
+            w-8
 
-<div
+            bg-[#EA661B]
 
-key={index}
+            "
 
-className="
-px-5
-md:px-8
-"
+          />
 
->
 
 
-<button
+          <p
 
-type="button"
+            className="
+            text-[11px]
 
-onClick={()=>
+            font-bold
 
+            uppercase
 
-setOpenIndex(
+            tracking-[0.35em]
 
-openIndex === index
+            text-[#163C80]
 
-?
+            "
 
-null
+          >
 
-:
+            FAQ
 
-index
+          </p>
 
-)
 
 
-}
+        </div>
 
-className="
-w-full
-flex
-items-center
-justify-between
-gap-4
-py-5
-text-left
-"
 
->
 
 
-<span
 
-className="
-font-semibold
-text-slate-900
-text-sm
-md:text-base
-"
 
->
+        <h2
 
-{item.question}
+          className="
+          font-serif
 
-</span>
+          text-2xl
 
+          font-bold
 
+          tracking-tight
 
-<ChevronDown
+          text-[#111]
 
-size={20}
 
-className={`
+          md:text-3xl
 
-text-orange-500
+          "
 
-transition-transform
+        >
 
-${
+          Frequently Asked Questions
 
-openIndex === index
+        </h2>
 
-?
 
-"rotate-180"
 
-:
 
-""
 
-}
 
-`}
+        <p
 
-/>
+          className="
+          mt-2
 
+          text-sm
 
-</button>
+          text-gray-600
 
+          "
 
+        >
 
+          Important questions explained for readers.
 
+        </p>
 
-{
 
-openIndex === index &&
 
-<div
 
-className="
-pb-5
-text-sm
-md:text-base
-leading-7
-text-slate-600
-"
 
->
+      </div>
 
-{item.answer}
 
-</div>
 
-}
 
 
 
-</div>
 
 
-)
 
-)
+      {/* ACCORDION */}
 
 
-}
 
+      <div
 
-</div>
+        className="
+        divide-y
 
+        divide-black/10
 
-</div>
+        border-y
 
+        border-black/10
 
-</section>
+        "
 
-);
+      >
 
+
+
+
+
+        {
+
+          faqItems.map((item,index)=>(
+
+
+
+            <div
+
+              key={index}
+
+              className="
+              "
+
+            >
+
+
+
+
+
+              <button
+
+                type="button"
+
+                onClick={()=>
+
+
+                  setOpenIndex(
+
+                    openIndex === index
+
+                    ?
+
+                    null
+
+                    :
+
+                    index
+
+                  )
+
+
+                }
+
+                className="
+                w-full
+
+                flex
+
+                items-start
+
+                justify-between
+
+                gap-5
+
+                py-5
+
+                text-left
+
+                "
+
+              >
+
+
+
+
+
+
+                <div
+
+                  className="
+                  flex
+
+                  gap-4
+
+                  "
+
+                >
+
+
+
+
+                  <span
+
+                    className="
+                    font-serif
+
+                    text-lg
+
+                    font-bold
+
+                    text-[#163C80]/30
+
+                    "
+
+                  >
+
+                    {
+
+                      String(index+1)
+                      .padStart(2,"0")
+
+                    }
+
+                  </span>
+
+
+
+
+
+
+                  <span
+
+                    className="
+                    font-semibold
+
+                    text-sm
+
+                    leading-relaxed
+
+                    text-[#111]
+
+
+                    md:text-base
+
+                    "
+
+                  >
+
+                    {item.question}
+
+                  </span>
+
+
+
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+                <ChevronDown
+
+                  size={20}
+
+                  className={`
+
+                  shrink-0
+
+                  mt-1
+
+                  text-[#EA661B]
+
+                  transition-transform
+
+                  duration-300
+
+
+                  ${
+
+                  openIndex === index
+
+                  ?
+
+                  "rotate-180"
+
+                  :
+
+                  ""
+
+                  }
+
+                  `}
+
+                />
+
+
+
+
+
+              </button>
+
+
+
+
+
+
+
+
+
+              {
+
+                openIndex === index && (
+
+
+                  <div
+
+                    className="
+                    ml-10
+
+                    pb-5
+
+                    pr-4
+
+                    text-sm
+
+                    leading-7
+
+                    text-gray-600
+
+
+                    md:text-base
+
+                    "
+
+                  >
+
+                    {item.answer}
+
+                  </div>
+
+
+                )
+
+              }
+
+
+
+
+
+
+
+            </div>
+
+
+
+          ))
+
+        }
+
+
+
+
+
+
+
+      </div>
+
+
+
+
+
+
+
+
+    </section>
+
+
+  );
 
 }

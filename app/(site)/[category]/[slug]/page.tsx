@@ -1,22 +1,26 @@
+// app/[category]/[slug]/page.tsx
+
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRenderer";
+
+import ArticleReadingProgress from "@/components/article/ArticleReadingProgress";
 import ArticleHeader from "@/components/article/ArticleHeader";
 import ArticleHero from "@/components/article/ArticleHero";
 import ArticleAISummary from "@/components/article/ArticleAISummary";
 import ArticleBody from "@/components/article/ArticleBody";
 import ArticleFAQ from "@/components/article/ArticleFAQ";
 import ArticleRelated from "@/components/article/ArticleRelated";
-import ArticleShareBar from "@/components/article/ArticleShareBar";
 import ArticleNextStory from "@/components/article/ArticleNextStory";
 import ArticleSidebar from "@/components/article/ArticleSidebar";
 import ArticleAstroBanner from "@/components/article/ArticleAstroBanner";
 
 
 export const dynamic = "force-dynamic";
+
 export const revalidate = 0;
 
 
@@ -35,33 +39,32 @@ interface Props {
 
 
 
-/* =====================================================
-   PUBLISH FILTER
 
-   Supports:
 
-   1. Old published articles
-      publishedAt = null
+/*
+=====================================================
+ PUBLISHED FILTER
+=====================================================
+*/
 
-   2. Scheduled articles
-      publishedAt <= now
-
-===================================================== */
 function isPublishedFilter(){
 
   return {
 
     OR:[
+
       {
         publishedAt:{
           equals:null
         }
       },
+
       {
         publishedAt:{
           lte:new Date()
         }
       }
+
     ]
 
   };
@@ -71,9 +74,12 @@ function isPublishedFilter(){
 
 
 
-/* =====================================================
-   METADATA
-===================================================== */
+
+/*
+=====================================================
+ METADATA
+=====================================================
+*/
 
 
 export async function generateMetadata({
@@ -93,9 +99,7 @@ slug
 
 
 
-const category =
-
-await prisma.category.findUnique({
+const category = await prisma.category.findUnique({
 
 where:{
 
@@ -107,17 +111,17 @@ slug:categorySlug
 
 
 
-if(!category)
+if(!category){
 
 return {};
 
+}
 
 
 
 
-const article =
 
-await prisma.article.findFirst({
+const article = await prisma.article.findFirst({
 
 where:{
 
@@ -139,15 +143,17 @@ isDeleted:false,
 
 }
 
-
 });
 
 
 
 
-if(!article)
+
+if(!article){
 
 return {};
+
+}
 
 
 
@@ -156,7 +162,6 @@ return {};
 const canonical =
 
 `https://www.nationpathindia.com/${category.slug}/${article.slug}`;
-
 
 
 
@@ -177,7 +182,16 @@ article.metaDescription ||
 
 article.excerpt ||
 
-"";
+`Read latest ${category.name} updates from Nation Path India.`;
+
+
+
+
+
+const image =
+
+article.images?.[0] || null;
+
 
 
 
@@ -195,54 +209,39 @@ description,
 
 keywords:[
 
-
 category.name,
-
 
 article.title,
 
-
-article.excerpt || "",
-
-
 "Nation Path India",
 
+"India News",
 
-"Latest India News",
+"Breaking News",
 
-
-"Breaking News"
-
+"Latest Updates"
 
 ],
 
 
 
 
-
 alternates:{
-
 
 canonical
 
-
 },
-
 
 
 
 
 robots:{
 
-
 index:true,
-
 
 follow:true
 
-
 },
-
 
 
 
@@ -267,9 +266,7 @@ siteName:"Nation Path India",
 
 
 
-images:
-
-article.images?.[0]
+images:image
 
 ?
 
@@ -277,22 +274,17 @@ article.images?.[0]
 
 {
 
-url:article.images[0],
-
+url:image,
 
 width:1200,
 
-
 height:675,
 
-
 alt:article.title
-
 
 }
 
 ]
-
 
 :
 
@@ -320,18 +312,11 @@ description,
 
 
 
-images:
-
-article.images?.[0]
+images:image
 
 ?
 
-[
-
-article.images[0]
-
-]
-
+[image]
 
 :
 
@@ -346,9 +331,7 @@ article.images[0]
 };
 
 
-
 }
-
 
 
 
@@ -364,16 +347,11 @@ params,
 
 
 
-
-
 const {
-
 
 category:categorySlug,
 
-
 slug
-
 
 }=await params;
 
@@ -382,9 +360,14 @@ slug
 
 
 
-const category =
+/*
+=====================================================
+ CATEGORY
+=====================================================
+*/
 
-await prisma.category.findUnique({
+
+const category = await prisma.category.findUnique({
 
 where:{
 
@@ -396,56 +379,82 @@ slug:categorySlug
 
 
 
-
-
-if(!category)
+if(!category){
 
 return notFound();
 
+}
 
 
 
 
 
 
+/*
+=====================================================
+ ARTICLE
+=====================================================
+*/
 
-/* =====================================================
-   MAIN ARTICLE FETCH
 
-===================================================== */
-
-const article =
-
-await prisma.article.findFirst({
+const article = await prisma.article.findFirst({
 
 where:{
 
+
 slug,
+
 
 categoryId:category.id,
 
+
 status:"approved",
+
+
+isDeleted:false,
+
+
+...isPublishedFilter()
+
 
 },
 
+
 include:{
+
 
 category:true
 
+
 }
+
 
 });
 
 
-if(!article)
-  return notFound();
+
+
+
+if(!article){
+
+return notFound();
+
+}
+
+
+
 
 
 if(
-  article.publishedAt &&
-  article.publishedAt > new Date()
+
+article.publishedAt &&
+
+article.publishedAt > new Date()
+
 ){
-  return notFound();
+
+return notFound();
+
 }
 
 
@@ -453,19 +462,18 @@ if(
 
 
 
-/* =====================================================
-   VIEW UPDATE
-
-===================================================== */
+/*
+=====================================================
+ VIEW TRACKING
+=====================================================
+*/
 
 
 await prisma.article.update({
 
 where:{
 
-
 id:article.id
-
 
 },
 
@@ -475,9 +483,7 @@ data:{
 
 views:{
 
-
 increment:1
-
 
 },
 
@@ -489,9 +495,7 @@ lastViewAt:new Date(),
 
 trendingScore:{
 
-
 increment:1
-
 
 }
 
@@ -505,19 +509,14 @@ increment:1
 
 
 
+/*
+=====================================================
+ MOST READ ARTICLES
+=====================================================
+*/
 
 
-
-
-/* =====================================================
-   MOST READ
-
-===================================================== */
-
-
-const mostRead =
-
-await prisma.article.findMany({
+const mostRead = await prisma.article.findMany({
 
 where:{
 
@@ -532,15 +531,10 @@ isDeleted:false,
 
 
 
-categoryId:category.id,
-
-
 
 NOT:{
 
-
 id:article.id
-
 
 }
 
@@ -549,13 +543,27 @@ id:article.id
 
 
 
-orderBy:{
+orderBy:[
 
+{
+
+trendingScore:"desc"
+
+},
+
+{
 
 views:"desc"
 
-
 },
+
+{
+
+createdAt:"desc"
+
+}
+
+],
 
 
 
@@ -565,9 +573,7 @@ take:5,
 
 include:{
 
-
 category:true
-
 
 }
 
@@ -582,15 +588,15 @@ category:true
 
 
 
-/* =====================================================
-   RELATED ARTICLES
 
-===================================================== */
+/*
+=====================================================
+ RELATED STORIES
+=====================================================
+*/
 
 
-const related =
-
-await prisma.article.findMany({
+const related = await prisma.article.findMany({
 
 where:{
 
@@ -611,9 +617,7 @@ categoryId:category.id,
 
 NOT:{
 
-
 id:article.id
-
 
 }
 
@@ -622,13 +626,15 @@ id:article.id
 
 
 
-orderBy:{
+orderBy:[
 
+{
 
 createdAt:"desc"
 
+}
 
-},
+],
 
 
 
@@ -638,9 +644,7 @@ take:6,
 
 include:{
 
-
 category:true
-
 
 }
 
@@ -656,15 +660,14 @@ category:true
 
 
 
-/* =====================================================
-   NEXT STORY
+/*
+=====================================================
+ NEXT STORY
+=====================================================
+*/
 
-===================================================== */
 
-
-const nextArticle =
-
-await prisma.article.findFirst({
+const nextArticle = await prisma.article.findFirst({
 
 where:{
 
@@ -685,9 +688,7 @@ categoryId:category.id,
 
 id:{
 
-
 not:article.id
-
 
 }
 
@@ -698,9 +699,7 @@ not:article.id
 
 orderBy:{
 
-
 createdAt:"desc"
-
 
 },
 
@@ -708,9 +707,7 @@ createdAt:"desc"
 
 include:{
 
-
 category:true
-
 
 }
 
@@ -723,10 +720,13 @@ category:true
 
 
 
-/* =====================================================
-   READING TIME
 
-===================================================== */
+
+/*
+=====================================================
+ READING TIME
+=====================================================
+*/
 
 
 function cleanText(html:string){
@@ -746,6 +746,7 @@ return html
 
 
 
+
 const wordCount =
 
 cleanText(article.content || "")
@@ -760,9 +761,8 @@ cleanText(article.content || "")
 
 
 
-const readingTime =
 
-Math.max(
+const readingTime = Math.max(
 
 1,
 
@@ -775,9 +775,19 @@ Math.ceil(wordCount / 200)
 
 
 
+
+
+/*
+=====================================================
+ ARTICLE URL
+=====================================================
+*/
+
+
 const articleUrl =
 
 `https://www.nationpathindia.com/${category.slug}/${article.slug}`;
+
 
 
 
@@ -807,47 +817,35 @@ article.excerpt || "",
 
 ];
 
-return (
-
-<div
-
-className="
-mx-auto
-max-w-7xl
-px-4
-py-8
-
-sm:px-6
-sm:py-12
-
-lg:px-8
-"
-
->
 
 
-{/* =====================================================
-    NEWS ARTICLE SCHEMA
-===================================================== */}
 
 
-<script
 
-type="application/ld+json"
 
-dangerouslySetInnerHTML={{
+/*
+=====================================================
+ SCHEMA DATA
+=====================================================
+*/
 
-__html:JSON.stringify({
+
+const newsSchema = {
+
 
 "@context":"https://schema.org",
 
+
 "@type":"NewsArticle",
+
 
 
 "@id":articleUrl,
 
 
+
 headline:article.title,
+
 
 
 description:
@@ -860,7 +858,10 @@ article.excerpt ||
 
 
 
+
 keywords,
+
+
 
 
 
@@ -878,6 +879,12 @@ article.images?.[0]
 
 url:article.images[0],
 
+width:1200,
+
+height:675,
+
+caption:article.title
+
 }
 
 ]
@@ -885,6 +892,8 @@ url:article.images[0],
 :
 
 [],
+
+
 
 
 
@@ -902,7 +911,10 @@ article.createdAt,
 
 dateModified:
 
-article.updatedAt,
+article.updatedAt ||
+
+article.createdAt,
+
 
 
 
@@ -935,6 +947,7 @@ mainEntityOfPage:{
 
 "@type":"WebPage",
 
+
 "@id":articleUrl
 
 
@@ -949,6 +962,7 @@ author:{
 
 
 "@type":"Organization",
+
 
 name:"Nation Path India"
 
@@ -965,6 +979,7 @@ publisher:{
 
 "@type":"Organization",
 
+
 name:"Nation Path India",
 
 
@@ -974,40 +989,50 @@ logo:{
 
 "@type":"ImageObject",
 
-url:
 
-"https://www.nationpathindia.com/logo.png"
-
-
-}
+url:"https://www.nationpathindia.com/logo.png"
 
 
 }
 
 
-
-
-
-})
-
-
-}}
-
-
-/>
+},
 
 
 
 
 
 
-
-{/* =====================================================
-    FAQ SCHEMA
-===================================================== */}
+speakable:{
 
 
-{
+"@type":"SpeakableSpecification",
+
+
+cssSelector:[
+
+"h1",
+
+".article-body"
+
+]
+
+
+}
+
+
+
+};
+
+
+
+
+
+
+
+
+
+const faqSchema =
 
 Array.isArray(article.faqItems)
 
@@ -1015,19 +1040,13 @@ Array.isArray(article.faqItems)
 
 article.faqItems.length > 0
 
-&&
+?
 
-(
+{
 
-<script
-
-type="application/ld+json"
-
-dangerouslySetInnerHTML={{
-
-__html:JSON.stringify({
 
 "@context":"https://schema.org",
+
 
 "@type":"FAQPage",
 
@@ -1070,7 +1089,6 @@ text:item.answer
 }
 
 
-
 }
 
 )
@@ -1079,18 +1097,75 @@ text:item.answer
 
 
 
-})
+}
 
+:
+
+null;
+
+ // CONTINUATION PART 3/3
+
+
+return (
+
+<div
+
+className="
+mx-auto
+max-w-7xl
+
+px-4
+py-8
+
+sm:px-6
+sm:py-12
+
+lg:px-8
+
+"
+
+>
+
+
+
+
+{/* ================= SCHEMA ================= */}
+
+
+<script
+
+type="application/ld+json"
+
+dangerouslySetInnerHTML={{
+
+__html:JSON.stringify(newsSchema)
 
 }}
 
+/>
+
+
+
+
+{
+
+faqSchema && (
+
+<script
+
+type="application/ld+json"
+
+dangerouslySetInnerHTML={{
+
+__html:JSON.stringify(faqSchema)
+
+}}
 
 />
 
 )
 
 }
-
 
 
 
@@ -1108,6 +1183,7 @@ grid-cols-1
 
 gap-10
 
+
 lg:grid-cols-[minmax(0,1fr)_360px]
 
 lg:gap-14
@@ -1122,12 +1198,26 @@ lg:gap-14
 
 
 
+
 <main>
 
 
 
 
 
+
+{/* READING PROGRESS */}
+
+
+<ArticleReadingProgress />
+
+
+
+
+
+
+
+{/* ================= BREADCRUMB ================= */}
 
 
 <nav
@@ -1149,18 +1239,35 @@ text-gray-500
 >
 
 
-<Link href="/">
+<Link
+
+href="/"
+
+className="transition hover:text-[#163C80]"
+
+>
 
 Home
 
 </Link>
 
 
-{" / "}
+
+<span className="mx-2">
+
+/
+
+</span>
 
 
 
-<Link href={`/${category.slug}`}>
+<Link
+
+href={`/${category.slug}`}
+
+className="transition hover:text-[#163C80]"
+
+>
 
 {category.name}
 
@@ -1174,6 +1281,10 @@ Home
 
 
 
+
+
+
+{/* ================= TOP AD ================= */}
 
 
 <div
@@ -1191,7 +1302,11 @@ justify-center
 >
 
 
-<AdRenderer placement="article_top"/>
+<AdRenderer
+
+placement="article_top"
+
+/>
 
 
 </div>
@@ -1202,6 +1317,9 @@ justify-center
 
 
 
+
+
+{/* ================= HEADER ================= */}
 
 
 
@@ -1223,6 +1341,8 @@ readingTime={readingTime}
 
 
 
+{/* ================= HERO ================= */}
+
 
 
 <ArticleHero
@@ -1231,21 +1351,7 @@ images={article.images}
 
 title={article.title}
 
-/>
-
-
-
-
-
-
-
-
-
-<ArticleShareBar
-
-title={article.title}
-
-url={articleUrl}
+shareUrl={articleUrl}
 
 />
 
@@ -1253,30 +1359,48 @@ url={articleUrl}
 
 
 
+
+
+
+
+{/* ================= AI SUMMARY ================= */}
 
 
 
 <ArticleAISummary
 
-  categoryName={category.name}
 
-  summary={article.aiSummary as any}
+categoryName={category.name}
+
+
+summary={article.aiSummary as any}
+
 
 />
 
 
 
 
+
+
+
+
+
+{/* ================= BODY ================= */}
 
 
 
 <ArticleBody
 
+
 content={article.content}
+
 
 keyHighlights={article.keyHighlights}
 
+
 whyItMatters={article.whyItMatters}
+
 
 />
 
@@ -1285,6 +1409,10 @@ whyItMatters={article.whyItMatters}
 
 
 
+
+
+
+{/* ================= FAQ ================= */}
 
 
 
@@ -1300,11 +1428,13 @@ article.faqItems.length > 0
 
 (
 
+
 <ArticleFAQ
 
 faqItems={article.faqItems as any}
 
 />
+
 
 )
 
@@ -1315,6 +1445,10 @@ faqItems={article.faqItems as any}
 
 
 
+
+
+
+{/* ================= BOTTOM AD ================= */}
 
 
 
@@ -1333,7 +1467,11 @@ justify-center
 >
 
 
-<AdRenderer placement="article_bottom"/>
+<AdRenderer
+
+placement="article_bottom"
+
+/>
 
 
 </div>
@@ -1343,6 +1481,10 @@ justify-center
 
 
 
+
+
+
+{/* ================= NEXT STORY ================= */}
 
 
 
@@ -1360,11 +1502,18 @@ article={nextArticle}
 
 
 
+{/* ================= ASTRO CROSS PRODUCT ================= */}
+
+
+
 <ArticleAstroBanner
+
 
 categoryName={category.name}
 
+
 categorySlug={category.slug}
+
 
 />
 
@@ -1373,6 +1522,10 @@ categorySlug={category.slug}
 
 
 
+
+
+
+{/* ================= RELATED ================= */}
 
 
 
@@ -1381,7 +1534,6 @@ categorySlug={category.slug}
 articles={related}
 
 />
-
 
 
 
@@ -1398,6 +1550,10 @@ articles={related}
 
 
 
+{/* ================= SIDEBAR ================= */}
+
+
+
 <ArticleSidebar
 
 mostRead={mostRead}
@@ -1409,9 +1565,8 @@ mostRead={mostRead}
 
 
 
+
 </div>
-
-
 
 
 
@@ -1420,4 +1575,6 @@ mostRead={mostRead}
 </div>
 
 );
+
+
 }

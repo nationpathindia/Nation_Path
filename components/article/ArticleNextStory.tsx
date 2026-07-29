@@ -28,6 +28,7 @@ export default function ArticleNextStory({
 
 
 
+
   return (
 
 
@@ -37,6 +38,7 @@ export default function ArticleNextStory({
       mt-16
 
       border-t
+
       border-black/10
 
       pt-10
@@ -49,29 +51,68 @@ export default function ArticleNextStory({
 
 
 
-      <p
+
+
+      {/* HEADER */}
+
+      <div
 
         className="
         mb-6
 
-        text-[11px]
+        flex
 
-        font-bold
+        items-center
 
-        uppercase
-
-        tracking-[0.35em]
-
-        text-gray-500
+        gap-3
 
         "
 
       >
 
-        Continue Reading
 
 
-      </p>
+        <span
+
+          className="
+          h-[2px]
+
+          w-8
+
+          bg-[#EA661B]
+
+          "
+
+        />
+
+
+
+        <p
+
+          className="
+          text-[11px]
+
+          font-bold
+
+          uppercase
+
+          tracking-[0.35em]
+
+          text-[#163C80]
+
+          "
+
+        >
+
+          Next Story
+
+        </p>
+
+
+
+      </div>
+
+
 
 
 
@@ -85,6 +126,7 @@ export default function ArticleNextStory({
 
         className="
         group
+
         block
 
         "
@@ -95,23 +137,33 @@ export default function ArticleNextStory({
 
 
 
+
+
         <div
 
           className="
+          grid
+
+          grid-cols-1
+
           overflow-hidden
 
-          rounded-3xl
+          rounded-2xl
 
           border
+
           border-black/10
 
-          bg-[#FAF7F1]
+          bg-white
 
-          transition
+          transition-all
 
           duration-300
 
-          hover:shadow-lg
+          hover:shadow-xl
+
+
+          md:grid-cols-[320px_1fr]
 
           "
 
@@ -123,6 +175,9 @@ export default function ArticleNextStory({
 
 
 
+          {/* IMAGE */}
+
+
           {
             article.images?.[0] && (
 
@@ -132,11 +187,12 @@ export default function ArticleNextStory({
                 className="
                 relative
 
-                aspect-[16/9]
-
-                w-full
+                aspect-[16/10]
 
                 overflow-hidden
+
+
+                md:aspect-auto
 
                 "
 
@@ -153,8 +209,8 @@ export default function ArticleNextStory({
                   fill
 
                   sizes="
-                  (max-width:640px) 100vw,
-                  900px
+                  (max-width:768px) 100vw,
+                  320px
                   "
 
                   className="
@@ -171,11 +227,11 @@ export default function ArticleNextStory({
                 />
 
 
-
               </div>
 
 
             )
+
           }
 
 
@@ -186,16 +242,27 @@ export default function ArticleNextStory({
 
 
 
+          {/* CONTENT */}
+
+
           <div
 
             className="
+            flex
+
+            flex-col
+
+            justify-center
+
             p-5
+
 
             sm:p-7
 
             "
 
           >
+
 
 
 
@@ -215,22 +282,8 @@ export default function ArticleNextStory({
             >
 
 
+
               <span
-
-                className="
-                h-[2px]
-
-                w-8
-
-                bg-[#EA661B]
-
-                "
-
-              />
-
-
-
-              <p
 
                 className="
                 text-[10px]
@@ -239,9 +292,9 @@ export default function ArticleNextStory({
 
                 uppercase
 
-                tracking-[0.3em]
+                tracking-[0.28em]
 
-                text-[#8B6A25]
+                text-[#EA661B]
 
                 "
 
@@ -249,7 +302,7 @@ export default function ArticleNextStory({
 
                 {article.category?.name || "News"}
 
-              </p>
+              </span>
 
 
 
@@ -266,21 +319,25 @@ export default function ArticleNextStory({
             <h3
 
               className="
-              mt-4
+              mt-3
 
               font-serif
 
-              text-2xl
+              text-xl
 
               font-bold
 
               leading-snug
 
+              tracking-tight
+
               text-[#111]
+
 
               transition-colors
 
               group-hover:text-[#163C80]
+
 
               sm:text-3xl
 
@@ -290,8 +347,46 @@ export default function ArticleNextStory({
 
               {article.title}
 
-
             </h3>
+
+
+
+
+
+
+
+
+
+            {
+
+              article.excerpt && (
+
+
+                <p
+
+                  className="
+                  mt-3
+
+                  line-clamp-2
+
+                  text-sm
+
+                  leading-relaxed
+
+                  text-gray-600
+
+                  "
+
+                >
+
+                  {article.excerpt}
+
+                </p>
+
+
+              )
+
+            }
 
 
 
@@ -304,7 +399,7 @@ export default function ArticleNextStory({
             <div
 
               className="
-              mt-6
+              mt-5
 
               inline-flex
 
@@ -312,16 +407,19 @@ export default function ArticleNextStory({
 
               gap-2
 
-              text-sm
+              text-xs
 
-              font-semibold
+              font-bold
+
+              uppercase
+
+              tracking-widest
 
               text-[#163C80]
 
               "
 
             >
-
 
               Read Full Story
 
@@ -349,7 +447,10 @@ export default function ArticleNextStory({
 
 
 
+
           </div>
+
+
 
 
 
@@ -362,7 +463,10 @@ export default function ArticleNextStory({
 
 
 
+
       </Link>
+
+
 
 
 

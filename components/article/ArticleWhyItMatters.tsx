@@ -17,35 +17,39 @@ export default function ArticleWhyItMatters({
 
 
   if(!whyItMatters){
+
     return null;
+
   }
 
 
 
   return (
 
+
     <section
 
       className="
-      my-14
+
+      my-10
 
       relative
+
       overflow-hidden
 
-      rounded-[32px]
+      rounded-2xl
 
       border
+
       border-[#FFD9B8]
 
-      bg-gradient-to-br
-      from-[#FFF8F1]
-      via-white
-      to-[#FFF0E5]
+      bg-white
 
-      p-6
-      sm:p-8
+      p-5
 
-      shadow-[0_20px_50px_rgba(234,102,27,0.10)]
+      sm:p-6
+
+      shadow-[0_12px_35px_rgba(234,102,27,0.08)]
 
       "
 
@@ -53,19 +57,24 @@ export default function ArticleWhyItMatters({
 
 
 
-      {/* Accent */}
+
+
+      {/* Accent Line */}
+
 
       <div
 
         className="
+
         absolute
 
-        top-0
         left-0
+
+        top-0
 
         h-full
 
-        w-1.5
+        w-1
 
         bg-gradient-to-b
 
@@ -82,17 +91,23 @@ export default function ArticleWhyItMatters({
 
 
 
+
+
       {/* HEADER */}
+
 
 
       <div
 
         className="
-        flex
-        items-center
-        gap-4
 
-        mb-7
+        flex
+
+        items-center
+
+        gap-3
+
+        mb-5
 
         "
 
@@ -100,25 +115,30 @@ export default function ArticleWhyItMatters({
 
 
 
+
         <div
 
           className="
-          w-12
-          h-12
 
-          rounded-2xl
+          flex
+
+          h-9
+
+          w-9
+
+          items-center
+
+          justify-center
+
+          rounded-xl
 
           bg-[#EA661B]
 
-          flex
-          items-center
-          justify-center
-
           text-white
 
-          text-xl
+          text-sm
 
-          shadow-lg
+          shadow
 
           "
 
@@ -132,19 +152,22 @@ export default function ArticleWhyItMatters({
 
 
 
+
+
         <div>
 
 
           <p
 
             className="
-            text-xs
+
+            text-[10px]
 
             uppercase
 
-            tracking-[0.2em]
+            tracking-[0.25em]
 
-            font-semibold
+            font-bold
 
             text-[#EA661B]
 
@@ -158,11 +181,18 @@ export default function ArticleWhyItMatters({
 
 
 
+
           <h2
 
             className="
-            text-2xl
-            sm:text-3xl
+
+            mt-0.5
+
+            text-xl
+
+            sm:text-2xl
+
+            font-serif
 
             font-bold
 
@@ -181,7 +211,11 @@ export default function ArticleWhyItMatters({
         </div>
 
 
+
+
       </div>
+
+
 
 
 
@@ -192,36 +226,42 @@ export default function ArticleWhyItMatters({
       {/* CONTENT */}
 
 
+
       <div
 
         className="
-        rounded-2xl
 
-        bg-white/70
+        rounded-xl
 
         border
 
         border-orange-100
 
-        p-5
-        sm:p-6
+        bg-[#FFF9F4]
+
+        px-4
+
+        py-4
+
+        sm:px-5
 
         "
 
       >
 
 
+
         <p
 
           className="
-          text-[#333]
 
-          leading-[1.9]
+          text-sm
 
-          text-justify
-
-          text-[15px]
           sm:text-base
+
+          leading-[1.85]
+
+          text-[#374151]
 
           "
 
@@ -233,7 +273,10 @@ export default function ArticleWhyItMatters({
         </p>
 
 
+
       </div>
+
+
 
 
 

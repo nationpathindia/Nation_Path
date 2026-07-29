@@ -131,7 +131,7 @@ export default function ContactPage() {
           </h3>
 
           <p className="text-gray-600 text-sm">
-            SuryaPath Media<br />
+           NationPath<br />
             India
           </p>
 

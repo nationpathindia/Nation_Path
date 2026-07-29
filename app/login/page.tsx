@@ -190,7 +190,7 @@ text-[#C6A15B]
 
 <Sparkles size={14}/>
 
-NationPath Astro
+NationPath-Complete Media Platfrom
 
 </div>
 

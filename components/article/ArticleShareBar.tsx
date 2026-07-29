@@ -35,7 +35,6 @@ export default function ArticleShareBar({
 
 
 
-
   const encodedTitle =
   encodeURIComponent(title);
 
@@ -73,6 +72,7 @@ export default function ArticleShareBar({
 
 
   };
+
 
 
 
@@ -125,22 +125,17 @@ export default function ArticleShareBar({
 
 
 
+
   return (
 
 
     <div
 
       className="
-      my-8
       flex
-      flex-wrap
       items-center
-      gap-3
+      gap-2
 
-      border-y
-      border-black/10
-
-      py-5
       "
 
     >
@@ -151,12 +146,13 @@ export default function ArticleShareBar({
       <span
 
         className="
-        mr-1
+        text-[10px]
 
-        text-[11px]
         font-bold
+
         uppercase
-        tracking-[0.3em]
+
+        tracking-[0.25em]
 
         text-gray-500
 
@@ -166,7 +162,6 @@ export default function ArticleShareBar({
 
         Share
 
-
       </span>
 
 
@@ -175,84 +170,71 @@ export default function ArticleShareBar({
 
 
 
-      <div
+      {
+        shareLinks.map((item)=>{
 
-        className="
-        flex
-        items-center
-        gap-2
-        "
 
-      >
+          const Icon = item.icon;
 
 
 
-        {
-          shareLinks.map((item)=>{
+          return (
 
 
-            const Icon = item.icon;
+            <a
+
+              key={item.name}
+
+              href={item.href}
+
+              target="_blank"
+
+              rel="noopener noreferrer"
+
+              aria-label={`Share on ${item.name}`}
 
 
+              className="
+              flex
 
-            return (
+              h-8
 
+              w-8
 
-              <a
+              items-center
 
-                key={item.name}
+              justify-center
 
-                href={item.href}
+              rounded-full
 
-                target="_blank"
+              border
 
-                rel="noopener noreferrer"
+              border-black/10
 
-                aria-label={`Share on ${item.name}`}
+              text-gray-500
 
+              transition
 
-                className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
+              hover:border-[#163C80]
 
-                rounded-full
+              hover:text-[#163C80]
 
-                border
-                border-black/10
+              "
 
-                text-gray-600
-
-                transition-all
-
-                hover:border-[#163C80]
-
-                hover:text-[#163C80]
-
-                "
-
-              >
+            >
 
 
-                <Icon size={17}/>
+              <Icon size={14}/>
 
 
-              </a>
+            </a>
 
 
-            );
+          );
 
 
-          })
-        }
-
-
-
-      </div>
-
-
+        })
+      }
 
 
 
@@ -266,26 +248,31 @@ export default function ArticleShareBar({
 
         type="button"
 
+
         className="
-        inline-flex
-        h-10
+        flex
+
+        h-8
 
         items-center
-        gap-2
+
+        gap-1.5
 
         rounded-full
 
         border
+
         border-black/10
 
-        px-4
+        px-3
 
-        text-xs
+        text-[11px]
+
         font-semibold
 
-        text-gray-600
+        text-gray-500
 
-        transition-all
+        transition
 
         hover:border-[#EA661B]
 
@@ -298,25 +285,35 @@ export default function ArticleShareBar({
 
         {
           copied
+
           ?
-          <Check size={15}/>
+
+          <Check size={13}/>
+
           :
-          <LinkIcon size={15}/>
+
+          <LinkIcon size={13}/>
+
         }
 
 
 
         {
           copied
+
           ?
+
           "Copied"
+
           :
-          "Copy Link"
+
+          "Copy"
+
         }
 
 
-
       </button>
+
 
 
 

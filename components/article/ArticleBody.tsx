@@ -14,6 +14,7 @@ interface ArticleBodyProps {
 
 
 
+
 export default function ArticleBody({
 
   content,
@@ -26,267 +27,285 @@ export default function ArticleBody({
 
 
 
-  if(!content) return null;
+if(!content) return null;
 
 
 
-  /*
-    Split article content
-  */
 
-  const paragraphs =
-    content
-      .split(/(<p>.*?<\/p>)/g)
-      .filter(Boolean);
+const paragraphs =
 
+content
 
+.split(/(<p>.*?<\/p>)/g)
 
-  const firstPart =
-    paragraphs.slice(0,2);
+.filter(Boolean);
 
 
 
-  const secondPart =
-    paragraphs.slice(2,5);
 
 
+const firstPart = paragraphs.slice(0,2);
 
-  const remainingPart =
-    paragraphs.slice(5);
+const secondPart = paragraphs.slice(2,5);
 
+const remainingPart = paragraphs.slice(5);
 
 
 
 
-  const proseClass = `
 
-    prose
 
-    prose-base
+const proseClass = `
 
-    sm:prose-lg
+prose
 
-    max-w-none
+prose-base
 
+sm:prose-lg
 
-    prose-headings:font-serif
+max-w-none
 
-    prose-headings:font-bold
 
-    prose-headings:text-[#111]
 
-    prose-headings:tracking-tight
+prose-headings:font-serif
 
+prose-headings:font-bold
 
+prose-headings:text-[#111827]
 
-    prose-h2:mt-12
+prose-headings:tracking-tight
 
-    prose-h2:mb-5
 
-    prose-h2:text-3xl
 
+prose-h2:text-3xl
 
+prose-h2:mt-14
 
-    prose-h3:mt-10
+prose-h2:mb-6
 
-    prose-h3:mb-4
 
-    prose-h3:text-2xl
 
+prose-h3:text-2xl
 
+prose-h3:mt-10
 
-    prose-p:text-[#333]
+prose-h3:mb-5
 
-    prose-p:leading-[1.95]
 
-    prose-p:mb-7
 
-    prose-p:text-justify
 
+prose-p:text-[#374151]
 
+prose-p:leading-[2]
 
-    prose-a:text-[#163C80]
+prose-p:mb-8
 
-    prose-a:font-semibold
+prose-p:text-justify
 
-    prose-a:no-underline
 
 
+prose-p:first-letter:text-4xl
 
-    prose-strong:text-[#111]
+prose-p:first-letter:font-serif
 
-    prose-strong:font-bold
+prose-p:first-letter:font-bold
 
+prose-p:first-letter:text-[#163C80]
 
 
-    prose-ul:my-8
 
-    prose-ol:my-8
 
 
+prose-a:text-[#163C80]
 
-    prose-li:text-[#333]
+prose-a:font-semibold
 
-    prose-li:leading-relaxed
 
 
+prose-strong:text-[#111827]
 
-    prose-blockquote:border-l-[#EA661B]
+prose-strong:font-bold
 
-    prose-blockquote:bg-[#FAF7F1]
 
-    prose-blockquote:px-6
 
-    prose-blockquote:py-5
 
-    prose-blockquote:rounded-r-xl
+prose-ul:my-8
 
+prose-ol:my-8
 
 
-    prose-img:rounded-2xl
 
-    prose-img:my-10
+prose-li:text-[#374151]
 
-  `;
+prose-li:leading-[1.8]
 
 
 
 
 
-  return (
+prose-blockquote:border-l-4
 
-    <article
+prose-blockquote:border-[#EA661B]
 
-      className="
-      mt-12
-      max-w-none
-      "
+prose-blockquote:bg-[#FAF7F1]
 
-    >
+prose-blockquote:px-6
 
+prose-blockquote:py-5
 
+prose-blockquote:rounded-r-2xl
 
+prose-blockquote:not-italic
 
 
-      {/* INTRO */}
 
-      {
-        firstPart.length > 0 &&
 
+prose-img:rounded-3xl
 
-        <div className={proseClass}>
+prose-img:my-12
 
-          <div
+prose-img:shadow-lg
 
-            dangerouslySetInnerHTML={{
 
-              __html:firstPart.join(""),
 
-            }}
+prose-table:text-sm
 
-          />
+prose-table:border
 
-        </div>
+`;
 
-      }
 
 
 
 
 
+function RenderContent({
 
+items
 
-      {/* KEY HIGHLIGHTS */}
+}:{
 
-      <ArticleKeyHighlights
+items:string[]
 
-        highlights={keyHighlights}
+}){
 
-      />
 
+if(items.length===0) return null;
 
 
 
+return (
 
+<div
 
+className={proseClass}
 
+>
 
+<div
 
-      {/* MIDDLE CONTENT */}
+className="
 
-      {
-        secondPart.length > 0 &&
+article-body
 
+"
 
-        <div className={proseClass}>
+dangerouslySetInnerHTML={{
 
-          <div
+__html:items.join("")
 
-            dangerouslySetInnerHTML={{
+}}
 
-              __html:secondPart.join(""),
+/>
 
-            }}
+</div>
 
-          />
+);
 
-        </div>
 
-      }
+}
 
 
 
 
 
 
+return (
 
 
+<article
 
-      {/* WHY IT MATTERS */}
+className="
 
-      <ArticleWhyItMatters
+mt-12
 
-        whyItMatters={whyItMatters}
+max-w-4xl
 
-      />
+mx-auto
 
+px-1
 
+"
 
+>
 
 
 
+<RenderContent
 
+items={firstPart}
 
+/>
 
-      {/* REMAINING ARTICLE */}
 
-      {
-        remainingPart.length > 0 &&
 
 
-        <div className={proseClass}>
 
-          <div
+<ArticleKeyHighlights
 
-            dangerouslySetInnerHTML={{
+highlights={keyHighlights}
 
-              __html:remainingPart.join(""),
+/>
 
-            }}
 
-          />
 
-        </div>
 
-      }
 
 
+<RenderContent
 
+items={secondPart}
 
+/>
 
-    </article>
 
-  );
 
+
+
+<ArticleWhyItMatters
+
+whyItMatters={whyItMatters}
+
+/>
+
+
+
+
+
+
+<RenderContent
+
+items={remainingPart}
+
+/>
+
+
+
+
+
+</article>
+
+
+);
 
 }

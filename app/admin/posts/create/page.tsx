@@ -753,7 +753,7 @@ null
 
 
 };
-
+console.log("EDITOR HTML:", form.content);
 
 
 

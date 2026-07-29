@@ -25,7 +25,7 @@ export default function ArticleBody({
 
 }: ArticleBodyProps) {
 
-
+console.log("ARTICLE HTML:", content);
 
 if(!content) return null;
 
@@ -49,6 +49,8 @@ const firstPart = paragraphs.slice(0,2);
 const secondPart = paragraphs.slice(2,5);
 
 const remainingPart = paragraphs.slice(5);
+
+
 
 
 
@@ -129,15 +131,29 @@ prose-strong:font-bold
 
 
 
+
+
 prose-ul:my-8
 
+prose-ul:list-disc
+
+prose-ul:pl-8
+
+
+
 prose-ol:my-8
+
+prose-ol:list-decimal
+
+prose-ol:pl-8
 
 
 
 prose-li:text-[#374151]
 
 prose-li:leading-[1.8]
+
+prose-li:my-2
 
 
 
@@ -160,6 +176,7 @@ prose-blockquote:not-italic
 
 
 
+
 prose-img:rounded-3xl
 
 prose-img:my-12
@@ -168,11 +185,15 @@ prose-img:shadow-lg
 
 
 
+
+
 prose-table:text-sm
 
 prose-table:border
 
 `;
+
+
 
 
 
@@ -194,21 +215,12 @@ if(items.length===0) return null;
 
 
 
+
 return (
 
 <div
 
 className={proseClass}
-
->
-
-<div
-
-className="
-
-article-body
-
-"
 
 dangerouslySetInnerHTML={{
 
@@ -218,12 +230,13 @@ __html:items.join("")
 
 />
 
-</div>
-
 );
 
 
 }
+
+
+
 
 
 
@@ -251,11 +264,14 @@ px-1
 
 
 
+
+
 <RenderContent
 
 items={firstPart}
 
 />
+
 
 
 
@@ -282,11 +298,14 @@ items={secondPart}
 
 
 
+
+
 <ArticleWhyItMatters
 
 whyItMatters={whyItMatters}
 
 />
+
 
 
 
@@ -303,9 +322,12 @@ items={remainingPart}
 
 
 
+
+
 </article>
 
 
 );
 
 }
+

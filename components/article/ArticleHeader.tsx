@@ -49,7 +49,6 @@ export default function ArticleHeader({
 
 
 
-
   return (
 
 
@@ -164,9 +163,9 @@ export default function ArticleHeader({
         sm:leading-[1.12]
 
 
-        lg:text-[3.75rem]
+        lg:text-[2.8rem]
 
-        lg:leading-[1.05]
+        lg:leading-[1.12]
 
         "
 
@@ -334,6 +333,7 @@ export default function ArticleHeader({
 
 
 
+
               <span>
 
                 {article.views.toLocaleString()} views
@@ -347,6 +347,7 @@ export default function ArticleHeader({
           )
 
         }
+
 
 
 

@@ -1,161 +1,173 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Nation Path",
+  title: "Privacy Policy | NationPath India",
   description:
-    "Privacy Policy explaining how Nation Path collects, uses and protects user information.",
+    "Read NationPath India's Privacy Policy explaining how we collect, use, protect and manage user information across our news platform and digital services.",
+
+  alternates: {
+    canonical: "https://nationpathindia.com/privacy-policy",
+  },
+
+  openGraph: {
+    title: "Privacy Policy | NationPath India",
+    description:
+      "Learn how NationPath India collects, uses and protects user information while maintaining privacy and security standards.",
+    url: "https://nationpathindia.com/privacy-policy",
+    siteName: "NationPath India",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy | NationPath India",
+    description:
+      "Read NationPath India's privacy policy covering data collection, cookies, advertising, security and user rights.",
+  },
 };
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="max-w-4xl mx-auto px-6 py-20">
+    <>
+      <h1>Privacy Policy</h1>
 
-      <h1 className="text-4xl font-serif mb-10">
-        Privacy Policy
-      </h1>
-
-      <p className="text-gray-600 mb-8">
-        At Nation Path, accessible from nationpathindia.com, the privacy of our
-        visitors is one of our main priorities. This Privacy Policy document
-        outlines the types of information that are collected and recorded by
-        Nation Path and how we use it.
+      <p>
+        At NationPath India, accessible through nationpathindia.com, we respect
+        your privacy and are committed to protecting the personal information
+        of our visitors and users. This Privacy Policy explains how we collect,
+        use, store and safeguard information when you interact with our website
+        and digital services.
       </p>
 
-      {/* INFORMATION COLLECTION */}
+      <section>
+        <h2>Information We Collect</h2>
 
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Information We Collect
-        </h2>
-
-        <p className="text-gray-600">
-          We may collect personal information such as your name, email address,
-          and any information you voluntarily provide through forms such as
-          contact inquiries or newsletter subscriptions.
+        <p>
+          We may collect information that you voluntarily provide to us,
+          including your name, email address, contact details and other
+          information submitted through forms such as newsletter subscriptions,
+          contact requests or user interactions.
         </p>
 
+        <p>
+          We may also collect limited technical information such as browser
+          type, device information, IP address and website usage data to
+          improve our services and user experience.
+        </p>
       </section>
 
-      {/* HOW WE USE INFORMATION */}
+      <section>
+        <h2>How We Use Your Information</h2>
 
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          How We Use Your Information
-        </h2>
-
-        <ul className="text-gray-600 space-y-2">
-          <li>• To respond to inquiries and feedback</li>
-          <li>• To improve website content and user experience</li>
-          <li>• To analyze site traffic and usage patterns</li>
-          <li>• To communicate updates or newsletters if subscribed</li>
+        <ul>
+          <li>To provide and improve our digital content and services.</li>
+          <li>
+            To respond to user inquiries, feedback and support requests.
+          </li>
+          <li>
+            To send newsletters, updates or important announcements when users
+            choose to subscribe.
+          </li>
+          <li>
+            To analyze website performance, audience engagement and content
+            preferences.
+          </li>
+          <li>
+            To maintain website security and prevent misuse of our platform.
+          </li>
         </ul>
-
       </section>
 
-      {/* COOKIES */}
+      <section>
+        <h2>Cookies and Tracking Technologies</h2>
 
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Cookies and Web Beacons
-        </h2>
-
-        <p className="text-gray-600">
-          Nation Path uses cookies to store information about visitors'
-          preferences and to optimize user experience by customizing our web
-          page content based on visitors’ browser type or other information.
+        <p>
+          NationPath India uses cookies and similar technologies to improve
+          website functionality, understand visitor behavior and enhance user
+          experience. Cookies help us analyze traffic patterns, remember
+          preferences and improve our digital services.
         </p>
 
+        <p>
+          Users may choose to disable cookies through browser settings,
+          although some website features may not function properly as a result.
+        </p>
       </section>
 
-      {/* ADVERTISING */}
+      <section>
+        <h2>Advertising and Third-Party Services</h2>
 
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Advertising Partners
-        </h2>
-
-        <p className="text-gray-600">
-          Third-party ad servers or networks may use technologies like cookies,
-          JavaScript, or Web Beacons in their advertisements and links that
-          appear on Nation Path. These technologies help measure advertising
-          effectiveness and personalize advertising content.
+        <p>
+          NationPath India may display advertisements from third-party
+          advertising partners. These partners may use technologies such as
+          cookies, JavaScript or web beacons to measure advertising performance
+          and provide relevant advertisements.
         </p>
 
+        <p>
+          We do not control the privacy practices of third-party services and
+          encourage users to review their respective privacy policies.
+        </p>
       </section>
 
-      {/* THIRD PARTY */}
+      <section>
+        <h2>Third-Party Links</h2>
 
-      <section className="mb-10">
+        <p>
+          Our website may contain links to external websites, services or
+          platforms. NationPath India is not responsible for the privacy
+          practices, security policies or content of third-party websites.
+        </p>
+      </section>
 
-        <h2 className="text-2xl font-serif mb-4">
-          Third-Party Privacy Policies
-        </h2>
+      <section>
+        <h2>Children's Privacy</h2>
 
-        <p className="text-gray-600">
-          Nation Path’s Privacy Policy does not apply to other advertisers or
-          websites. We advise you to consult the respective Privacy Policies of
-          third-party services for more detailed information.
+        <p>
+          NationPath India values the safety of children online. We do not
+          knowingly collect personally identifiable information from children
+          under the age of 13 without appropriate consent.
         </p>
 
-      </section>
-
-      {/* CHILDREN */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Children's Information
-        </h2>
-
-        <p className="text-gray-600">
-          Protecting children while using the internet is important to us.
-          Nation Path does not knowingly collect any personal identifiable
-          information from children under the age of 13.
+        <p>
+          If you believe that a child has provided personal information to us,
+          please contact us so appropriate action can be taken.
         </p>
-
       </section>
 
-      {/* CONSENT */}
+      <section>
+        <h2>Data Security</h2>
 
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Consent
-        </h2>
-
-        <p className="text-gray-600">
-          By using our website, you hereby consent to our Privacy Policy and
-          agree to its terms.
+        <p>
+          We take reasonable technical and organizational measures to protect
+          user information from unauthorized access, misuse, loss or disclosure.
+          However, no method of transmission or storage over the internet can
+          be guaranteed to be completely secure.
         </p>
-
       </section>
 
-      {/* COMPANY */}
+      <section>
+        <h2>Your Consent</h2>
 
-      <section className="border-t pt-8">
+        <p>
+          By accessing and using NationPath India, you acknowledge that you have
+          read and understood this Privacy Policy and agree to the collection
+          and use of information as described above.
+        </p>
+      </section>
 
-        <h2 className="text-xl font-serif mb-3">
-          Organization
-        </h2>
+      <section>
+        <h2>Organization</h2>
 
-        <p className="text-gray-600">
-          NationPath Online Meidia is operated by <strong>Nationpath, India</strong>.
-          For any privacy-related questions, please contact us at{" "}
-          <a
-            href="mailto:info@nationpathindia.com"
-            className="text-[#0b2a6f] hover:underline"
-          >
+        <p>
+          NationPath India is operated by <strong>NationPath India</strong>.
+          For questions, concerns or requests related to privacy and data
+          protection, please contact us at{" "}
+          <a href="mailto:info@nationpathindia.com">
             info@nationpathindia.com
-          </a>
-          .
+          </a>.
         </p>
-
       </section>
-
-    </main>
+    </>
   );
 }

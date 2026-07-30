@@ -16,7 +16,6 @@ import {
 import FuturePlatformBanner 
 from "@/components/home/FuturePlatformBanner";
 
-
 import AdRenderer 
 from "@/components/ads/AdRenderer";
 
@@ -51,6 +50,7 @@ const AstrologyWidget = dynamic(
   }
 );
 
+
 /*
 ====================================================
  SIDEBAR COMPONENTS
@@ -81,6 +81,9 @@ export const revalidate = 60;
 const SITE_URL =
 process.env.NEXT_PUBLIC_SITE_URL ||
 "https://nationpathindia.com";
+
+
+
 function publishedFilter(){
 
   return {
@@ -105,20 +108,24 @@ function publishedFilter(){
 
 
 
-
+/*
+====================================================
+ SEO METADATA
+====================================================
+*/
 
 
 export const metadata: Metadata = {
 
 
 title:
-"Nation Path India | Breaking News, Defence, Politics, Astro Intelligence & Knowledge Platform",
+"Nation Path India | Breaking News, India Updates & Trusted Stories",
 
 
 
 description:
 
-"Nation Path India delivers trusted journalism covering politics, defence, international affairs, economy, business, technology, science, sports, astrology intelligence and future knowledge platforms.",
+"Nation Path India brings breaking news, India updates, politics, defence, business, technology, science, sports and trusted stories from across India.",
 
 
 
@@ -168,14 +175,6 @@ keywords:[
 
 "sports news",
 
-"vedic astrology",
-
-"horoscope India",
-
-"zodiac insights",
-
-"kids learning platform",
-
 "Nation Path India"
 
 ],
@@ -218,6 +217,35 @@ alt:"Nation Path India"
 ]
 
 
+},
+
+
+
+/*
+====================================================
+ TWITTER SEO
+====================================================
+*/
+
+twitter:{
+
+
+card:"summary_large_image",
+
+
+title:
+"Nation Path India | News, Astro Intelligence & Knowledge Platform",
+
+
+description:
+"Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
+
+
+images:[
+`${SITE_URL}/logo.png`
+]
+
+
 }
 
 
@@ -227,12 +255,14 @@ alt:"Nation Path India"
 
 
 
-
-
+/*
+====================================================
+ HOMEPAGE COMPONENT
+====================================================
+*/
 
 
 export default async function Home(){
-
 
 
 let articles:any[] = [];
@@ -240,33 +270,17 @@ let articles:any[] = [];
 let mostRead:any[] = [];
 
 let editorials:any[] = [];
-
-
-
-
-
-
+ 
 
 /*
 ====================================================
  OPTIMIZED HOMEPAGE DATABASE FETCH
 ====================================================
 
-Before:
-
-Query 1
-wait
-Query 2
-wait
-Query 3
-
-Now:
-
-All independent queries execute together.
+Independent queries execute together.
 
 ====================================================
 */
-
 
 
 try{
@@ -290,6 +304,7 @@ prisma.article.findMany({
 
 where:{
 
+
 status:PostStatus.approved,
 
 isDeleted:false,
@@ -299,6 +314,7 @@ isEditorial:false,
 isAstrology:false,
 
 ...publishedFilter()
+
 
 },
 
@@ -333,7 +349,9 @@ take:40
 
 
 
+
 prisma.article.findMany({
+
 
 where:{
 
@@ -380,7 +398,9 @@ take:5
 
 
 
+
 prisma.article.findMany({
+
 
 where:{
 
@@ -462,7 +482,6 @@ error
 
 
 
-
 /*
 ====================================================
  HOMEPAGE DATA PREPARATION
@@ -493,11 +512,8 @@ articles.slice(12,24);
 
 
 
-
-
 const homepageCategories =
 getActiveHomepageCategories();
-
 
 
 
@@ -566,6 +582,7 @@ article.excerpt ||
 article.content
 ?.replace(/<[^>]+>/g,"")
 .slice(0,160)
+
 ||
 
 "",
@@ -607,6 +624,140 @@ article.views || 0
 )
 
 );
+
+
+
+
+
+
+/*
+====================================================
+ SEO STRUCTURED DATA
+====================================================
+*/
+
+const itemList = articles
+
+.slice(0,10)
+
+.map(
+
+(article:any,index:number)=>(
+
+{
+
+"@type":"ListItem",
+
+"position":index + 1,
+
+"name":article.title,
+
+"url":
+
+`${SITE_URL}/${article.category?.slug || "news"}/${article.slug}`
+
+}
+
+)
+
+);
+
+
+
+
+const homepageSchema = {
+
+
+"@context":"https://schema.org",
+
+
+
+"@graph":[
+
+
+
+{
+  "@type":"NewsMediaOrganization",
+
+  "name":"Nation Path India",
+
+  "url":SITE_URL,
+
+  "description":
+  "Nation Path India is an independent digital newsroom delivering trusted journalism, national affairs coverage and meaningful stories from India.",
+
+  "sameAs":[
+
+    "https://www.youtube.com/@NationPathIndia",
+
+    "https://www.facebook.com/profile.php?id=61587529251948",
+
+    "https://www.instagram.com/nationpathindia/",
+
+    "https://x.com/nationpathindia"
+
+  ],
+
+  "logo":{
+
+    "@type":"ImageObject",
+
+    "url":
+    `${SITE_URL}/logo.png`
+
+  }
+
+},
+
+
+
+{
+  "@type":"WebSite",
+
+  "name":"Nation Path India",
+
+  "url":SITE_URL,
+
+  "potentialAction":{
+
+    "@type":"SearchAction",
+
+    "target":{
+
+      "@type":"EntryPoint",
+
+      "urlTemplate":
+      `${SITE_URL}/search?q={search_term_string}`
+
+    },
+
+    "query-input":
+    "required name=search_term_string"
+
+  }
+
+},
+
+
+
+{
+  "@type":"ItemList",
+
+  "name":
+  "Latest News from Nation Path India",
+
+  "itemListElement":
+  itemList
+
+}
+
+
+
+]
+
+
+};
+
 return (
 
 <>
@@ -620,34 +771,13 @@ dangerouslySetInnerHTML={{
 
 __html:
 
-JSON.stringify({
-
-
-"@context":"https://schema.org",
-
-
-"@type":"NewsMediaOrganization",
-
-
-"name":"Nation Path India",
-
-
-"url":SITE_URL,
-
-
-"description":
-
-"Independent journalism, astrology intelligence and knowledge experiences from India."
-
-
-})
+JSON.stringify(homepageSchema)
 
 
 }}
 
 
 />
-
 
 
 
@@ -663,8 +793,6 @@ news-container
 "
 
 >
-
-
 
 
 
@@ -696,6 +824,8 @@ placement="homepage_top"
 
 
 </div>
+
+
 
 
 
@@ -733,12 +863,12 @@ max-w-5xl
 >
 
 
-Independent Journalism.
-National Perspective.
+Nation Path India -
+Independent Journalism,
+News & Intelligence Platform.
 
 
 </h1>
-
 
 
 
@@ -800,8 +930,6 @@ lg:gap-12
 
 
 
-
-
 {/* ================= LEFT CONTENT ================= */}
 
 
@@ -823,7 +951,6 @@ space-y-14
 article={hero}
 
 />
-
 
 
 
@@ -884,6 +1011,7 @@ category.slug
 if(!categoryArticles.length)
 
 return null;
+
 
 
 
@@ -975,6 +1103,7 @@ articles={latest}
 
 
 
+
 <EditorialSection
 
 articles={editorials}
@@ -986,10 +1115,6 @@ articles={editorials}
 
 
 </div>
-
-
-
-
 
 
 
@@ -1013,6 +1138,7 @@ h-fit
 "
 
 >
+
 
 
 
@@ -1094,8 +1220,8 @@ placement="homepage_sidebar_top"
 
 
 
-</aside>
 
+</aside>
 
 
 
@@ -1131,7 +1257,7 @@ mt-16
 
 <AstrologyWidget
 
-  horoscopes={[]}
+horoscopes={[]}
 
 />
 
@@ -1200,7 +1326,6 @@ placement="homepage_bottom"
 
 
 </div>
-
 
 
 

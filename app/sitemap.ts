@@ -13,463 +13,381 @@ import { prisma } from "@/lib/prisma";
 import { MetadataRoute } from "next";
 
 
-
 export const dynamic = "force-dynamic";
 
 
 
+const SITE_URL =
+
+process.env.NEXT_PUBLIC_SITE_URL ||
+
+"https://nationpathindia.com";
+
+
+
+
+
+export default async function sitemap():
+
+Promise<MetadataRoute.Sitemap> {
+
+
+try {
+
 
 
 //////////////////////////////////////////////////////////////
-// SITEMAP
+// ARTICLES
 //////////////////////////////////////////////////////////////
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
+const articles =
 
-  try {
+await prisma.article.findMany({
 
 
-    const baseUrl = "https://nationpathindia.com";
+where:{
 
 
+status:"approved",
 
 
-    ////////////////////////////////////////////////////////////
-    // ARTICLES
-    ////////////////////////////////////////////////////////////
+isDeleted:false,
 
-    const articles = await prisma.article.findMany({
 
-      where: {
+isAstrology:false,
 
-        status: "approved",
 
-        isDeleted: false,
+},
 
-      },
 
+select:{
 
-      select: {
 
-        slug: true,
+slug:true,
 
-        updatedAt: true,
 
+updatedAt:true,
 
-        category: {
 
-          select: {
+category:{
 
-            slug: true,
 
-          },
+select:{
 
-        },
 
-      },
+slug:true
 
-    });
 
+}
 
 
+}
 
 
-    const articleUrls = articles
+},
 
-      .filter(
 
-        (article) => article.category?.slug
+take:5000
 
-      )
 
-      .map((article) => ({
+});
 
 
-        url:
 
-          `${baseUrl}/${article.category!.slug}/${article.slug}`,
 
+const articleUrls =
 
-        lastModified:
+articles
 
-          article.updatedAt,
+.filter(
 
+(article)=>
 
-        changeFrequency:
+article.category?.slug
 
-          "daily" as const,
+)
 
+.map((article)=>({
 
-        priority:
 
-          0.9,
+url:
 
+`${SITE_URL}/${article.category!.slug}/${article.slug}`,
 
-      }));
 
+lastModified:
 
+article.updatedAt,
 
 
+changeFrequency:
 
+"daily" as const,
 
 
-    ////////////////////////////////////////////////////////////
-    // CATEGORIES
-    ////////////////////////////////////////////////////////////
+priority:
 
-    const categories = await prisma.category.findMany({
+0.9,
 
-      select: {
 
-        slug: true,
+}));
 
-      },
 
-    });
 
 
 
 
 
-    const categoryUrls = categories.map((category) => ({
+//////////////////////////////////////////////////////////////
+// CATEGORIES
+//////////////////////////////////////////////////////////////
 
 
-      url:
+const categories =
 
-       `${baseUrl}/${category.slug}`,
+await prisma.category.findMany({
 
 
-      lastModified:
+where:{
 
-        new Date(),
 
+status:"active"
 
-      changeFrequency:
 
-        "daily" as const,
+},
 
 
-      priority:
+select:{
 
-        0.8,
 
+slug:true
 
-    }));
 
+}
 
 
+});
 
 
 
 
-    ////////////////////////////////////////////////////////////
-    // ASTRO PUBLIC PAGES
-    ////////////////////////////////////////////////////////////
+const categoryUrls =
 
-    const astroPages = [
+categories.map((category)=>({
 
 
-      {
+url:
 
-        url:
+`${SITE_URL}/${category.slug}`,
 
-          `${baseUrl}/astro/horoscope`,
 
+lastModified:
 
-        lastModified:
+new Date(),
 
-          new Date(),
 
+changeFrequency:
 
-        changeFrequency:
+"daily" as const,
 
-          "daily" as const,
 
+priority:
 
-        priority:
+0.8,
 
-          0.95,
 
+}));
 
-      },
 
 
-      {
 
-        url:
 
-          `${baseUrl}/astro/kundali`,
 
 
-        lastModified:
+//////////////////////////////////////////////////////////////
+// ASTRO PUBLIC PAGES
+//////////////////////////////////////////////////////////////
 
-          new Date(),
 
+const astroPages = [
 
-        changeFrequency:
 
-          "monthly" as const,
+"/astro/horoscope",
 
+"/astro/kundali",
 
-        priority:
+"/astro/lagna",
 
-          0.8,
+"/astro/nakshatra",
 
 
-      },
+].map((path)=>({
 
 
-      {
+url:
 
-        url:
+`${SITE_URL}${path}`,
 
-          `${baseUrl}/astro/lagna`,
 
+lastModified:
 
-        lastModified:
+new Date(),
 
-          new Date(),
 
+changeFrequency:
 
-        changeFrequency:
+"monthly" as const,
 
-          "monthly" as const,
 
+priority:
 
-        priority:
+0.8,
 
-          0.7,
 
+}));
 
-      },
 
 
-      {
 
-        url:
 
-          `${baseUrl}/astro/nakshatra`,
 
 
-        lastModified:
 
-          new Date(),
+//////////////////////////////////////////////////////////////
+// STATIC PAGES
+//////////////////////////////////////////////////////////////
 
 
-        changeFrequency:
+const staticPages = [
 
-          "monthly" as const,
 
+{
 
-        priority:
+url:SITE_URL,
 
-          0.7,
+lastModified:new Date(),
 
+changeFrequency:"daily" as const,
 
-      },
+priority:1,
 
 
-    ];
+},
 
 
+{
 
+url:`${SITE_URL}/about`,
 
+lastModified:new Date(),
 
+changeFrequency:"monthly" as const,
 
+priority:0.7,
 
 
-    ////////////////////////////////////////////////////////////
-    // STATIC WEBSITE PAGES
-    ////////////////////////////////////////////////////////////
+},
 
-    const staticPages = [
 
+{
 
-      {
+url:`${SITE_URL}/contact`,
 
-        url:
+lastModified:new Date(),
 
-          baseUrl,
+changeFrequency:"monthly" as const,
 
+priority:0.7,
 
-        lastModified:
 
-          new Date(),
+},
 
 
-        changeFrequency:
+{
 
-          "daily" as const,
+url:`${SITE_URL}/advertise`,
 
+lastModified:new Date(),
 
-        priority:
+changeFrequency:"monthly" as const,
 
-          1,
+priority:0.6,
 
-      },
 
+},
 
-      {
 
-        url:
+{
 
-          `${baseUrl}/about`,
+url:`${SITE_URL}/privacy-policy`,
 
+lastModified:new Date(),
 
-        lastModified:
+changeFrequency:"yearly" as const,
 
-          new Date(),
+priority:0.3,
 
 
-        changeFrequency:
+},
 
-          "monthly" as const,
 
+{
 
-        priority:
+url:`${SITE_URL}/terms`,
 
-          0.7,
+lastModified:new Date(),
 
-      },
+changeFrequency:"yearly" as const,
 
+priority:0.3,
 
-      {
 
-        url:
+},
 
-          `${baseUrl}/contact`,
 
+];
 
-        lastModified:
 
-          new Date(),
 
 
-        changeFrequency:
 
-          "monthly" as const,
 
 
-        priority:
+return [
 
-          0.7,
+...staticPages,
 
-      },
+...astroPages,
 
+...categoryUrls,
 
-      {
+...articleUrls,
 
-        url:
+];
 
-          `${baseUrl}/advertise`,
 
 
-        lastModified:
+}
 
-          new Date(),
+catch(error){
 
 
-        changeFrequency:
+console.error(
 
-          "monthly" as const,
+"SITEMAP ERROR:",
 
+error
 
-        priority:
+);
 
-          0.6,
 
-      },
 
+return [];
 
-      {
 
-        url:
+}
 
-          `${baseUrl}/privacy-policy`,
-
-
-        lastModified:
-
-          new Date(),
-
-
-        changeFrequency:
-
-          "yearly" as const,
-
-
-        priority:
-
-          0.3,
-
-      },
-
-
-      {
-
-        url:
-
-          `${baseUrl}/terms`,
-
-
-        lastModified:
-
-          new Date(),
-
-
-        changeFrequency:
-
-          "yearly" as const,
-
-
-        priority:
-
-          0.3,
-
-      },
-
-
-    ];
-
-
-
-
-
-
-
-    return [
-
-      ...staticPages,
-
-      ...astroPages,
-
-      ...categoryUrls,
-
-      ...articleUrls,
-
-    ];
-
-
-
-
-  }
-
-  catch(error){
-
-
-    console.error(
-
-      "SITEMAP ERROR:",
-
-      error
-
-    );
-
-
-    return [];
-
-  }
 
 
 }

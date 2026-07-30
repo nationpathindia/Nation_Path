@@ -218,7 +218,7 @@ data.articles || []
 
 
 setTotalPages(
-data.totalPages || 1
+data.pagination?.totalPages || 1
 );
 
 

@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 export async function POST(req: Request) {
   try {
@@ -7,43 +18,69 @@ export async function POST(req: Request) {
 
     if (!name || !email || !message) {
       return NextResponse.json(
-        { success: false, message: "Missing fields" },
+        {
+          success: false,
+          message: "Name, email and message are required",
+        },
         { status: 400 }
       );
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "editor@nationpathindia.com",
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject || "New Contact Message");
+    const safeMessage = escapeHtml(message);
 
-    await transporter.sendMail({
-      from: `"Nation Path Contact" <editor@nationpathindia.com>`,
-      to: "editor@nationpathindia.com",
-      subject: `Contact Form: ${subject || "New Message"}`,
+    await resend.emails.send({
+      from: "NationPath India <contact@nationpathindia.com>",
+      to:
+        process.env.CONTACT_EMAIL ||
+        "info@nationpathindia.com",
+      replyTo: email,
+      subject: `Contact Form: ${safeSubject}`,
       html: `
-        <h3>New Contact Message</h3>
+        <h2>New Contact Message - NationPath India</h2>
 
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p>
+          <strong>Name:</strong> ${safeName}
+        </p>
 
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
+        <p>
+          <strong>Email:</strong> ${safeEmail}
+        </p>
+
+        <p>
+          <strong>Subject:</strong> ${safeSubject}
+        </p>
+
+        <hr />
+
+        <p>
+          <strong>Message:</strong>
+        </p>
+
+        <p>
+          ${safeMessage.replace(/\n/g, "<br />")}
+        </p>
       `,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "Message sent successfully",
+    });
 
   } catch (error) {
-    console.error("Contact error:", error);
+    console.error("Contact API Error:", error);
 
     return NextResponse.json(
-      { success: false },
-      { status: 500 }
+      {
+        success: false,
+        message: "Unable to send message",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

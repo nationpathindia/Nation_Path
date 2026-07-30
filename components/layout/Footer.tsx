@@ -5,12 +5,54 @@ import {
   Instagram,
   Youtube,
   Twitter,
-  Mail
 } from "lucide-react";
 
+import { prisma } from "@/lib/prisma";
+
+import NewsletterForm from "@/components/NewsletterForm";
 
 
-export default function Footer(){
+export default async function Footer(){
+
+
+const categories = await prisma.category.findMany({
+
+where:{
+
+status:"active"
+
+},
+
+orderBy:{
+
+priority:"asc"
+
+},
+
+take:5,
+
+select:{
+
+name:true,
+
+slug:true
+
+}
+
+}).catch((error)=>{
+
+
+console.error(
+"Footer Category Fetch Error",
+error
+);
+
+
+return [];
+
+
+});
+
 
 
 return (
@@ -19,8 +61,6 @@ return (
 
 
 <div className="news-container">
-
-
 
 
 
@@ -45,7 +85,6 @@ lg:py-16
 "
 
 >
-
 
 
 
@@ -104,10 +143,7 @@ and stories that matter.
 </p>
 
 
-
 </div>
-
-
 
 
 
@@ -162,77 +198,38 @@ text-white/60
 >
 
 
-<li>
+{
+
+categories.map((category)=>(
+
+
+<li
+
+key={category.slug}
+
+>
+
 
 <Link
 
-href="/india"
+href={`/${category.slug}`}
 
 className="hover:text-white transition"
 
 >
 
-India
+{category.name}
 
 </Link>
+
 
 </li>
 
 
-
-<li>
-
-<Link
-
-href="/world"
-
-className="hover:text-white transition"
-
->
-
-World
-
-</Link>
-
-</li>
+))
 
 
-
-
-<li>
-
-<Link
-
-href="/business"
-
-className="hover:text-white transition"
-
->
-
-Business
-
-</Link>
-
-</li>
-
-
-
-
-<li>
-
-<Link
-
-href="/technology"
-
-className="hover:text-white transition"
-
->
-
-Technology
-
-</Link>
-
-</li>
+}
 
 
 
@@ -305,123 +302,7 @@ from NationPath India.
 
 
 
-
-
-
-<div
-
-className="
-
-flex
-
-items-center
-
-gap-2
-
-"
-
->
-
-
-<div
-
-className="
-
-flex
-
-items-center
-
-gap-2
-
-flex-1
-
-bg-white/5
-
-border
-
-border-white/10
-
-rounded-lg
-
-px-3
-
-py-2
-
-"
-
->
-
-
-<Mail
-
-size={16}
-
-className="text-white/50"
-
-/>
-
-
-
-<span
-
-className="
-
-text-xs
-
-text-white/50
-
-"
-
->
-
-Email updates
-
-</span>
-
-
-
-</div>
-
-
-
-
-
-<button
-
-className="
-
-bg-[var(--news-orange)]
-
-text-white
-
-text-xs
-
-font-bold
-
-px-4
-
-py-2
-
-rounded-lg
-
-hover:opacity-90
-
-transition
-
-"
-
->
-
-Join
-
-</button>
-
-
-
-
-</div>
-
-
+<NewsletterForm />
 
 
 </div>
@@ -468,7 +349,6 @@ Follow
 
 
 
-
 <div
 
 className="
@@ -482,9 +362,6 @@ gap-3
 "
 
 >
-
-
-
 
 
 
@@ -530,8 +407,6 @@ transition
 <Youtube size={16}/>
 
 </a>
-
-
 
 
 
@@ -587,8 +462,6 @@ transition
 
 
 
-
-
 <a
 
 href="https://www.instagram.com/nationpathindia/"
@@ -630,8 +503,6 @@ transition
 <Instagram size={16}/>
 
 </a>
-
-
 
 
 
@@ -683,8 +554,7 @@ transition
 
 
 
-
-
+</div>
 
 
 </div>
@@ -693,16 +563,6 @@ transition
 
 
 </div>
-
-
-
-
-
-
-
-</div>
-
-
 
 
 
@@ -711,7 +571,6 @@ transition
 
 
 {/* BOTTOM LEGAL BAR */}
-
 
 
 <div
@@ -741,7 +600,6 @@ gap-4
 >
 
 
-
 <p
 
 className="
@@ -762,7 +620,6 @@ md:text-left
 All rights reserved. Crafted by : TitanArt Studio, India
 
 </p>
-
 
 
 
@@ -789,107 +646,47 @@ text-white/50
 >
 
 
-
-<Link
-
-href="/about"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/about" className="hover:text-white transition">
 About
-
 </Link>
 
 
-
-<Link
-
-href="/contact"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/contact" className="hover:text-white transition">
 Contact
-
 </Link>
 
 
-
-<Link
-
-href="/advertise"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/advertise" className="hover:text-white transition">
 Advertise
-
 </Link>
 
 
-
-<Link
-
-href="/privacy-policy"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/privacy-policy" className="hover:text-white transition">
 Privacy
-
 </Link>
 
 
-
-<Link
-
-href="/terms"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/terms" className="hover:text-white transition">
 Terms
-
 </Link>
 
 
-
-<Link
-
-href="/editorial-policy"
-
-className="hover:text-white transition"
-
->
-
+<Link href="/editorial-policy" className="hover:text-white transition">
 Editorial Policy
-
 </Link>
 
 
 
-
 </div>
 
 
-
 </div>
-
-
-
 
 
 
 
 
 </div>
-
 
 
 </footer>

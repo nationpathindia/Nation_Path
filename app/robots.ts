@@ -8,73 +8,104 @@
 //
 //////////////////////////////////////////////////////////////
 
+
 import { MetadataRoute } from "next";
+
+
+
+
+const SITE_URL =
+
+process.env.NEXT_PUBLIC_SITE_URL ||
+
+"https://nationpathindia.com";
+
+
 
 
 
 export default function robots(): MetadataRoute.Robots {
 
 
-  const baseUrl = "https://nationpathindia.com";
+return {
+
+
+rules:[
+
+
+{
+
+
+userAgent:"*",
 
 
 
-  return {
-
-
-    rules: [
-
-      {
-
-
-        userAgent: "*",
-
-
-        allow: "/",
-
-
-        disallow: [
-
-          "/admin",
-
-          "/api",
-
-          "/dashboard",
-
-          "/login",
-
-          "/register",
-
-          "/_next",
-
-          "/test",
-
-        ],
-
-
-      },
-
-
-    ],
+allow:"/",
 
 
 
 
-    sitemap: [
-
-      `${baseUrl}/sitemap.xml`,
-
-      `${baseUrl}/news-sitemap.xml`,
-
-    ],
+disallow:[
 
 
+"/admin",
 
 
-    host: baseUrl,
+"/api",
 
 
-  };
+"/dashboard",
+
+
+"/login",
+
+
+"/register",
+
+
+"/search",
+
+
+"/_next",
+
+
+"/test",
+
+
+],
+
+
+},
+
+
+
+],
+
+
+
+
+
+sitemap:[
+
+
+`${SITE_URL}/sitemap.xml`,
+
+
+`${SITE_URL}/news-sitemap.xml`,
+
+
+],
+
+
+
+
+
+host:SITE_URL,
+
+
+
+};
+
 
 
 }

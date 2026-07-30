@@ -4,32 +4,29 @@ import connectDB from "@/lib/mongodb";
 import Horoscope from "@/app/models/Horoscope";
 
 const dailyHoroscopes = [
-{
+  {
   zodiac: "pisces",
 
   slug: "pisces-daily",
 
   meta: {
-
     period: "daily",
-
     language: "english",
-
     status: "published",
 
     startDate:
-      new Date("2026-07-28T18:30:00.000Z"),
+      new Date("2026-07-29T18:30:00.000Z"),
 
     endDate:
-      new Date("2026-07-29T18:29:59.000Z"),
+      new Date("2026-07-30T18:29:59.000Z"),
 
     publishedAt:
-      new Date("2026-07-28T18:30:00.000Z"),
+      new Date("2026-07-29T18:30:00.000Z"),
 
     scheduledAt: null,
 
     slugDate:
-      "2026-07-29",
+      "2026-07-30",
 
     version: "1.0",
 
@@ -38,25 +35,16 @@ const dailyHoroscopes = [
     priority: 1,
 
     featured: {
-
       homepage: true,
-
       trending: false,
-
       seo: true,
-
     },
 
     visibility: {
-
       public: true,
-
       premium: false,
-
       featured: true,
-
     },
-
   },
 
 
@@ -83,10 +71,10 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope",
 
     subtitle:
-      "Intuition, compassion and spiritual growth",
+      "Intuition, creativity and emotional growth",
 
     description:
-      "A day to trust your intuition, embrace creativity and move forward with emotional clarity.",
+      "A day to trust your intuition, embrace creativity and move ahead with emotional clarity.",
 
     image:
       "/zodiac/pisces.png",
@@ -150,7 +138,7 @@ const dailyHoroscopes = [
 
       "Emotional sensitivity",
 
-      "Escapism",
+      "Overthinking",
 
     ],
 
@@ -167,13 +155,13 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope Today",
 
     overview:
-      "Today encourages Pisces to trust inner wisdom while creating harmony in personal and professional life.",
+      "Today encourages Pisces to trust inner wisdom while maintaining balance in personal and professional matters.",
 
     prediction:
-      "Your creativity and intuition help you discover meaningful opportunities.",
+      "Your creativity and emotional intelligence can help you discover meaningful opportunities.",
 
     quote:
-      "Inner wisdom guides the path forward.",
+      "Trust your intuition and follow your inner wisdom.",
 
   },
 
@@ -182,16 +170,16 @@ const dailyHoroscopes = [
   life: {
 
     career:
-      "Creative thinking and emotional intelligence support professional growth.",
+      "Creative ideas and intuitive decisions may support professional growth.",
 
     love:
       "Understanding and compassion strengthen relationships.",
 
     finance:
-      "Follow practical planning while trusting your instincts.",
+      "Avoid impulsive choices and focus on practical planning.",
 
     health:
-      "Focus on emotional balance and peaceful routines.",
+      "Emotional balance and peaceful routines support wellbeing.",
 
   },
 
@@ -200,13 +188,13 @@ const dailyHoroscopes = [
   insights: {
 
     planetaryInfluence:
-      "Jupiter enhances wisdom, spirituality and creative expression.",
+      "Jupiter enhances wisdom, learning and spiritual growth.",
 
     energy:
       "Calm",
 
     guidance:
-      "Trust your intuition while staying grounded in reality.",
+      "Trust your instincts while staying connected with reality.",
 
     remedy:
       "Practice meditation, gratitude and peaceful reflection.",
@@ -247,7 +235,7 @@ const dailyHoroscopes = [
         "Dominant Planet",
 
       message:
-        "Jupiter strengthens wisdom, compassion and spiritual growth.",
+        "Jupiter strengthens wisdom, optimism and spiritual awareness.",
 
       strength:
         "High",
@@ -297,13 +285,13 @@ const dailyHoroscopes = [
       "Jupiter Wisdom Meditation",
 
     practice:
-      "Begin the day with meditation, gratitude and peaceful spiritual reflection.",
+      "Begin the day with meditation, gratitude and positive reflection.",
 
     guidance:
-      "Strengthen Jupiter energy through devotion and positive thoughts. Chant: ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
+      "Strengthen Jupiter energy through learning, kindness and spiritual practices. Chant: ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
 
     reason:
-      "Helps enhance wisdom, spiritual balance and positive growth.",
+      "Helps improve wisdom, positivity and emotional balance.",
 
   },
 
@@ -376,7 +364,7 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope Today | NationPath Astro",
 
     description:
-      "Read Pisces daily horoscope with Vedic astrology insights, Jupiter guidance and personalized cosmic wisdom.",
+      "Read Pisces daily horoscope with Vedic astrology insights, Jupiter guidance and cosmic wisdom.",
 
     keywords: [
 
@@ -430,7 +418,6 @@ const dailyHoroscopes = [
   updatedBy:
     "admin",
 }
-
 
 
 ];

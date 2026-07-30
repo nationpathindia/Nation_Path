@@ -1,159 +1,119 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | Nation Path",
+  title: "Terms & Conditions | NationPath",
   description:
-    "Terms and Conditions governing the use of Nation Path website and its content.",
+    "Read the Terms and Conditions governing the use of NationPath website, content, services, and digital platforms.",
+
+  alternates: {
+    canonical: "https://nationpathindia.com/terms",
+  },
+
+  openGraph: {
+    title: "Terms & Conditions | NationPath",
+    description:
+      "Terms and Conditions governing the use of NationPath website, content, and digital services.",
+    url: "https://nationpathindia.com/terms",
+    siteName: "NationPath",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Terms & Conditions | NationPath",
+    description:
+      "Terms and Conditions governing the use of NationPath website, content, and digital services.",
+  },
 };
 
 export default function TermsPage() {
   return (
-    <main className="max-w-4xl mx-auto px-6 py-20">
+    <>
+      <h1>Terms &amp; Conditions</h1>
 
-      <h1 className="text-4xl font-serif mb-10">
-        Terms & Conditions
-      </h1>
-
-      <p className="text-gray-600 mb-8">
-        Welcome to Nation Path. By accessing or using this website,
-        you agree to comply with and be bound by the following terms
-        and conditions. If you disagree with any part of these terms,
-        please do not use our website.
+      <p>
+        Welcome to NationPath. By accessing or using this website, you agree to
+        comply with and be bound by these Terms and Conditions. If you do not
+        agree with any part of these terms, please do not use our website.
       </p>
 
+      <section>
+        <h2>Use of Website</h2>
 
-      {/* USE OF WEBSITE */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Use of Website
-        </h2>
-
-        <p className="text-gray-600">
-          The content on Nation Path is provided for informational
-          and editorial purposes only. Users may access, read,
-          and share our articles for personal use, but reproduction
-          or redistribution of our content without permission is
-          strictly prohibited.
+        <p>
+          The content published on NationPath is provided for informational and
+          editorial purposes only. Users may access, read, and share our
+          content for personal and non-commercial use while respecting
+          applicable copyright and intellectual property rights.
         </p>
-
       </section>
 
+      <section>
+        <h2>Intellectual Property</h2>
 
-      {/* INTELLECTUAL PROPERTY */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Intellectual Property
-        </h2>
-
-        <p className="text-gray-600">
-          All content published on Nation Path including text,
-          graphics, logos, and design elements are the intellectual
-          property of Nation Path unless otherwise stated.
-          Unauthorized use may violate copyright laws.
+        <p>
+          All content published on NationPath, including text, graphics, logos,
+          branding elements, and design components, belongs to NationPath unless
+          otherwise stated. Unauthorized reproduction, redistribution, or
+          commercial use of our content is prohibited.
         </p>
-
       </section>
 
+      <section>
+        <h2>User Conduct</h2>
 
-      {/* USER CONDUCT */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          User Conduct
-        </h2>
-
-        <p className="text-gray-600">
-          Users agree not to misuse the website or attempt to
-          interfere with its normal operation. Activities such as
-          hacking, spamming, or distributing malicious software
-          are strictly prohibited.
+        <p>
+          Users agree not to misuse the website, attempt unauthorized access,
+          interfere with website operations, distribute harmful software, or
+          engage in activities that may affect the security and availability of
+          NationPath services.
         </p>
-
       </section>
 
+      <section>
+        <h2>External Links</h2>
 
-      {/* EXTERNAL LINKS */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          External Links
-        </h2>
-
-        <p className="text-gray-600">
-          Nation Path may include links to external websites.
-          We do not control or guarantee the accuracy of content
-          found on third-party sites and are not responsible for
-          their policies or practices.
+        <p>
+          NationPath may include links to external websites for additional
+          information. We do not control or guarantee the accuracy of content
+          available on third-party websites and are not responsible for their
+          policies or practices.
         </p>
-
       </section>
 
+      <section>
+        <h2>Limitation of Liability</h2>
 
-      {/* LIMITATION OF LIABILITY */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Limitation of Liability
-        </h2>
-
-        <p className="text-gray-600">
-          Nation Path strives to provide accurate and reliable
-          information, but we make no guarantees regarding the
-          completeness or accuracy of published content. We shall
-          not be held liable for any loss or damages arising from
-          the use of this website.
+        <p>
+          NationPath strives to provide accurate and reliable information, but
+          we do not guarantee that all published content will always be complete
+          or error-free. NationPath shall not be held responsible for any loss
+          or damages arising from the use of this website or its content.
         </p>
-
       </section>
 
+      <section>
+        <h2>Changes to Terms</h2>
 
-      {/* CHANGES */}
-
-      <section className="mb-10">
-
-        <h2 className="text-2xl font-serif mb-4">
-          Changes to Terms
-        </h2>
-
-        <p className="text-gray-600">
-          Nation Path reserves the right to update or modify these
-          Terms and Conditions at any time without prior notice.
-          Continued use of the website after changes indicates
-          acceptance of the updated terms.
+        <p>
+          NationPath reserves the right to update or modify these Terms and
+          Conditions at any time. Changes become effective once published on
+          this page. Continued use of the website after updates indicates
+          acceptance of the revised terms.
         </p>
-
       </section>
 
+      <section>
+        <h2>Organization</h2>
 
-      {/* COMPANY */}
-
-      <section className="border-t pt-8">
-
-        <h2 className="text-xl font-serif mb-3">
-          Organization
-        </h2>
-
-        <p className="text-gray-600">
-          Nation Path is operated by <strong>Nationpath, India</strong>.
-          If you have any questions regarding these Terms &
-          Conditions, please contact us at{" "}
-          <a
-            href="mailto:info@nationpathindia.com"
-            className="text-[#0b2a6f] hover:underline"
-          >
+        <p>
+          NationPath is operated by <strong>NationPath India</strong>. For any
+          questions regarding these Terms &amp; Conditions, please contact us at{" "}
+          <a href="mailto:info@nationpathindia.com">
             info@nationpathindia.com
           </a>.
         </p>
-
       </section>
-
-    </main>
+    </>
   );
 }

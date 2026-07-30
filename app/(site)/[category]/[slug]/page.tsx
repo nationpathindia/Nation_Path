@@ -161,7 +161,7 @@ return {};
 
 const canonical =
 
-`https://www.nationpathindia.com/${category.slug}/${article.slug}`;
+`https://nationpathindia.com/${category.slug}/${article.slug}`;
 
 
 
@@ -786,7 +786,7 @@ Math.ceil(wordCount / 200)
 
 const articleUrl =
 
-`https://www.nationpathindia.com/${category.slug}/${article.slug}`;
+`https://nationpathindia.com/${category.slug}/${article.slug}`;
 
 
 
@@ -989,8 +989,7 @@ logo:{
 
 "@type":"ImageObject",
 
-
-url:"https://www.nationpathindia.com/logo.png"
+url:"https://nationpathindia.com/logo.png"
 
 
 }

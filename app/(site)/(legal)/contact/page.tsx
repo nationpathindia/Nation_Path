@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Building2, Megaphone } from "lucide-react";
+import {
+  Mail,
+  Building2,
+  Megaphone,
+  Facebook,
+  Instagram,
+  Youtube,
+  Twitter,
+} from "lucide-react";
 
 export default function ContactPage() {
-
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -14,81 +21,106 @@ export default function ContactPage() {
 
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setLoading(true);
+    setSent(false);
+    setError("");
 
-    const res = await fetch("/api/contact", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
 
-    setLoading(false);
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-    if (res.ok) {
-      setSent(true);
-
-      setForm({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
+        body: JSON.stringify(form),
       });
 
-    } else {
-      alert("Failed to send message");
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setSent(true);
+
+        setForm({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        setError(
+          data.message || "Failed to send message"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Contact submit error:",
+        error
+      );
+
+      setError(
+        "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-20">
-
-      {/* HEADER */}
-
+    <>
       <section className="text-center mb-16">
 
-        <h1 className="text-4xl md:text-5xl font-serif mb-6">
-          Contact Nation Path
+        <h1>
+          Contact NationPath India
         </h1>
 
-        <p className="text-gray-600 max-w-3xl mx-auto">
-          For inquiries, partnerships, or advertising opportunities,
-          please reach the Nation Path team through the following channels.
+
+        <p>
+          For editorial inquiries, news tips, partnerships,
+          advertising opportunities, corrections, feedback
+          or general communication, please reach the
+          NationPath India team through the official channels
+          below.
         </p>
 
-        <p className="text-sm text-gray-500 mt-2">
+
+        <p>
           Our team usually responds within 24–48 hours.
         </p>
 
       </section>
 
 
-      {/* CONTACT CARDS */}
 
       <section className="grid md:grid-cols-3 gap-8 mb-20">
 
-        {/* GENERAL INQUIRY */}
 
         <div className="bg-white border rounded-xl p-8 text-center shadow-sm">
 
-          <Mail className="mx-auto text-[#0b2a6f] mb-4" size={32} />
+          <Mail
+            className="mx-auto text-[#0b2a6f] mb-4"
+            size={32}
+          />
 
-          <h3 className="font-semibold text-lg mb-2">
+
+          <h3>
             General Inquiry
           </h3>
 
-          <p className="text-gray-600 text-sm mb-3">
-            Questions, feedback or general communication
+
+          <p>
+            Questions, feedback, editorial communication
+            and general support.
           </p>
+
 
           <a
             href="mailto:info@nationpathindia.com"
-            className="text-[#0b2a6f] text-sm break-all hover:underline"
           >
             info@nationpathindia.com
           </a>
@@ -96,23 +128,29 @@ export default function ContactPage() {
         </div>
 
 
-        {/* ADVERTISING */}
+
 
         <div className="bg-white border rounded-xl p-8 text-center shadow-sm">
 
-          <Megaphone className="mx-auto text-[#0b2a6f] mb-4" size={32} />
+          <Megaphone
+            className="mx-auto text-[#0b2a6f] mb-4"
+            size={32}
+          />
 
-          <h3 className="font-semibold text-lg mb-2">
-            Advertising
+
+          <h3>
+            Advertising & Partnerships
           </h3>
 
-          <p className="text-gray-600 text-sm mb-3">
-            Campaigns, brand partnerships and promotions
+
+          <p>
+            Brand partnerships, campaigns, promotions
+            and business inquiries.
           </p>
+
 
           <a
             href="mailto:advertise@nationpathindia.com"
-            className="text-[#0b2a6f] text-sm break-all hover:underline"
           >
             advertise@nationpathindia.com
           </a>
@@ -120,38 +158,53 @@ export default function ContactPage() {
         </div>
 
 
-        {/* ORGANIZATION */}
+
 
         <div className="bg-white border rounded-xl p-8 text-center shadow-sm">
 
-          <Building2 className="mx-auto text-[#0b2a6f] mb-4" size={32} />
+          <Building2
+            className="mx-auto text-[#0b2a6f] mb-4"
+            size={32}
+          />
 
-          <h3 className="font-semibold text-lg mb-2">
+
+          <h3>
             Organization
           </h3>
 
-          <p className="text-gray-600 text-sm">
-           NationPath<br />
-            India
+
+          <p>
+            NationPath India
+          </p>
+
+
+          <p>
+            Digital News & Media Platform
           </p>
 
         </div>
 
+
       </section>
 
 
-      {/* CONTACT FORM */}
+
+
 
       <section className="bg-gray-50 rounded-xl p-10">
 
-        <h2 className="text-2xl font-serif mb-8 text-center">
+
+        <h2>
           Send Us a Message
         </h2>
+
+
 
         <form
           onSubmit={handleSubmit}
           className="grid md:grid-cols-2 gap-6"
         >
+
 
           <input
             type="text"
@@ -159,10 +212,15 @@ export default function ContactPage() {
             required
             value={form.name}
             onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
+              setForm({
+                ...form,
+                name: e.target.value,
+              })
             }
             className="border p-3 rounded-lg"
           />
+
+
 
           <input
             type="email"
@@ -170,20 +228,30 @@ export default function ContactPage() {
             required
             value={form.email}
             onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
+              setForm({
+                ...form,
+                email: e.target.value,
+              })
             }
             className="border p-3 rounded-lg"
           />
+
+
 
           <input
             type="text"
             placeholder="Subject"
             value={form.subject}
             onChange={(e) =>
-              setForm({ ...form, subject: e.target.value })
+              setForm({
+                ...form,
+                subject: e.target.value,
+              })
             }
             className="border p-3 rounded-lg md:col-span-2"
           />
+
+
 
           <textarea
             rows={6}
@@ -191,18 +259,36 @@ export default function ContactPage() {
             required
             value={form.message}
             onChange={(e) =>
-              setForm({ ...form, message: e.target.value })
+              setForm({
+                ...form,
+                message: e.target.value,
+              })
             }
             className="border p-3 rounded-lg md:col-span-2"
           />
 
+
+
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#0b2a6f] text-white py-3 rounded-lg md:col-span-2 hover:bg-[#081f4f] transition"
+            className="
+              bg-[#0b2a6f]
+              text-white
+              py-3
+              rounded-lg
+              md:col-span-2
+              hover:bg-[#081f4f]
+              transition
+              disabled:opacity-50
+            "
           >
-            {loading ? "Sending..." : "Send Message"}
+            {loading
+              ? "Sending..."
+              : "Send Message"}
           </button>
+
+
 
           {sent && (
             <p className="text-green-600 md:col-span-2 text-center">
@@ -210,41 +296,84 @@ export default function ContactPage() {
             </p>
           )}
 
+
+
+          {error && (
+            <p className="text-red-600 md:col-span-2 text-center">
+              {error}
+            </p>
+          )}
+
+
         </form>
+
 
       </section>
 
 
-      {/* SOCIAL LINKS */}
+
+
 
       <section className="text-center mt-16">
 
-        <h3 className="font-semibold mb-4">
-          Follow Nation Path
+
+        <h3>
+          Follow NationPath India
         </h3>
 
-        <div className="flex justify-center gap-6 text-gray-600 text-sm">
 
-          <a href="#" className="hover:text-[#0b2a6f]">
-            Twitter
+
+        <div className="flex justify-center gap-5">
+
+
+          <a
+            href="https://x.com/nationpathindia"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="X"
+          >
+            <Twitter size={20} />
           </a>
 
-          <a href="#" className="hover:text-[#0b2a6f]">
-            Facebook
+
+
+          <a
+            href="https://www.facebook.com/profile.php?id=61587529251948"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+          >
+            <Facebook size={20} />
           </a>
 
-          <a href="#" className="hover:text-[#0b2a6f]">
-            YouTube
+
+
+          <a
+            href="https://www.instagram.com/nationpathindia/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            <Instagram size={20} />
           </a>
 
-          <a href="#" className="hover:text-[#0b2a6f]">
-            LinkedIn
+
+
+          <a
+            href="https://www.youtube.com/@NationPathIndia"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube"
+          >
+            <Youtube size={20} />
           </a>
+
 
         </div>
 
+
       </section>
 
-    </main>
+    </>
   );
 }

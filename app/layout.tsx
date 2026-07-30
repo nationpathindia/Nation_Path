@@ -7,9 +7,11 @@ import { cn } from "@/lib/utils";
 
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
+
 
 
 
@@ -29,6 +31,8 @@ export const viewport: Viewport = {
 
 
 
+
+
 export const metadata: Metadata = {
 
 
@@ -38,44 +42,74 @@ export const metadata: Metadata = {
 
 
 
+
   title: {
 
     default:
-      "Nation Path India – Breaking News, Analysis & Updates",
+
+      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+
 
     template:
+
       "%s | Nation Path India",
 
   },
 
 
 
+
+
+
   description:
 
-    "Nation Path India delivers latest breaking news, politics, defence, technology, world affairs, economy, sports and editorial analysis from India and around the globe.",
+
+    "Nation Path India is an independent digital platform delivering trusted journalism, national affairs, defence, technology, economy, sports, astrology intelligence and knowledge experiences from India.",
+
+
+
 
 
 
 
   keywords:[
 
+
     "Nation Path India",
+
+    "India news",
 
     "breaking news India",
 
     "latest news India",
 
-    "politics news",
+    "national affairs India",
 
-    "defence news",
+    "politics news India",
+
+    "defence news India",
 
     "world news",
 
-    "technology news",
+    "business news India",
+
+    "technology news India",
+
+    "science news India",
+
+    "sports news India",
+
+    "astrology India",
+
+    "horoscope",
+
+    "AI astrology",
 
     "editorial analysis",
 
+
   ],
+
 
 
 
@@ -88,16 +122,23 @@ export const metadata: Metadata = {
 
 
 
+
+
+
   authors:[
 
     {
 
       name:
+
         "Nation Path India",
 
     },
 
   ],
+
+
+
 
 
 
@@ -109,9 +150,14 @@ export const metadata: Metadata = {
 
 
 
+
+
+
   publisher:
 
     "Nation Path India",
+
+
 
 
 
@@ -126,6 +172,9 @@ export const metadata: Metadata = {
 
 
   },
+
+
+
 
 
 
@@ -174,6 +223,8 @@ export const metadata: Metadata = {
 
 
 
+
+
   icons:{
 
 
@@ -182,13 +233,14 @@ export const metadata: Metadata = {
       "/favicon.ico",
 
 
-
     apple:
 
       "/apple-touch-icon.png",
 
 
   },
+
+
 
 
 
@@ -215,6 +267,7 @@ export const metadata: Metadata = {
 
 
 
+
     siteName:
 
       "Nation Path India",
@@ -222,9 +275,15 @@ export const metadata: Metadata = {
 
 
 
+
+
+
     title:
 
-      "Nation Path India – Breaking News, Analysis & Updates",
+
+      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+
+
 
 
 
@@ -232,12 +291,16 @@ export const metadata: Metadata = {
 
     description:
 
-      "Latest breaking news, politics, defence, technology, world affairs and editorial coverage from Nation Path India.",
+
+      "Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
+
+
 
 
 
 
     images:[
+
 
       {
 
@@ -260,13 +323,17 @@ export const metadata: Metadata = {
 
           "Nation Path India",
 
+
       },
+
 
     ],
 
 
 
   },
+
+
 
 
 
@@ -283,27 +350,39 @@ export const metadata: Metadata = {
 
 
 
+
+
     title:
 
-      "Nation Path India – Breaking News & Analysis",
+
+      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+
+
 
 
 
     description:
 
-      "Latest news, politics, defence, technology and editorial insights from Nation Path India.",
+
+      "Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
+
+
 
 
 
     images:[
 
+
       "/og-image.png"
+
 
     ],
 
 
 
   },
+
+
 
 
 
@@ -315,18 +394,25 @@ export const metadata: Metadata = {
 
 
 
+
+
 export default function RootLayout({
+
 
   children,
 
+
 }: {
 
+
   children: React.ReactNode;
+
 
 }) {
 
 
   return (
+
 
 
     <html
@@ -339,28 +425,43 @@ export default function RootLayout({
 
 
 
+
       <body
 
+
         className="
+
         min-h-screen
+
         bg-[#FAF7F1]
+
         text-[#111]
+
         antialiased
+
         "
 
+
       >
-    <GoogleAnalytics />
+
+
+
+        <GoogleAnalytics />
+
 
 
         <Providers>
 
+
           {children}
+
 
         </Providers>
 
 
 
       </body>
+
 
 
 

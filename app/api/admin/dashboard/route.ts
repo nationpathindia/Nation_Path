@@ -22,6 +22,12 @@ weekAgo.setDate(
 );
 
 
+const monthAgo = new Date();
+monthAgo.setMonth(
+  monthAgo.getMonth() - 1
+);
+
+
 const day24 = new Date();
 day24.setDate(
   day24.getDate() - 1
@@ -30,9 +36,7 @@ day24.setDate(
 
 
 /*
-  NEWS ONLY FILTER
-
-  Astrology CMS is separate
+ NEWS ONLY FILTER
 */
 
 const newsFilter = {
@@ -42,6 +46,7 @@ const newsFilter = {
   isAstrology:false,
 
 };
+
 
 
 
@@ -59,6 +64,8 @@ drafts,
 publishedToday,
 
 weekArticles,
+
+monthArticles,
 
 totalUsers,
 
@@ -139,6 +146,28 @@ gte:weekAgo
 
 
 
+
+
+prisma.article.count({
+
+where:{
+
+...newsFilter,
+
+status:"approved",
+
+createdAt:{
+gte:monthAgo
+}
+
+}
+
+}),
+
+
+
+
+
 prisma.user.count(),
 
 
@@ -162,6 +191,7 @@ status:"active"
 
 
 
+
 /* ================= VIEWS ================= */
 
 
@@ -179,6 +209,8 @@ views:true
 
 const totalViews =
 totalViewsAgg._sum.views ?? 0;
+
+
 
 
 
@@ -229,6 +261,8 @@ adClicksAgg._sum.clicks ?? 0;
 
 
 
+
+
 /* ================= LATEST ================= */
 
 
@@ -260,12 +294,28 @@ title:true,
 
 views:true,
 
-createdAt:true
+createdAt:true,
+
+status:true,
+
+category:{
+
+select:{
+
+name:true,
+
+slug:true
+
+}
+
+}
 
 }
 
 
 });
+
+
 
 
 
@@ -305,6 +355,8 @@ views:true
 
 
 });
+
+
 
 
 
@@ -357,6 +409,7 @@ trendingScore:true
 
 
 
+
 /* ================= VIRAL ================= */
 
 
@@ -402,6 +455,8 @@ views:true
 
 
 
+
+
 /* ================= ACTIVITY ================= */
 
 
@@ -438,18 +493,35 @@ email:true
 
 
 
+
 const activity =
 activityRaw.map((item)=>({
 
+
 id:item.id,
+
 
 title:item.action,
 
+
 user:item.user?.name || "System",
 
-time:item.createdAt.toLocaleDateString()
+
+time:item.createdAt.toLocaleString(
+"en-IN",
+{
+day:"2-digit",
+month:"short",
+year:"numeric",
+hour:"2-digit",
+minute:"2-digit"
+}
+)
+
 
 }));
+
+
 
 
 
@@ -533,6 +605,7 @@ views:chartMap[day]
 
 
 
+
 /* ================= CATEGORY ================= */
 
 
@@ -567,6 +640,7 @@ id:true
 
 const categoriesChart =
 categories
+
 .map(category=>({
 
 name:category.name,
@@ -582,6 +656,7 @@ count:category.articles.length
 
 
 .slice(0,6);
+
 
 
 
@@ -618,6 +693,8 @@ publishedToday,
 
 weekArticles,
 
+monthArticles,
+
 adViews,
 
 adClicks
@@ -648,6 +725,7 @@ categories:categoriesChart
 
 
 }
+
 catch(error){
 
 

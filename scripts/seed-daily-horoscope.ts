@@ -4,7 +4,7 @@ import connectDB from "@/lib/mongodb";
 import Horoscope from "@/app/models/Horoscope";
 
 const dailyHoroscopes = [
-  {
+ {
   zodiac: "pisces",
 
   slug: "pisces-daily",
@@ -12,27 +12,33 @@ const dailyHoroscopes = [
   meta: {
     period: "daily",
     language: "english",
-    status: "published",
+
+    status: "approved",
 
     startDate:
-      new Date("2026-07-29T18:30:00.000Z"),
+      new Date("2026-07-30T18:30:00.000Z"),
 
     endDate:
-      new Date("2026-07-30T18:29:59.000Z"),
+      new Date("2026-07-31T18:29:59.000Z"),
 
-    publishedAt:
-      new Date("2026-07-29T18:30:00.000Z"),
+    publishedAt: null,
 
-    scheduledAt: null,
+    scheduledAt:
+      new Date("2026-07-30T18:32:00.000Z"),
+
+    archivedAt: null,
 
     slugDate:
-      "2026-07-30",
+      "2026-07-31",
 
-    version: "1.0",
+    version:
+      "1.0",
 
-    contentVersion: 1,
+    contentVersion:
+      1,
 
-    priority: 1,
+    priority:
+      1,
 
     featured: {
       homepage: true,
@@ -71,10 +77,10 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope",
 
     subtitle:
-      "Intuition, creativity and emotional growth",
+      "Intuition, creativity and spiritual growth",
 
     description:
-      "A day to trust your intuition, embrace creativity and move ahead with emotional clarity.",
+      "A day to trust your intuition, embrace creativity and move forward with emotional clarity and wisdom.",
 
     image:
       "/zodiac/pisces.png",
@@ -92,7 +98,7 @@ const dailyHoroscopes = [
   identity: {
 
     rashi:
-      "Meena",
+      "Meen",
 
     sanskritName:
       "Meena Rashi",
@@ -132,18 +138,22 @@ const dailyHoroscopes = [
 
       "Intuition",
 
+      "Emotional wisdom",
+
     ],
 
     weaknesses: [
 
+      "Overthinking",
+
       "Emotional sensitivity",
 
-      "Overthinking",
+      "Escaping reality",
 
     ],
 
     personality:
-      "A deeply intuitive water sign guided by imagination, empathy and emotional wisdom.",
+      "A deeply intuitive water sign guided by imagination, empathy and spiritual understanding.",
 
   },
 
@@ -155,13 +165,13 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope Today",
 
     overview:
-      "Today encourages Pisces to trust inner wisdom while maintaining balance in personal and professional matters.",
+      "Today encourages Pisces natives to trust their inner wisdom while maintaining balance between dreams and practical responsibilities.",
 
     prediction:
-      "Your creativity and emotional intelligence can help you discover meaningful opportunities.",
+      "Jupiter supports growth, learning and spiritual awareness. Your intuition can guide you toward meaningful opportunities.",
 
     quote:
-      "Trust your intuition and follow your inner wisdom.",
+      "When intuition meets wisdom, the path becomes clear.",
 
   },
 
@@ -170,16 +180,16 @@ const dailyHoroscopes = [
   life: {
 
     career:
-      "Creative ideas and intuitive decisions may support professional growth.",
+      "Creative ideas and intuitive decisions may support professional growth. Focus on meaningful work and avoid unnecessary confusion.",
 
     love:
-      "Understanding and compassion strengthen relationships.",
+      "Emotional understanding strengthens relationships. Express your feelings openly and value mutual support.",
 
     finance:
-      "Avoid impulsive choices and focus on practical planning.",
+      "Maintain practical financial planning and avoid decisions based only on emotions. Long-term stability should remain the priority.",
 
     health:
-      "Emotional balance and peaceful routines support wellbeing.",
+      "Emotional balance is important. Meditation, peaceful routines and proper rest will support overall wellbeing.",
 
   },
 
@@ -188,16 +198,16 @@ const dailyHoroscopes = [
   insights: {
 
     planetaryInfluence:
-      "Jupiter enhances wisdom, learning and spiritual growth.",
+      "Jupiter enhances wisdom, spirituality and expansion while water energy increases intuition and emotional awareness.",
 
     energy:
       "Calm",
 
     guidance:
-      "Trust your instincts while staying connected with reality.",
+      "Follow your intuition but combine it with practical thinking for better results.",
 
     remedy:
-      "Practice meditation, gratitude and peaceful reflection.",
+      "Practice meditation, offer prayers to Lord Vishnu and chant Jupiter mantra for wisdom and positivity.",
 
     strengths: [
 
@@ -235,7 +245,7 @@ const dailyHoroscopes = [
         "Dominant Planet",
 
       message:
-        "Jupiter strengthens wisdom, optimism and spiritual awareness.",
+        "Jupiter strengthens wisdom, prosperity, spiritual growth and positive thinking.",
 
       strength:
         "High",
@@ -245,6 +255,31 @@ const dailyHoroscopes = [
 
       energyLevel:
         "Strong",
+
+    },
+
+    {
+
+      planetKey:
+        "moon",
+
+      name:
+        "Moon",
+
+      title:
+        "Supportive Planet",
+
+      message:
+        "Moon enhances intuition, creativity and emotional understanding.",
+
+      strength:
+        "Positive",
+
+      icon:
+        "/planets/moon.png",
+
+      energyLevel:
+        "Balanced",
 
     },
 
@@ -282,13 +317,13 @@ const dailyHoroscopes = [
       "Jupiter Energy Practice",
 
     title:
-      "Jupiter Wisdom Meditation",
+      "Wisdom and Spiritual Balance Practice",
 
     practice:
-      "Begin the day with meditation, gratitude and positive reflection.",
+      "Spend time in meditation, gratitude and learning activities that expand your awareness.",
 
     guidance:
-      "Strengthen Jupiter energy through learning, kindness and spiritual practices. Chant: ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
+      "Strengthen Jupiter energy by chanting: ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः and practicing kindness.",
 
     reason:
       "Helps improve wisdom, positivity and emotional balance.",
@@ -305,6 +340,8 @@ const dailyHoroscopes = [
 
       "Learning",
 
+      "Meditation",
+
       "Spiritual practices",
 
     ],
@@ -314,6 +351,8 @@ const dailyHoroscopes = [
       "Emotional decisions",
 
       "Ignoring practical matters",
+
+      "Negative thinking",
 
     ],
 
@@ -342,7 +381,7 @@ const dailyHoroscopes = [
       "Unlock Pisces Personal Intelligence",
 
     description:
-      "Discover personalized birth chart insights, planetary strengths and deeper life guidance.",
+      "Discover personalized birth chart insights, Jupiter influence, emotional patterns, spiritual guidance and deeper life predictions.",
 
     features: [
 
@@ -364,15 +403,19 @@ const dailyHoroscopes = [
       "Pisces Daily Horoscope Today | NationPath Astro",
 
     description:
-      "Read Pisces daily horoscope with Vedic astrology insights, Jupiter guidance and cosmic wisdom.",
+      "Read Pisces daily horoscope for July 31, 2026 with Vedic astrology insights, Jupiter influence, career, love, finance, health predictions and remedies.",
 
     keywords: [
 
       "Pisces Horoscope",
 
-      "Meena Rashi",
+      "Meen Rashi",
 
       "Daily Horoscope",
+
+      "Pisces July 31 2026",
+
+      "Vedic Astrology",
 
     ],
 
@@ -403,11 +446,14 @@ const dailyHoroscopes = [
 
   analytics: {
 
-    views: 0,
+    views:
+      0,
 
-    clicks: 0,
+    clicks:
+      0,
 
-    premiumClicks: 0,
+    premiumClicks:
+      0,
 
   },
 
@@ -422,7 +468,6 @@ const dailyHoroscopes = [
 
 ];
 
-
 async function seedDailyHoroscope() {
 
   try {
@@ -436,25 +481,17 @@ async function seedDailyHoroscope() {
       await Horoscope.findOneAndUpdate(
 
         {
-          zodiac: horoscope.zodiac,
-
           slug: horoscope.slug,
-
-          "meta.period": horoscope.meta.period,
-
-          "meta.startDate": horoscope.meta.startDate,
-
         },
-
 
         {
           $set: horoscope,
         },
 
-
         {
           upsert: true,
           new: true,
+          setDefaultsOnInsert: true,
         }
 
       );

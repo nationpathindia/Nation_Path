@@ -1365,17 +1365,19 @@ shareUrl={articleUrl}
 {/* ================= AI SUMMARY ================= */}
 
 
+{
+
+article.aiSummary &&
 
 <ArticleAISummary
 
-
 categoryName={category.name}
-
 
 summary={article.aiSummary as any}
 
-
 />
+
+}
 
 
 

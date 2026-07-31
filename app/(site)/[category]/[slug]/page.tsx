@@ -19,9 +19,11 @@ import ArticleSidebar from "@/components/article/ArticleSidebar";
 import ArticleAstroBanner from "@/components/article/ArticleAstroBanner";
 
 
+
 export const dynamic = "force-dynamic";
 
 export const revalidate = 0;
+
 
 
 
@@ -36,6 +38,20 @@ interface Props {
   }>;
 
 }
+
+
+
+
+/*
+=====================================================
+ SITE URL
+=====================================================
+*/
+
+const SITE_URL =
+process.env.NEXT_PUBLIC_SITE_URL ||
+"https://nationpathindia.com";
+
 
 
 
@@ -75,6 +91,9 @@ function isPublishedFilter(){
 
 
 
+
+
+
 /*
 =====================================================
  METADATA
@@ -99,6 +118,8 @@ slug
 
 
 
+
+
 const category = await prisma.category.findUnique({
 
 where:{
@@ -113,9 +134,14 @@ slug:categorySlug
 
 if(!category){
 
-return {};
+return {
+
+title:"Nation Path India"
+
+};
 
 }
+
 
 
 
@@ -137,11 +163,13 @@ status:"approved",
 
 isDeleted:false,
 
+isAstrology:false,
 
 ...isPublishedFilter()
 
 
 }
+
 
 });
 
@@ -151,7 +179,11 @@ isDeleted:false,
 
 if(!article){
 
-return {};
+return {
+
+title:"Nation Path India"
+
+};
 
 }
 
@@ -159,9 +191,12 @@ return {};
 
 
 
+
 const canonical =
 
-`https://nationpathindia.com/${category.slug}/${article.slug}`;
+`${SITE_URL}/${category.slug}/${article.slug}`;
+
+
 
 
 
@@ -171,6 +206,7 @@ const title =
 article.metaTitle ||
 
 article.title;
+
 
 
 
@@ -188,9 +224,11 @@ article.excerpt ||
 
 
 
+
 const image =
 
 article.images?.[0] || null;
+
 
 
 
@@ -226,11 +264,13 @@ article.title,
 
 
 
+
 alternates:{
 
 canonical
 
 },
+
 
 
 
@@ -242,6 +282,7 @@ index:true,
 follow:true
 
 },
+
 
 
 
@@ -263,6 +304,22 @@ url:canonical,
 
 
 siteName:"Nation Path India",
+
+
+
+locale:"en_IN",
+
+
+
+publishedTime:
+
+article.publishedAt?.toISOString(),
+
+
+
+modifiedTime:
+
+article.updatedAt?.toISOString(),
 
 
 
@@ -332,13 +389,6 @@ images:image
 
 
 }
-
-
-
-
-
-
-
 export default async function ArticlePage({
 
 params,
@@ -354,7 +404,6 @@ category:categorySlug,
 slug
 
 }=await params;
-
 
 
 
@@ -390,6 +439,7 @@ return notFound();
 
 
 
+
 /*
 =====================================================
  ARTICLE
@@ -412,6 +462,9 @@ status:"approved",
 
 
 isDeleted:false,
+
+
+isAstrology:false,
 
 
 ...isPublishedFilter()
@@ -445,6 +498,7 @@ return notFound();
 
 
 
+
 if(
 
 article.publishedAt &&
@@ -462,6 +516,8 @@ return notFound();
 
 
 
+
+
 /*
 =====================================================
  VIEW TRACKING
@@ -469,11 +525,17 @@ return notFound();
 */
 
 
+try{
+
+
 await prisma.article.update({
+
 
 where:{
 
+
 id:article.id
+
 
 },
 
@@ -483,7 +545,9 @@ data:{
 
 views:{
 
+
 increment:1
+
 
 },
 
@@ -495,7 +559,9 @@ lastViewAt:new Date(),
 
 trendingScore:{
 
+
 increment:1
+
 
 }
 
@@ -506,6 +572,29 @@ increment:1
 
 
 });
+
+
+}
+
+catch(error){
+
+
+console.error(
+
+"ARTICLE VIEW UPDATE ERROR:",
+
+error
+
+);
+
+
+}
+
+
+
+
+
+
 
 
 
@@ -527,6 +616,9 @@ status:"approved",
 isDeleted:false,
 
 
+isAstrology:false,
+
+
 ...isPublishedFilter(),
 
 
@@ -534,7 +626,9 @@ isDeleted:false,
 
 NOT:{
 
+
 id:article.id
+
 
 }
 
@@ -545,25 +639,39 @@ id:article.id
 
 orderBy:[
 
+
 {
+
 
 trendingScore:"desc"
 
+
 },
 
+
+
 {
+
 
 views:"desc"
 
+
 },
+
+
 
 {
 
+
 createdAt:"desc"
+
 
 }
 
+
+
 ],
+
 
 
 
@@ -573,13 +681,16 @@ take:5,
 
 include:{
 
+
 category:true
+
 
 }
 
 
 
 });
+
 
 
 
@@ -607,6 +718,9 @@ status:"approved",
 isDeleted:false,
 
 
+isAstrology:false,
+
+
 ...isPublishedFilter(),
 
 
@@ -617,7 +731,9 @@ categoryId:category.id,
 
 NOT:{
 
+
 id:article.id
+
 
 }
 
@@ -626,15 +742,14 @@ id:article.id
 
 
 
-orderBy:[
+orderBy:{
 
-{
 
 createdAt:"desc"
 
-}
 
-],
+},
+
 
 
 
@@ -644,7 +759,9 @@ take:6,
 
 include:{
 
+
 category:true
+
 
 }
 
@@ -678,6 +795,9 @@ status:"approved",
 isDeleted:false,
 
 
+isAstrology:false,
+
+
 ...isPublishedFilter(),
 
 
@@ -688,7 +808,9 @@ categoryId:category.id,
 
 id:{
 
+
 not:article.id
+
 
 }
 
@@ -699,7 +821,9 @@ not:article.id
 
 orderBy:{
 
+
 createdAt:"desc"
+
 
 },
 
@@ -707,13 +831,16 @@ createdAt:"desc"
 
 include:{
 
+
 category:true
+
 
 }
 
 
 
 });
+
 
 
 
@@ -742,6 +869,7 @@ return html
 
 
 }
+
 
 
 
@@ -776,7 +904,6 @@ Math.ceil(wordCount / 200)
 
 
 
-
 /*
 =====================================================
  ARTICLE URL
@@ -786,7 +913,7 @@ Math.ceil(wordCount / 200)
 
 const articleUrl =
 
-`https://nationpathindia.com/${category.slug}/${article.slug}`;
+`${SITE_URL}/${category.slug}/${article.slug}`;
 
 
 
@@ -816,13 +943,6 @@ article.excerpt || "",
 
 
 ];
-
-
-
-
-
-
-
 /*
 =====================================================
  SCHEMA DATA
@@ -844,7 +964,10 @@ const newsSchema = {
 
 
 
-headline:article.title,
+headline:
+
+article.title,
+
 
 
 
@@ -860,6 +983,7 @@ article.excerpt ||
 
 
 keywords,
+
 
 
 
@@ -899,11 +1023,17 @@ caption:article.title
 
 
 
+
 datePublished:
+
+(
 
 article.publishedAt ||
 
-article.createdAt,
+article.createdAt
+
+).toISOString(),
+
 
 
 
@@ -911,9 +1041,14 @@ article.createdAt,
 
 dateModified:
 
+(
+
 article.updatedAt ||
 
-article.createdAt,
+article.createdAt
+
+).toISOString(),
+
 
 
 
@@ -928,7 +1063,21 @@ category.name,
 
 
 
+
+
+inLanguage:
+
+"en-IN",
+
+
+
+
+
+
+
 wordCount,
+
+
 
 
 
@@ -937,6 +1086,8 @@ wordCount,
 timeRequired:
 
 `PT${readingTime}M`,
+
+
 
 
 
@@ -958,16 +1109,21 @@ mainEntityOfPage:{
 
 
 
+
 author:{
 
 
 "@type":"Organization",
 
 
-name:"Nation Path India"
+name:"Nation Path India",
+
+
+url:SITE_URL
 
 
 },
+
 
 
 
@@ -983,19 +1139,24 @@ publisher:{
 name:"Nation Path India",
 
 
+url:SITE_URL,
+
+
 
 logo:{
 
 
 "@type":"ImageObject",
 
-url:"https://nationpathindia.com/logo.png"
+
+url:`${SITE_URL}/logo.png`
 
 
 }
 
 
 },
+
 
 
 
@@ -1010,9 +1171,12 @@ speakable:{
 
 cssSelector:[
 
+
 "h1",
 
+
 ".article-body"
+
 
 ]
 
@@ -1029,6 +1193,107 @@ cssSelector:[
 
 
 
+
+
+/*
+=====================================================
+ BREADCRUMB SCHEMA
+=====================================================
+*/
+
+
+const breadcrumbSchema = {
+
+
+"@context":"https://schema.org",
+
+
+
+"@type":"BreadcrumbList",
+
+
+
+itemListElement:[
+
+
+
+{
+
+
+"@type":"ListItem",
+
+
+position:1,
+
+
+name:"Home",
+
+
+item:SITE_URL
+
+
+},
+
+
+
+
+{
+
+
+"@type":"ListItem",
+
+
+position:2,
+
+
+name:category.name,
+
+
+item:`${SITE_URL}/${category.slug}`
+
+
+},
+
+
+
+
+{
+
+
+"@type":"ListItem",
+
+
+position:3,
+
+
+name:article.title,
+
+
+item:articleUrl
+
+
+}
+
+
+
+]
+
+
+};
+
+
+
+
+
+
+
+
+
+/*
+=====================================================
+ FAQ SCHEMA
+=====================================================
+*/
 
 
 const faqSchema =
@@ -1051,6 +1316,8 @@ article.faqItems.length > 0
 
 
 
+
+
 mainEntity:
 
 article.faqItems
@@ -1067,7 +1334,9 @@ item.question && item.answer
 
 (item:any)=>(
 
+
 {
+
 
 "@type":"Question",
 
@@ -1082,15 +1351,17 @@ acceptedAnswer:{
 "@type":"Answer",
 
 
-text:item.answer
+text:item.answer.replace(/<[^>]+>/g,"")
 
 
 }
 
 
 }
+
 
 )
+
 
 )
 
@@ -1101,10 +1372,6 @@ text:item.answer
 :
 
 null;
-
- // CONTINUATION PART 3/3
-
-
 return (
 
 <div
@@ -1128,6 +1395,7 @@ lg:px-8
 
 
 
+
 {/* ================= SCHEMA ================= */}
 
 
@@ -1137,7 +1405,9 @@ type="application/ld+json"
 
 dangerouslySetInnerHTML={{
 
-__html:JSON.stringify(newsSchema)
+__html:
+
+JSON.stringify(newsSchema)
 
 }}
 
@@ -1146,9 +1416,7 @@ __html:JSON.stringify(newsSchema)
 
 
 
-{
 
-faqSchema && (
 
 <script
 
@@ -1156,7 +1424,35 @@ type="application/ld+json"
 
 dangerouslySetInnerHTML={{
 
-__html:JSON.stringify(faqSchema)
+__html:
+
+JSON.stringify(breadcrumbSchema)
+
+}}
+
+/>
+
+
+
+
+
+
+
+{
+
+faqSchema &&
+
+(
+
+<script
+
+type="application/ld+json"
+
+dangerouslySetInnerHTML={{
+
+__html:
+
+JSON.stringify(faqSchema)
 
 }}
 
@@ -1165,6 +1461,8 @@ __html:JSON.stringify(faqSchema)
 )
 
 }
+
+
 
 
 
@@ -1198,6 +1496,7 @@ lg:gap-14
 
 
 
+
 <main>
 
 
@@ -1207,8 +1506,9 @@ lg:gap-14
 
 {/* READING PROGRESS */}
 
-
 <ArticleReadingProgress />
+
+
 
 
 
@@ -1252,11 +1552,16 @@ Home
 
 
 
+
+
 <span className="mx-2">
 
 /
 
 </span>
+
+
+
 
 
 
@@ -1273,6 +1578,25 @@ className="transition hover:text-[#163C80]"
 </Link>
 
 
+
+<span className="mx-2">
+
+/
+
+</span>
+
+
+
+
+
+<span>
+
+{article.title}
+
+</span>
+
+
+
 </nav>
 
 
@@ -1283,7 +1607,10 @@ className="transition hover:text-[#163C80]"
 
 
 
+
+
 {/* ================= TOP AD ================= */}
+
 
 
 <div
@@ -1321,7 +1648,6 @@ placement="article_top"
 {/* ================= HEADER ================= */}
 
 
-
 <ArticleHeader
 
 article={article}
@@ -1343,7 +1669,6 @@ readingTime={readingTime}
 {/* ================= HERO ================= */}
 
 
-
 <ArticleHero
 
 images={article.images}
@@ -1363,6 +1688,7 @@ shareUrl={articleUrl}
 
 
 {/* ================= AI SUMMARY ================= */}
+
 
 
 {
@@ -1387,8 +1713,9 @@ summary={article.aiSummary as any}
 
 
 
-{/* ================= BODY ================= */}
 
+
+{/* ================= BODY ================= */}
 
 
 <ArticleBody
@@ -1404,6 +1731,8 @@ whyItMatters={article.whyItMatters}
 
 
 />
+
+
 
 
 
@@ -1429,13 +1758,11 @@ article.faqItems.length > 0
 
 (
 
-
 <ArticleFAQ
 
 faqItems={article.faqItems as any}
 
 />
-
 
 )
 
@@ -1541,6 +1868,7 @@ articles={related}
 
 
 
+
 </main>
 
 
@@ -1560,6 +1888,8 @@ articles={related}
 mostRead={mostRead}
 
 />
+
+
 
 
 

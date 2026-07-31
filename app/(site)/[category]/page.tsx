@@ -13,6 +13,7 @@ import CategorySidebar from "@/components/category/CategorySidebar";
 
 
 export const dynamic = "force-dynamic";
+
 export const revalidate = 0;
 
 
@@ -24,6 +25,17 @@ interface Props {
   }>;
 
 }
+
+
+
+/* =====================================================
+   SITE URL
+===================================================== */
+
+const SITE_URL =
+process.env.NEXT_PUBLIC_SITE_URL ||
+"https://nationpathindia.com";
+
 
 
 
@@ -46,13 +58,16 @@ async function getCategory(slug:string){
 
 
 
+
 /* =====================================================
    SEO METADATA
 ===================================================== */
 
 
 export async function generateMetadata({
+
   params,
+
 }:Props):Promise<Metadata>{
 
 
@@ -68,7 +83,7 @@ export async function generateMetadata({
 
     return {
 
-      title:"Nation Path"
+      title:"Nation Path India"
 
     };
 
@@ -77,19 +92,18 @@ export async function generateMetadata({
 
 
   const url =
-  `https://www.nationpathindia.com/${category.slug}`;
+  `${SITE_URL}/${category.slug}`;
 
 
 
   return {
 
-
     title:
-    `${category.name} News, Breaking News & Analysis | Nation Path`,
+    `${category.name} News, Latest Updates & Analysis | Nation Path India`,
 
 
     description:
-    `Latest ${category.name} news, breaking updates, expert analysis and top stories from Nation Path India.`,
+    `Get the latest ${category.name} news, breaking updates, expert analysis and important stories from Nation Path India.`,
 
 
     alternates:{
@@ -99,34 +113,44 @@ export async function generateMetadata({
     },
 
 
-    openGraph:{
+    robots:{
 
+      index:true,
 
-      title:
-      `${category.name} News | Nation Path`,
-
-
-      description:
-      `Latest ${category.name} news, updates and analysis.`,
-
-
-      url,
-
-
-      siteName:
-      "Nation Path India",
-
-
-      type:
-      "website",
-
-
-      locale:
-      "en_IN"
-
+      follow:true
 
     },
 
+
+   openGraph:{
+
+  title:
+  `${category.name} News | Nation Path India`,
+
+  description:
+  `Latest ${category.name} news, updates, analysis and stories from Nation Path India.`,
+
+  url,
+
+  siteName:
+  "Nation Path India",
+
+  type:
+  "website",
+
+  locale:
+  "en_IN",
+
+  images:[
+    {
+      url:`${SITE_URL}/logo.png`,
+      width:1200,
+      height:630,
+      alt:`${category.name} News | Nation Path India`
+    }
+  ]
+
+},
 
     twitter:{
 
@@ -136,11 +160,11 @@ export async function generateMetadata({
 
 
       title:
-      `${category.name} News | Nation Path`,
+      `${category.name} News | Nation Path India`,
 
 
       description:
-      `Latest ${category.name} news and breaking stories.`
+      `Latest ${category.name} news and breaking stories from Nation Path India.`
 
 
     }
@@ -148,10 +172,8 @@ export async function generateMetadata({
 
   };
 
+
 }
-
-
-
 
 /* =====================================================
    CATEGORY PAGE
@@ -159,7 +181,9 @@ export async function generateMetadata({
 
 
 export default async function CategoryPage({
+
  params,
+
 }:Props){
 
 
@@ -190,22 +214,31 @@ export default async function CategoryPage({
 
    where:{
 
+  categoryId:
+  category.id,
 
-     categoryId:
-     category.id,
+  status:
+  "approved",
 
+  isDeleted:false,
 
-     status:
-     "approved",
+  isAstrology:false,
 
+  OR:[
 
-     isDeleted:false,
+    {
+      publishedAt:null
+    },
 
+    {
+      publishedAt:{
+        lte:new Date()
+      }
+    }
 
-     isAstrology:false
+  ]
 
-
-   },
+},
 
 
    include:{
@@ -236,6 +269,7 @@ export default async function CategoryPage({
 
 
 
+
  /* ================= MOST READ ================= */
 
 
@@ -244,16 +278,26 @@ export default async function CategoryPage({
 
    where:{
 
+  status:
+  "approved",
 
-     status:
-     "approved",
+  isDeleted:false,
 
+  OR:[
 
-     isDeleted:false
+    {
+      publishedAt:null
+    },
 
+    {
+      publishedAt:{
+        lte:new Date()
+      }
+    }
 
-   },
+  ]
 
+},
 
    include:{
 
@@ -284,7 +328,42 @@ export default async function CategoryPage({
 
 
  const categoryUrl =
- `https://www.nationpathindia.com/${category.slug}`;
+ `${SITE_URL}/${category.slug}`;
+
+
+
+
+ /* ================= ITEM LIST SCHEMA ================= */
+
+
+ const itemList = articles
+
+ .slice(0,10)
+
+ .map(
+
+ (article:any,index:number)=>(
+
+
+ {
+
+   "@type":"ListItem",
+
+   "position":index + 1,
+
+   "name":article.title,
+
+   "url":
+
+   `${categoryUrl}/${article.slug}`
+
+
+ }
+
+
+ )
+
+ );
 
 
 
@@ -297,19 +376,49 @@ export default async function CategoryPage({
 
 
  "@context":
+
  "https://schema.org",
 
 
+
  "@type":
+
  "CollectionPage",
 
 
+
  name:
+
  `${category.name} News`,
 
 
+
+ description:
+
+ `Latest ${category.name} news, breaking updates, analysis and stories from Nation Path India.`,
+
+
+
  url:
- categoryUrl
+
+ categoryUrl,
+
+
+
+ mainEntity:{
+
+
+   "@type":
+
+   "ItemList",
+
+
+   itemListElement:
+
+   itemList
+
+
+ }
 
 
  };
@@ -322,11 +431,15 @@ export default async function CategoryPage({
 
 
  "@context":
+
  "https://schema.org",
 
 
+
  "@type":
+
  "BreadcrumbList",
+
 
 
  itemListElement:[
@@ -335,14 +448,24 @@ export default async function CategoryPage({
  {
 
  "@type":
+
  "ListItem",
 
- position:1,
 
- name:"Home",
+ position:
+
+ 1,
+
+
+ name:
+
+ "Home",
+
 
  item:
- "https://www.nationpathindia.com"
+
+ SITE_URL
+
 
  },
 
@@ -350,15 +473,24 @@ export default async function CategoryPage({
  {
 
  "@type":
+
  "ListItem",
 
- position:2,
+
+ position:
+
+ 2,
+
 
  name:
+
  category.name,
 
+
  item:
+
  categoryUrl
+
 
  }
 
@@ -366,13 +498,7 @@ export default async function CategoryPage({
  ]
 
  };
-
-
-
-
-
-
- const heroArticles =
+  const heroArticles =
  articles.slice(0,4);
 
 
@@ -395,12 +521,16 @@ export default async function CategoryPage({
 
  dangerouslySetInnerHTML={{
 
+
  __html:
+
  JSON.stringify(structuredData)
+
 
  }}
 
  />
+
 
 
 
@@ -410,8 +540,11 @@ export default async function CategoryPage({
 
  dangerouslySetInnerHTML={{
 
+
  __html:
+
  JSON.stringify(breadcrumbSchema)
+
 
  }}
 
@@ -421,18 +554,29 @@ export default async function CategoryPage({
 
 
 
+
  <main
 
  className="
+
  max-w-7xl
+
  mx-auto
+
  px-4
+
  sm:px-6
+
  lg:px-8
+
  py-10
+
  "
 
  >
+
+
+
 
 
 
@@ -440,11 +584,17 @@ export default async function CategoryPage({
 
  name={category.name}
 
+
  description={
+
  `Latest ${category.name} news, breaking developments, expert analysis and in-depth coverage from Nation Path India.`
+
  }
 
+
  />
+
+
 
 
 
@@ -453,12 +603,17 @@ export default async function CategoryPage({
  <div
 
  className="
+
  flex
+
  justify-center
+
  mb-10
+
  "
 
  >
+
 
  <AdRenderer
 
@@ -466,7 +621,9 @@ export default async function CategoryPage({
 
  />
 
+
  </div>
+
 
 
 
@@ -475,24 +632,38 @@ export default async function CategoryPage({
  <div
 
  className="
+
  grid
+
  grid-cols-1
+
  lg:grid-cols-12
+
  gap-10
+
  "
 
  >
+
+
+
 
 
 
  <section
 
  className="
+
  lg:col-span-8
+
  space-y-10
+
  "
 
  >
+
+
+
 
 
 
@@ -501,6 +672,8 @@ export default async function CategoryPage({
  articles={heroArticles}
 
  />
+
+
 
 
 
@@ -516,11 +689,15 @@ export default async function CategoryPage({
 
 
 
+
+
  <CategoryLatest
 
  articles={latestArticles}
 
  />
+
+
 
 
 
@@ -538,7 +715,9 @@ export default async function CategoryPage({
 
 
 
+
  </section>
+
 
 
 
@@ -549,10 +728,13 @@ export default async function CategoryPage({
  <aside
 
  className="
+
  lg:col-span-4
+
  "
 
  >
+
 
 
  <CategorySidebar
@@ -564,15 +746,15 @@ export default async function CategoryPage({
  />
 
 
+
  </aside>
 
 
 
 
+
  </div>
-
-
-
+ 
 
 
 
@@ -580,12 +762,17 @@ export default async function CategoryPage({
  <div
 
  className="
+
  flex
+
  justify-center
+
  mt-16
+
  "
 
  >
+
 
  <AdRenderer
 
@@ -593,7 +780,9 @@ export default async function CategoryPage({
 
  />
 
+
  </div>
+
 
 
 
@@ -602,6 +791,7 @@ export default async function CategoryPage({
 
 
  </>
+
 
  );
 

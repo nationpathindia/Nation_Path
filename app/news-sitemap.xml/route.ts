@@ -12,9 +12,7 @@
 import { prisma } from "@/lib/prisma";
 
 
-
 export const dynamic = "force-dynamic";
-
 
 
 
@@ -54,6 +52,8 @@ return value
 
 
 
+
+
 /*
 ====================================================
  GOOGLE NEWS SITEMAP
@@ -65,7 +65,6 @@ export async function GET(){
 
 
 try{
-
 
 
 const articles =
@@ -87,12 +86,9 @@ isAstrology:false,
 
 publishedAt:{
 
-
-not:null
-
+lte:new Date()
 
 }
-
 
 
 },
@@ -109,7 +105,7 @@ publishedAt:"desc"
 
 
 
-take:100,
+take:50,
 
 
 
@@ -153,6 +149,7 @@ slug:true
 
 
 
+
 const urls = articles
 
 .map((article)=>{
@@ -176,16 +173,12 @@ const articleUrl =
 
 
 
+
 return `
 
 <url>
 
-
-<loc>
-
-${escapeXml(articleUrl)}
-
-</loc>
+<loc>${escapeXml(articleUrl)}</loc>
 
 
 
@@ -238,8 +231,8 @@ ${article.title}
 
 
 
-</news:news>
 
+</news:news>
 
 
 </url>
@@ -251,6 +244,8 @@ ${article.title}
 })
 
 .join("");
+
+
 
 
 
@@ -283,6 +278,7 @@ ${urls}
 
 
 
+
 return new Response(
 
 xml,
@@ -303,8 +299,8 @@ headers:{
 "public, max-age=3600, s-maxage=3600"
 
 
-
 }
+
 
 }
 
@@ -312,12 +308,10 @@ headers:{
 
 
 
-
-
 }
 
-catch(error){
 
+catch(error){
 
 
 console.error(
@@ -343,9 +337,7 @@ status:500
 );
 
 
-
 }
-
 
 
 }

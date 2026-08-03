@@ -1,263 +1,74 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO
 //
-// HOROSCOPE ARCHIVE EXPERIENCE PAGE
+// ARCHIVED HOROSCOPE DETAIL EXPERIENCE
 //
-// FLOW:
+// ROUTE:
 //
-// URL
-//      ↓
-// Archive CMS Service
-//      ↓
-// Mongo Horoscope
-//      ↓
-// Archived Content
-//      ↓
-// CmsHoroscopeExperience
+// /astro/horoscope/[sign]/archive/[date]
 //
-// LOCKED:
-// CMS ONLY
+// CMS FIRST
+//
 // NO ENGINE
+// NO CALCULATION
 // NO AI
-//
 //////////////////////////////////////////////////////////////
-
-import CmsHoroscopeExperience from "@/components/astro-new/horoscope-cms/CmsHoroscopeExperience";
 
 import {
   getArchivedHoroscope,
 } from "@/lib/services/horoscopeContentService";
 
 
+import CmsHoroscopeExperience from "@/components/astro-new/horoscope-cms/CmsHoroscopeExperience";
 
 
-interface PageProps {
 
+interface Props {
 
-params: Promise<{
-
+params:{
 sign:string;
-
 date:string;
-
-}>;
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SEO METADATA
-//////////////////////////////////////////////////////////////
-
-export async function generateMetadata({
-
-params
-
-}:PageProps){
-
-
-
-const {
-
-sign,
-
-date
-
-}= await params;
-
-
-
-
-
-const cms = await getArchivedHoroscope(
-
-sign,
-
-date,
-
-"daily",
-
-"english"
-
-);
-
-
-
-
-
-
-const seo = cms?.seo;
-
-
-
-
-
-const zodiacName =
-
-sign.charAt(0).toUpperCase()
-
-+
-
-sign.slice(1);
-
-
-
-
-
-
-
-
-return {
-
-
-title:
-
-seo?.title
-
-||
-
-`${zodiacName} Horoscope ${date} | NationPath Astro`,
-
-
-
-
-
-description:
-
-seo?.description
-
-||
-
-`Read ${zodiacName} horoscope archive for ${date} with career, love, finance, health and Vedic insights on NationPath Astro.`,
-
-
-
-
-
-keywords:
-
-seo?.keywords
-
-||
-
-[
-
-`${zodiacName} Horoscope ${date}`,
-
-"Historical Horoscope",
-
-"Daily Horoscope Archive",
-
-"NationPath Astro"
-
-],
-
-
-
-
-
-alternates:{
-
-
-canonical:
-
-`/astro/horoscope/${sign}/archive/${date}`
-
-
-},
-
-
-
-
-openGraph:{
-
-
-title:
-
-seo?.title
-
-||
-
-`${zodiacName} Horoscope Archive | NationPath Astro`,
-
-
-
-
-
-description:
-
-seo?.description
-
-||
-
-`Historical ${zodiacName} horoscope from NationPath Astro.`,
-
-
-
-
-
-url:
-
-`/astro/horoscope/${sign}/archive/${date}`
-
-
-}
-
-
-
 };
 
-
-
 }
 
 
 
+export const dynamic = "force-dynamic";
 
 
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-// PAGE
-//////////////////////////////////////////////////////////////
-
-export default async function HoroscopeArchivePage({
+export default async function ArchivedHoroscopePage({
 
 params
 
-}:PageProps){
+}:Props){
 
 
 
-const {
+const sign =
+
+params.sign.toLowerCase();
+
+
+
+
+const archivedDate =
+
+params.date;
+
+
+
+
+
+
+const horoscope = await getArchivedHoroscope(
 
 sign,
 
-date
-
-}= await params;
-
-
-
-
-
-
-
-
-const cms = await getArchivedHoroscope(
-
-sign,
-
-date,
+archivedDate,
 
 "daily",
 
@@ -270,14 +81,7 @@ date,
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-// EMPTY STATE
-//////////////////////////////////////////////////////////////
-
-if(!cms){
-
+if(!horoscope){
 
 
 return (
@@ -286,79 +90,51 @@ return (
 
 className="
 min-h-screen
-bg-[#050816]
+bg-[#FFF9E8]
 flex
 items-center
 justify-center
-px-6
+text-[#3B2600]
 "
 
 >
-
 
 <div
 
 className="
-max-w-md
 rounded-3xl
-border
-border-[#C9A227]/30
-bg-white/5
-p-8
-text-center
-text-white
+bg-white/80
+p-10
+shadow-xl
 "
 
 >
-
 
 <h1
 
 className="
 text-3xl
-font-serif
+font-bold
 "
 
 >
 
-Historical Horoscope Unavailable
+Archived Horoscope Not Found
 
 </h1>
-
-
-
-
-<p
-
-className="
-mt-4
-text-gray-400
-"
-
->
-
-No archived horoscope content found.
-
-</p>
-
-
 
 
 <p
 
 className="
 mt-3
-text-[#C9A227]
-uppercase
-tracking-widest
 "
 
 >
 
-{sign}
+This horoscope reading is not available.
 
 </p>
-
 
 
 </div>
@@ -367,7 +143,6 @@ tracking-widest
 </main>
 
 );
-
 
 
 }
@@ -378,94 +153,37 @@ tracking-widest
 
 
 
+const cmsData:any = {
 
 
-//////////////////////////////////////////////////////////////
-// ARCHIVE EXPERIENCE
-//////////////////////////////////////////////////////////////
+...horoscope,
+
+
+zodiacList:
+
+horoscope.zodiacList || [],
+
+
+};
+
+
+
+
+
 
 return (
-
-<main
-
-className="
-min-h-screen
-bg-[#050816]
-"
-
->
-
-
-
-<div
-
-className="
-border-b
-border-white/10
-bg-black/20
-px-6
-py-4
-text-center
-"
-
->
-
-<p
-
-className="
-text-[#C9A227]
-text-xs
-uppercase
-tracking-[0.3em]
-"
-
->
-
-Historical Horoscope
-
-</p>
-
-
-
-<p
-
-className="
-mt-1
-text-white
-text-sm
-"
-
->
-
-{date}
-
-</p>
-
-
-
-</div>
-
-
-
-
 
 
 <CmsHoroscopeExperience
 
-data={cms}
+data={cmsData}
 
-currentSign={sign.toLowerCase()}
+currentSign={sign}
 
 />
 
 
-
-
-
-</main>
-
 );
-
 
 
 }

@@ -1,7 +1,19 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
-// Horoscope Prediction Type System
-// Future Proof Prediction Architecture v3
+//
+// Prediction Type System v4.1
+//
+// Future Proof Intelligence Architecture
+//
+// Prediction Engine
+// +
+// Language Intelligence
+// +
+// Premium Reports
+// +
+// AI Enhancement
+// +
+// CMS Ready
 //////////////////////////////////////////////////////////////
 
 
@@ -39,11 +51,16 @@ export type PredictionCategory =
   | "comfort"
   | "research";
 
+
+
+
+
 //////////////////////////////////////////////////////////////
 // PLANET NAME
 //////////////////////////////////////////////////////////////
 
 export type PlanetName =
+
   | "Sun"
   | "Moon"
   | "Mars"
@@ -54,6 +71,10 @@ export type PlanetName =
   | "Rahu"
   | "Ketu";
 
+
+
+
+
 //////////////////////////////////////////////////////////////
 // PREDICTION SOURCE
 //////////////////////////////////////////////////////////////
@@ -61,32 +82,22 @@ export type PlanetName =
 export type PredictionSource =
 
   | "strength"
-
   | "dignity"
-
   | "intelligence"
-
   | "rashi"
-
   | "retrograde"
-
   | "transit"
-
   | "nakshatra"
-
   | "house"
-
   | "aspect"
-
   | "yoga"
-
   | "dasha"
-
   | "dosha"
-
   | "compatibility"
-
-  | "predictionEngine";
+  | "predictionEngine"
+  | "languageEngine"
+  | "aiEnhancement"
+  | "cms";
 
 
 
@@ -98,6 +109,7 @@ export type PredictionSource =
 //////////////////////////////////////////////////////////////
 // PREDICTION MESSAGE
 //////////////////////////////////////////////////////////////
+
 export interface PredictionMessage {
 
 
@@ -131,19 +143,11 @@ export interface PredictionMessage {
 
 
 
-  /**
-   * Prediction origin intelligence
-   */
-
   source?:
 
     PredictionSource[];
 
 
-
-  /**
-   * Confidence scoring
-   */
 
   confidence?:
 
@@ -151,19 +155,11 @@ export interface PredictionMessage {
 
 
 
-  /**
-   * Planetary influence weight
-   */
-
   influenceScore?:
 
     number;
 
 
-
-  /**
-   * Short summary layer
-   */
 
   summary?:
 
@@ -171,37 +167,13 @@ export interface PredictionMessage {
 
 
 
-  /**
-   * User actionable guidance
-   */
-
-guidance?:
-  string;
-
-
-  /**
-   * Impact level
-   */
-
-  severity?:
-
-    | "low"
-    | "medium"
-    | "high";
-
-
-
-  /**
-   * Additional AI / ranking metadata
-   */
-
-  tags?:
-
-    string[];
-
-
-
   explanation?:
+
+    string;
+
+
+
+  guidance?:
 
     string;
 
@@ -213,7 +185,65 @@ guidance?:
 
 
 
+  challenge?:
+
+    string;
+
+
+
+  opportunity?:
+
+    string;
+
+
+
+  severity?:
+
+    | "low"
+    | "medium"
+    | "high";
+
+
+
+  tags?:
+
+    string[];
+
+
+
+  metadata?:
+
+  {
+
+    planet?:
+
+      string;
+
+
+    score?:
+
+      number;
+
+
+    tone?:
+
+      "positive"
+      |
+      "neutral"
+      |
+      "caution";
+
+  };
+
+
 }
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 // PLANET PREDICTION
@@ -282,6 +312,27 @@ export interface PlanetPrediction {
 
 
 
+  language?:
+
+  {
+
+    statement:
+
+      string;
+
+
+    explanation:
+
+      string;
+
+
+    advice:
+
+      string;
+
+  };
+
+
 }
 
 
@@ -337,10 +388,14 @@ export interface LifePrediction {
   trend?:
 
     | "positive"
-
     | "challenging"
-
     | "balanced";
+
+
+
+  narrative?:
+
+    string;
 
 
 }
@@ -353,7 +408,7 @@ export interface LifePrediction {
 
 
 //////////////////////////////////////////////////////////////
-// OPPORTUNITY / CAUTION ITEM
+// INSIGHT
 //////////////////////////////////////////////////////////////
 
 export interface PredictionInsight {
@@ -389,6 +444,18 @@ export interface PredictionInsight {
 
 
 
+  source?:
+
+    PredictionSource[];
+
+
+
+  type?:
+
+    | "opportunity"
+    | "caution";
+
+
 }
 
 
@@ -399,7 +466,7 @@ export interface PredictionInsight {
 
 
 //////////////////////////////////////////////////////////////
-// PREDICTION RANKING
+// RANKING
 //////////////////////////////////////////////////////////////
 
 export interface PredictionRanking {
@@ -435,6 +502,13 @@ export interface PredictionRanking {
 
 
 
+  impact?:
+
+    | "low"
+    | "medium"
+    | "high";
+
+
 }
 
 
@@ -445,7 +519,7 @@ export interface PredictionRanking {
 
 
 //////////////////////////////////////////////////////////////
-// NATURAL LANGUAGE NARRATIVE
+// NARRATIVE
 //////////////////////////////////////////////////////////////
 
 export interface PredictionNarrative {
@@ -474,6 +548,56 @@ export interface PredictionNarrative {
     string;
 
 
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// DOMINANT PLANET SUMMARY
+//////////////////////////////////////////////////////////////
+
+export interface DominantPlanetSummary {
+
+
+  planet:
+
+    string;
+
+
+
+  strength:
+
+    number;
+
+
+
+  dignity:
+
+    string;
+
+
+
+  statement:
+
+    string;
+
+
+
+  explanation:
+
+    string;
+
+
+
+  advice:
+
+    string;
+
 
 }
 
@@ -485,8 +609,150 @@ export interface PredictionNarrative {
 
 
 //////////////////////////////////////////////////////////////
-// QUALITY CONTROL METADATA
+// LIFE AREA NARRATIVE
 //////////////////////////////////////////////////////////////
+
+export interface LifeAreaNarrative {
+
+
+  area:
+
+    PredictionCategory;
+
+
+
+  score:
+
+    number;
+
+
+
+  headline:
+
+    string;
+
+
+
+  summary:
+
+    string;
+
+
+
+  guidance:
+
+    string;
+
+
+
+  planets?:
+
+    string[];
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PREDICTION BALANCE
+//////////////////////////////////////////////////////////////
+
+export interface PredictionBalance {
+
+
+  positiveScore:
+
+    number;
+
+
+
+  cautionScore:
+
+    number;
+
+
+
+  balance:
+
+    number;
+
+
+
+  trend?:
+
+    string;
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// ENGINE METADATA
+//////////////////////////////////////////////////////////////
+
+export interface PredictionEngineMetadata {
+
+
+  engine:
+
+    string;
+
+
+
+  version:
+
+    string;
+
+
+
+  layers:
+
+    string[];
+
+
+
+  calculation:
+
+    string;
+
+
+
+  predictionMode:
+
+    string;
+
+
+
+  premiumReady:
+
+    boolean;
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// QUALITY CONTROL
+//////////////////////////////////////////////////////////////
+
 export interface PredictionQuality {
 
 
@@ -508,19 +774,11 @@ export interface PredictionQuality {
 
 
 
-  /**
-   * Overall prediction quality score
-   */
-
   qualityScore?:
 
     number;
 
 
-
-  /**
-   * Message quality score
-   */
 
   messageQuality?:
 
@@ -528,30 +786,28 @@ export interface PredictionQuality {
 
 
 
-  /**
-   * Insight quality score
-   */
-
   insightQuality?:
 
     number;
 
 
 
-  /**
-   * Category balance score
-   */
-
   balanceScore?:
 
     number;
 
 
-
 }
 
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// FINAL HOROSCOPE PREDICTION
+// FINAL HOROSCOPE PREDICTION RESPONSE
 //////////////////////////////////////////////////////////////
 
 export interface HoroscopePrediction {
@@ -611,9 +867,10 @@ export interface HoroscopePrediction {
 
 
 
-  ////////////////////////////////////////////////////////////
-  // INTELLIGENCE LAYERS
-  ////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+// INTELLIGENCE LAYERS
+//////////////////////////////////////////////////////////////
 
 
   predictionConfidence?:
@@ -646,10 +903,88 @@ export interface HoroscopePrediction {
 
 
 
+
+
+
+//////////////////////////////////////////////////////////////
+// PREMIUM ENGINE OUTPUTS
+//////////////////////////////////////////////////////////////
+
+  dominantPlanetSummary?:
+
+    DominantPlanetSummary[];
+
+
+
+  lifeAreaNarrative?:
+
+    LifeAreaNarrative[];
+
+
+
+  predictionBalance?:
+
+    PredictionBalance;
+
+
+
+  engineMetadata?:
+
+    PredictionEngineMetadata;
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// REQUEST META
+//////////////////////////////////////////////////////////////
+
+  zodiacSign?:
+
+    string;
+
+
+
   generatedAt?:
 
     Date;
 
+
+
+  engineVersion?:
+
+    string;
+
+
+
+  metadata?:
+
+  {
+
+    generatedBy?:
+
+      "engine"
+      |
+      "ai"
+      |
+      "cms";
+
+
+
+    cached?:
+
+      boolean;
+
+
+
+    requestId?:
+
+      string;
+
+
+  };
 
 
 }

@@ -1,5 +1,3 @@
-// app/api/articles/[id]/route.ts
-
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { PostStatus } from "@prisma/client";
@@ -7,11 +5,19 @@ import { PostStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 
-/* ================= UTIL ================= */
+
+/* =====================================================
+   UTILITIES
+===================================================== */
+
 
 function stripHtml(html:string){
 
-  return html?.replace(/<[^>]*>?/gm,"") || "";
+  return (
+    html?.replace(/<[^>]*>?/gm,"")
+    ||
+    ""
+  );
 
 }
 
@@ -27,8 +33,10 @@ function calculateReadingTime(content:string){
 
   const words =
     clean
-      ? clean.split(" ").length
-      : 0;
+      ?
+      clean.split(" ").length
+      :
+      0;
 
 
   return Math.max(
@@ -58,67 +66,85 @@ function generateExcerpt(content:string){
 
 
   const excerpt =
-    words.slice(0,35).join(" ");
+    words
+      .slice(0,35)
+      .join(" ");
+
 
 
   return excerpt.length < clean.length
-    ? `${excerpt}...`
-    : excerpt;
+
+    ?
+
+    `${excerpt}...`
+
+    :
+
+    excerpt;
 
 }
-
-
 
 
 
 
 async function generateUniqueSlug(
- title:string,
- currentId:string
+  title:string,
+  currentId:string
 ){
 
- const baseSlug =
- title
- .toLowerCase()
- .trim()
- .replace(/\s+/g,"-")
- .replace(/[^\w-]+/g,"");
+
+  const baseSlug =
+    title
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g,"-")
+      .replace(/[^\w-]+/g,"");
 
 
- let slug = baseSlug;
-
- let counter = 1;
-
+  let slug =
+    baseSlug;
 
 
- while(true){
+  let counter =
+    1;
 
 
- const existing =
- await prisma.article.findFirst({
 
- where:{
- slug,
- NOT:{
- id:currentId
- }
- }
-
- });
+  while(true){
 
 
- if(!existing)
- break;
+    const existing =
+      await prisma.article.findFirst({
+
+        where:{
+
+          slug,
+
+          NOT:{
+
+            id:currentId
+
+          }
+
+        }
+
+      });
 
 
- slug =
- `${baseSlug}-${counter++}`;
+
+    if(!existing)
+      break;
 
 
- }
+
+    slug =
+      `${baseSlug}-${counter++}`;
 
 
- return slug;
+  }
+
+
+  return slug;
 
 }
 
@@ -127,90 +153,109 @@ async function generateUniqueSlug(
 
 
 
-
-/* ================= GET ================= */
+/* =====================================================
+   GET SINGLE ARTICLE
+===================================================== */
 
 
 export async function GET(
- req:Request,
- {params}:{params:{id:string}}
+  req:Request,
+  {
+    params
+  }:{
+    params:{
+      id:string
+    }
+  }
 ){
+
 
 try{
 
 
-const article =
-await prisma.article.findUnique({
+  const article =
+    await prisma.article.findUnique({
 
-where:{
-id:params.id
-},
+      where:{
 
-include:{
+        id:params.id
 
-category:true,
-
-author:true,
-
-comments:true
-
-}
-
-});
+      },
 
 
+      include:{
 
-if(!article){
+        category:true,
 
-return NextResponse.json(
-{
-success:false
-},
-{
-status:404
-}
-);
+        author:true,
 
-}
+        comments:true
+
+      }
+
+    });
 
 
 
-return NextResponse.json({
-
-success:true,
-
-article,
-
-breakingActive:
-article.breaking &&
-article.breakingEnd !== null &&
-article.breakingEnd > new Date()
-
-});
+  if(!article){
 
 
-}
+    return NextResponse.json(
 
-catch(error){
+      {
+        success:false,
+        error:"Article not found"
+      },
+
+      {
+        status:404
+      }
+
+    );
 
 
-console.error(
-"GET ARTICLE ERROR",
-error
-);
+  }
 
 
-return NextResponse.json(
-{
-success:false
-},
-{
-status:500
-}
-);
+
+
+
+  return NextResponse.json({
+
+    success:true,
+
+    article
+
+  });
+
 
 
 }
+catch(error:any){
+
+
+  console.error(
+    "GET ARTICLE ERROR",
+    error
+  );
+
+
+  return NextResponse.json(
+
+    {
+      success:false,
+      error:error.message
+    },
+
+    {
+      status:500
+    }
+
+  );
+
+
+}
+
 
 }
 
@@ -221,213 +266,164 @@ status:500
 
 
 
-
-/* ================= PATCH ================= */
+/* =====================================================
+   PATCH STATUS UPDATE
+===================================================== */
 
 
 export async function PATCH(
-req:Request,
-{params}:{params:{id:string}}
+  req:Request,
+  {
+    params
+  }:{
+    params:{
+      id:string
+    }
+  }
 ){
+
 
 try{
 
 
-const body =
-await req.json();
-
-
-const existing =
-await prisma.article.findUnique({
-
-where:{
-id:params.id
-}
-
-});
+  const body =
+    await req.json();
 
 
 
-if(!existing){
 
-return NextResponse.json(
-{
-success:false
-},
-{
-status:404
-}
-);
+  const updated =
 
-}
+    await prisma.article.update({
+
+      where:{
+
+        id:params.id
+
+      },
 
 
-
-let status =
-existing.status;
+      data:{
 
 
+        status:
 
-if(
-body.status &&
-Object.values(PostStatus)
-.includes(
-body.status as PostStatus
-)
-){
+          Object.values(PostStatus)
+          .includes(body.status)
 
-status =
-body.status;
+          ?
 
-}
+          body.status
 
+          :
+
+          undefined
 
 
-const updated =
-await prisma.article.update({
-
-where:{
-id:params.id
-},
+      }
 
 
-data:{
+    });
 
 
-status,
 
 
-publishedAt:
+  return NextResponse.json({
 
-status === PostStatus.approved
+    success:true,
 
-?
+    article:updated
 
-new Date()
+  });
 
-:
-
-existing.publishedAt
 
 
 }
+catch(error:any){
 
 
-});
+  console.error(
+    "PATCH ERROR",
+    error
+  );
 
 
+  return NextResponse.json({
 
-return NextResponse.json({
+    success:false,
 
-success:true,
+    error:error.message
 
-article:updated
+  },{
 
-});
+    status:500
+
+  });
+
 
 
 }
 
-catch(error){
-
-
-console.error(
-"PATCH ERROR",
-error
-);
-
-
-return NextResponse.json(
-{
-success:false
-},
-{
-status:500
-}
-);
-
 
 }
-
-}
-
-
-
-
-
-
-
-
-
-/* ================= PUT ================= */
+/* =====================================================
+   PUT UPDATE ARTICLE
+===================================================== */
 
 
 export async function PUT(
-req:Request,
-{params}:{params:{id:string}}
+  req:Request,
+  {
+    params
+  }:{
+    params:{
+      id:string
+    }
+  }
 ){
+
 
 try{
 
 
-const body =
-await req.json();
+  const body =
+    await req.json();
 
 
 
 
-const existing =
-await prisma.article.findUnique({
+  const existing =
+    await prisma.article.findUnique({
 
-where:{
-id:params.id
-}
+      where:{
 
-});
+        id:params.id
 
+      }
 
-
-if(!existing){
-
-return NextResponse.json(
-{
-success:false
-},
-{
-status:404
-}
-);
-
-}
+    });
 
 
 
 
 
-const content =
-body.content ??
-existing.content;
+  if(!existing){
 
 
+    return NextResponse.json({
+
+      success:false,
+
+      error:"Article not found"
+
+    },{
+
+      status:404
+
+    });
 
 
-
-
-const slug =
-
-body.title &&
-body.title !== existing.title
-
-?
-
-await generateUniqueSlug(
-body.title,
-params.id
-)
-
-:
-
-existing.slug;
+  }
 
 
 
@@ -435,23 +431,17 @@ existing.slug;
 
 
 
+  const content =
 
-const cleanImages =
+    body.content !== undefined
 
-Array.isArray(body.images)
+    ?
 
-?
+    body.content
 
-body.images.filter(
-(img:any)=>
-typeof img==="string"
-&&
-img.trim()
-)
+    :
 
-:
-
-existing.images;
+    existing.content;
 
 
 
@@ -459,6 +449,76 @@ existing.images;
 
 
 
+  const slug =
+
+
+    body.title &&
+    body.title !== existing.title
+
+
+    ?
+
+
+    await generateUniqueSlug(
+
+      body.title,
+
+      params.id
+
+    )
+
+
+    :
+
+
+    existing.slug;
+
+
+
+
+
+
+
+
+
+  const cleanImages =
+
+
+    Array.isArray(body.images)
+
+
+    ?
+
+
+    body.images.filter(
+
+      (img:any)=>
+
+        typeof img === "string"
+
+        &&
+
+        img.trim()
+
+    )
+
+
+    :
+
+
+    existing.images;
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   BREAKING LOGIC
+===================================================== */
 
 
 let breakingStart =
@@ -471,38 +531,239 @@ existing.breakingEnd;
 
 
 
+
 if(body.breaking === true){
 
 
-const duration =
-Number(body.breakingDuration) || 60;
+  const duration =
+
+    Number(body.breakingDuration)
+
+    ||
+
+    60;
 
 
 
-breakingStart =
-new Date();
+  breakingStart =
+    new Date();
 
 
 
-breakingEnd =
-new Date(
-Date.now()
-+
-duration * 60 * 1000
-);
+  breakingEnd =
+
+    new Date(
+
+      Date.now()
+
+      +
+
+      duration * 60 * 1000
+
+    );
 
 
 }
+
+
 
 
 
 if(body.breaking === false){
 
-breakingStart = null;
 
-breakingEnd = null;
+  breakingStart =
+    null;
+
+
+  breakingEnd =
+    null;
+
 
 }
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   INTELLIGENCE NORMALIZERS
+===================================================== */
+
+
+const timeline =
+
+
+Array.isArray(body.timeline)
+
+
+?
+
+
+body.timeline
+
+
+:
+
+
+typeof body.timeline === "string"
+
+
+?
+
+
+body.timeline
+
+  .split("\n")
+
+  .map((x:string)=>x.trim())
+
+  .filter(Boolean)
+
+
+:
+
+
+existing.timeline;
+
+
+
+
+
+
+
+const keyTakeaways =
+
+
+Array.isArray(body.keyTakeaways)
+
+
+?
+
+
+body.keyTakeaways
+
+
+:
+
+
+typeof body.keyTakeaways === "string"
+
+
+?
+
+
+body.keyTakeaways
+
+.split("\n")
+
+.map((x:string)=>x.trim())
+
+.filter(Boolean)
+
+
+:
+
+
+existing.keyTakeaways;
+
+
+
+
+
+
+
+
+
+
+
+
+
+const expertOpinion =
+
+
+body.expertOpinion !== undefined
+
+
+?
+
+
+body.expertOpinion
+
+
+:
+
+
+existing.expertOpinion;
+
+
+
+
+
+
+
+const factCheck =
+
+
+body.factCheck !== undefined
+
+
+?
+
+
+body.factCheck
+
+
+:
+
+
+existing.factCheck;
+
+
+
+
+
+
+
+
+
+
+
+
+const faqItems =
+
+
+Array.isArray(body.faqItems)
+
+
+?
+
+
+body.faqItems.filter(
+
+(item:any)=>
+
+item.question?.trim()
+
+&&
+
+item.answer?.trim()
+
+)
+
+
+:
+
+
+existing.faqItems;
+
+
+
+
 
 
 
@@ -512,21 +773,32 @@ breakingEnd = null;
 
 
 const updated =
+
+
 await prisma.article.update({
 
 where:{
-id:params.id
-},
 
+id:params.id
+
+},
 
 
 data:{
 
 
 
+/* =====================
+   BASIC ARTICLE
+===================== */
+
+
 title:
 
-body.title ??
+body.title
+
+??
+
 existing.title,
 
 
@@ -539,10 +811,18 @@ content,
 
 
 
+
+
 excerpt:
 
-body.excerpt ??
-existing.excerpt ??
+body.excerpt
+
+??
+
+existing.excerpt
+
+??
+
 generateExcerpt(content),
 
 
@@ -550,6 +830,7 @@ generateExcerpt(content),
 
 
 images:
+
 cleanImages,
 
 
@@ -558,23 +839,48 @@ cleanImages,
 
 videoUrl:
 
-body.videoUrl ??
+body.videoUrl
+
+??
+
 existing.videoUrl,
 
 
 
 
 
+videoPosition:
+
+body.videoPosition
+
+??
+
+existing.videoPosition,
+
+
+
+
+
+
+/* =====================
+   NEWS CONTROLS
+===================== */
 
 
 breaking:
 
-body.breaking ??
+body.breaking
+
+??
+
 existing.breaking,
 
 
 
+
 breakingStart,
+
+
 
 
 breakingEnd,
@@ -582,30 +888,13 @@ breakingEnd,
 
 
 
-
 breakingPriority:
 
-body.breakingPriority ??
+body.breakingPriority
+
+??
+
 existing.breakingPriority,
-
-
-
-
-
-
-flash:
-
-body.flash ??
-existing.flash,
-
-
-
-flashPriority:
-
-body.flashPriority ??
-existing.flashPriority,
-
-
 
 
 
@@ -613,7 +902,10 @@ existing.flashPriority,
 
 featured:
 
-body.featured ??
+body.featured
+
+??
+
 existing.featured,
 
 
@@ -622,15 +914,14 @@ existing.featured,
 
 homepagePriority:
 
-body.homepagePriority ??
+body.homepagePriority
+
+??
+
 existing.homepagePriority,
-
-
-
-
-
-
-
+/* =====================
+   ARTICLE INTELLIGENCE
+===================== */
 
 
 keyHighlights:
@@ -643,10 +934,21 @@ body.keyHighlights
 
 :
 
+typeof body.keyHighlights === "string"
+
+?
+
+body.keyHighlights
+
+.split("\n")
+
+.map((x:string)=>x.trim())
+
+.filter(Boolean)
+
+:
+
 existing.keyHighlights,
-
-
-
 
 
 
@@ -654,68 +956,204 @@ existing.keyHighlights,
 
 whyItMatters:
 
-body.whyItMatters ??
+body.whyItMatters
+
+??
+
 existing.whyItMatters,
 
 
 
 
 
+shortBrief:
+
+body.shortBrief
+
+??
+
+existing.shortBrief,
 
 
 
-faqItems:
 
-Array.isArray(body.faqItems)
+
+background:
+
+body.background
+
+??
+
+existing.background,
+
+
+
+
+
+timeline,
+
+
+
+
+
+
+expertOpinion,
+
+
+
+
+
+factCheck,
+
+
+
+
+
+
+whatsNext:
+
+body.whatsNext
+
+??
+
+existing.whatsNext,
+
+
+
+
+
+keyTakeaways,
+
+
+
+
+
+sourceDesk:
+
+body.sourceDesk
+
+??
+
+existing.sourceDesk,
+
+
+
+
+
+
+faqItems,
+
+
+
+
+
+
+
+
+
+/* =====================
+   SEO
+===================== */
+
+
+readingTime:
+
+body.readingTime !== undefined
 
 ?
 
-body.faqItems
-.filter(
-(item:any)=>
-item.question?.trim()
-&&
-item.answer?.trim()
-)
-
-.map(
-(item:any)=>({
-
-question:
-item.question.trim(),
-
-answer:
-item.answer.trim()
-
-})
-)
+Number(body.readingTime)
 
 :
 
-existing.faqItems,
+existing.readingTime
+
+??
+
+calculateReadingTime(content),
+
+
+
+
+
+metaTitle:
+
+body.metaTitle
+
+??
+
+existing.metaTitle
+
+??
+
+body.title,
+
+
+
+
+
+metaDescription:
+
+body.metaDescription
+
+??
+
+existing.metaDescription
+
+??
+
+generateExcerpt(content),
+
+
+
+
+
+metaKeywords:
+
+body.metaKeywords
+
+??
+
+existing.metaKeywords,
 
 
 
 
 
 
+
+
+
+/* =====================
+   PUBLISHING
+===================== */
 
 
 publishedAt:
 
 body.publishedAt !== undefined
 
+
 ?
+
 
 (
+
 body.publishedAt
+
 ?
+
 new Date(body.publishedAt)
-:
-null
-)
 
 :
+
+null
+
+)
+
+
+:
+
 
 existing.publishedAt,
 
@@ -725,32 +1163,12 @@ existing.publishedAt,
 
 
 
-
-
-
-readingTime:
-
-body.readingTime
-
-?
-
-Number(body.readingTime)
-
-:
-
-existing.readingTime ??
-calculateReadingTime(content),
-
-
-
-
-
-
-
-
 status:
 
-body.status ??
+body.status
+
+??
+
 existing.status,
 
 
@@ -759,107 +1177,28 @@ existing.status,
 
 
 
-isEditorial:
-
-body.isEditorial ??
-existing.isEditorial,
 
 
-
-
-
-isAstrology:
-
-body.isAstrology ??
-existing.isAstrology,
-
-
-
-
-
-
-
-zodiacSign:
-
-body.zodiacSign ??
-existing.zodiacSign,
-
-
-
-
-
-
-
-horoscopeDate:
-
-body.horoscopeDate
-
-?
-
-new Date(body.horoscopeDate)
-
-:
-
-existing.horoscopeDate,
-
-
-
-
-
-
-
+/* =====================
+   CATEGORY
+===================== */
 
 
 categoryId:
 
-body.isEditorial ||
-body.isAstrology
+body.categoryId !== undefined
+
 
 ?
 
-null
+
+body.categoryId
+
 
 :
 
-body.categoryId ??
-existing.categoryId,
 
-
-
-
-
-
-
-
-
-
-
-metaTitle:
-
-body.metaTitle ??
-existing.metaTitle ??
-body.title,
-
-
-
-
-
-
-
-metaDescription:
-
-body.metaDescription ??
-existing.metaDescription ??
-generateExcerpt(content),
-
-
-
-
-
-metaKeywords:
-
-body.metaKeywords ??
-existing.metaKeywords
+existing.categoryId
 
 
 
@@ -869,6 +1208,7 @@ existing.metaKeywords
 
 
 });
+
 
 
 
@@ -885,101 +1225,124 @@ article:updated
 
 
 
-}
 
+
+}
 catch(error:any){
 
 
 console.error(
-"UPDATE ERROR",
+
+"UPDATE ARTICLE ERROR",
+
 error
-);
-
-
-
-return NextResponse.json(
-
-{
-
-success:false,
-
-error:
-error?.message ||
-"Update failed"
-
-},
-
-{
-status:500
-}
 
 );
-
-
-}
-
-}
-
-
-
-
-
-
-
-
-
-/* ================= DELETE ================= */
-
-
-export async function DELETE(
-req:Request,
-{params}:{params:{id:string}}
-){
-
-try{
-
-
-await prisma.article.delete({
-
-where:{
-id:params.id
-}
-
-});
 
 
 
 return NextResponse.json({
 
-success:true
+success:false,
+
+error:
+
+error.message
+
+||
+
+"Update failed"
+
+
+},{
+
+status:500
 
 });
 
 
 }
 
-catch(error){
-
-
-console.error(
-"DELETE ERROR",
-error
-);
-
-
-return NextResponse.json(
-
-{
-success:false
-},
-
-{
-status:500
-}
-
-);
-
 
 }
+/* =====================================================
+   DELETE ARTICLE
+===================================================== */
+
+
+export async function DELETE(
+  req:Request,
+  {
+    params
+  }:{
+    params:{
+      id:string
+    }
+  }
+){
+
+
+try{
+
+
+  await prisma.article.delete({
+
+    where:{
+
+      id:params.id
+
+    }
+
+  });
+
+
+
+
+
+  return NextResponse.json({
+
+    success:true
+
+  });
+
+
+
+}
+catch(error:any){
+
+
+  console.error(
+
+    "DELETE ARTICLE ERROR",
+
+    error
+
+  );
+
+
+
+  return NextResponse.json({
+
+    success:false,
+
+    error:
+
+      error.message
+
+      ||
+
+      "Delete failed"
+
+
+  },{
+
+    status:500
+
+  });
+
+
+
+}
+
 
 }

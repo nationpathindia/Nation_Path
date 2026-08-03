@@ -5,13 +5,18 @@ import { PostStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 
+
 /* =====================================================
    UTILITIES
 ===================================================== */
 
-function stripHtml(html: string) {
-  return html?.replace(/<[^>]*>?/gm, "") || "";
+
+function stripHtml(html:string){
+
+  return html?.replace(/<[^>]*>?/gm,"") || "";
+
 }
+
 
 
 function generateExcerpt(content:string){
@@ -22,7 +27,8 @@ function generateExcerpt(content:string){
       .trim();
 
 
-  if(!clean) return "";
+  if(!clean)
+    return "";
 
 
   const words =
@@ -30,7 +36,9 @@ function generateExcerpt(content:string){
 
 
   const excerpt =
-    words.slice(0,35).join(" ");
+    words
+      .slice(0,35)
+      .join(" ");
 
 
   return excerpt.length < clean.length
@@ -83,6 +91,7 @@ async function generateUniqueSlug(
   let counter = 1;
 
 
+
   while(true){
 
     const existing =
@@ -100,14 +109,18 @@ async function generateUniqueSlug(
               }
             }
             :
-            {})
+            {}
+          )
 
         }
 
       });
 
 
-    if(!existing) break;
+
+    if(!existing)
+      break;
+
 
 
     slug =
@@ -116,9 +129,13 @@ async function generateUniqueSlug(
   }
 
 
+
   return slug;
 
 }
+
+
+
 
 
 
@@ -126,13 +143,13 @@ async function generateUniqueSlug(
    GET ARTICLES
 ===================================================== */
 
+
 export async function GET(req:Request){
 
 try{
 
 
-const {searchParams}
-=
+const {searchParams} =
 new URL(req.url);
 
 
@@ -157,37 +174,39 @@ const status =
 searchParams.get("status");
 
 
+
 const search =
 searchParams.get("search") || "";
+
 
 
 const editorial =
 searchParams.get("editorial");
 
 
-const category =
-searchParams.get("category");
+
+const schedule =
+searchParams.get("schedule");
 
 
-const breaking =
-searchParams.get("breaking");
 
+const type =
+searchParams.get("type");
 
-const featured =
-searchParams.get("featured");
 
 
 const sort =
 searchParams.get("sort") || "latest";
 
 
-const lightweight =
-searchParams.get("lightweight")
-==="true";
+
+const category =
+searchParams.get("category");
+
 
 
 const skip =
-(page-1)*limit;
+(page - 1) * limit;
 
 
 
@@ -199,6 +218,7 @@ isDeleted:false
 
 
 
+
 if(status){
 
 const value =
@@ -207,9 +227,7 @@ status.toLowerCase();
 
 if(
 Object.values(PostStatus)
-.includes(
-value as PostStatus
-)
+.includes(value as PostStatus)
 ){
 
 where.status=value;
@@ -220,22 +238,35 @@ where.status=value;
 
 
 
+
+
 if(search){
 
 where.OR=[
 
 {
+
 title:{
+
 contains:search,
+
 mode:"insensitive"
+
 }
+
 },
 
+
 {
+
 excerpt:{
+
 contains:search,
+
 mode:"insensitive"
+
 }
+
 }
 
 ];
@@ -245,12 +276,46 @@ mode:"insensitive"
 
 
 
-if(editorial==="true")
+if(editorial==="true"){
+
 where.isEditorial=true;
 
+}
 
-if(editorial==="false")
+
+
+if(editorial==="false"){
+
 where.isEditorial=false;
+
+}
+
+
+
+
+if(type==="editorial"){
+
+where.isEditorial=true;
+
+}
+
+
+
+if(type==="news"){
+
+where.isEditorial=false;
+
+where.isAstrology=false;
+
+}
+
+
+
+if(type==="astro"){
+
+where.isAstrology=true;
+
+}
 
 
 
@@ -259,7 +324,13 @@ if(category){
 
 where.category={
 
-slug:category
+name:{
+
+equals:category,
+
+mode:"insensitive"
+
+}
 
 };
 
@@ -268,11 +339,9 @@ slug:category
 
 
 
-if(breaking==="true"){
+if(schedule==="scheduled"){
 
-where.breaking=true;
-
-where.breakingEnd={
+where.publishedAt={
 
 gt:new Date()
 
@@ -282,79 +351,24 @@ gt:new Date()
 
 
 
-if(breaking==="false"){
+if(schedule==="published"){
 
-where.breaking=false;
+where.publishedAt={
 
-}
-
-
-
-
-if(featured==="true")
-where.featured=true;
-
-
-if(featured==="false")
-where.featured=false;
-
-
-
-let orderBy:any={
-
-createdAt:"desc"
-
-};
-
-
-
-if(sort==="oldest"){
-
-orderBy={
-
-createdAt:"asc"
+lte:new Date()
 
 };
 
 }
 
 
-
-if(sort==="views"){
-
-orderBy={
-
-views:"desc"
-
-};
-
-}
-
-
-
-if(sort==="featured"){
-
-orderBy=[
-
-{
-homepagePriority:"desc"
-},
-
-{
-createdAt:"desc"
-}
-
-];
-
-}
 
 
 
 const [
 articles,
 total
-]
-=
+] =
 await Promise.all([
 
 
@@ -362,106 +376,39 @@ prisma.article.findMany({
 
 where,
 
-
-select:{
-
-
-id:true,
-
-title:true,
-
-slug:true,
-
-excerpt:true,
-
-images:true,
-
-videoUrl:true,
-
-createdAt:true,
-
-updatedAt:true,
-
-views:true,
-
-
-breaking:true,
-
-breakingStart:true,
-
-breakingEnd:true,
-
-breakingPriority:true,
-
-
-featured:true,
-
-homepagePriority:true,
-
-
-keyHighlights:true,
-
-whyItMatters:true,
-
-faqItems:true,
-
-readingTime:true,
-
-
-publishedAt:true,
-
-status:true,
-
-isEditorial:true,
-
-
-category:
-lightweight
-?
-undefined
-:
-{
-
-select:{
-
-id:true,
-
-name:true,
-
-slug:true
-
-}
-
-},
-
-
-author:
-lightweight
-?
-undefined
-:
-{
-
-select:{
-
-id:true,
-
-name:true
-
-}
-
-}
-
-
-},
-
-
-orderBy,
-
-
 skip,
 
-take:limit
+take:limit,
+
+
+orderBy:
+
+sort==="oldest"
+
+?
+
+{
+
+createdAt:"asc"
+
+}
+
+:
+
+{
+
+createdAt:"desc"
+
+},
+
+
+include:{
+
+category:true,
+
+author:true
+
+}
 
 
 }),
@@ -479,6 +426,8 @@ where
 
 
 
+
+
 return NextResponse.json({
 
 success:true,
@@ -491,51 +440,49 @@ page,
 
 limit,
 
-totalArticles:total,
+total,
 
 totalPages:
-Math.ceil(
-total/limit
-)
+Math.ceil(total / limit)
 
 }
 
 });
 
 
-}
 
-catch(error){
+}
+catch(error:any){
+
 
 console.error(
-"GET ARTICLES ERROR:",
+"GET ARTICLES ERROR",
 error
 );
 
 
-return NextResponse.json(
 
-{
+return NextResponse.json({
 
 success:false,
 
-error:"Failed to fetch articles"
+error:
+error?.message || "Server error"
 
-},
-
-{
+},{
 status:500
-}
-
-);
+});
 
 
 }
 
+
 }
+ 
 /* =====================================================
    CREATE ARTICLE
 ===================================================== */
+
 
 export async function POST(req:Request){
 
@@ -554,18 +501,15 @@ Boolean(body.isEditorial);
 
 if(!body.title?.trim()){
 
-return NextResponse.json(
+return NextResponse.json({
 
-{
 success:false,
+
 error:"Title required"
-},
 
-{
+},{
 status:400
-}
-
-);
+});
 
 }
 
@@ -573,18 +517,15 @@ status:400
 
 if(!body.content?.trim()){
 
-return NextResponse.json(
+return NextResponse.json({
 
-{
 success:false,
+
 error:"Content required"
-},
 
-{
+},{
 status:400
-}
-
-);
+});
 
 }
 
@@ -596,20 +537,18 @@ if(
 !body.categoryId
 ){
 
-return NextResponse.json(
+return NextResponse.json({
 
-{
 success:false,
+
 error:"Category required"
-},
 
-{
+},{
 status:400
-}
-
-);
+});
 
 }
+
 
 
 
@@ -624,30 +563,34 @@ const category =
 await prisma.category.findUnique({
 
 where:{
+
 id:body.categoryId
+
 }
 
 });
 
 
+
 if(!category){
 
-return NextResponse.json(
+return NextResponse.json({
 
-{
 success:false,
+
 error:"Invalid category"
-},
 
-{
+},{
 status:400
-}
-
-);
+});
 
 }
 
+
 }
+
+
+
 
 
 
@@ -660,9 +603,12 @@ body.title
 
 
 
-let breakingStart:null|Date = null;
 
-let breakingEnd:null|Date = null;
+
+
+let breakingStart:null|Date=null;
+
+let breakingEnd:null|Date=null;
 
 
 
@@ -671,6 +617,7 @@ if(body.breaking){
 
 const duration =
 Number(body.breakingDuration) || 60;
+
 
 
 breakingStart =
@@ -691,46 +638,56 @@ duration * 60 * 1000
 
 
 
-let publishedAt:null|Date = null;
+
+
+
+
+let publishedAt:null|Date=null;
 
 
 
 if(body.publishedAt){
 
 
-const scheduleDate =
+const date =
 new Date(body.publishedAt);
 
 
 
 if(
-!isNaN(
-scheduleDate.getTime()
-)
+!isNaN(date.getTime())
 ){
 
-publishedAt =
-scheduleDate;
+publishedAt=date;
 
 }
 
+
 }
+
+
+
 
 
 
 
 const images =
+
 Array.isArray(body.images)
 
 ?
 
 body.images
+
 .filter(
 (img:any)=>
+
 typeof img==="string"
 &&
 img.trim()
+
 )
+
 .map(
 (img:string)=>img.trim()
 )
@@ -738,6 +695,9 @@ img.trim()
 :
 
 [];
+
+
+
 
 
 
@@ -752,8 +712,10 @@ PostStatus.pending;
 
 if(body.status){
 
+
 const value =
 body.status.toLowerCase();
+
 
 
 if(
@@ -768,6 +730,7 @@ value as PostStatus;
 
 }
 
+
 }
 
 
@@ -775,7 +738,11 @@ value as PostStatus;
 
 
 
+
+
+
 const article =
+
 await prisma.article.create({
 
 data:{
@@ -796,8 +763,11 @@ body.content,
 
 
 excerpt:
-body.excerpt ||
-generateExcerpt(body.content),
+body.excerpt
+||
+generateExcerpt(
+body.content
+),
 
 
 
@@ -809,6 +779,10 @@ videoUrl:
 body.videoUrl || null,
 
 
+
+
+
+/* FLAGS */
 
 
 breaking:
@@ -824,7 +798,6 @@ breakingEnd,
 
 
 
-
 flash:
 Boolean(body.flash),
 
@@ -835,22 +808,38 @@ Boolean(body.featured),
 
 
 
+isEditorial,
+
+
+
+isAstrology:
+Boolean(body.isAstrology),
+
+
+
+
 
 breakingPriority:
-Number(body.breakingPriority)||0,
+Number(body.breakingPriority) || 0,
 
 
 
 flashPriority:
-Number(body.flashPriority)||0,
+Number(body.flashPriority) || 0,
 
 
 
 homepagePriority:
-Number(body.homepagePriority)||0,
+Number(body.homepagePriority) || 0,
 
 
 
+
+
+
+
+
+/* ARTICLE INTELLIGENCE */
 
 
 keyHighlights:
@@ -859,12 +848,14 @@ Array.isArray(body.keyHighlights)
 
 ?
 
-body.keyHighlights
-.filter(
+body.keyHighlights.filter(
+
 (item:any)=>
+
 typeof item==="string"
 &&
 item.trim()
+
 )
 
 :
@@ -874,13 +865,74 @@ item.trim()
 
 
 
-
 whyItMatters:
-
 body.whyItMatters || null,
 
 
 
+shortBrief:
+body.shortBrief || null,
+
+
+
+background:
+body.background || null,
+
+
+
+timeline:
+body.timeline || null,
+
+
+
+expertOpinion:
+body.expertOpinion || null,
+
+
+
+factCheck:
+body.factCheck || null,
+
+
+
+whatsNext:
+body.whatsNext || null,
+
+
+
+keyTakeaways:
+
+Array.isArray(body.keyTakeaways)
+
+?
+
+body.keyTakeaways.filter(
+
+(item:any)=>
+
+typeof item==="string"
+&&
+item.trim()
+
+)
+
+:
+
+[],
+
+
+
+sourceDesk:
+body.sourceDesk || null,
+
+
+
+
+
+
+
+
+/* FAQ */
 
 
 faqItems:
@@ -890,7 +942,9 @@ Array.isArray(body.faqItems)
 ?
 
 body.faqItems
+
 .filter(
+
 (item:any)=>
 
 item.question?.trim()
@@ -900,6 +954,7 @@ item.answer?.trim()
 )
 
 .map(
+
 (item:any)=>({
 
 question:
@@ -920,6 +975,13 @@ item.answer.trim()
 
 
 
+
+
+
+
+/* SEO */
+
+
 readingTime:
 
 body.readingTime
@@ -936,46 +998,28 @@ body.content
 
 
 
-
-
-publishedAt,
-
-
-
-
-
-isEditorial,
-
-
-
-
-
-status:
-validStatus,
-
-
-
-
-
 metaTitle:
-
-body.metaTitle ||
-body.title,
-
+body.metaTitle || body.title,
 
 
 
 metaDescription:
 
-body.metaDescription ||
-generateExcerpt(body.content),
+body.metaDescription
 
+||
+
+generateExcerpt(
+body.content
+),
 
 
 
 metaKeywords:
 
-body.metaKeywords ||
+body.metaKeywords
+
+||
 
 body.title
 .toLowerCase()
@@ -984,6 +1028,21 @@ body.title
 .join(","),
 
 
+
+
+
+
+
+
+/* PUBLISH */
+
+
+publishedAt,
+
+
+
+status:
+validStatus,
 
 
 
@@ -1001,15 +1060,14 @@ body.categoryId
 
 
 
-
-
 },
-
 
 
 include:{
 
-category:true
+category:true,
+
+author:true
 
 }
 
@@ -1025,60 +1083,274 @@ return NextResponse.json({
 
 success:true,
 
-id:article.id,
-
-slug:article.slug,
-
-category:article.category
+article
 
 });
 
 
 
 }
-
 catch(error:any){
 
 
 console.error(
-"CREATE ARTICLE ERROR:",
+"CREATE ARTICLE ERROR",
 error
 );
 
 
 
-return NextResponse.json(
-
-{
+return NextResponse.json({
 
 success:false,
 
 error:
-error?.message ||
-"Server error"
+error?.message || "Server error"
 
-},
-
-{
+},{
 status:500
+});
+
+
 }
 
+
+}
+
+/* =====================================================
+   UPDATE ARTICLE STATUS / FLAGS
+===================================================== */
+
+
+export async function PATCH(req:Request){
+
+try{
+
+
+const body =
+await req.json();
+
+
+
+if(!body.id){
+
+return NextResponse.json({
+
+success:false,
+
+error:"ID required"
+
+},{
+status:400
+});
+
+}
+
+
+
+
+
+const updateData:any = {};
+
+
+
+
+
+
+/* ================= STATUS ================= */
+
+
+if(body.status){
+
+
+const value =
+body.status.toLowerCase();
+
+
+
+if(
+Object.values(PostStatus)
+.includes(
+value as PostStatus
+)
+){
+
+updateData.status =
+value;
+
+}
+
+
+}
+
+
+
+
+
+
+
+/* ================= FLAGS ================= */
+
+
+if(
+typeof body.featured === "boolean"
+){
+
+updateData.featured =
+body.featured;
+
+}
+
+
+
+if(
+typeof body.breaking === "boolean"
+){
+
+updateData.breaking =
+body.breaking;
+
+}
+
+
+
+if(
+typeof body.flash === "boolean"
+){
+
+updateData.flash =
+body.flash;
+
+}
+
+
+
+
+
+
+
+/* ================= EDITORIAL ================= */
+
+
+if(
+typeof body.isEditorial === "boolean"
+){
+
+updateData.isEditorial =
+body.isEditorial;
+
+}
+
+
+
+
+
+
+
+/* ================= SCHEDULE ================= */
+
+
+if(body.publishedAt){
+
+
+const date =
+new Date(
+body.publishedAt
 );
 
 
-}
+
+if(
+!isNaN(date.getTime())
+){
+
+updateData.publishedAt =
+date;
 
 }
 
 
+}
 
 
 
 
+
+
+
+const article =
+
+await prisma.article.update({
+
+where:{
+
+id:body.id
+
+},
+
+
+data:updateData,
+
+
+include:{
+
+category:true,
+
+author:true
+
+}
+
+
+});
+
+
+
+
+
+
+return NextResponse.json({
+
+success:true,
+
+article
+
+});
+
+
+
+
+}
+catch(error:any){
+
+
+console.error(
+"PATCH ARTICLE ERROR",
+error
+);
+
+
+
+return NextResponse.json({
+
+success:false,
+
+error:
+error?.message || "Update failed"
+
+},{
+status:500
+});
+
+
+}
+
+
+}
 
 /* =====================================================
    DELETE ARTICLE
 ===================================================== */
+
 
 export async function DELETE(req:Request){
 
@@ -1092,31 +1364,48 @@ await req.json();
 
 if(!body.id){
 
-return NextResponse.json(
+return NextResponse.json({
 
-{
 success:false,
+
 error:"ID required"
-},
 
-{
+},{
 status:400
-}
-
-);
+});
 
 }
 
 
 
 
-await prisma.article.delete({
+
+/* ================= SOFT DELETE ================= */
+
+
+await prisma.article.update({
 
 where:{
+
 id:body.id
+
+},
+
+
+data:{
+
+isDeleted:true,
+
+status:
+PostStatus.archived
+
 }
 
+
 });
+
+
+
 
 
 
@@ -1129,37 +1418,32 @@ success:true
 
 
 
-}
 
+
+}
 catch(error:any){
 
 
 console.error(
-"DELETE ARTICLE ERROR:",
+"DELETE ARTICLE ERROR",
 error
 );
 
 
 
-return NextResponse.json(
-
-{
+return NextResponse.json({
 
 success:false,
 
 error:
-error?.message ||
-"Delete failed"
+error?.message || "Delete failed"
 
-},
-
-{
+},{
 status:500
-}
-
-);
+});
 
 
 }
+
 
 }

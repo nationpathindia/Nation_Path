@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRenderer";
-
+import ArticleIntelligence from "@/components/article/ArticleIntelligence";
 import ArticleReadingProgress from "@/components/article/ArticleReadingProgress";
 import ArticleHeader from "@/components/article/ArticleHeader";
 import ArticleHero from "@/components/article/ArticleHero";
@@ -17,7 +17,8 @@ import ArticleRelated from "@/components/article/ArticleRelated";
 import ArticleNextStory from "@/components/article/ArticleNextStory";
 import ArticleSidebar from "@/components/article/ArticleSidebar";
 import ArticleAstroBanner from "@/components/article/ArticleAstroBanner";
-
+import ArticleShortBrief from "@/components/article/ArticleShortBrief";
+import ArticleWhatsNext from "@/components/article/ArticleWhatsNext";
 
 
 export const dynamic = "force-dynamic";
@@ -1705,11 +1706,32 @@ summary={article.aiSummary as any}
 
 }
 
+<ArticleShortBrief
+
+  shortBrief={article.shortBrief || ""}
+
+/>
 
 
+<ArticleIntelligence
 
+  background={article.background}
 
+  timeline={article.timeline}
 
+  expertOpinion={article.expertOpinion}
+
+  factCheck={article.factCheck}
+
+  keyTakeaways={article.keyTakeaways}
+
+  sourceDesk={
+  typeof article.sourceDesk === "string"
+    ? article.sourceDesk
+    : null
+}
+
+/>
 
 
 
@@ -1737,7 +1759,11 @@ whyItMatters={article.whyItMatters}
 
 
 
+<ArticleWhatsNext
 
+  whatsNext={article.whatsNext || ""}
+
+/>
 
 
 
@@ -1908,4 +1934,4 @@ mostRead={mostRead}
 );
 
 
-}
+} 

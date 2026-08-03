@@ -7,21 +7,32 @@
 //
 // URL SIGN
 //      ↓
+// Horoscope CMS API
 //      ↓
-// Horoscope CMS Mongo
+// CMS DATA + AUTOMATION STATUS
 //      ↓
-// data.cms
+// CMS Available
 //      ↓
-// CmsHoroscopeExperience
+// Premium Horoscope Experience
+//
+// CMS Missing + Automation Running
+//      ↓
+// Generation Loader
 //
 // LOCKED:
 // CMS FIRST
-// ENGINE - SECRET
-// AI- SECRET
+// ENGINE SECRET
+// AI SECRET
 //
 //////////////////////////////////////////////////////////////
 
-import CmsHoroscopeExperience from "@/components/astro-new/horoscope-cms/CmsHoroscopeExperience";
+import CmsHoroscopeExperience 
+from "@/components/astro-new/horoscope-cms/CmsHoroscopeExperience";
+
+import HoroscopeGeneratingLoader 
+from "@/components/astro-new/horoscope-cms/HoroscopeGeneratingLoader";
+
+import type { Metadata } from "next";
 
 
 
@@ -29,11 +40,26 @@ interface PageProps {
 
   params: Promise<{
 
-    sign: string;
+    sign:string;
 
   }>;
 
 }
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SITE URL
+//////////////////////////////////////////////////////////////
+
+const SITE_URL =
+
+process.env.NEXT_PUBLIC_SITE_URL ||
+
+"https://nationpathindia.com";
+
+
 
 
 
@@ -45,47 +71,40 @@ interface PageProps {
 
 async function getHoroscopeCMS(
 
-  sign: string
+sign:string
 
-) {
+){
 
 
 try {
 
 
-const baseUrl =
-process.env.NEXT_PUBLIC_APP_URL ||
-"http://localhost:3000";
-
-
-
 const response = await fetch(
 
-`${baseUrl}/api/astro/horoscope/cms`,
+`${SITE_URL}/api/astro/horoscope/cms`,
 
 {
 
-method: "POST",
+method:"POST",
 
-headers: {
+headers:{
 
-"Content-Type": "application/json",
+"Content-Type":"application/json"
 
 },
 
+body:JSON.stringify({
 
-body: JSON.stringify({
+zodiacSign:sign,
 
-zodiacSign: sign,
+language:"english",
 
-language: "english",
-
-period: "daily",
+period:"daily",
 
 }),
 
 
-cache: "no-store",
+cache:"no-store",
 
 }
 
@@ -107,7 +126,14 @@ response.status
 );
 
 
-return null;
+
+return {
+
+cms:null,
+
+automation:null,
+
+};
 
 
 }
@@ -116,16 +142,16 @@ return null;
 
 
 
-
-
-const result =
-await response.json();
+const result = await response.json();
 
 
 
 
 
-return (
+return {
+
+
+cms:
 
 result?.data?.cms
 
@@ -135,9 +161,26 @@ result?.cms
 
 ??
 
-null
+null,
 
-);
+
+
+
+
+automation:
+
+result?.data?.automation
+
+??
+
+result?.automation
+
+??
+
+null,
+
+
+};
 
 
 
@@ -155,7 +198,14 @@ error
 );
 
 
-return null;
+
+return {
+
+cms:null,
+
+automation:null,
+
+};
 
 
 }
@@ -163,6 +213,9 @@ return null;
 
 
 }
+
+
+
 
 
 
@@ -176,19 +229,25 @@ export async function generateMetadata({
 
 params
 
-}: PageProps) {
-
+}:PageProps):Promise<Metadata>{
 
 
 const {
 
 sign
 
-} = await params;
+}=await params;
 
 
 
-const cms = await getHoroscopeCMS(sign);
+
+const {
+
+cms
+
+}=await getHoroscopeCMS(sign);
+
+
 
 
 
@@ -196,11 +255,73 @@ const seo = cms?.seo;
 
 
 
+
+
 const zodiacName =
 
-sign.charAt(0).toUpperCase() +
+sign.charAt(0).toUpperCase()
+
++
 
 sign.slice(1);
+
+
+
+
+
+
+const title =
+
+seo?.title
+
+||
+
+`${zodiacName} Daily Horoscope Today | NationPath Astro`;
+
+
+
+
+
+
+const description =
+
+seo?.description
+
+||
+
+`Read ${zodiacName} daily horoscope with career, love, finance, health and Vedic astrology guidance on NationPath Astro.`;
+
+
+
+
+
+
+
+
+const canonical =
+
+seo?.canonical
+
+||
+
+`${SITE_URL}/astro/horoscope/${sign}`;
+
+
+
+
+
+
+
+const ogImage =
+
+seo?.ogImage
+
+||
+
+`${SITE_URL}/zodiac/${sign}.png`;
+
+
+
 
 
 
@@ -209,21 +330,22 @@ sign.slice(1);
 return {
 
 
-title:
+metadataBase:
 
-seo?.title ||
-
-`${zodiacName} Daily Horoscope | NationPath Astro`,
+new URL(SITE_URL),
 
 
 
 
 
-description:
+title,
 
-seo?.description ||
 
-`Read today's ${zodiacName} horoscope with career, love, finance, health and Vedic guidance on NationPath Astro.`,
+
+
+
+description,
+
 
 
 
@@ -231,15 +353,21 @@ seo?.description ||
 
 keywords:
 
-seo?.keywords ||
+seo?.keywords
+
+||
 
 [
 
 `${zodiacName} Horoscope`,
 
+`${zodiacName} Daily Horoscope`,
+
 "Daily Horoscope",
 
 "Vedic Astrology",
+
+"Rashifal",
 
 "NationPath Astro"
 
@@ -249,14 +377,12 @@ seo?.keywords ||
 
 
 
+
+
 alternates:{
 
 
-canonical:
-
-seo?.canonical ||
-
-`/astro/horoscope/${sign}`
+canonical
 
 
 },
@@ -265,34 +391,74 @@ seo?.canonical ||
 
 
 
+
+
+robots:{
+
+
+index:true,
+
+
+follow:true,
+
+
+
+googleBot:{
+
+
+index:true,
+
+
+follow:true,
+
+
+"max-image-preview":"large",
+
+
+"max-snippet":-1,
+
+
+"max-video-preview":-1
+
+
+}
+
+
+},
+
+
+
+
+
+
+
+
 openGraph:{
 
 
-title:
-
-seo?.title ||
-
-`${zodiacName} Daily Horoscope | NationPath Astro`,
+type:"website",
 
 
 
+locale:"en_IN",
 
 
-description:
 
-seo?.description ||
-
-`Daily ${zodiacName} horoscope with Vedic insights on NationPath Astro.`,
+siteName:"NationPath Astro",
 
 
 
 
+title,
 
-url:
 
-seo?.canonical ||
 
-`/astro/horoscope/${sign}`,
+description,
+
+
+
+
+url:canonical,
 
 
 
@@ -302,36 +468,60 @@ images:[
 
 {
 
-url:
+url:ogImage,
 
-seo?.ogImage ||
-
-`/zodiac/${sign}.png`,
 
 width:800,
 
+
 height:800,
 
-alt:
 
-`${zodiacName} Horoscope`
+alt:`${zodiacName} Daily Horoscope`
 
 }
 
 ]
 
+
+},
+
+
+
+
+
+
+
+twitter:{
+
+
+card:"summary_large_image",
+
+
+
+title,
+
+
+
+description,
+
+
+
+images:[
+
+ogImage
+
+]
+
+
 }
+
+
 
 };
 
 
 }
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -342,7 +532,7 @@ export default async function HoroscopeSignPage({
 
 params
 
-}: PageProps) {
+}:PageProps){
 
 
 
@@ -350,15 +540,79 @@ const {
 
 sign
 
-} = await params;
+}=await params;
 
 
 
-const cms = await getHoroscopeCMS(
 
-sign
+
+const {
+
+cms,
+
+automation
+
+}=await getHoroscopeCMS(sign);
+
+
+
+
+
+
+
+
+if(automation){
+
+
+console.log(
+
+"NATIONPATH HOROSCOPE AUTOMATION STATE",
+
+automation
 
 );
+
+
+}
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// GENERATION LOADER
+//////////////////////////////////////////////////////////////
+
+if(
+
+!cms
+
+&&
+
+automation?.generating
+
+){
+
+
+return (
+
+<HoroscopeGeneratingLoader
+
+sign={sign}
+
+/>
+
+);
+
+
+}
+
+
 
 
 
@@ -378,12 +632,19 @@ return (
 <main
 
 className="
+
 min-h-screen
+
 bg-[#050816]
+
 flex
+
 items-center
+
 justify-center
+
 px-6
+
 "
 
 >
@@ -392,14 +653,23 @@ px-6
 <div
 
 className="
+
 max-w-md
+
 rounded-3xl
+
 border
+
 border-[#C9A227]/30
+
 bg-white/5
+
 p-8
+
 text-center
+
 text-white
+
 "
 
 >
@@ -408,8 +678,11 @@ text-white
 <h1
 
 className="
+
 text-3xl
+
 font-serif
+
 "
 
 >
@@ -424,9 +697,11 @@ Horoscope Content Unavailable
 <p
 
 className="
+
 mt-4
+
 text-gray-400
-leading-relaxed
+
 "
 
 >
@@ -441,10 +716,15 @@ CMS horoscope content was not found for:
 <p
 
 className="
+
 mt-3
+
 text-[#C9A227]
+
 uppercase
+
 tracking-widest
+
 "
 
 >
@@ -452,7 +732,6 @@ tracking-widest
 {sign}
 
 </p>
-
 
 
 
@@ -473,8 +752,172 @@ tracking-widest
 
 
 
+
 //////////////////////////////////////////////////////////////
-// CMS EXPERIENCE
+// STRUCTURED DATA
+//////////////////////////////////////////////////////////////
+
+const zodiacName =
+
+sign.charAt(0).toUpperCase()
+
++
+
+sign.slice(1);
+
+
+
+
+
+const horoscopeUrl =
+
+`${SITE_URL}/astro/horoscope/${sign}`;
+
+
+
+
+
+
+const horoscopeSchema = {
+
+
+"@context":"https://schema.org",
+
+
+"@type":"WebPage",
+
+
+
+"name":
+
+`${zodiacName} Daily Horoscope | NationPath Astro`,
+
+
+
+"url":
+
+horoscopeUrl,
+
+
+
+"description":
+
+cms.seo?.description ||
+
+`Daily ${zodiacName} horoscope with Vedic insights by NationPath Astro.`,
+
+
+
+
+"publisher":{
+
+
+"@type":"Organization",
+
+
+"name":"NationPath Astro",
+
+
+"url":SITE_URL
+
+
+}
+
+
+
+};
+
+
+
+
+
+
+
+const breadcrumbSchema = {
+
+
+"@context":"https://schema.org",
+
+
+"@type":"BreadcrumbList",
+
+
+
+itemListElement:[
+
+
+{
+
+"@type":"ListItem",
+
+position:1,
+
+name:"Home",
+
+item:SITE_URL
+
+},
+
+
+
+{
+
+"@type":"ListItem",
+
+position:2,
+
+name:"Astro",
+
+item:`${SITE_URL}/astro`
+
+},
+
+
+
+{
+
+"@type":"ListItem",
+
+position:3,
+
+name:"Horoscope",
+
+item:`${SITE_URL}/astro/horoscope`
+
+},
+
+
+
+
+{
+
+"@type":"ListItem",
+
+position:4,
+
+name:`${zodiacName} Horoscope`,
+
+item:horoscopeUrl
+
+}
+
+
+
+]
+
+
+};
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// EXPERIENCE
 //////////////////////////////////////////////////////////////
 
 return (
@@ -482,23 +925,73 @@ return (
 <main
 
 className="
+
 min-h-screen
+
 bg-[#050816]
+
 "
 
 >
 
 
-<CmsHoroscopeExperience
+<script
 
-data={cms}
+type="application/ld+json"
 
-currentSign={sign.toLowerCase()}
+dangerouslySetInnerHTML={{
+
+__html:
+
+JSON.stringify(horoscopeSchema)
+
+}}
 
 />
 
 
+
+
+
+<script
+
+type="application/ld+json"
+
+dangerouslySetInnerHTML={{
+
+__html:
+
+JSON.stringify(breadcrumbSchema)
+
+}}
+
+/>
+
+
+
+
+
+
+<CmsHoroscopeExperience
+
+
+data={cms}
+
+
+currentSign={sign.toLowerCase()}
+
+
+slug={cms.slug}
+
+
+/>
+
+
+
+
+
 </main>
+
 
 );
 

@@ -1,31 +1,30 @@
 //////////////////////////////////////////////////////////////
-// NATIONPATH ASTROLOGY CONTENT SERVICE
+// NATIONPATH HOROSCOPE CMS CONTENT SERVICE
 //
-// CMS Editorial Content Fetch Layer
+// CMS FIRST HOROSCOPE EDITORIAL FETCH LAYER
 //
 // Responsibility:
-// Fetch published astrology editorial content.
 //
-// Does NOT:
-// - calculate horoscope
-// - modify astro engine
-// - generate predictions
-// - handle AI enhancement
-//
-// Flow:
-//
-// AstrologyContent CMS
+// Horoscope CMS MongoDB
 //          ↓
 // Service Layer
 //          ↓
 // Horoscope API
 //          ↓
-// Premium Experience
+// Premium Horoscope Experience
 //
+// Does NOT:
+// - calculate astrology
+// - modify Astro Engine
+// - generate predictions
+// - call AI
+//
+// Source:
+// Horoscope CMS Model ONLY
 //////////////////////////////////////////////////////////////
 
 
-import AstrologyContent from "@/app/models/AstrologyContent";
+import Horoscope from "@/app/models/Horoscope";
 
 
 import {
@@ -37,7 +36,7 @@ import {
 
 
 //////////////////////////////////////////////////////////////
-// TYPES
+// RESPONSE CONTRACT
 //////////////////////////////////////////////////////////////
 
 export interface AstrologyContentResult {
@@ -53,15 +52,14 @@ export interface AstrologyContentResult {
 
 
 
-  ////////////////////////////////////////////////////////////
-  // LEGACY LUCKY DATA
-  ////////////////////////////////////////////////////////////
-
   luckyNumber?: string;
+
 
   luckyColor?: string;
 
+
   luckyTime?: string;
+
 
 
   energy?: number;
@@ -71,9 +69,7 @@ export interface AstrologyContentResult {
 
 
 
-  ////////////////////////////////////////////////////////////
-  // PREMIUM EXPERIENCE CONTENT
-  ////////////////////////////////////////////////////////////
+
 
   experience?: {
 
@@ -99,6 +95,7 @@ export interface AstrologyContentResult {
 
     insights?: Array<{
 
+
       category?: string;
 
 
@@ -109,52 +106,6 @@ export interface AstrologyContentResult {
 
 
     }>;
-
-
-
-    planetaryInfluence?: {
-
-
-      title?: string;
-
-
-      planets?: Array<{
-
-        planet?: string;
-
-
-        influence?: string;
-
-
-        description?: string;
-
-
-      }>;
-
-
-    };
-
-
-
-    luckyFactors?: {
-
-
-      numbers?: string[];
-
-
-      colors?: string[];
-
-
-      days?: string[];
-
-
-      times?: string[];
-
-
-      directions?: string[];
-
-
-    };
 
 
 
@@ -179,10 +130,6 @@ export interface AstrologyContentResult {
 
 
 
-  ////////////////////////////////////////////////////////////
-  // SEO
-  ////////////////////////////////////////////////////////////
-
   seoTitle?: string;
 
 
@@ -198,92 +145,9 @@ export interface AstrologyContentResult {
 
 
 
-//////////////////////////////////////////////////////////////
-// DATABASE DOCUMENT TYPE
-//////////////////////////////////////////////////////////////
-
-interface AstrologyContentDocument {
-
-
-  headline?: string;
-
-
-  prediction?: string;
-
-
-  quote?: string;
-
-
-
-  luckyNumber?: string;
-
-
-  luckyColor?: string;
-
-
-  luckyTime?: string;
-
-
-
-  energy?: number;
-
-
-  image?: string;
-
-
-
-
-  experience?: AstrologyContentResult["experience"];
-
-
-
-
-  seoTitle?: string;
-
-
-  seoDescription?: string;
-
-
-}
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
-// QUERY TYPE
-//////////////////////////////////////////////////////////////
-
-interface AstrologyContentFilter {
-
-
-  zodiac:string;
-
-
-  date:string;
-
-
-  status:
-    "published"
-    |
-    "draft";
-
-
-}
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// GET ASTROLOGY CONTENT
+// GET HOROSCOPE CMS CONTENT
 //////////////////////////////////////////////////////////////
 
 export async function getAstrologyContent(
@@ -299,16 +163,16 @@ export async function getAstrologyContent(
 
 
 
-  try{
+try{
 
 
 
-    //////////////////////////////////////////////////////////
-    // DATABASE CONNECTION
-    //////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+// DATABASE
+//////////////////////////////////////////////////////////////
 
+await connectMongoDB();
 
-    await connectMongoDB();
 
 
 
@@ -316,127 +180,152 @@ export async function getAstrologyContent(
 
 
 
-    //////////////////////////////////////////////////////////
-    // NORMALIZATION
-    //////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+// NORMALIZATION
+//////////////////////////////////////////////////////////////
 
+const zodiac =
 
-    const normalizedZodiac =
+zodiacSign
 
-      zodiacSign
+.trim()
 
-        .trim()
+.toLowerCase();
 
-        .toLowerCase();
 
 
 
+const targetDate = new Date(date);
 
-    const normalizedDate =
 
-      date.trim();
+if(
+  Number.isNaN(
+    targetDate.getTime()
+  )
+){
+  return null;
+}
 
 
+const startOfDay = new Date(targetDate);
 
+startOfDay.setUTCHours(
+  0,
+  0,
+  0,
+  0
+);
 
 
+const endOfDay = new Date(targetDate);
 
+endOfDay.setUTCHours(
+  23,
+  59,
+  59,
+  999
+);
 
 
-    if(
 
-      !normalizedZodiac ||
+if(
 
-      !normalizedDate
+!zodiac ||
 
-    ){
+Number.isNaN(
 
-      return null;
+targetDate.getTime()
 
-    }
+)
 
+){
 
+return null;
 
+}
 
 
 
 
 
 
-    //////////////////////////////////////////////////////////
-    // CMS FILTER
-    //////////////////////////////////////////////////////////
 
 
-    const filter:
 
-      AstrologyContentFilter =
+//////////////////////////////////////////////////////////////
+// HOROSCOPE CMS QUERY
+//
+// Daily Horoscope
+// Current Date Range
+// All Editorial States
+//////////////////////////////////////////////////////////////
 
-    {
+const content = await Horoscope.findOne({
 
 
-      zodiac:
 
-        normalizedZodiac,
+zodiac,
 
 
 
-      date:
+"meta.period":
 
-        normalizedDate,
+"daily",
 
 
 
-      status:
 
-        "published",
+"meta.language":
 
+"english",
 
-    };
 
 
 
+"meta.startDate":
 
+{
 
+$lte: endOfDay
 
+},
 
 
 
-    //////////////////////////////////////////////////////////
-    // FETCH CMS DOCUMENT
-    //////////////////////////////////////////////////////////
+"meta.endDate":
 
+{
 
-    const content =
+$gte: startOfDay
 
-      await (
+},
 
-        (AstrologyContent as any)
 
-          .findOne(filter)
 
-          .lean()
+"meta.status":
 
-      ) as AstrologyContentDocument | null;
+{
+$in:[
 
+"draft",
 
+"approved",
 
+"published"
 
+]
 
+}
 
 
-    //////////////////////////////////////////////////////////
-    // CMS DATA NOT AVAILABLE
-    //////////////////////////////////////////////////////////
 
 
-    if(!content){
 
+})
 
-      return null;
+.lean();
 
 
-    }
 
 
 
@@ -444,82 +333,79 @@ export async function getAstrologyContent(
 
 
 
+//////////////////////////////////////////////////////////////
+// CMS NOT FOUND
+//////////////////////////////////////////////////////////////
 
+if(!content){
 
-    //////////////////////////////////////////////////////////
-    // RESPONSE CONTRACT
-    //////////////////////////////////////////////////////////
 
+return null;
 
-    return {
 
+}
 
-      headline:
 
-        content.headline,
 
 
 
-      prediction:
 
-        content.prediction,
 
 
 
-      quote:
 
-        content.quote,
+//////////////////////////////////////////////////////////////
+// HOROSCOPE CMS → EXPERIENCE CONTRACT
+//////////////////////////////////////////////////////////////
 
+return {
 
 
+headline:
 
+content.editorial?.headline,
 
-      ////////////////////////////////////////////////////////
-      // LEGACY COMPATIBILITY
-      ////////////////////////////////////////////////////////
 
-      luckyNumber:
 
-        content.luckyNumber,
 
 
+prediction:
 
-      luckyColor:
+content.editorial?.prediction,
 
-        content.luckyColor,
 
 
 
-      luckyTime:
 
-        content.luckyTime,
+quote:
 
+content.editorial?.quote,
 
 
-      energy:
 
-        content.energy,
 
 
 
-      image:
 
-        content.image,
+//////////////////////////////////////////////////////////////
+// LUCK
+//////////////////////////////////////////////////////////////
 
+luckyNumber:
 
+content.lucky?.number,
 
 
 
+luckyColor:
 
+content.lucky?.color,
 
-      ////////////////////////////////////////////////////////
-      // PREMIUM EXPERIENCE
-      ////////////////////////////////////////////////////////
 
-      experience:
 
-        content.experience,
+luckyTime:
 
+content.lucky?.time,
 
 
 
@@ -527,50 +413,127 @@ export async function getAstrologyContent(
 
 
 
-      ////////////////////////////////////////////////////////
-      // SEO
-      ////////////////////////////////////////////////////////
 
-      seoTitle:
 
-        content.seoTitle,
+//////////////////////////////////////////////////////////////
+// EXPERIENCE
+//////////////////////////////////////////////////////////////
 
+experience:{
 
 
-      seoDescription:
 
-        content.seoDescription,
+hero:{
 
 
+title:
 
-    };
+content.hero?.title,
 
 
+subtitle:
 
+content.hero?.subtitle,
 
 
-  }
+description:
 
+content.hero?.description,
 
-  catch(error){
 
+image:
 
+content.hero?.image,
 
-    console.error(
 
-      "[ASTROLOGY_CONTENT_SERVICE_ERROR]",
+},
 
-      error
 
-    );
 
+remedy:{
 
 
-    return null;
+title:
 
+content.remedy?.title,
 
 
-  }
+description:
+
+content.remedy?.guidance,
+
+
+steps:
+
+content.remedy?.practice
+
+?
+
+[
+
+content.remedy.practice
+
+]
+
+:
+
+[],
+
+
+
+},
+
+
+
+},
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SEO
+//////////////////////////////////////////////////////////////
+
+seoTitle:
+
+content.seo?.title,
+
+
+
+seoDescription:
+
+content.seo?.description,
+
+
+
+};
+
+
+
+}
+
+catch(error){
+
+
+
+console.error(
+
+"[HOROSCOPE_CMS_SERVICE_ERROR]",
+
+error
+
+);
+
+
+
+return null;
+
+
+
+}
 
 
 

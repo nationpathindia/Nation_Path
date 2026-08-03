@@ -1,4 +1,5 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ASTRO HOROSCOPE CMS API
 //
 // CMS FIRST HOROSCOPE DELIVERY
@@ -16,23 +17,25 @@
 //   ↓
 // /api/astro/horoscope/cms
 //   ↓
-// Horoscope Content Service
+// Horoscope CMS Mongo
 //   ↓
-// MongoDB Horoscope CMS
+// Missing?
+//   ↓
+// Daily Automation Fallback
+//   ↓
+// MongoDB CMS
 //   ↓
 // Premium Experience UI
 //
+//
 // LOCKED:
 //
-// ✅ No calculations
+// ✅ CMS FIRST
 // ✅ No Swiss Ephemeris
-// ✅ No Engine dependency
+// ✅ No Calculation
 // ✅ No Prediction modification
-// ✅ No AI generation
+// ✅ No AI generation here
 //
-// Purpose:
-//
-// Pure CMS Content Delivery
 //////////////////////////////////////////////////////////////
 
 
@@ -54,6 +57,16 @@ import {
   getHoroscopeByPeriod,
 
 } from "@/lib/services/horoscopeContentService";
+
+
+
+import {
+
+  ensureDailyHoroscopeGenerated,
+
+} from "@/lib/automation/horoscope";
+
+
 
 
 
@@ -85,85 +98,77 @@ const RequestSchema = z.object({
 
 
 
-zodiacSign:
+  zodiacSign:
 
+    z.string()
 
-z.string()
+    .trim()
 
-.trim()
+    .toLowerCase()
 
-.toLowerCase()
-
-.min(1),
-
-
-
-
-
-
-horoscopeDate:
-
-
-z.coerce.date()
-
-.optional(),
+    .min(1),
 
 
 
 
 
+  horoscopeDate:
 
-language:
+    z.coerce.date()
 
-
-z.enum([
-
-
-"english",
-
-"hindi",
-
-"marathi",
-
-"tamil",
-
-"telugu",
-
-"nepali",
-
-
-])
-
-.optional()
-
-.default("english"),
+    .optional(),
 
 
 
 
 
+  language:
 
-period:
-
-
-z.enum([
+    z.enum([
 
 
-"daily",
+      "english",
 
-"weekly",
+      "hindi",
 
-"monthly",
+      "marathi",
 
-"yearly",
+      "tamil",
+
+      "telugu",
+
+      "nepali",
 
 
-])
+    ])
 
-.optional()
+    .optional()
 
-.default("daily"),
+    .default("english"),
 
+
+
+
+
+  period:
+
+    z.enum([
+
+
+      "daily",
+
+      "weekly",
+
+      "monthly",
+
+      "yearly",
+
+
+    ])
+
+    .optional()
+
+    .default("daily"),
 
 
 
@@ -183,28 +188,28 @@ z.enum([
 
 function formatDate(
 
-date?:Date
+  date?:Date
 
 ){
 
 
-if(!date){
+  if(!date){
 
-return new Date()
+    return new Date()
 
-.toISOString()
+      .toISOString()
 
-.split("T")[0];
+      .split("T")[0];
 
-}
+  }
 
 
 
-return date
+  return date
 
-.toISOString()
+    .toISOString()
 
-.split("T")[0];
+    .split("T")[0];
 
 
 }
@@ -223,13 +228,14 @@ return date
 
 export async function POST(
 
-req:Request
+  req:Request
 
 ){
 
 
 
 const startedAt = Date.now();
+
 
 
 
@@ -241,7 +247,9 @@ try {
 
 
 //////////////////////////////////////////////////////////////
+//
 // REQUEST PARSE
+//
 //////////////////////////////////////////////////////////////
 
 const body = await req.json();
@@ -249,9 +257,10 @@ const body = await req.json();
 
 
 
+
 const validated =
 
-RequestSchema.parse(body);
+  RequestSchema.parse(body);
 
 
 
@@ -261,26 +270,26 @@ RequestSchema.parse(body);
 
 console.log(
 
-"NATIONPATH HOROSCOPE CMS REQUEST",
+  "NATIONPATH HOROSCOPE CMS REQUEST",
 
-{
+  {
 
-zodiac:
+    zodiac:
 
-validated.zodiacSign,
-
-
-period:
-
-validated.period,
+      validated.zodiacSign,
 
 
-language:
+    period:
 
-validated.language,
+      validated.period,
 
 
-}
+    language:
+
+      validated.language,
+
+
+  }
 
 );
 
@@ -293,24 +302,108 @@ validated.language,
 
 
 //////////////////////////////////////////////////////////////
+//
 // FETCH CMS CONTENT
+//
 //////////////////////////////////////////////////////////////
 
-const content =
+let content =
 
 await getHoroscopeByPeriod(
 
 
-validated.zodiacSign,
+  validated.zodiacSign,
 
 
-validated.period,
+  validated.period,
 
 
-validated.horoscopeDate,
+  validated.horoscopeDate,
 
 
-validated.language
+  validated.language
+
+
+
+);
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+//
+// AUTOMATION FALLBACK
+//
+// ONLY DAILY
+//
+// CMS missing
+//      ↓
+// ensure service
+//      ↓
+// lock
+//      ↓
+// generate
+//
+//////////////////////////////////////////////////////////////
+
+let automation = null;
+
+
+
+
+
+if(
+
+  !content
+
+  &&
+
+  validated.period === "daily"
+
+){
+
+
+
+console.log(
+
+  "🌌 Daily horoscope missing. Triggering fallback.",
+
+  {
+
+    zodiac:
+
+      validated.zodiacSign,
+
+  }
+
+);
+
+
+
+
+
+
+automation =
+
+await ensureDailyHoroscopeGenerated(
+
+
+
+  validated.zodiacSign,
+
+
+
+  {
+
+    language:
+
+      validated.language,
+
+  }
 
 
 
@@ -324,11 +417,63 @@ validated.language
 
 
 
+//
+// If generation completed
+// fetch fresh CMS again
+//
+
+if(
+
+  automation.generated
+
+){
+
+
+
+content =
+
+await getHoroscopeByPeriod(
+
+
+  validated.zodiacSign,
+
+
+  validated.period,
+
+
+  validated.horoscopeDate,
+
+
+  validated.language
+
+
+
+);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
+//
 // RESPONSE
+//
 //////////////////////////////////////////////////////////////
 
 const response = {
+
+
 
 
 
@@ -404,6 +549,25 @@ null,
 
 
 
+//////////////////////////////////////////////////////////////
+// AUTOMATION STATUS
+//////////////////////////////////////////////////////////////
+
+automation:
+
+automation
+
+||
+
+null,
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 // EDITORIAL
@@ -432,10 +596,10 @@ null,
 experience:
 
 
-
 content
 
 ?
+
 
 {
 
@@ -446,9 +610,11 @@ content.hero,
 
 
 
+
 identity:
 
 content.identity,
+
 
 
 
@@ -458,9 +624,11 @@ content.traits,
 
 
 
+
 insights:
 
 content.insights,
+
 
 
 
@@ -470,9 +638,11 @@ content.insights?.planetaryInfluence,
 
 
 
+
 luckyFactors:
 
 content.lucky,
+
 
 
 
@@ -482,15 +652,18 @@ content.remedy,
 
 
 
+
 opportunities:
 
 content.vedic?.favorable,
 
 
 
+
 cautions:
 
 content.vedic?.avoid,
+
 
 
 
@@ -505,6 +678,7 @@ content.premium,
 
 
 :
+
 
 null,
 
@@ -531,6 +705,7 @@ null,
 
 
 
+
 traits:
 
 content?.traits
@@ -538,6 +713,7 @@ content?.traits
 ||
 
 null,
+
 
 
 
@@ -553,6 +729,7 @@ null,
 
 
 
+
 insights:
 
 content?.insights
@@ -560,6 +737,7 @@ content?.insights
 ||
 
 null,
+
 
 
 
@@ -575,6 +753,7 @@ content?.planets
 
 
 
+
 lucky:
 
 content?.lucky
@@ -582,6 +761,7 @@ content?.lucky
 ||
 
 null,
+
 
 
 
@@ -597,6 +777,7 @@ null,
 
 
 
+
 vedic:
 
 content?.vedic
@@ -604,6 +785,7 @@ content?.vedic
 ||
 
 null,
+
 
 
 
@@ -619,6 +801,7 @@ null,
 
 
 
+
 premium:
 
 content?.premium
@@ -626,6 +809,7 @@ content?.premium
 ||
 
 null,
+
 
 
 
@@ -698,14 +882,14 @@ source:
 
 architecture:
 
-"cms-first",
+"cms-first-with-automation-fallback",
 
 
 
 
 version:
 
-"3.1",
+"4.0",
 
 
 
@@ -765,9 +949,9 @@ found:
 !!content,
 
 
-hasEditorial:
+automation:
 
-!!response.editorial,
+response.automation,
 
 
 hasExperience:
@@ -779,6 +963,7 @@ hasExperience:
 }
 
 );
+
 
 
 
@@ -801,12 +986,15 @@ source:
 
 version:
 
-"3.1",
+"4.0",
 
 
 }
 
 );
+
+
+
 
 
 
@@ -833,6 +1021,7 @@ error
 
 
 
+
 if(error instanceof z.ZodError){
 
 
@@ -850,7 +1039,10 @@ error.flatten()
 );
 
 
+
 }
+
+
 
 
 
@@ -877,6 +1069,9 @@ error.message
 "Unknown CMS error"
 
 );
+
+
+
 
 
 

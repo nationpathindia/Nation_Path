@@ -1,12 +1,30 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH AI HOROSCOPE ENHANCEMENT SERVICE
+//
 // Deterministic Horoscope + AI Premium Language Layer
-// Production v2.1
+//
+// NationPath AI Core v1
+//
+// Rules:
+//
+// Astro Engine = Source of Truth
+//
+// AI:
+// - Editorial enhancement only
+// - Language improvement only
+// - No calculation
+// - No prediction modification
+// - No score modification
+//
+// NO OPENAI
+// NO EXTERNAL PROVIDER
 //////////////////////////////////////////////////////////////
+
 
 import type {
   HoroscopeResult,
 } from "@/lib/astro/horoscope/types";
+
 
 import type {
   AstroLanguage,
@@ -15,17 +33,56 @@ import type {
 
 import {
   buildPredictionEnhancementPrompt,
-} from "@/lib/ai/prompts";
+} from "@/lib/nationpath-ai/prompts";
 
 
 import {
   executeAIStructured,
-} from "@/lib/ai/executor";
+} from "@/lib/nationpath-ai/executor";
 
 
-import {
-  PredictionEnhancementSchema,
-} from "@/lib/ai/schemas";
+
+//////////////////////////////////////////////////////////////
+// TYPES
+//////////////////////////////////////////////////////////////
+
+interface AIEnhancedPrediction {
+
+  headline?: string;
+
+  overview?: string;
+
+  naturalSummary?: string;
+
+
+  guidance?: string[];
+
+
+  planetaryPredictions?: any[];
+
+
+  lifePredictions?: any[];
+
+
+  opportunities?: any[];
+
+
+  cautions?: any[];
+
+
+  narrative?: {
+
+    opening?: string;
+
+    development?: string;
+
+    advice?: string;
+
+    closing?: string;
+
+  };
+
+}
 
 
 
@@ -35,32 +92,47 @@ import {
 
 function normalizeLanguage(
   language:string
-): AstroLanguage {
-
-  switch(language){
-
-    case "hindi":
-      return "hindi";
-
-    case "marathi":
-      return "marathi";
-
-    case "tamil":
-      return "tamil";
-
-    case "telugu":
-      return "telugu";
-
-    case "nepali":
-      return "nepali";
+):AstroLanguage {
 
 
-    default:
-      return "english";
+ switch(language){
 
-  }
+
+  case "hindi":
+
+    return "hindi";
+
+
+  case "marathi":
+
+    return "marathi";
+
+
+  case "tamil":
+
+    return "tamil";
+
+
+  case "telugu":
+
+    return "telugu";
+
+
+  case "nepali":
+
+    return "nepali";
+
+
+  default:
+
+    return "english";
+
+
+ }
 
 }
+
+
 
 
 
@@ -69,33 +141,45 @@ function normalizeLanguage(
 //////////////////////////////////////////////////////////////
 
 function normalizeText(
-  text:string
-){
+ text:string
+):string {
+
 
  return text
+
   .toLowerCase()
+
   .replace(/[^\w\s]/g,"")
+
   .replace(/\s+/g," ")
+
   .trim();
+
 
 }
 
 
 
 
+
+
+
 //////////////////////////////////////////////////////////////
-// DUPLICATE FILTER
+// DUPLICATE REMOVER
 //////////////////////////////////////////////////////////////
 
 function removeDuplicateText(
- items:string[]
-){
+ items:string[] = []
+):string[] {
+
 
  const seen =
-   new Set<string>();
+  new Set<string>();
 
 
- return items.filter(item=>{
+ return items.filter(
+  item=>{
+
 
    const key =
     normalizeText(item);
@@ -104,7 +188,9 @@ function removeDuplicateText(
    if(
     seen.has(key)
    ){
+
     return false;
+
    }
 
 
@@ -113,52 +199,81 @@ function removeDuplicateText(
 
    return true;
 
- });
 
-}
-
-
-
-
-//////////////////////////////////////////////////////////////
-// GENERIC AI QUALITY FILTER
-//////////////////////////////////////////////////////////////
-
-function isGenericAIText(
- text:string
-){
-
- const blocked = [
-
-   "supports confidence",
-
-   "positive development",
-
-   "growth patterns",
-
-   "natural abilities",
-
-   "continue developing your strengths",
-
-   "use this supportive energy wisely",
-
- ];
-
-
- const value =
-   normalizeText(text);
-
-
-
- return blocked.some(
-   word =>
-    value.includes(
-      normalizeText(word)
-    )
+  }
  );
 
 
 }
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// AI GENERIC CONTENT FILTER
+//////////////////////////////////////////////////////////////
+
+function isGenericAIText(
+ text:string
+):boolean {
+
+
+ const blocked = [
+
+
+  "supports confidence",
+
+
+  "positive development",
+
+
+  "growth patterns",
+
+
+  "natural abilities",
+
+
+  "continue developing your strengths",
+
+
+  "use this supportive energy wisely",
+
+
+  "this energy helps you",
+
+
+  "this period brings",
+
+
+  "a positive phase",
+
+
+ ];
+
+
+
+ const value =
+  normalizeText(text);
+
+
+
+ return blocked.some(
+  phrase =>
+
+   value.includes(
+    normalizeText(phrase)
+   )
+
+ );
+
+
+}
+
+
+
 
 
 
@@ -169,55 +284,83 @@ function isGenericAIText(
 
 function cleanSentence(
  text?:string
-){
+):string | undefined {
 
- if(!text)
-   return text;
+
+ if(
+  !text
+ ){
+
+  return text;
+
+ }
+
 
 
  const sentences =
-   text
-    .split(".")
-    .map(
-      x=>x.trim()
-    )
-    .filter(Boolean);
+
+  text
+
+   .split(".")
+
+   .map(
+    item =>
+     item.trim()
+   )
+
+   .filter(Boolean);
+
 
 
 
  const seen =
-   new Set<string>();
+  new Set<string>();
+
 
 
  const cleaned =
-   sentences.filter(sentence=>{
+
+  sentences.filter(
+   sentence=>{
 
 
-     const key =
-       normalizeText(sentence);
+    const key =
+     normalizeText(sentence);
 
 
 
-     if(
-       seen.has(key)
-     ){
-       return false;
-     }
+    if(
+     seen.has(key)
+    ){
+
+     return false;
+
+    }
 
 
-     seen.add(key);
+
+    seen.add(key);
 
 
-     return true;
+    return true;
 
 
-   });
+   }
+  );
+
 
 
 
  return cleaned.length
-   ? cleaned.join(". ") + "."
-   : text;
+
+ ?
+
+ cleaned.join(". ") + "."
+
+
+ :
+
+ text;
 
 
 }
@@ -225,94 +368,138 @@ function cleanSentence(
 
 
 
+
+
+
 //////////////////////////////////////////////////////////////
-// SAFE ARRAY PICKER
+// SAFE AI TEXT PICKER
 //////////////////////////////////////////////////////////////
 
 function safeEnhancedText(
- enhanced:string | null | undefined,
+ enhanced:string | undefined | null,
  fallback:string
-)
-
-{
-
- if(!enhanced)
-   return fallback;
+):string {
 
 
  if(
-   isGenericAIText(enhanced)
+  !enhanced
  ){
-   return fallback;
+
+  return fallback;
+
  }
 
 
- return cleanSentence(enhanced)
-   ??
-   fallback;
+
+ if(
+  isGenericAIText(enhanced)
+ ){
+
+  return fallback;
+
+ }
+
+
+
+ return (
+
+  cleanSentence(enhanced)
+
+  ??
+
+  fallback
+
+ );
+
 
 }
-
-
-
-
 //////////////////////////////////////////////////////////////
-// PLANET MERGE
+// PLANET PREDICTION MERGER
 //////////////////////////////////////////////////////////////
 
 function mergePlanetPrediction(
- original:any[],
- enhanced:any[]
+  original:any[] = [],
+  enhanced:any[] = []
 ){
 
+
  return original.map(
-   planet=>{
+  planet=>{
 
 
-    const updated =
-      enhanced.find(
-        item =>
-          item.name === planet.name
-      );
+   const updated =
 
-
-    if(!updated)
-      return planet;
+    enhanced.find(
+     item =>
+      item.name === planet.name
+    );
 
 
 
-    return {
+   if(
+    !updated
+   ){
 
-      ...planet,
-
-
-      message:
-        safeEnhancedText(
-          updated.message,
-          planet.message
-        ),
-
-
-      positive:
-        updated.positive?.length
-        ?
-        updated.positive
-        :
-        planet.positive,
-
-
-      caution:
-        updated.caution?.length
-        ?
-        updated.caution
-        :
-        planet.caution,
-
-
-    };
-
+    return planet;
 
    }
+
+
+
+   return {
+
+
+    ...planet,
+
+
+
+    message:
+
+     safeEnhancedText(
+
+      updated.message,
+
+      planet.message
+
+     ),
+
+
+
+
+    positive:
+
+     updated.positive?.length
+
+     ?
+
+     updated.positive
+
+     :
+
+     planet.positive,
+
+
+
+
+
+    caution:
+
+     updated.caution?.length
+
+     ?
+
+     updated.caution
+
+     :
+
+     planet.caution,
+
+
+
+   };
+
+
+  }
  );
 
 
@@ -321,117 +508,658 @@ function mergePlanetPrediction(
 
 
 
+
+
+
 //////////////////////////////////////////////////////////////
-// LIFE MERGE
+// LIFE PREDICTION MERGER
 //////////////////////////////////////////////////////////////
 
 function mergeLifePredictions(
- original:any[],
- enhanced:any[]
+ original:any[] = [],
+ enhanced:any[] = []
 ){
 
+
  return original.map(
-   (section,index)=>{
+  (
+   section,
+   index
+  )=>{
 
 
-    const aiSection =
-      enhanced[index];
-
-
-    if(!aiSection)
-      return section;
-
-
-
-    return {
-
-      ...section,
-
-
-      summary:
-        safeEnhancedText(
-          aiSection.summary,
-          section.summary
-        ),
+   const aiSection =
+    enhanced[index];
 
 
 
-      messages:
+   if(
+    !aiSection
+   ){
 
-       (section.messages ?? []).map(
-          (message,msgIndex)=>{
-
-
-            const aiMessage =
-              aiSection.messages?.[msgIndex];
-
-
-            if(!aiMessage)
-              return message;
-
-
-
-            return {
-
-              ...message,
-
-
-              title:
-                aiMessage.title
-                ||
-                message.title,
-
-
-              prediction:
-                safeEnhancedText(
-                  aiMessage.prediction,
-                  message.prediction
-                ),
-
-
-              summary:
-                cleanSentence(
-                  aiMessage.summary
-                ),
-
-
-              guidance:
-                safeEnhancedText(
-                  aiMessage.guidance,
-                  message.guidance
-                ),
-
-
-              explanation:
-                cleanSentence(
-                  aiMessage.explanation
-                ),
-
-
-              recommendation:
-                cleanSentence(
-                  aiMessage.recommendation
-                ),
-
-
-            };
-
-
-          }
-        ),
-
-
-    };
-
+    return section;
 
    }
 
+
+
+   return {
+
+
+    ...section,
+
+
+
+    summary:
+
+     safeEnhancedText(
+
+      aiSection.summary,
+
+      section.summary
+
+     ),
+
+
+
+
+
+    messages:
+
+
+     (section.messages ?? [])
+
+      .map(
+       (
+        message,
+        messageIndex
+       )=>{
+
+
+        const aiMessage =
+
+         aiSection.messages?.[
+          messageIndex
+         ];
+
+
+
+        if(
+         !aiMessage
+        ){
+
+         return message;
+
+        }
+
+
+
+        return {
+
+
+         ...message,
+
+
+
+         title:
+
+          aiMessage.title
+
+          ??
+
+          message.title,
+
+
+
+
+
+         prediction:
+
+          safeEnhancedText(
+
+           aiMessage.prediction,
+
+           message.prediction
+
+          ),
+
+
+
+
+
+         summary:
+
+          cleanSentence(
+
+           aiMessage.summary
+
+          )
+
+          ??
+
+          message.summary,
+
+
+
+
+
+         guidance:
+
+          safeEnhancedText(
+
+           aiMessage.guidance,
+
+           message.guidance
+
+          ),
+
+
+
+
+
+         explanation:
+
+          cleanSentence(
+
+           aiMessage.explanation
+
+          )
+
+          ??
+
+          message.explanation,
+
+
+
+
+
+         recommendation:
+
+          cleanSentence(
+
+           aiMessage.recommendation
+
+          )
+
+          ??
+
+          message.recommendation,
+
+
+
+        };
+
+
+       }
+      ),
+
+
+   };
+
+
+  }
  );
 
 
 }
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// MAIN AI ENHANCER
+// OPPORTUNITY MERGER
+//////////////////////////////////////////////////////////////
+
+function mergeOpportunities(
+ original:any[] = [],
+ enhanced:any[] = []
+){
+
+
+ return original.map(
+  (
+   item,
+   index
+  )=>{
+
+
+   const aiItem =
+    enhanced[index];
+
+
+
+   if(
+    !aiItem
+   ){
+
+    return item;
+
+   }
+
+
+
+   return {
+
+
+    ...item,
+
+
+
+    title:
+
+     aiItem.title
+
+     ??
+
+     item.title,
+
+
+
+
+
+    description:
+
+     safeEnhancedText(
+
+      aiItem.description,
+
+      item.description
+
+     ),
+
+
+
+   };
+
+
+  }
+ );
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CAUTION MERGER
+//////////////////////////////////////////////////////////////
+
+function mergeCautions(
+ original:any[] = [],
+ enhanced:any[] = []
+){
+
+
+ return original.map(
+  (
+   item,
+   index
+  )=>{
+
+
+   const aiItem =
+    enhanced[index];
+
+
+
+   if(
+    !aiItem
+   ){
+
+    return item;
+
+   }
+
+
+
+   return {
+
+
+    ...item,
+
+
+
+    title:
+
+     aiItem.title
+
+     ??
+
+     item.title,
+
+
+
+
+
+    description:
+
+     safeEnhancedText(
+
+      aiItem.description,
+
+      item.description
+
+     ),
+
+
+
+   };
+
+
+  }
+ );
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// NARRATIVE MERGER
+//////////////////////////////////////////////////////////////
+
+function mergeNarrative(
+ original:any,
+ enhanced:any
+){
+
+
+ if(
+  !enhanced
+ ){
+
+  return original;
+
+ }
+
+
+
+ return {
+
+
+  opening:
+
+   safeEnhancedText(
+
+    enhanced.opening,
+
+    original?.opening ?? ""
+
+   ),
+
+
+
+
+
+  development:
+
+   safeEnhancedText(
+
+    enhanced.development,
+
+    original?.development ?? ""
+
+   ),
+
+
+
+
+
+  advice:
+
+   safeEnhancedText(
+
+    enhanced.advice,
+
+    original?.advice ?? ""
+
+   ),
+
+
+
+
+
+  closing:
+
+   safeEnhancedText(
+
+    enhanced.closing,
+
+    original?.closing ?? ""
+
+   ),
+
+
+
+ };
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// COMPLETE PREDICTION MERGER
+//////////////////////////////////////////////////////////////
+
+function mergeEnhancedPrediction(
+ original:any,
+ enhanced:AIEnhancedPrediction
+){
+
+
+ return {
+
+
+  ...original,
+
+
+
+  ////////////////////////////////////////////////////////////
+  // MAIN CONTENT
+  ////////////////////////////////////////////////////////////
+
+
+  headline:
+
+   safeEnhancedText(
+
+    enhanced.headline,
+
+    original.headline
+
+   ),
+
+
+
+
+
+  overview:
+
+   safeEnhancedText(
+
+    enhanced.overview,
+
+    original.overview
+
+   ),
+
+
+
+
+
+  naturalSummary:
+
+   safeEnhancedText(
+
+    enhanced.naturalSummary,
+
+    original.naturalSummary ?? ""
+
+   ),
+
+
+
+
+
+  guidance:
+
+
+   enhanced.guidance?.length
+
+
+   ?
+
+
+   removeDuplicateText(
+
+    enhanced.guidance
+
+   )
+
+
+   :
+
+
+   original.guidance,
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // PLANETS
+  ////////////////////////////////////////////////////////////
+
+
+  planetaryPredictions:
+
+
+   mergePlanetPrediction(
+
+    original.planetaryPredictions,
+
+    enhanced.planetaryPredictions
+
+   ),
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // LIFE
+  ////////////////////////////////////////////////////////////
+
+
+  lifePredictions:
+
+
+   mergeLifePredictions(
+
+    original.lifePredictions,
+
+    enhanced.lifePredictions
+
+   ),
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // OPPORTUNITIES
+  ////////////////////////////////////////////////////////////
+
+
+  opportunities:
+
+
+   mergeOpportunities(
+
+    original.opportunities,
+
+    enhanced.opportunities
+
+   ),
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // CAUTIONS
+  ////////////////////////////////////////////////////////////
+
+
+  cautions:
+
+
+   mergeCautions(
+
+    original.cautions,
+
+    enhanced.cautions
+
+   ),
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // NARRATIVE
+  ////////////////////////////////////////////////////////////
+
+
+  narrative:
+
+
+   mergeNarrative(
+
+    original.narrative,
+
+    enhanced.narrative
+
+   ),
+
+
+
+ };
+
+
+}
+//////////////////////////////////////////////////////////////
+// MAIN HOROSCOPE AI ENHANCER
 //////////////////////////////////////////////////////////////
 
 export async function enhanceHoroscopeWithAI(
@@ -439,446 +1167,209 @@ export async function enhanceHoroscopeWithAI(
 ): Promise<HoroscopeResult> {
 
 
-  if(
-    !horoscope.prediction
-  ){
+ if(
+  !horoscope.prediction
+ ){
 
-    return horoscope;
+  return horoscope;
 
-  }
-
-
-
-  try {
+ }
 
 
-    const prompt =
-      buildPredictionEnhancementPrompt(
 
-        horoscope.prediction,
+ try {
 
-        normalizeLanguage(
-          horoscope.language
-        )
 
-      );
+  const language =
+
+   normalizeLanguage(
+
+    horoscope.language
+
+   );
 
 
 
 
-    const result =
-      await executeAIStructured({
 
-        systemPrompt:
+  const prompt =
+
+   buildPredictionEnhancementPrompt(
+
+    horoscope.prediction,
+
+    language
+
+   );
+
+
+
+
+
+
+
+  const result =
+
+   await executeAIStructured<AIEnhancedPrediction>(
+
+    {
+
+
+     systemPrompt:
 
 `You are NationPath AI Premium Horoscope Editor.
 
-Your role is only editorial enhancement.
+You are an editorial enhancement layer only.
 
-The astrology engine output is final.
+The NationPath Astro Engine is the only source of astrology truth.
+
+STRICT RULES:
 
 Never:
-- change calculations
+- calculate astrology
 - modify planets
 - modify scores
 - modify rankings
+- modify remedies
+- modify timings
 - add new predictions
-- add remedies
 
-Improve only:
+Only improve:
+
 - language quality
 - readability
 - emotional intelligence
-- professional astrology writing style
+- professional presentation
 
-Avoid repetitive AI generated sentences.
+Return structured JSON only.
 
-Return premium human-written horoscope content.`, 
-
-        userPrompt:
-          prompt,
-
-
-
-        schema:
-          PredictionEnhancementSchema,
-
-
-
-        schemaName:
-          "PredictionEnhancementSchema",
-
-
-      });
+Preserve original meaning.`,
 
 
 
 
 
-    if(
-      !result.success
-    ){
+     userPrompt:
 
-      return horoscope;
+      prompt,
+
+
+
+
+
+   module:
+
+ "astro",
+
+
 
     }
 
+   );
 
 
 
 
-    const enhanced =
-      result.output;
 
 
 
-    const original =
-      horoscope.prediction;
+  if(
+   !result.success
+  ){
 
 
+   console.warn(
 
+    "[HOROSCOPE_AI_FALLBACK]",
 
+    result.error
 
-    return {
+   );
 
 
-      ...horoscope,
-
-
-
-      prediction:{
-
-
-        ...original,
-
-
-
-        //////////////////////////////////////////////////////
-        // MAIN CONTENT
-        //////////////////////////////////////////////////////
-
-
-        headline:
-
-          safeEnhancedText(
-
-            enhanced.headline,
-
-            original.headline
-
-          ),
-
-
-
-
-        overview:
-
-          safeEnhancedText(
-
-            enhanced.overview,
-
-            original.overview
-
-          ),
-
-
-
-
-        naturalSummary:
-
-safeEnhancedText(
-
-  enhanced.naturalSummary,
-
-  original.naturalSummary ?? ""
-
-),
-
-
-
-
-        guidance:
-
-
-          enhanced.guidance?.length
-
-          ?
-
-          removeDuplicateText(
-            enhanced.guidance
-          )
-
-          :
-
-          original.guidance,
-
-
-
-
-
-
-
-        //////////////////////////////////////////////////////
-        // PLANETS
-        //////////////////////////////////////////////////////
-
-
-        planetaryPredictions:
-
-
-          mergePlanetPrediction(
-
-            original.planetaryPredictions,
-
-            enhanced.planetaryPredictions
-
-          ),
-
-
-
-
-
-
-        //////////////////////////////////////////////////////
-        // LIFE AREAS
-        //////////////////////////////////////////////////////
-
-
-        lifePredictions:
-
-
-          mergeLifePredictions(
-
-            original.lifePredictions,
-
-            enhanced.lifePredictions
-
-          ),
-
-
-
-
-
-
-        //////////////////////////////////////////////////////
-        // OPPORTUNITIES
-        //////////////////////////////////////////////////////
-
-
-        opportunities:
-
-
-          original.opportunities.map(
-
-            (item,index)=>{
-
-
-              const ai =
-                enhanced.opportunities?.[index];
-
-
-
-              if(!ai)
-                return item;
-
-
-
-              return {
-
-
-                ...item,
-
-
-                title:
-                  ai.title || item.title,
-
-
-
-                description:
-
-                  safeEnhancedText(
-
-                    ai.description,
-
-                    item.description
-
-                  ),
-
-
-              };
-
-
-            }
-
-          ),
-
-
-
-
-
-
-
-        //////////////////////////////////////////////////////
-        // CAUTIONS
-        //////////////////////////////////////////////////////
-
-
-        cautions:
-
-
-          original.cautions.map(
-
-            (item,index)=>{
-
-
-              const ai =
-                enhanced.cautions?.[index];
-
-
-
-              if(!ai)
-                return item;
-
-
-
-              return {
-
-
-                ...item,
-
-
-                title:
-                  ai.title || item.title,
-
-
-
-                description:
-
-                  safeEnhancedText(
-
-                    ai.description,
-
-                    item.description
-
-                  ),
-
-
-              };
-
-
-            }
-
-          ),
-
-
-
-
-
-
-
-        //////////////////////////////////////////////////////
-        // NARRATIVE
-        //////////////////////////////////////////////////////
-
-
-        narrative:
-
-
-        enhanced.narrative
-
-        ?
-
-        {
-
-
-          opening:
-
-            safeEnhancedText(
-
-              enhanced.narrative.opening,
-
-              original.narrative?.opening ?? ""
-
-            ),
-
-
-
-          development:
-
-            safeEnhancedText(
-
-              enhanced.narrative.development,
-
-              original.narrative?.development ?? ""
-
-            ),
-
-
-
-          advice:
-
-            safeEnhancedText(
-
-              enhanced.narrative.advice,
-
-              original.narrative?.advice ?? ""
-
-            ),
-
-
-
-          closing:
-
-            safeEnhancedText(
-
-              enhanced.narrative.closing,
-
-              original.narrative.closing
-
-            ),
-
-
-        }
-
-
-        :
-
-        original.narrative,
-
-
-
-      },
-
-
-    };
-
-
+   return horoscope;
 
 
   }
 
-  catch(error){
-
-
-    console.error(
-
-      "[HOROSCOPE_AI_ENHANCEMENT_ERROR]",
-
-      error
-
-    );
 
 
 
-    return horoscope;
 
+
+
+  const enhanced =
+
+   result.data;
+
+
+
+
+
+  if(
+   !enhanced
+  ){
+
+   return horoscope;
 
   }
 
+
+
+
+
+
+
+
+  return {
+
+
+   ...horoscope,
+
+
+
+   prediction:
+
+
+    mergeEnhancedPrediction(
+
+     horoscope.prediction,
+
+     enhanced
+
+    ),
+
+
+
+  };
+
+
+
+
+
+ }
+
+ catch(error){
+
+
+
+  console.error(
+
+   "[HOROSCOPE_AI_ENHANCEMENT_ERROR]",
+
+   error
+
+  );
+
+
+
+  return horoscope;
+
+
+ }
 
 
 }
-
 
 
 
@@ -894,3 +1385,24 @@ export default {
 
 
 };
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// END OF NATIONPATH AI HOROSCOPE ENHANCEMENT SERVICE
+//
+// Astro Engine
+//        ↓
+// Prediction Engine
+//        ↓
+// NationPath AI Editorial Layer
+//        ↓
+// Premium Horoscope Experience
+//
+// Calculations Immutable
+//
+// NO OPENAI
+// NO EXTERNAL PROVIDER
+//////////////////////////////////////////////////////////////

@@ -1,7 +1,26 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
-// Natural Language Intelligence Layer
-// Production Future Proof Version v11 FINAL POLISH LOCK
+//
+// NATURAL LANGUAGE INTELLIGENCE LAYER
+//
+// Production Version v4.1 FUTURE PROOF LOCK
+//
+// Responsibilities:
+//
+// Prediction Data
+//        ↓
+// Context Intelligence
+//        ↓
+// Narrative Intelligence
+//        ↓
+// Premium Horoscope Language
+//
+// Does NOT:
+// - Calculate planets
+// - Modify astrology rules
+// - Change scoring
+// - Change planetary strength
+// - Change API contract
 //////////////////////////////////////////////////////////////
 
 import type {
@@ -16,6 +35,21 @@ import type {
 
 
 
+//////////////////////////////////////////////////////////////
+// ENGINE STATUS
+//////////////////////////////////////////////////////////////
+
+export const LANGUAGE_ENGINE_STATUS =
+
+"PRODUCTION";
+
+
+export const LANGUAGE_ENGINE_VERSION =
+
+"v4.1-FUTURE-PROOF";
+
+
+
 
 
 //////////////////////////////////////////////////////////////
@@ -27,7 +61,6 @@ function safeArray<T>(
   value:T[] | undefined | null
 
 ):T[] {
-
 
   return Array.isArray(value)
 
@@ -47,61 +80,31 @@ function normalizeText(
 
 ):string {
 
+  return (
 
-  return (value ?? "")
+    value ?? ""
 
-    .toLowerCase()
+  )
 
-    .replace(
+  .toLowerCase()
 
-      /[^a-z0-9\s]/g,
+  .replace(
 
-      ""
+    /[^a-z0-9\s]/g,
 
-    )
+    ""
 
-    .replace(
+  )
 
-      /\s+/g,
+  .replace(
 
-      " "
+    /\s+/g,
 
-    )
+    " "
 
-    .trim();
+  )
 
-}
-
-
-
-
-
-function cleanTitle(
-
-  value:string | undefined | null
-
-):string {
-
-
-  return (value ?? "")
-
-    .replace(
-
-      " influence",
-
-      ""
-
-    )
-
-    .replace(
-
-      "Influence",
-
-      ""
-
-    )
-
-    .trim();
+  .trim();
 
 }
 
@@ -114,7 +117,6 @@ function capitalize(
   value:string
 
 ):string {
-
 
   if(!value){
 
@@ -139,12 +141,39 @@ function capitalize(
 
 
 
+function cleanTitle(
+
+  value:string | undefined | null
+
+):string {
+
+  return (
+
+    value ?? ""
+
+  )
+
+  .replace(
+
+    / influence/gi,
+
+    ""
+
+  )
+
+  .trim();
+
+}
+
+
+
+
+
 function clamp(
 
   value:number
 
 ):number {
-
 
   return Math.max(
 
@@ -167,117 +196,33 @@ function clamp(
 
 
 //////////////////////////////////////////////////////////////
-// ENTITY MEMORY INTELLIGENCE
+// CONTEXT MEMORY SYSTEM v2
 //////////////////////////////////////////////////////////////
 
-function createEntityKey(
+function createMemoryKey(
 
-  value:string
+  entity:string,
+
+  context?:string,
+
+  theme?:string
 
 ):string {
 
 
-  return normalizeText(
+  return [
 
-    cleanTitle(value)
+    normalizeText(entity),
 
-  );
+    normalizeText(context),
 
-}
+    normalizeText(theme)
 
+  ]
 
+  .filter(Boolean)
 
-
-
-function removeEntityDuplicates(
-
-  sentences:string[]
-
-):string[] {
-
-
-  const memory =
-
-  new Set<string>();
-
-
-
-  return sentences.filter(
-
-    sentence => {
-
-
-      const words =
-
-      normalizeText(
-
-        sentence
-
-      )
-
-      .split(" ");
-
-
-
-
-
-      const entity =
-
-      words
-
-      .filter(
-
-        word =>
-
-        word.length > 3
-
-      )
-
-      .slice(
-
-        0,
-
-        2
-
-      )
-
-      .join("");
-
-
-
-
-
-      if(
-
-        !entity ||
-
-        memory.has(entity)
-
-      ){
-
-        return false;
-
-      }
-
-
-
-
-
-      memory.add(
-
-        entity
-
-      );
-
-
-
-      return true;
-
-
-    }
-
-  );
-
+  .join("_");
 
 }
 
@@ -285,130 +230,33 @@ function removeEntityDuplicates(
 
 
 
+function uniqueSentences(
 
-
-//////////////////////////////////////////////////////////////
-// SENTENCE QUALITY ENGINE
-//////////////////////////////////////////////////////////////
-function cleanSentences(
-
-  sentences:string[]
+  values:string[]
 
 ):string[] {
 
 
-  const seen = new Set<string>();
-
-  const patternMemory = new Set<string>();
+  const memory = new Set<string>();
 
 
-  return removeEntityDuplicates(
+  return values.filter(
 
-    sentences
-
-  )
-
-  .filter(
-
-    sentence => {
+    value => {
 
 
-      const normalized =
+      const key = normalizeText(
 
-        normalizeText(
-
-          sentence
-
-        );
-
-
-
-      if(
-
-        !normalized ||
-
-        normalized.length < 25
-
-      ){
-
-        return false;
-
-      }
-
-
-
-      if(
-
-        seen.has(
-
-          normalized
-
-        )
-
-      ){
-
-        return false;
-
-      }
-
-
-
-      seen.add(
-
-        normalized
+        value
 
       );
 
 
-
-      /*
-        Remove template repetition.
-
-        Example:
-        Moon becomes a major active theme...
-        Jupiter becomes a major active theme...
-      */
-
-
-      const pattern =
-
-        normalized
-
-        .replace(
-
-          /\b(sun|moon|mars|mercury|jupiter|venus|saturn|rahu|ketu)\b/g,
-
-          ""
-
-        )
-
-        .replace(
-
-          /\b(spirituality|communication|education|career|finance|mind|overall|love)\b/g,
-
-          ""
-
-        )
-
-        .replace(
-
-          /\s+/g,
-
-          " "
-
-        )
-
-        .trim();
-
-
-
       if(
 
-        patternMemory.has(
+        !key ||
 
-          pattern
-
-        )
+        memory.has(key)
 
       ){
 
@@ -417,50 +265,951 @@ function cleanSentences(
       }
 
 
-
-      patternMemory.add(
-
-        pattern
-
-      );
-
+      memory.add(key);
 
 
       return true;
 
     }
 
-  )
+  );
 
-  .slice(
+}
 
-    0,
 
-    6
+
+
+
+
+//////////////////////////////////////////////////////////////
+// TONE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+type LanguageTone =
+
+"strong"
+
+|
+
+"balanced"
+
+|
+
+"caution";
+
+
+
+
+
+function getTone(
+
+ score:number
+
+):LanguageTone {
+
+
+  if(score >= 85){
+
+    return "strong";
+
+  }
+
+
+  if(score >= 60){
+
+    return "balanced";
+
+  }
+
+
+  return "caution";
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// ZODIAC LANGUAGE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+type ZodiacProfile = {
+
+  nature:string;
+
+  communication:string;
+
+  guidance:string;
+
+  growth:string;
+
+};
+
+
+
+
+
+const ZODIAC_LANGUAGE_PROFILE:
+
+Record<string,ZodiacProfile> = {
+
+
+  aries:{
+
+    nature:
+
+    "initiative, courage and forward movement",
+
+    communication:
+
+    "direct expression balanced with patience",
+
+    guidance:
+
+    "channel energy through thoughtful decisions",
+
+    growth:
+
+    "confidence and purposeful action"
+
+  },
+
+
+
+  taurus:{
+
+    nature:
+
+    "stability, patience and practical growth",
+
+    communication:
+
+    "calm expression and reliable choices",
+
+    guidance:
+
+    "build progress through consistency",
+
+    growth:
+
+    "steady improvement and long term results"
+
+  },
+
+
+
+  gemini:{
+
+    nature:
+
+    "learning, communication and new ideas",
+
+    communication:
+
+    "curiosity, adaptability and thoughtful exchange",
+
+    guidance:
+
+    "combine flexibility with focused thinking",
+
+    growth:
+
+    "knowledge and intelligent decisions"
+
+  },
+
+
+
+  cancer:{
+
+    nature:
+
+    "emotional awareness, care and protection",
+
+    communication:
+
+    "sensitivity combined with clear expression",
+
+    guidance:
+
+    "trust intuition while maintaining balance",
+
+    growth:
+
+    "emotional strength and inner stability"
+
+  },
+
+
+
+  leo:{
+
+    nature:
+
+    "creativity, confidence and self expression",
+
+    communication:
+
+    "authentic expression with humility",
+
+    guidance:
+
+    "lead with awareness and responsibility",
+
+    growth:
+
+    "personal confidence and recognition"
+
+  },
+
+
+
+  virgo:{
+
+    nature:
+
+    "analysis, improvement and practical solutions",
+
+    communication:
+
+    "clarity, detail and thoughtful planning",
+
+    guidance:
+
+    "focus on improvement without overthinking",
+
+    growth:
+
+    "skill development and practical success"
+
+  },
+
+
+
+  libra:{
+
+    nature:
+
+    "balance, relationships and cooperation",
+
+    communication:
+
+    "diplomacy and understanding",
+
+    guidance:
+
+    "maintain harmony through wise choices",
+
+    growth:
+
+    "partnerships and balanced progress"
+
+  },
+
+
+
+  scorpio:{
+
+    nature:
+
+    "transformation, depth and determination",
+
+    communication:
+
+    "honest expression and emotional awareness",
+
+    guidance:
+
+    "use intensity with patience",
+
+    growth:
+
+    "inner strength and meaningful change"
+
+  },
+
+
+
+  sagittarius:{
+
+    nature:
+
+    "exploration, learning and expansion",
+
+    communication:
+
+    "optimism and broader perspectives",
+
+    guidance:
+
+    "combine enthusiasm with responsibility",
+
+    growth:
+
+    "wisdom and new experiences"
+
+  },
+
+
+
+  capricorn:{
+
+    nature:
+
+    "discipline, ambition and achievement",
+
+    communication:
+
+    "practical thinking and maturity",
+
+    guidance:
+
+    "progress through patience and structure",
+
+    growth:
+
+    "long term success"
+
+  },
+
+
+
+  aquarius:{
+
+    nature:
+
+    "innovation, independence and future thinking",
+
+    communication:
+
+    "original ideas and open perspectives",
+
+    guidance:
+
+    "balance individuality with cooperation",
+
+    growth:
+
+    "creative solutions and new possibilities"
+
+  },
+
+
+
+  pisces:{
+
+    nature:
+
+    "intuition, compassion and imagination",
+
+    communication:
+
+    "emotional understanding and creativity",
+
+    guidance:
+
+    "follow intuition with practical awareness",
+
+    growth:
+
+    "spiritual understanding and inspiration"
+
+  }
+
+
+};
+
+
+
+
+
+function getZodiacProfile(
+
+ zodiac?:string
+
+):ZodiacProfile {
+
+
+  return (
+
+    ZODIAC_LANGUAGE_PROFILE[
+
+      normalizeText(zodiac)
+
+    ]
+
+    ??
+
+    {
+
+      nature:
+
+      "personal growth and awareness",
+
+      communication:
+
+      "clear expression and understanding",
+
+      guidance:
+
+      "balanced decisions",
+
+      growth:
+
+      "continuous improvement"
+
+    }
 
   );
 
 }
 
 //////////////////////////////////////////////////////////////
-// CATEGORY FILTER
+// NARRATIVE VARIATION INTELLIGENCE v1
 //////////////////////////////////////////////////////////////
 
-function isSystemNoise(
+function getNarrativeVariation(
+  zodiac?: string,
+  area?: string
+): string {
+
+  const sign = normalizeText(zodiac);
+  const theme = normalizeText(area);
+
+
+  if(sign === "aries"){
+    return "with initiative and confident action";
+  }
+
+  if(sign === "taurus"){
+    return "through patience, stability and practical choices";
+  }
+
+  if(sign === "gemini"){
+    return "through learning, communication and adaptability";
+  }
+
+  if(sign === "cancer"){
+    return "through emotional awareness and thoughtful decisions";
+  }
+
+  if(sign === "leo"){
+    return "through creativity, confidence and self-expression";
+  }
+
+  if(sign === "virgo"){
+    return "through analysis, improvement and careful planning";
+  }
+
+  if(sign === "libra"){
+    return "through balance, cooperation and meaningful connections";
+  }
+
+  if(sign === "scorpio"){
+    return "through transformation, depth and focused determination";
+  }
+
+  if(sign === "sagittarius"){
+    return "through exploration, wisdom and broader perspectives";
+  }
+
+  if(sign === "capricorn"){
+    return "through discipline, structure and long-term vision";
+  }
+
+  if(sign === "aquarius"){
+    return "through innovation, originality and future thinking";
+  }
+
+  if(sign === "pisces"){
+    return "through intuition, creativity and compassionate understanding";
+  }
+
+
+  return "through awareness and balanced progress";
+
+}
+
+//////////////////////////////////////////////////////////////
+// PLANET LANGUAGE INTELLIGENCE v4.1
+//////////////////////////////////////////////////////////////
+
+type PlanetProfile = {
+
+  identity:string;
+
+  strong:string;
+
+  balanced:string;
+
+  caution:string;
+
+};
+
+
+
+
+
+const PLANET_LANGUAGE_PROFILE:
+
+Record<string,PlanetProfile> = {
+
+
+
+  sun:{
+
+    identity:
+
+    "confidence, leadership and personal expression",
+
+    strong:
+
+    "Sun strengthens confidence, leadership and the ability to express personal strengths clearly. This phase supports decisive action and stronger self-belief.",
+
+    balanced:
+
+    "Sun supports steady confidence and encourages responsible expression of abilities. Balanced choices help build recognition over time.",
+
+    caution:
+
+    "Sun asks for awareness around pride and personal expectations. Humility and patience help transform ambition into positive progress."
+
+  },
+
+
+
+
+
+  moon:{
+
+    identity:
+
+    "emotional awareness, intuition and inner balance",
+
+    strong:
+
+    "Moon enhances emotional understanding, intuition and inner stability. This period supports reflection, creativity and meaningful connections.",
+
+    balanced:
+
+    "Moon encourages emotional balance and thoughtful responses. Awareness of feelings helps create better decisions.",
+
+    caution:
+
+    "Moon requires emotional patience and calm reflection. Avoiding unnecessary reactions can protect inner peace."
+
+  },
+
+
+
+
+
+  mars:{
+
+    identity:
+
+    "action, courage and determination",
+
+    strong:
+
+    "Mars increases motivation, courage and the ability to take initiative. Focused energy can create meaningful progress.",
+
+    balanced:
+
+    "Mars supports steady effort and practical action. Controlled determination helps achieve better outcomes.",
+
+    caution:
+
+    "Mars requires patience before major actions. Managing impulses and using energy wisely creates better results."
+
+  },
+
+
+
+
+
+  mercury:{
+
+    identity:
+
+    "communication, intelligence and adaptability",
+
+    strong:
+
+    "Mercury sharpens communication, learning ability and decision making. This phase supports ideas, discussions and new opportunities.",
+
+    balanced:
+
+    "Mercury supports thoughtful communication and practical learning. Clear expression improves progress.",
+
+    caution:
+
+    "Mercury asks for careful communication and attention to details. Patience helps avoid misunderstandings."
+
+  },
+
+
+
+
+
+  jupiter:{
+
+    identity:
+
+    "growth, wisdom and expansion",
+
+    strong:
+
+    "Jupiter expands opportunities through wisdom, learning and positive guidance. This phase supports growth and broader possibilities.",
+
+    balanced:
+
+    "Jupiter encourages gradual growth through knowledge and experience. Consistent effort creates lasting improvement.",
+
+    caution:
+
+    "Jupiter reminds you to balance optimism with practical planning. Awareness helps manage expectations."
+
+  },
+
+
+
+
+
+  venus:{
+
+    identity:
+
+    "relationships, creativity and harmony",
+
+    strong:
+
+    "Venus enhances harmony, creativity and meaningful connections. This period supports appreciation and positive relationships.",
+
+    balanced:
+
+    "Venus encourages balance in relationships and personal interests. Patience supports emotional stability.",
+
+    caution:
+
+    "Venus asks for balanced choices in desires and relationships. Awareness helps maintain harmony."
+
+  },
+
+
+
+
+
+  saturn:{
+
+    identity:
+
+    "discipline, responsibility and long term growth",
+
+    strong:
+
+    "Saturn rewards discipline, patience and consistent effort. Structured actions can create strong foundations.",
+
+    balanced:
+
+    "Saturn encourages responsibility and gradual progress. Persistence becomes an important strength.",
+
+    caution:
+
+    "Saturn requires patience during delays or challenges. Discipline and acceptance help overcome obstacles."
+
+  },
+
+
+
+
+
+  rahu:{
+
+    identity:
+
+    "ambition, innovation and unusual opportunities",
+
+    strong:
+
+    "Rahu creates opportunities through innovation, ambition and new experiences. Awareness can help channel this energy positively.",
+
+    balanced:
+
+    "Rahu encourages exploration and new perspectives. Practical thinking helps use opportunities wisely.",
+
+    caution:
+
+    "Rahu requires clarity before major decisions. Avoiding confusion and unrealistic expectations brings balance."
+
+  },
+
+
+
+
+
+  ketu:{
+
+    identity:
+
+    "intuition, research and inner transformation",
+
+    strong:
+
+    "Ketu supports deeper understanding, intuition and personal transformation. Reflection can reveal valuable insights.",
+
+    balanced:
+
+    "Ketu encourages observation and inner awareness. Quiet focus supports meaningful growth.",
+
+    caution:
+
+    "Ketu asks for grounding and clarity. Staying connected with practical responsibilities creates balance."
+
+  }
+
+};
+
+
+
+
+
+function getPlanetProfile(
+
+ planet:string
+
+):PlanetProfile {
+
+
+  return (
+
+    PLANET_LANGUAGE_PROFILE[
+
+      normalizeText(planet)
+
+    ]
+
+    ??
+
+    {
+
+      identity:
+
+      "personal growth and awareness",
+
+      strong:
+
+      `${capitalize(planet)} supports positive development and meaningful progress.`,
+
+      balanced:
+
+      `${capitalize(planet)} encourages steady improvement through awareness.`,
+
+      caution:
+
+      `${capitalize(planet)} requires patience and thoughtful decisions.`
+
+    }
+
+  );
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTEXT COMPOSER
+//////////////////////////////////////////////////////////////
+
+type LanguageContext = {
+
+  zodiac?:string;
+
+  planet?:string;
+
+  area?:string;
+
+  score:number;
+
+  tone:LanguageTone;
+
+};
+
+
+
+
+
+function createLanguageContext(
+
+ data:{
+
+   zodiac?:string;
+
+   planet?:string;
+
+   area?:string;
+
+   score:number;
+
+ }
+
+):LanguageContext {
+
+
+  return {
+
+    zodiac:data.zodiac,
+
+    planet:data.planet,
+
+    area:data.area,
+
+    score:data.score,
+
+    tone:getTone(data.score)
+
+  };
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PREMIUM PLANET SENTENCE GENERATOR
+//////////////////////////////////////////////////////////////
+
+function generatePlanetSentence(
+
+ planet:PlanetPrediction,
+
+ zodiac?:string
+
+):string {
+
+
+  const context = createLanguageContext({
+
+    zodiac,
+
+    planet:planet.planet,
+
+    score:planet.strengthScore
+
+  });
+
+
+
+  const profile = getPlanetProfile(
+
+    planet.planet
+
+  );
+
+
+
+  if(context.tone === "strong"){
+
+    return profile.strong;
+
+  }
+
+
+
+  if(context.tone === "caution"){
+
+    return profile.caution;
+
+  }
+
+
+
+  return profile.balanced;
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PLANET SUPPORT SENTENCE
+//////////////////////////////////////////////////////////////
+
+function generatePlanetPositive(
+
+ planet:PlanetPrediction
+
+):string {
+
+
+  const profile = getPlanetProfile(
+
+    planet.planet
+
+  );
+
+
+  return (
+
+    `${capitalize(planet.planet)} supports growth through ${profile.identity}.`
+
+  );
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PLANET CAUTION SENTENCE
+//////////////////////////////////////////////////////////////
+
+function generatePlanetCaution(
+
+ planet:PlanetPrediction
+
+):string {
+
+
+  return (
+
+    `${capitalize(planet.planet)} requires awareness, patience and balanced decisions to use its influence constructively.`
+
+  );
+
+}
+//////////////////////////////////////////////////////////////
+// RANKING INTELLIGENCE v4.1
+//////////////////////////////////////////////////////////////
+
+function isNoiseRanking(
 
  ranking:PredictionRanking
 
 ):boolean {
 
 
-  const title =
-
-  normalizeText(
+  const title = normalizeText(
 
     ranking.title
 
   );
-
 
 
   return (
@@ -472,7 +1221,6 @@ function isSystemNoise(
     title.includes("general")
 
   );
-
 
 }
 
@@ -489,11 +1237,7 @@ function shouldUseRanking(
 
   return (
 
-    !isSystemNoise(
-
-      ranking
-
-    )
+    !isNoiseRanking(ranking)
 
     &&
 
@@ -501,127 +1245,6 @@ function shouldUseRanking(
 
   );
 
-
-}
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// TONE RESOLUTION
-//////////////////////////////////////////////////////////////
-
-function getTone(
-
- score:number
-
- ):
-
- "high"
-
- |
-
- "medium"
-
- |
-
- "low" {
-
-
-  if(score >=85){
-
-    return "high";
-
-  }
-
-
-
-  if(score >=60){
-
-    return "medium";
-
-  }
-
-
-
-  return "low";
-
-
-}
-
-//////////////////////////////////////////////////////////////
-// PLANET LANGUAGE INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-function generatePlanetSentence(
-
-  planet:PlanetPrediction
-
-):string {
-
-
-  const name =
-
-  capitalize(
-
-    planet.planet
-
-  );
-
-
-
-  const tone =
-
-  getTone(
-
-    planet.strengthScore
-
-  );
-
-
-
-
-
-  if(tone === "high"){
-
-
-    return (
-
-      `${name} carries a strong planetary influence in this cycle, supporting confidence, growth, awareness and meaningful progress.`
-
-    );
-
-
-  }
-
-
-
-
-
-  if(tone === "low"){
-
-
-    return (
-
-      `${name} encourages patience, balance and thoughtful decisions to handle challenges with greater awareness.`
-
-    );
-
-
-  }
-
-
-
-
-
-  return (
-
-    `${name} supports steady improvement through consistency, practical action and conscious effort.`
-
-  );
-
-
 }
 
 
@@ -630,20 +1253,28 @@ function generatePlanetSentence(
 
 
 
-//////////////////////////////////////////////////////////////
-// RANKING LANGUAGE INTELLIGENCE
-//////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////
+// ZODIAC AWARE RANKING LANGUAGE
+//////////////////////////////////////////////////////////////
 function generateRankingSentence(
 
-  ranking:PredictionRanking
+  ranking:PredictionRanking,
+
+  zodiac?:string
 
 ):string {
 
-
-  const name =
-
-  capitalize(
+ console.log(
+    "RANKING INTELLIGENCE CHECK",
+    {
+      zodiac,
+      title: ranking.title,
+      score: ranking.score
+    }
+  );
+  
+  const name = capitalize(
 
     cleanTitle(
 
@@ -654,10 +1285,21 @@ function generateRankingSentence(
   );
 
 
+  const normalizedName = normalizeText(
 
-  const tone =
+    name
 
-  getTone(
+  );
+
+
+  const profile = getZodiacProfile(
+
+    zodiac
+
+  );
+
+
+  const tone = getTone(
 
     ranking.score
 
@@ -665,290 +1307,52 @@ function generateRankingSentence(
 
 
 
+  ////////////////////////////////////////////////////////////
+  // COMMUNICATION INTELLIGENCE
+  ////////////////////////////////////////////////////////////
 
+  if(
 
-
-
-  if(tone === "high"){
-
-
-    return (
-
-      `${name} becomes a major active theme during this period, bringing valuable opportunities, growth and noticeable developments.`
-
-    );
-
-
-  }
-
-
-
-
-
-  if(tone === "medium"){
-
-
-    return (
-
-      `${name} remains an important area where focused effort, awareness and consistent actions can create positive progress.`
-
-    );
-
-
-  }
-
-
-
-
-
-  return (
-
-    `${name} requires patience, practical attention and balanced decisions for better outcomes.`
-
-  );
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// LIFE AREA LANGUAGE INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-function generateLifeSentence(
-
-  life:LifePrediction
-
-):string {
-
-
-  const area =
-
-  capitalize(
-
-    life.area
-
-  );
-
-
-
-  const tone =
-
-  getTone(
-
-    life.score
-
-  );
-
-
-
-
-
-
-
-  if(tone === "high"){
-
-
-    return (
-
-      `${area} receives strong supportive energy in this cycle, creating opportunities for growth, confidence and meaningful development.`
-
-    );
-
-
-  }
-
-
-
-
-
-  if(tone === "low"){
-
-
-    return (
-
-      `${area} needs conscious attention. Patience, balance and consistent improvement can help manage current challenges.`
-
-    );
-
-
-  }
-
-
-
-
-
-  return (
-
-    `${area} shows positive movement where awareness, discipline and steady effort can create gradual improvement.`
-
-  );
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// OPPORTUNITY LANGUAGE ENGINE
-//////////////////////////////////////////////////////////////
-
-function generateOpportunitySentence(
-
-  ranking:PredictionRanking
-
-):string {
-
-
-  const name =
-
-  capitalize(
-
-    cleanTitle(
-
-      ranking.title
-
-    )
-
-  );
-
-
-
-  return (
-
-    `${name} presents meaningful possibilities where preparation, awareness and consistent effort can support positive progress.`
-
-  );
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// CAUTION LANGUAGE ENGINE
-//////////////////////////////////////////////////////////////
-
-function generateCautionSentence(
-
-  ranking:PredictionRanking
-
-):string {
-
-
-  const name =
-
-  capitalize(
-
-    cleanTitle(
-
-      ranking.title
-
-    )
-
-  );
-
-
-
-  return (
-
-    `${name} requires awareness, patience and balanced decisions to maintain stability and avoid unnecessary difficulties.`
-
-  );
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// NATURAL SUMMARY SENTENCE BUILDER
-//////////////////////////////////////////////////////////////
-
-function buildSummarySentences(
-
- planetaryPredictions:PlanetPrediction[],
-
- predictionRanking:PredictionRanking[]
-
-):string[] {
-
-
-  const sentences:string[] = [];
-
-
-
-  const used =
-
-  new Set<string>();
-
-
-
-
-
-
-
-  for(
-
-    const planet of safeArray(
-
-      planetaryPredictions
-
-    ).slice(
-
-      0,
-
-      3
-
-    )
+    normalizedName.includes("communication")
 
   ){
 
 
+    if(
 
-    const key =
+      normalizeText(zodiac)
 
-    createEntityKey(
+      ===
 
-      planet.planet
+      "gemini"
 
-    );
+    ){
 
+      return (
 
-
-    if(!used.has(key)){
-
-
-      sentences.push(
-
-        generatePlanetSentence(
-
-          planet
-
-        )
+        `${name} becomes a major strength through learning, adaptability and thoughtful exchange. Curiosity and clear expression can create meaningful progress.`
 
       );
 
+    }
 
 
-      used.add(key);
+
+    if(
+
+      normalizeText(zodiac)
+
+      ===
+
+      "aries"
+
+    ){
+
+      return (
+
+        `${name} improves when confidence and direct expression are balanced with patience. Thoughtful communication creates stronger results.`
+
+      );
 
     }
 
@@ -959,8 +1363,601 @@ function buildSummarySentences(
 
 
 
+  ////////////////////////////////////////////////////////////
+  // SPIRITUALITY INTELLIGENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    normalizedName.includes("spiritual")
+
+  ){
 
 
+    return (
+
+      `${name} develops through reflection, awareness and deeper understanding. Inner balance and thoughtful choices support meaningful personal growth.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // CAREER INTELLIGENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    normalizedName.includes("career")
+
+  ){
+
+
+    return (
+
+      `${name} progresses through focused effort, skill development and responsible decisions. ${capitalize(profile.growth)} can help create better opportunities.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // FINANCE INTELLIGENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    normalizedName.includes("finance")
+
+    ||
+
+    normalizedName.includes("wealth")
+
+    ||
+
+    normalizedName.includes("money")
+
+  ){
+
+
+    return (
+
+      `${name} benefits from practical planning and balanced decisions. Awareness and discipline can support long term stability.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // RELATIONSHIP INTELLIGENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    normalizedName.includes("love")
+
+    ||
+
+    normalizedName.includes("relationship")
+
+  ){
+
+
+    return (
+
+      `${name} grows through understanding, emotional balance and meaningful connections. Thoughtful actions help strengthen relationships.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // STRONG INFLUENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    tone === "strong"
+
+  ){
+
+
+    return (
+
+      `${name} becomes an important area of growth during this phase. ${capitalize(profile.growth)} helps you use available opportunities with awareness and purpose.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // CAUTION INFLUENCE
+  ////////////////////////////////////////////////////////////
+
+  if(
+
+    tone === "caution"
+
+  ){
+
+
+    return (
+
+      `${name} requires thoughtful attention during this period. ${profile.guidance} helps maintain stability while moving forward.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // BALANCED INFLUENCE
+  ////////////////////////////////////////////////////////////
+
+  return (
+
+    `${name} moves through a balanced phase ${getNarrativeVariation(zodiac,name)}. Consistent effort and awareness support gradual improvement.`
+
+  );
+
+}
+
+//////////////////////////////////////////////////////////////
+// LIFE AREA LANGUAGE INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+function generateLifeSentence(
+
+ life:LifePrediction,
+
+ zodiac?:string
+
+):string {
+
+
+  const area = capitalize(
+
+    life.area
+
+  );
+
+
+  const tone = getTone(
+
+    life.score
+
+  );
+
+
+  const profile = getZodiacProfile(
+
+    zodiac
+
+  );
+
+
+if(tone === "strong"){
+
+  return (
+
+    `${area} receives supportive influence during this phase. ` +
+    `Progress develops through focused actions, awareness and balanced decisions. ` +
+    `${capitalize(zodiac ?? "Your")} energy supports meaningful growth by applying personal strengths wisely.`
+
+  );
+
+}
+
+
+
+
+
+if(tone === "caution"){
+
+
+  return (
+
+    `${area} requires patience and thoughtful attention during this period. ` +
+    `Balanced choices, awareness and practical understanding can help manage challenges effectively.`
+
+  );
+
+}
+
+
+
+
+
+return (
+
+  `${area} moves through a balanced phase where consistency, awareness and thoughtful decisions support gradual improvement.`
+
+);
+}
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// GUIDANCE INTELLIGENCE v4.1
+//
+// IMPORTANT:
+//
+// Does NOT expose:
+// life.messages.guidance
+//
+// Creates fresh human language
+// from:
+// area
+// score
+// zodiac
+// theme
+//////////////////////////////////////////////////////////////
+
+function generateSmartGuidance(
+
+ life:LifePrediction,
+
+ zodiac?:string
+
+):string {
+
+
+  const area = normalizeText(
+
+    life.area
+
+  );
+
+
+  const profile = getZodiacProfile(
+
+    zodiac
+
+  );
+
+
+  const tone = getTone(
+
+    life.score
+
+  );
+
+
+
+
+
+  if(area.includes("career")){
+
+
+    if(tone === "strong"){
+
+      return (
+
+        `Career opportunities improve when ${profile.guidance}. Focused actions can help convert potential into achievement.`
+
+      );
+
+    }
+
+
+    return (
+
+      `Career progress benefits from patience, planning and ${profile.communication}. Consistent effort can create better direction.`
+
+    );
+
+  }
+
+
+
+
+
+  if(area.includes("finance")){
+
+
+    return (
+
+      `Financial decisions require awareness and practical thinking. Balanced planning helps create stability and long term improvement.`
+
+    );
+
+  }
+
+
+
+
+
+  if(area.includes("love") || area.includes("relationship")){
+
+
+    return (
+
+      `Relationships grow through understanding, communication and emotional balance. Thoughtful actions strengthen connections.`
+
+    );
+
+  }
+
+
+
+
+
+  if(area.includes("health")){
+
+
+    return (
+
+      `Well-being improves through balance, discipline and awareness of personal needs. Small consistent habits support better outcomes.`
+
+    );
+
+  }
+
+
+
+
+
+  return (
+
+    `${capitalize(life.area)} benefits from awareness, patience and ${profile.guidance}. Balanced decisions support positive growth.`
+
+  );
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// GUIDANCE CLEANER
+//////////////////////////////////////////////////////////////
+
+function cleanGuidance(
+
+ messages:string[]
+
+):string[] {
+
+
+  return uniqueSentences(
+
+    messages.filter(
+
+      message => {
+
+
+        const key = normalizeText(
+
+          message
+
+        );
+
+
+        return (
+
+          key.length > 25
+
+        );
+
+      }
+
+    )
+
+  );
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// BUILD GUIDANCE
+//////////////////////////////////////////////////////////////
+
+function buildGuidanceSentence(
+
+ lifePredictions:LifePrediction[],
+
+ zodiac?:string
+
+):string[] {
+
+
+  return safeArray(
+
+    lifePredictions
+
+  )
+
+  .slice(
+
+    0,
+
+    6
+
+  )
+
+  .map(
+
+    life =>
+
+    generateSmartGuidance(
+
+      life,
+
+      zodiac
+
+    )
+
+  );
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// LANGUAGE CLEAN FILTER
+//////////////////////////////////////////////////////////////
+
+function cleanLanguage(
+
+ sentences:string[]
+
+):string[] {
+
+
+  return uniqueSentences(
+
+    sentences
+
+  )
+
+  .filter(
+
+    sentence =>
+
+    normalizeText(sentence).length > 25
+
+  )
+
+  .slice(
+
+    0,
+
+    12
+
+  );
+
+}
+//////////////////////////////////////////////////////////////
+// NATURAL SUMMARY BUILDER v4.1
+//////////////////////////////////////////////////////////////
+
+function buildSummarySentences(
+
+ planetaryPredictions:PlanetPrediction[],
+
+ predictionRanking:PredictionRanking[],
+
+ zodiacSign?:string
+
+):string[] {
+
+
+  const sentences:string[] = [];
+
+  const profile = getZodiacProfile(
+
+    zodiacSign
+
+  );
+
+
+
+  ////////////////////////////////////////////////////////////
+  // ZODIAC OPENING
+  ////////////////////////////////////////////////////////////
+
+  if(zodiacSign){
+
+
+    sentences.push(
+
+      `${capitalize(zodiacSign)} enters a phase focused on ${profile.nature}. This period highlights awareness, growth and meaningful choices.`
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // PLANETARY STORY
+  ////////////////////////////////////////////////////////////
+
+  for(
+
+    const planet of safeArray(
+
+      planetaryPredictions
+
+    )
+
+    .slice(
+
+      0,
+
+      4
+
+    )
+
+  ){
+
+
+    sentences.push(
+
+      generatePlanetSentence(
+
+        planet,
+
+        zodiacSign
+
+      )
+
+    );
+
+  }
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // LIFE DIRECTION
 
   for(
 
@@ -987,51 +1984,31 @@ function buildSummarySentences(
   ){
 
 
+    sentences.push(
 
-    const key =
+      generateRankingSentence(
 
-    createEntityKey(
+        ranking,
 
-      ranking.title
+        zodiacSign
+
+      )
 
     );
-
-
-
-    if(!used.has(key)){
-
-
-      sentences.push(
-
-        generateRankingSentence(
-
-          ranking
-
-        )
-
-      );
-
-
-
-      used.add(key);
-
-    }
-
 
   }
 
 
 
 
-
-  return cleanSentences(
+  return cleanLanguage(
 
     sentences
 
   );
 
-
 }
+
 
 
 
@@ -1042,27 +2019,62 @@ function buildSummarySentences(
 //////////////////////////////////////////////////////////////
 // NATURAL SUMMARY EXPORT
 //////////////////////////////////////////////////////////////
-
 export function generateNaturalSummary(
 
-  planetaryPredictions:PlanetPrediction[],
+  planetaryPredictions: PlanetPrediction[],
 
-  predictionRanking:PredictionRanking[]
+  predictionRanking: PredictionRanking[],
 
-):string {
+  zodiacSign?: string
+
+): string {
 
 
-  const result =
+  console.log(
+    "LANGUAGE ENGINE INPUT",
+    {
+      zodiacSign,
 
-  buildSummarySentences(
+      planetsCount:
+      planetaryPredictions?.length ?? 0,
+
+      rankingsCount:
+      predictionRanking?.length ?? 0,
+
+      firstPlanet:
+      planetaryPredictions?.[0]?.planet,
+
+      firstRanking:
+      predictionRanking?.[0]?.title
+    }
+  );
+
+
+
+  const result = buildSummarySentences(
 
     planetaryPredictions,
 
-    predictionRanking
+    predictionRanking,
+
+    zodiacSign
 
   );
 
 
+
+  console.log(
+    "LANGUAGE ENGINE OUTPUT",
+    {
+      zodiacSign,
+
+      sentencesCount:
+      result.length,
+
+      sentences:
+      result
+    }
+  );
 
 
 
@@ -1071,14 +2083,11 @@ export function generateNaturalSummary(
 
     return (
 
-      "Your horoscope analysis highlights important planetary patterns, opportunities and areas of personal growth."
+      `${capitalize(zodiacSign ?? "Your")} horoscope reflects planetary influences, personal strengths and opportunities for growth.`
 
     );
 
-
   }
-
-
 
 
 
@@ -1088,330 +2097,7 @@ export function generateNaturalSummary(
 
   );
 
-
 }
-//////////////////////////////////////////////////////////////
-// STORY MEMORY ENGINE
-//////////////////////////////////////////////////////////////
-
-function createStoryKey(
-
-  value:string
-
-):string {
-
-
-  return normalizeText(
-
-    cleanTitle(
-
-      value
-
-    )
-
-  );
-
-}
-
-
-
-
-
-function removeStoryDuplicates(
-
-  sentences:string[]
-
-):string[] {
-
-
-  const memory =
-
-  new Set<string>();
-
-
-
-  return sentences.filter(
-
-    sentence => {
-
-
-      const key =
-
-      createStoryKey(
-
-        sentence
-
-      );
-
-
-
-      if(
-
-        !key ||
-
-        memory.has(key)
-
-      ){
-
-        return false;
-
-      }
-
-
-
-      memory.add(
-
-        key
-
-      );
-
-
-
-      return true;
-
-
-    }
-
-  );
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// COMPLETE NARRATIVE BUILDER
-//////////////////////////////////////////////////////////////
-
-export function buildCompleteNarrative(
-
-  predictionRanking:PredictionRanking[],
-
-  lifePredictions:LifePrediction[]
-
-):string {
-
-
-  const narrative:string[] = [];
-
-
-
-  const usedEntities =
-
-  new Set<string>();
-
-
-
-
-
-
-
-  ////////////////////////////////////////////////////////////
-  // LIFE STORY
-  ////////////////////////////////////////////////////////////
-
-  for(
-
-    const life of safeArray(
-
-      lifePredictions
-
-    )
-
-    .slice(
-
-      0,
-
-      5
-
-    )
-
-  ){
-
-
-
-    const key =
-
-    createStoryKey(
-
-      life.area
-
-    );
-
-
-
-    if(
-
-      !usedEntities.has(key)
-
-    ){
-
-
-
-      narrative.push(
-
-        generateLifeSentence(
-
-          life
-
-        )
-
-      );
-
-
-
-      usedEntities.add(
-
-        key
-
-      );
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  ////////////////////////////////////////////////////////////
-  // RANKING STORY
-  ////////////////////////////////////////////////////////////
-
-  for(
-
-    const ranking of safeArray(
-
-      predictionRanking
-
-    )
-
-    .filter(
-
-      shouldUseRanking
-
-    )
-
-    .slice(
-
-      0,
-
-      5
-
-    )
-
-  ){
-
-
-
-    const key =
-
-    createStoryKey(
-
-      ranking.title
-
-    );
-
-
-
-    if(
-
-      !usedEntities.has(key)
-
-    ){
-
-
-
-      narrative.push(
-
-        generateRankingSentence(
-
-          ranking
-
-        )
-
-      );
-
-
-
-      usedEntities.add(
-
-        key
-
-      );
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  const finalStory =
-
-  cleanSentences(
-
-    removeStoryDuplicates(
-
-      narrative
-
-    )
-
-  );
-
-
-
-
-
-
-
-  if(
-
-    finalStory.length === 0
-
-  ){
-
-
-
-    return (
-
-      "Your horoscope analysis reflects planetary influences, personal strengths and areas where awareness supports continuous growth."
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-  return finalStory.join(
-
-    " "
-
-  );
-
-
-}
-
-
-
-
 
 
 
@@ -1421,20 +2107,25 @@ export function buildCompleteNarrative(
 
 export function generateOpening(
 
-  predictionRanking:PredictionRanking[]
+ predictionRanking:PredictionRanking[],
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const top =
+  const profile = getZodiacProfile(
 
-  safeArray(
+    zodiacSign
+
+  );
+
+
+  const top = safeArray(
 
     predictionRanking
 
   )[0];
-
-
 
 
 
@@ -1443,26 +2134,24 @@ export function generateOpening(
 
     return (
 
-      "Your horoscope analysis reveals important planetary patterns and personal growth directions."
+      `${capitalize(zodiacSign ?? "Your")} horoscope reflects important planetary patterns and ${capitalize(profile.growth)}.`
 
     );
-
 
   }
 
 
 
 
-
-
   return (
 
-    `Your current cycle highlights ${capitalize(cleanTitle(top.title))} as a central theme influencing upcoming experiences.`
+    `${capitalize(zodiacSign ?? "Your")} enters a phase where ${cleanTitle(top.title)} receives attention through ${profile.nature}. Awareness and balanced decisions become important.`
 
   );
 
-
 }
+
+
 
 
 
@@ -1476,14 +2165,23 @@ export function generateOpening(
 
 export function generateDevelopment(
 
-  predictionRanking:PredictionRanking[]
+ predictionRanking:PredictionRanking[],
+
+ zodiacSign?:string
 
 ):string {
 
+ console.log(
+    "DEVELOPMENT INPUT CHECK",
+    {
+      zodiacSign,
+      firstRanking: predictionRanking?.[0],
+      count: predictionRanking?.length
+    }
+  );
 
-  const sentences =
 
-  safeArray(
+  const sentences = safeArray(
 
     predictionRanking
 
@@ -1499,7 +2197,7 @@ export function generateDevelopment(
 
     0,
 
-    3
+    5
 
   )
 
@@ -1509,7 +2207,9 @@ export function generateDevelopment(
 
     generateRankingSentence(
 
-      item
+      item,
+
+      zodiacSign
 
     )
 
@@ -1517,11 +2217,7 @@ export function generateDevelopment(
 
 
 
-
-
-
-
-  return cleanSentences(
+  return cleanLanguage(
 
     sentences
 
@@ -1533,8 +2229,9 @@ export function generateDevelopment(
 
   );
 
-
 }
+
+
 
 
 
@@ -1548,14 +2245,14 @@ export function generateDevelopment(
 
 export function generateLifeNarrative(
 
-  lifePredictions:LifePrediction[]
+ lifePredictions:LifePrediction[],
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const sentences =
-
-  safeArray(
+  const sentences = safeArray(
 
     lifePredictions
 
@@ -1575,7 +2272,9 @@ export function generateLifeNarrative(
 
     generateLifeSentence(
 
-      life
+      life,
+
+      zodiacSign
 
     )
 
@@ -1583,11 +2282,7 @@ export function generateLifeNarrative(
 
 
 
-
-
-
-
-  return cleanSentences(
+  return cleanLanguage(
 
     sentences
 
@@ -1599,7 +2294,6 @@ export function generateLifeNarrative(
 
   );
 
-
 }
 
 
@@ -1608,47 +2302,49 @@ export function generateLifeNarrative(
 
 
 
+
 //////////////////////////////////////////////////////////////
-// GUIDANCE INTELLIGENCE
+// COMPLETE STORY BUILDER
 //////////////////////////////////////////////////////////////
 
-export function generateAdvice(
+export function buildCompleteNarrative(
 
-  lifePredictions:LifePrediction[]
+ predictionRanking:PredictionRanking[],
+
+ lifePredictions:LifePrediction[],
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const advice =
+  const sections = [
 
-safeArray(
-  lifePredictions
-)
+    generateDevelopment(
 
-.flatMap(
+      predictionRanking,
 
-  life =>
+      zodiacSign
 
-  safeArray(
-    life.messages
-  )
-
-  .map(
-
-    message =>
-
-    message.guidance ?? ""
-
-  )
-
-  .filter(Boolean)
-
-);
+    ),
 
 
-  return cleanSentences(
+    generateLifeNarrative(
 
-    advice
+      lifePredictions,
+
+      zodiacSign
+
+    ),
+
+
+  ];
+
+
+
+  return cleanLanguage(
+
+    sections
 
   )
 
@@ -1658,23 +2354,50 @@ safeArray(
 
   );
 
-
 }
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// FINAL CLOSING INTELLIGENCE
+// ADVICE GENERATOR
 //////////////////////////////////////////////////////////////
 
-export function generateClosing():string {
+export function generateAdvice(
+
+ lifePredictions:LifePrediction[],
+
+ zodiacSign?:string
+
+):string {
 
 
-  return (
+  return cleanGuidance(
 
-    "Use this guidance for awareness, reflection and balanced decisions while continuing your personal journey."
+    buildGuidanceSentence(
+
+      lifePredictions,
+
+      zodiacSign
+
+    )
+
+  )
+
+  .join(
+
+    " "
 
   );
 
-
 }
+
+
 
 
 
@@ -1688,61 +2411,69 @@ export function generateClosing():string {
 
 export function generateNarrative(
 
-  predictionRanking:PredictionRanking[],
+ predictionRanking:PredictionRanking[],
 
-  lifePredictions:LifePrediction[]
+ lifePredictions:LifePrediction[],
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const sections = [
+ console.log(
+    "NARRATIVE INPUT CHECK",
+    {
+      zodiacSign,
+      rankings: predictionRanking?.length,
+      life: lifePredictions?.length
+    }
+  );
 
+  const sections = [
 
     generateOpening(
 
-      predictionRanking
+      predictionRanking,
+
+      zodiacSign
 
     ),
-
 
 
     generateDevelopment(
 
-      predictionRanking
+      predictionRanking,
+
+      zodiacSign
 
     ),
-
 
 
     generateLifeNarrative(
 
-      lifePredictions
+      lifePredictions,
+
+      zodiacSign
 
     ),
-
 
 
     generateAdvice(
 
-      lifePredictions
+      lifePredictions,
+
+      zodiacSign
 
     ),
 
 
-
     generateClosing()
-
-
 
   ];
 
 
 
-
-
-
-
-  return cleanSentences(
+  return cleanLanguage(
 
     sections
 
@@ -1754,6 +2485,27 @@ export function generateNarrative(
 
   );
 
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// FINAL CLOSING INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+export function generateClosing():string {
+
+
+  return (
+
+    "Use this guidance for awareness, reflection and balanced decisions while continuing your personal journey."
+
+  );
 
 }
 
@@ -1763,72 +2515,111 @@ export function generateNarrative(
 
 
 
+
 //////////////////////////////////////////////////////////////
-// OPPORTUNITY / CAUTION PUBLIC SUPPORT
+// OPPORTUNITY LANGUAGE
 //////////////////////////////////////////////////////////////
 
-export function buildOpportunityNarrative(
+function generateOpportunitySentence(
 
-  opportunities:PredictionRanking[]
+ ranking:PredictionRanking,
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const sentences =
+  const profile = getZodiacProfile(
 
-  safeArray(
-
-    opportunities
-
-  )
-
-  .filter(
-
-    shouldUseRanking
-
-  )
-
-  .slice(
-
-    0,
-
-    5
-
-  )
-
-  .map(
-
-    item =>
-
-    generateOpportunitySentence(
-
-      item
-
-    )
+    zodiacSign
 
   );
 
 
+  return (
 
-
-
-
-
-  return cleanSentences(
-
-    sentences
-
-  )
-
-  .join(
-
-    " "
+    `${capitalize(cleanTitle(ranking.title))} presents opportunities through ${profile.growth}. Awareness and preparation can help create meaningful progress.`
 
   );
-
 
 }
 
+
+
+
+
+
+export function buildOpportunityNarrative(
+
+ opportunities:PredictionRanking[],
+
+ zodiacSign?:string
+
+):string {
+
+
+  return cleanLanguage(
+
+    safeArray(opportunities)
+
+    .filter(shouldUseRanking)
+
+    .slice(0,5)
+
+    .map(
+
+      item =>
+
+      generateOpportunitySentence(
+
+        item,
+
+        zodiacSign
+
+      )
+
+    )
+
+  )
+
+  .join(" ");
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// CAUTION LANGUAGE
+//////////////////////////////////////////////////////////////
+
+function generateCautionSentence(
+
+ ranking:PredictionRanking,
+
+ zodiacSign?:string
+
+):string {
+
+
+  const profile = getZodiacProfile(
+
+    zodiacSign
+
+  );
+
+
+  return (
+
+    `${capitalize(cleanTitle(ranking.title))} requires mindful decisions. ${profile.guidance} helps maintain stability during challenges.`
+
+  );
+
+}
 
 
 
@@ -1837,65 +2628,48 @@ export function buildOpportunityNarrative(
 
 export function buildCautionNarrative(
 
-  cautions:PredictionRanking[]
+ cautions:PredictionRanking[],
+
+ zodiacSign?:string
 
 ):string {
 
 
-  const sentences =
+  return cleanLanguage(
 
-  safeArray(
+    safeArray(cautions)
 
-    cautions
+    .filter(
 
-  )
-
-  .filter(
-
-    item =>
-
-    item.score < 70
-
-  )
-
-  .slice(
-
-    0,
-
-    5
-
-  )
-
-  .map(
-
-    item =>
-
-    generateCautionSentence(
-
-      item
+      item => item.score < 70
 
     )
 
-  );
+    .slice(
 
+      0,
 
+      5
 
+    )
 
+    .map(
 
+      item =>
 
+      generateCautionSentence(
 
-  return cleanSentences(
+        item,
 
-    sentences
+        zodiacSign
+
+      )
+
+    )
 
   )
 
-  .join(
-
-    " "
-
-  );
-
+  .join(" ");
 
 }
 
@@ -1905,8 +2679,10 @@ export function buildCautionNarrative(
 
 
 
+
+
 //////////////////////////////////////////////////////////////
-// LANGUAGE QUALITY METADATA SUPPORT
+// LANGUAGE QUALITY INTELLIGENCE
 //////////////////////////////////////////////////////////////
 
 export function calculateLanguageQuality(
@@ -1924,11 +2700,7 @@ export function calculateLanguageQuality(
 
 
 
-
-
-  const lengthScore =
-
-  Math.min(
+  const lengthScore = Math.min(
 
     40,
 
@@ -1942,13 +2714,7 @@ export function calculateLanguageQuality(
 
 
 
-
-
-
-
-  const sentenceCount =
-
-  text
+  const sentenceCount = text
 
   .split(".")
 
@@ -1958,13 +2724,7 @@ export function calculateLanguageQuality(
 
 
 
-
-
-
-
-  const structureScore =
-
-  Math.min(
+  const structureScore = Math.min(
 
     30,
 
@@ -1972,58 +2732,123 @@ export function calculateLanguageQuality(
 
   );
 
-const words =
-
-text
-
-.split(" ")
-
-.map(
-
-word =>
-
-normalizeText(word)
-
-)
-
-.filter(Boolean);
-
-
-
-const duplicatePenalty =
-
-words.length !== new Set(words).size
-
-?
-
-5
-
-:
-
-0;
-
 
 
   return clamp(
 
-    lengthScore +
+    lengthScore
 
-    structureScore -
+    +
 
-    duplicatePenalty +
+    structureScore
+
+    +
 
     30
 
   );
 
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// LANGUAGE PROFILE
+//////////////////////////////////////////////////////////////
+
+export function getLanguageProfile(){
+
+
+  return {
+
+
+    version:
+
+    LANGUAGE_ENGINE_VERSION,
+
+
+    status:
+
+    LANGUAGE_ENGINE_STATUS,
+
+
+    mode:
+
+    "future-proof-narrative-engine",
+
+
+
+    features:[
+
+
+      "zodiac_personality_engine",
+
+      "planet_language_profiles",
+
+      "context_composer",
+
+      "premium_narrative_generation",
+
+      "smart_guidance",
+
+      "duplicate_memory_v2",
+
+      "multilingual_ready"
+
+
+    ]
+
+
+  };
 
 }
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 // FINAL LANGUAGE ENGINE LOCK
 //////////////////////////////////////////////////////////////
 
-export const LANGUAGE_ENGINE_VERSION =
+/*
 
-"v11-FINAL-POLISH-LOCK";
+NATIONPATH ASTRO
 
+Language Intelligence Engine:
+
+v4.1 FUTURE PROOF LOCK
+
+
+Flow:
+
+Prediction Data
+
+↓
+
+Context Intelligence
+
+↓
+
+Planet + Zodiac Personality
+
+↓
+
+Premium Narrative
+
+↓
+
+User Horoscope Experience
+
+
+*/

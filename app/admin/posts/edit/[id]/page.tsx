@@ -1,1339 +1,1657 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  useParams,
+  useRouter
+} from "next/navigation";
+
 
 import Editor from "@/components/Editor";
+import VideoPreview from "@/components/admin/article/VideoPreview";
+import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
+
+
+
+
+
+interface AISummary {
+
+overview:string;
+
+points:string[];
+
+impact:string;
+
+takeaway:string;
+
+}
+
+
+
 
 interface FAQItem {
-  question: string;
-  answer: string;
+
+question:string;
+
+answer:string;
+
 }
+
+
+
+
 
 interface ArticleForm {
-  title: string;
-  slug: string;
-  category: string;
 
-  content: string;
 
-  images: string[];
+title:string;
 
-  videoUrl: string;
-  videoPosition: string;
 
-  breaking: boolean;
-  featured: boolean;
+slug:string;
 
-  breakingPriority: number;
-  homepagePriority: number;
 
-  breakingDuration: string;
-  featuredDuration: string;
+content:string;
 
-  keyHighlights: string;
 
-  whyItMatters: string;
 
-  faqItems: FAQItem[];
+categoryId:string;
 
-  publishedAt: string;
 
-  metaTitle: string;
-  metaDescription: string;
-  metaKeywords: string;
 
-  status: string;
+images:string[];
+
+
+
+videoUrl:string;
+
+
+videoPosition:string;
+
+
+
+
+breaking:boolean;
+
+
+featured:boolean;
+
+
+
+breakingPriority:number;
+
+
+homepagePriority:number;
+
+
+
+breakingDuration:string;
+
+
+featuredDuration:string;
+
+
+
+
+
+keyHighlights:string;
+
+
+whyItMatters:string;
+
+
+
+
+
+
+shortBrief:string;
+
+
+background:string;
+
+
+
+timeline:string;
+
+
+
+expertOpinion:any;
+
+
+
+factCheck:any;
+
+
+
+whatsNext:string;
+
+
+
+keyTakeaways:string;
+
+
+
+sourceDesk:string;
+
+
+
+
+
+faqItems:FAQItem[];
+
+
+
+
+
+publishedAt:string;
+
+
+
+
+
+metaTitle:string;
+
+
+metaDescription:string;
+
+
+metaKeywords:string;
+
+
+
+
+status:string;
+
+
+live:boolean;
+
+
 }
 
 
-const initialForm: ArticleForm = {
-  title: "",
-  slug: "",
-  category: "",
 
-  content: "",
 
-  images: [],
 
-  videoUrl: "",
-  videoPosition: "top",
 
-  breaking: false,
-  featured: false,
 
-  breakingPriority: 0,
-  homepagePriority: 0,
 
-  breakingDuration: "30",
-  featuredDuration: "24",
 
-  keyHighlights: "",
+const initialForm:ArticleForm={
 
-  whyItMatters: "",
 
-  faqItems: [],
 
-  publishedAt: "",
+title:"",
 
-  metaTitle: "",
-  metaDescription: "",
-  metaKeywords: "",
 
-  status: "pending",
+slug:"",
+
+
+
+content:"",
+
+
+
+categoryId:"",
+
+
+
+images:[],
+
+
+videoUrl:"",
+
+
+videoPosition:"top",
+
+
+
+
+
+breaking:false,
+
+
+featured:false,
+
+
+
+breakingPriority:0,
+
+
+homepagePriority:0,
+
+
+
+breakingDuration:"30",
+
+
+featuredDuration:"24",
+
+
+
+
+keyHighlights:"",
+
+
+whyItMatters:"",
+
+
+
+
+
+shortBrief:"",
+
+
+background:"",
+
+
+
+timeline:"",
+
+
+
+expertOpinion:{
+
+
+name:"",
+
+
+role:"",
+
+
+quote:""
+
+
+},
+
+
+
+
+factCheck:{
+
+
+claim:"",
+
+
+status:"",
+
+
+explanation:"",
+
+
+sources:""
+
+
+},
+
+
+
+
+
+whatsNext:"",
+
+
+
+keyTakeaways:"",
+
+
+
+sourceDesk:"",
+
+
+
+
+
+faqItems:[],
+
+
+
+
+
+publishedAt:"",
+
+
+
+
+
+metaTitle:"",
+
+
+metaDescription:"",
+
+
+metaKeywords:"",
+
+
+
+
+status:"pending",
+
+
+
+live:true
+
+
+
 };
 
 
-export default function EditPost() {
 
-  const { id } = useParams();
-  const router = useRouter();
 
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
 
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-const [aiLoading,setAiLoading] = useState(false);
 
-const [aiSummary,setAiSummary] = useState<any>(null);
 
-  const [categories, setCategories] = useState<any[]>([]);
+export default function EditPost(){
 
 
-  const [slugLocked, setSlugLocked] = useState(true);
 
+const {
+id
+}=useParams();
 
-  const [form, setForm] = useState<ArticleForm>(
-    initialForm
-  );
 
 
+const router=useRouter();
 
-  useEffect(() => {
 
-    if (!id) return;
 
 
-    async function loadArticle() {
 
-      try {
 
-        setLoading(true);
+const [loading,setLoading]=useState(true);
 
 
-        const response = await fetch(
-          `/api/articles/${id}`
-        );
+const [saving,setSaving]=useState(false);
 
 
-        const data = await response.json();
 
+const [uploading,setUploading]=useState(false);
 
-        if (!data.success) {
 
-          throw new Error(
-            data.error || "Article not found"
-          );
 
-        }
+const [categories,setCategories]=useState<any[]>([]);
 
 
-        const article = data.article;
 
+const [error,setError]=useState("");
 
-        setForm({
 
-          title: article.title || "",
 
+const [message,setMessage]=useState("");
 
-          slug: article.slug || "",
 
 
-          category:
-            article.category?._id ||
-            article.category ||
-            "",
+const [aiLoading,setAiLoading]=useState(false);
 
 
-          content:
-            article.content || "",
 
+const [aiSummary,setAiSummary]=useState<AISummary|null>(null);
 
-          images:
-            Array.isArray(article.images)
-              ? article.images
-              : [],
 
 
-          videoUrl:
-            article.videoUrl || "",
 
 
-          videoPosition:
-            article.videoPosition || "top",
+const [slugLocked,setSlugLocked]=useState(true);
 
 
-          breaking:
-            Boolean(article.breaking),
 
 
-          featured:
-            Boolean(article.featured),
 
+const [form,setForm]=useState<ArticleForm>(
+initialForm
+);
 
-          breakingPriority:
-            Number(article.breakingPriority || 0),
 
 
-          homepagePriority:
-            Number(article.homepagePriority || 0),
 
 
-          breakingDuration:
-            String(article.breakingDuration || 30),
 
 
-          featuredDuration:
-            String(article.featuredDuration || 24),
 
+useEffect(()=>{
 
-          keyHighlights:
-            Array.isArray(article.keyHighlights)
-              ? article.keyHighlights.join("\n")
-              : "",
 
+if(!id) return;
 
-          whyItMatters:
-            article.whyItMatters || "",
 
 
-          faqItems:
-            Array.isArray(article.faqItems)
-              ? article.faqItems
-              : [],
 
 
-          publishedAt:
-            article.publishedAt
-              ? new Date(article.publishedAt)
-                  .toISOString()
-                  .slice(0, 16)
-              : "",
+async function loadArticle(){
 
 
-          metaTitle:
-            article.metaTitle || "",
+try{
 
 
-          metaDescription:
-            article.metaDescription || "",
+setLoading(true);
 
 
-          metaKeywords:
-            article.metaKeywords || "",
 
 
-          status:
-            article.status || "pending"
 
-        });
-        
-      setAiSummary(
-          article.aiSummary || null
-        );
+const res =
+await fetch(
+`/api/articles/${id}`
+);
 
-      } catch (err: any) {
 
-        setError(
-          err.message ||
-          "Failed loading article"
-        );
 
-      } finally {
 
-        setLoading(false);
 
-      }
+const data =
+await res.json();
 
-    }
 
 
-    loadArticle();
 
 
-  }, [id]);
+if(!data.success){
 
+throw new Error(
+"Article not found"
+);
 
+}
 
-  useEffect(() => {
 
-    async function loadCategories() {
 
-      try {
 
-        const res = await fetch(
-          "/api/categories"
-        );
 
+const article=data.article;
 
-        const data = await res.json();
 
 
-        if (data.success) {
 
-          setCategories(
-            data.categories || []
-          );
 
-        }
 
 
-      } catch {
 
-        console.log(
-          "Category loading failed"
-        );
+setForm({
 
-      }
 
-    }
 
+title:
+article.title || "",
 
-    loadCategories();
 
 
-  }, []);
 
+slug:
+article.slug || "",
 
 
 
-  function updateField(
-    key: keyof ArticleForm,
-    value: any
-  ) {
 
-    setForm(prev => ({
-      ...prev,
-      [key]: value
-    }));
+content:
+article.content || "",
 
-  }
 
 
 
-  function createSlug(
-    value: string
-  ) {
 
-    return value
-      .toLowerCase()
-      .trim()
-      .replace(
-        /[^a-z0-9]+/g,
-        "-"
-      )
-      .replace(
-        /(^-|-$)/g,
-        ""
-      );
+categoryId:
+article.categoryId || "",
 
-  }
 
 
 
-  function handleTitleChange(
-    value: string
-  ) {
 
-    setForm(prev => ({
+images:
 
-      ...prev,
+Array.isArray(article.images)
 
-      title: value,
+?
 
-      slug: slugLocked
-        ? createSlug(value)
-        : prev.slug
+article.images
 
-    }));
+:
 
-  }
+[],
 
 
 
-  function toggleSlugLock() {
 
-    setSlugLocked(prev => !prev);
 
-  }
 
+videoUrl:
+article.videoUrl || "",
 
 
-  async function uploadImage(
-    file: File
-  ) {
 
-    const uploadData =
-      new FormData();
 
-    uploadData.append(
-      "file",
-      file
-    );
+videoPosition:
+article.videoPosition || "top",
 
 
-    const response = await fetch(
-      "/api/upload",
-      {
-        method: "POST",
-        body: uploadData
-      }
-    );
 
 
-    const data =
-      await response.json();
 
 
-    if (data.url) {
+breaking:
+Boolean(article.breaking),
 
-      setForm(prev => ({
 
-        ...prev,
 
-        images: [
-          ...prev.images,
-          data.url
-        ]
 
-      }));
+featured:
+Boolean(article.featured),
 
-    }
 
-  }
-    function removeImage(
-    index: number
-  ) {
 
-    setForm(prev => ({
 
-      ...prev,
 
-      images:
-        prev.images.filter(
-          (_, i) => i !== index
-        )
+breakingPriority:
+article.breakingPriority || 0,
 
-    }));
 
-  }
 
+homepagePriority:
+article.homepagePriority || 0,
 
 
-  function addFAQ() {
 
-    setForm(prev => ({
 
-      ...prev,
+breakingDuration:
+article.breakingDuration || "30",
 
-      faqItems: [
 
-        ...prev.faqItems,
 
-        {
-          question: "",
-          answer: ""
-        }
 
-      ]
+featuredDuration:
+article.featuredDuration || "24",
 
-    }));
 
-  }
 
 
 
-  function updateFAQ(
-    index: number,
-    key: "question" | "answer",
-    value: string
-  ) {
 
-    setForm(prev => ({
+keyHighlights:
 
-      ...prev,
+Array.isArray(article.keyHighlights)
 
-      faqItems:
+?
 
-        prev.faqItems.map(
-          (item, i) =>
+article.keyHighlights.join("\n")
 
-            i === index
+:
 
-              ? {
-                  ...item,
-                  [key]: value
-                }
+"",
 
-              : item
 
-        )
 
-    }));
 
-  }
 
+whyItMatters:
+article.whyItMatters || "",
 
 
 
-  function removeFAQ(
-    index: number
-  ) {
 
-    setForm(prev => ({
 
-      ...prev,
 
-      faqItems:
 
-        prev.faqItems.filter(
-          (_, i) => i !== index
-        )
+shortBrief:
+article.shortBrief || "",
 
-    }));
 
-  }
 
 
 
+background:
+article.background || "",
 
-  function generateSEO() {
 
-    const cleanContent =
-      form.content
-        .replace(
-          /<[^>]*>?/gm,
-          ""
-        )
-        .replace(
-          /\s+/g,
-          " "
-        )
-        .trim();
 
 
 
-    setForm(prev => ({
+timeline:
+article.timeline || "",
 
-      ...prev,
 
-      metaTitle:
-        prev.title,
 
 
-      metaDescription:
-        cleanContent.substring(
-          0,
-          160
-        ),
 
+expertOpinion:
 
-      metaKeywords:
-        prev.title
-          .toLowerCase()
-          .split(" ")
-          .filter(Boolean)
-          .join(", ")
+article.expertOpinion || {
 
-    }));
+name:"",
 
-  }
+role:"",
+
+quote:""
+
+},
+
+
+
+
+
+factCheck:
+
+article.factCheck || {
+
+claim:"",
+
+status:"",
+
+explanation:"",
+
+sources:""
+
+},
+
+
+
+
+
+
+whatsNext:
+article.whatsNext || "",
+
+
+
+
+
+
+keyTakeaways:
+
+Array.isArray(article.keyTakeaways)
+
+?
+
+article.keyTakeaways.join("\n")
+
+:
+
+"",
+
+
+
+
+
+sourceDesk:
+article.sourceDesk || "",
+
+
+
+
+
+
+faqItems:
+
+Array.isArray(article.faqItems)
+
+?
+
+article.faqItems
+
+:
+
+[],
+
+
+
+
+
+
+
+publishedAt:
+
+article.publishedAt
+
+?
+
+new Date(article.publishedAt)
+.toISOString()
+.slice(0,16)
+
+:
+
+"",
+
+
+
+
+
+metaTitle:
+article.metaTitle || "",
+
+
+
+
+metaDescription:
+article.metaDescription || "",
+
+
+
+
+metaKeywords:
+article.metaKeywords || "",
+
+
+
+
+
+status:
+article.status || "pending",
+
+
+
+
+live:
+article.live ?? true
+
+
+
+});
+
+
+
+
+
+if(article.aiSummary){
+
+setAiSummary(
+article.aiSummary
+);
+
+}
+
+
+
+}
+catch(err:any){
+
+
+setError(
+err.message ||
+"Failed loading article"
+);
+
+
+
+}
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
+}
+
+
+
+loadArticle();
+
+
+},[id]);
+
+
+// =====================================================
+// LOAD CATEGORIES
+// =====================================================
+
+
+useEffect(()=>{
+
+
+async function loadCategories(){
+
+
+try{
+
+
+const res =
+await fetch(
+"/api/categories"
+);
+
+
+
+const data =
+await res.json();
+
+
+
+const list =
+Array.isArray(data)
+
+?
+
+data
+
+:
+
+data?.categories || [];
+
+
+
+
+setCategories(list);
+
+
+
+}
+catch(err){
+
+
+console.error(
+"Category loading failed",
+err
+);
+
+
+setCategories([]);
+
+
+}
+
+
+}
+
+
+
+loadCategories();
+
+
+
+},[]);
+
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// UPDATE FIELD
+// =====================================================
+
+
+function updateField(
+key:keyof ArticleForm,
+value:any
+){
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+[key]:value
+
+
+
+}));
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// SLUG LOCK
+// =====================================================
+
+
+function createSlug(
+value:string
+){
+
+
+return value
+
+.toLowerCase()
+
+.trim()
+
+.replace(/[^a-z0-9\s-]/g,"")
+
+.replace(/\s+/g,"-")
+
+.replace(/-+/g,"-");
+
+
+}
+
+
+
+
+
+function handleTitleChange(
+value:string
+){
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+title:value,
+
+
+slug:
+
+slugLocked
+
+?
+
+createSlug(value)
+
+:
+
+prev.slug,
+
+
+
+metaTitle:
+
+prev.metaTitle || value
+
+
+
+}));
+
+
+
+}
+
+
+
+
+
+
+
+function toggleSlugLock(){
+
+
+setSlugLocked(
+prev=>!prev
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// IMAGE REMOVE
+// =====================================================
+
+
+function removeImage(
+index:number
+){
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+images:
+
+prev.images.filter(
+(_,i)=>i!==index
+)
+
+
+}));
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// IMAGE UPLOAD
+// =====================================================
+
+
+async function uploadImage(
+files:FileList
+){
+
+
+
+if(
+files.length + form.images.length > 5
+){
+
+
+setError(
+"Maximum 5 images allowed"
+);
+
+
+return;
+
+
+}
+
+
+
+
+setUploading(true);
+
+
+setError("");
+
+
+
+try{
+
+
+const uploaded:string[]=[];
+
+
+
+for(
+const file of Array.from(files)
+){
+
+
+
+if(
+file.size > 2*1024*1024
+){
+
+
+throw new Error(
+"Image size must be under 2MB"
+);
+
+
+}
+
+
+
+
+
+const fd =
+new FormData();
+
+
+
+fd.append(
+"file",
+file
+);
+
+
+
+const res =
+await fetch(
+"/api/upload",
+{
+
+method:"POST",
+
+body:fd
+
+}
+
+);
+
+
+
+const data =
+await res.json();
+
+
+
+if(data.url){
+
+uploaded.push(
+data.url
+);
+
+}
+
+
+
+}
+
+
+
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+images:[
+
+...prev.images,
+
+...uploaded
+
+]
+
+
+}));
+
+
+
+
+
+}
+catch(err:any){
+
+
+
+setError(
+err.message ||
+"Upload failed"
+);
+
+
+
+}
+finally{
+
+
+setUploading(false);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// AI SUMMARY
+// =====================================================
 
 
 async function generateAISummary(){
 
-  if(!id) return;
 
-
-  try{
-
-    setAiLoading(true);
-
-
-    const response =
-      await fetch(
-        `/api/articles/${id}/ai-summary`,
-        {
-          method:"POST"
-        }
-      );
-
-
-    const data =
-      await response.json();
+if(!id) return;
 
 
 
-    if(!data.success){
 
-      throw new Error(
-        data.error ||
-        "AI Summary failed"
-      );
+try{
 
-    }
+
+setAiLoading(true);
 
 
 
-    setAiSummary(
-      data.summary
-    );
+const res =
+await fetch(
+
+`/api/articles/${id}/ai-summary`,
+
+{
+
+method:"POST"
+
+}
+
+);
 
 
-    setMessage(
-      "AI Summary generated successfully ✅"
-    );
+
+const data =
+await res.json();
 
 
-  }
-  catch(error:any){
 
-    setError(
-      error.message ||
-      "AI Summary failed"
-    );
 
-  }
-  finally{
+if(!data.success){
 
-    setAiLoading(false);
 
-  }
+throw new Error(
+data.error ||
+"AI Summary failed"
+);
+
 
 }
 
 
-  async function handleSubmit(
-    e: React.FormEvent
-  ) {
 
-    e.preventDefault();
 
+setAiSummary(
+data.summary
+);
 
-    if (!id) return;
 
 
-    setSaving(true);
+setMessage(
+"AI Summary generated successfully ✅"
+);
 
-    setError("");
 
-    setMessage("");
 
 
 
-    try {
+}
+catch(err:any){
 
 
-      const payload = {
+setError(
+err.message ||
+"AI Summary failed"
+);
 
 
-        ...form,
 
+}
+finally{
 
-        keyHighlights:
 
-          form.keyHighlights
+setAiLoading(false);
 
-            .split("\n")
 
-            .map(
-              item =>
-                item.trim()
-            )
+}
 
-            .filter(Boolean),
 
 
+}
 
-        publishedAt:
 
-          form.publishedAt
 
-            ? new Date(
-                form.publishedAt
-              ).toISOString()
 
-            : null
 
 
-      };
 
 
 
 
 
-      const response = await fetch(
+// =====================================================
+// SUBMIT UPDATE
+// =====================================================
 
-        `/api/articles/${id}`,
 
-        {
+async function handleSubmit(
+e:React.FormEvent
+){
 
-          method: "PUT",
 
-          headers: {
+e.preventDefault();
 
-            "Content-Type":
-              "application/json"
 
-          },
 
+if(!id) return;
 
-          body:
 
-            JSON.stringify(
-              payload
-            )
 
-        }
 
-      );
+try{
 
 
+setSaving(true);
 
 
-      const data =
-        await response.json();
+setError("");
 
+setMessage("");
 
 
 
 
-      if (!data.success) {
 
-        throw new Error(
-          data.error ||
-          "Article update failed"
-        );
+const payload:any={
 
-      }
 
 
+...form,
 
 
-      setMessage(
-        "Article updated successfully ✅"
-      );
 
+keyHighlights:
 
+form.keyHighlights
 
-      setTimeout(() => {
+.split("\n")
 
-        router.push(
-          "/admin/posts"
-        );
+.map(x=>x.trim())
 
-      }, 1000);
+.filter(Boolean),
 
 
 
 
-    } catch (err: any) {
 
+keyTakeaways:
 
-      setError(
-        err.message ||
-        "Update failed"
-      );
+form.keyTakeaways
 
+.split("\n")
 
+.map(x=>x.trim())
 
-    } finally {
+.filter(Boolean),
 
 
-      setSaving(false);
 
 
-    }
+publishedAt:
 
+form.publishedAt
 
-  }
+?
 
+new Date(
+form.publishedAt
+).toISOString()
 
+:
 
+null
 
 
-  if (loading) {
 
-    return (
+};
 
-      <div
 
-        className="
-        min-h-screen
-        bg-[#050816]
-        flex
-        items-center
-        justify-center
-        text-white
-        "
 
-      >
 
-        Loading Article...
 
-      </div>
 
-    );
+const res =
+await fetch(
 
-  }
+`/api/articles/${id}`,
 
+{
 
+method:"PUT",
 
 
+headers:{
 
-  return (
+"Content-Type":
 
-    <div
+"application/json"
 
-      className="
-      min-h-screen
-      bg-[#050816]
-      text-white
-      p-4
-      md:p-8
-      "
+},
 
-    >
 
+body:
 
-      <div className="
-      max-w-7xl
-      mx-auto
-      ">
+JSON.stringify(payload)
 
 
-        <div className="
-        mb-8
-        ">
+}
 
+);
 
-          <h1 className="
-          text-3xl
-          font-bold
-          ">
 
-            Edit Article
 
-          </h1>
 
 
 
-          <p className="
-          text-orange-400
-          mt-2
-          ">
+const data =
+await res.json();
 
-            NationPath Editorial CMS
 
-          </p>
 
 
-        </div>
 
+if(!data.success){
 
 
+throw new Error(
+data.error ||
+"Update failed"
+);
 
 
-        {
-          message &&
+}
 
-          <div
 
-            className="
-            mb-6
-            p-4
-            rounded-xl
-            bg-green-600/20
-            border
-            border-green-500
-            text-green-300
-            "
 
-          >
 
-            {message}
 
-          </div>
 
-        }
 
+setMessage(
+"Article updated successfully ✅"
+);
 
 
 
 
-        {
-          error &&
 
-          <div
 
-            className="
-            mb-6
-            p-4
-            rounded-xl
-            bg-red-600/20
-            border
-            border-red-500
-            text-red-300
-            "
+setTimeout(()=>{
 
-          >
 
-            {error}
+router.push(
+"/admin/posts"
+);
 
-          </div>
 
-        }
 
+},1200);
 
 
 
-        <form
 
-          onSubmit={
-            handleSubmit
-          }
 
-          className="
-          grid
-          grid-cols-1
-          xl:grid-cols-3
-          gap-8
-          "
+}
+catch(err:any){
 
-        >
 
 
+setError(
+err.message ||
+"Update failed"
+);
 
-          <div className="
-          xl:col-span-2
-          space-y-6
-          ">
 
 
+}
+finally{
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
+setSaving(false);
 
-            >
 
+}
 
-              <h2 className="
-              text-lg
-              font-semibold
-              mb-5
-              ">
 
-                Article Information
 
-              </h2>
+}
+return (
 
+<div
 
+className="
+min-h-screen
+bg-[#050816]
+text-white
+p-4
+md:p-8
+"
 
+>
 
-              <input
 
-                value={
-                  form.title
-                }
 
+<div className="max-w-7xl mx-auto">
 
-                onChange={
-                  e =>
-                    handleTitleChange(
-                      e.target.value
-                    )
-                }
 
 
-                placeholder="
-                Article Headline
-                "
+<div className="mb-8">
 
 
-                className="
-                w-full
-                p-4
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
+<h1 className="text-3xl font-bold">
 
-              />
+Edit Article
 
+</h1>
 
 
 
+<p className="text-orange-400 mt-2">
 
-              <div className="
-              grid
-              md:grid-cols-2
-              gap-4
-              mt-5
-              ">
+NationPath Editorial CMS
 
+</p>
 
-                <div>
 
+</div>
 
-                  <div className="
-                  flex
-                  justify-between
-                  items-center
-                  ">
 
 
-                    <label className="
-                    text-sm
-                    text-gray-400
-                    ">
 
-                      Slug
 
-                    </label>
+{
+message &&
 
+<div
 
+className="
+mb-6
+p-4
+rounded-xl
+bg-green-600/20
+border
+border-green-500
+text-green-300
+"
 
-                    <button
+>
 
-                      type="button"
+{message}
 
-                      onClick={
-                        toggleSlugLock
-                      }
+</div>
 
-                      className="
-                      text-xs
-                      text-orange-400
-                      "
+}
 
-                    >
 
-                      {
-                        slugLocked
-                          ? "Unlock"
-                          : "Auto"
-                      }
 
 
-                    </button>
 
+{
+error &&
 
-                  </div>
+<div
 
+className="
+mb-6
+p-4
+rounded-xl
+bg-red-600/20
+border
+border-red-500
+text-red-300
+"
 
+>
 
+{error}
 
+</div>
 
-                  <input
+}
 
-                    value={
-                      form.slug
-                    }
 
 
-                    onChange={
-                      e =>
-                        updateField(
-                          "slug",
-                          e.target.value
-                        )
-                    }
 
 
-                    disabled={
-                      slugLocked
-                    }
+<form
 
+onSubmit={handleSubmit}
 
-                    className="
-                    w-full
-                    mt-2
-                    p-3
-                    rounded-xl
-                    bg-black/40
-                    border
-                    border-white/10
-                    disabled:text-gray-500
-                    "
+className="
+grid
+grid-cols-1
+xl:grid-cols-3
+gap-8
+"
 
-                  />
+>
 
 
-                </div>
-                                <div>
 
-                  <label className="
-                  text-sm
-                  text-gray-400
-                  ">
 
-                    Category
 
-                  </label>
+{/* ================= LEFT COLUMN ================= */}
 
 
 
-                  <select
+<div
 
-                    value={
-                      form.category
-                    }
+className="
+xl:col-span-2
+space-y-6
+"
 
+>
 
-                    onChange={
-                      e =>
-                        updateField(
-                          "category",
-                          e.target.value
-                        )
-                    }
 
 
-                    className="
-                    w-full
-                    mt-2
-                    p-3
-                    rounded-xl
-                    bg-black/40
-                    border
-                    border-white/10
-                    "
-                    
-                  >
 
-                    <option value="">
-                      Select Category
-                    </option>
 
 
 
-                    {
-                      categories.map(
-                        category => (
 
-                          <option
 
-                            key={
-                              category._id
-                            }
-
-                            value={
-                              category._id
-                            }
-
-                          >
-
-                            {
-                              category.name
-                            }
-
-                          </option>
-
-                        )
-
-                      )
-
-                    }
-
-
-                  </select>
-
-
-                </div>
-
-
-              </div>
-
-
-            </div>
-
-
-
-
-
-            <div
-
-              className="
-              bg-white
-              rounded-2xl
-              overflow-hidden
-              "
-
-            >
-
-              <Editor
-
-                value={
-                  form.content
-                }
-
-
-                onChange={
-                  value =>
-                    updateField(
-                      "content",
-                      value
-                    )
-                }
-
-              />
-
-
-            </div>
-
-
-
-
-
-
-            <div
-
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
-
-            >
-
-
-              <h2 className="
-              font-semibold
-              mb-4
-              ">
-
-                Key Highlights ⭐
-
-              </h2>
-
-
-
-              <textarea
-
-                value={
-                  form.keyHighlights
-                }
-
-
-                onChange={
-                  e =>
-                    updateField(
-                      "keyHighlights",
-                      e.target.value
-                    )
-                }
-
-
-                placeholder="
-                One highlight per line
-                "
-
-
-                className="
-                w-full
-                h-40
-                p-4
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                resize-none
-                "
-
-              />
-
-
-            </div>
-
-
-
-
-
-
-            <div
-
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
-
-            >
-
-
-              <h2 className="
-              font-semibold
-              mb-4
-              ">
-
-                Why It Matters ⭐⭐⭐
-
-              </h2>
-
-
-
-
-              <textarea
-
-                value={
-                  form.whyItMatters
-                }
-
-
-                onChange={
-                  e =>
-                    updateField(
-                      "whyItMatters",
-                      e.target.value
-                    )
-                }
-
-
-                placeholder="
-                Explain importance of this article
-                "
-
-
-                className="
-                w-full
-                h-40
-                p-4
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                resize-none
-                "
-
-              />
-
-
-            </div>
+{/* ARTICLE INFO */}
 
 
 <div
@@ -1348,10 +1666,1067 @@ p-6
 
 >
 
-<h2 className="
-font-semibold
+
+
+<h2 className="font-semibold mb-5">
+
+Article Information
+
+</h2>
+
+
+
+
+<input
+
+
+value={form.title}
+
+
+onChange={e=>
+
+handleTitleChange(
+e.target.value
+)
+
+}
+
+
+placeholder="Headline"
+
+
+className="
+w-full
+p-4
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+/>
+
+
+
+
+
+<div className="grid md:grid-cols-2 gap-4 mt-5">
+
+
+
+<div>
+
+
+
+<div className="flex justify-between">
+
+
+<label className="text-gray-400 text-sm">
+
+Slug
+
+</label>
+
+
+
+
+<button
+
+type="button"
+
+onClick={toggleSlugLock}
+
+className="text-orange-400 text-xs"
+
+>
+
+{
+slugLocked
+
+?
+
+"Auto"
+
+:
+
+"Manual"
+
+}
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+<input
+
+
+value={form.slug}
+
+
+
+disabled={slugLocked}
+
+
+
+onChange={e=>
+
+updateField(
+"slug",
+e.target.value
+)
+
+}
+
+
+
+className="
+w-full
+mt-2
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div>
+
+
+
+<label className="text-gray-400 text-sm">
+
+Category
+
+</label>
+
+
+
+
+<select
+
+
+value={form.categoryId}
+
+
+
+onChange={e=>
+
+updateField(
+"categoryId",
+e.target.value
+)
+
+}
+
+
+
+
+className="
+w-full
+mt-2
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+>
+
+
+<option value="">
+
+Select Category
+
+</option>
+
+
+
+{
+categories.map(cat=>(
+
+
+<option
+
+key={cat.id}
+
+value={cat.id}
+
+>
+
+{cat.name}
+
+</option>
+
+
+
+))
+}
+
+
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+{/* EDITOR */}
+
+
+
+<div
+
+className="
+bg-white
+rounded-2xl
+overflow-hidden
+"
+
+>
+
+
+<Editor
+
+
+value={form.content}
+
+
+
+onChange={(value)=>
+
+updateField(
+"content",
+value
+)
+
+}
+
+
+
+/>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* ARTICLE INTELLIGENCE */}
+
+
+
+<ArticleIntelligenceForm
+
+
+form={form}
+
+
+
+updateField={updateField}
+
+
+
+/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* KEY HIGHLIGHTS */}
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Key Highlights ⭐
+
+</h2>
+
+
+
+
+<textarea
+
+
+value={form.keyHighlights}
+
+
+
+onChange={e=>
+
+updateField(
+"keyHighlights",
+e.target.value
+)
+
+}
+
+
+
+
+placeholder="
+Important update
+
+Major point
+
+Reader benefit
+"
+
+
+
+
+className="
+w-full
+h-36
+p-4
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* WHY IT MATTERS */}
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+
+<h2 className="font-semibold mb-4">
+
+Why It Matters ⭐⭐⭐
+
+</h2>
+
+
+
+
+<textarea
+
+
+
+value={form.whyItMatters}
+
+
+
+
+onChange={e=>
+
+updateField(
+"whyItMatters",
+e.target.value
+)
+
+}
+
+
+
+
+placeholder="
+Explain why this news matters...
+"
+
+
+
+
+className="
+w-full
+h-36
+p-4
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+{/* FAQ */}
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<div className="flex justify-between mb-5">
+
+
+<h2 className="font-semibold">
+
+FAQ Section ⭐
+
+</h2>
+
+
+
+
+<button
+
+type="button"
+
+onClick={()=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:[
+
+
+...prev.faqItems,
+
+
+{
+question:"",
+answer:""
+}
+
+
+]
+
+
+}))
+
+
+}
+
+
+className="
+bg-blue-600
+px-4
+py-2
+rounded-lg
+"
+
+>
+
++ Add FAQ
+
+</button>
+
+
+
+
+</div>
+
+
+
+
+
+{
+form.faqItems.map((item,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+bg-black/20
+rounded-xl
+p-4
 mb-4
+"
+
+>
+
+
+<input
+
+
+value={item.question}
+
+
+
+onChange={e=>
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+prev.faqItems.map((f,i)=>
+
+i===index
+
+?
+
+{
+...f,
+question:e.target.value
+}
+
+:
+
+f
+
+)
+
+
+}))
+
+}
+
+
+
+placeholder="Question"
+
+
+className="
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+/>
+
+
+
+
+
+<textarea
+
+
+value={item.answer}
+
+
+
+onChange={e=>
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+prev.faqItems.map((f,i)=>
+
+i===index
+
+?
+
+{
+...f,
+answer:e.target.value
+}
+
+:
+
+f
+
+)
+
+
+}))
+
+}
+
+
+
+placeholder="Answer"
+
+
+className="
+w-full
+h-28
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+
+/>
+
+
+
+
+<button
+
+type="button"
+
+onClick={()=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+prev.faqItems.filter(
+(_,i)=>i!==index
+)
+
+
+}))
+
+
+}
+
+
+className="text-red-400 mt-3"
+
+>
+
+Remove
+
+</button>
+
+
+
+
+</div>
+
+
+
+))
+}
+
+
+
+
+
+</div>
+
+
+
+
+{/* VIDEO */}
+
+<div
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+>
+
+<h2 className="font-semibold mb-4">
+Video
+</h2>
+
+
+<input
+
+value={form.videoUrl}
+
+onChange={e=>
+
+updateField(
+"videoUrl",
+e.target.value
+)
+
+}
+
+placeholder="YouTube URL"
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+/>
+
+
+<VideoPreview
+
+url={form.videoUrl}
+
+/>
+
+
+<select
+
+value={form.videoPosition}
+
+onChange={e=>
+
+updateField(
+"videoPosition",
+e.target.value
+)
+
+}
+
+className="
+w-full
+mt-4
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+>
+
+<option value="top">
+Top
+</option>
+
+<option value="middle">
+Middle
+</option>
+
+<option value="bottom">
+Bottom
+</option>
+
+</select>
+
+
+</div>
+
+{/* MEDIA GALLERY */}
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+
+<h2 className="font-semibold mb-4">
+
+Media Gallery
+
+</h2>
+
+
+
+
+<input
+
+
+type="file"
+
+
+multiple
+
+
+accept="image/*"
+
+
+
+onChange={e=>{
+
+if(e.target.files)
+
+uploadImage(
+e.target.files
+)
+
+}}
+
+
+
+ />
+
+
+
+
+
+
+{
+uploading &&
+
+<p className="text-orange-400 mt-3">
+
+Uploading...
+
+</p>
+
+}
+
+
+
+
+
+<div className="
+flex
+flex-wrap
+gap-4
+mt-5
 ">
+
+
+{
+form.images.map((img,index)=>(
+
+
+<div
+
+key={index}
+
+className="relative"
+
+>
+
+
+<img
+
+
+src={img}
+
+
+className="
+w-32
+h-24
+object-cover
+rounded-xl
+"
+
+
+
+/>
+
+
+
+<button
+
+
+type="button"
+
+
+onClick={()=>removeImage(index)}
+
+
+
+className="
+absolute
+-top-2
+-right-2
+bg-red-600
+rounded-full
+w-7
+h-7
+"
+
+>
+
+×
+
+</button>
+
+
+
+</div>
+
+
+
+))
+}
+
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* AI SUMMARY EXTRA */}
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
 
 AI Summary Intelligence 🤖
 
@@ -1361,11 +2736,17 @@ AI Summary Intelligence 🤖
 
 <button
 
+
 type="button"
+
+
+disabled={aiLoading}
+
+
 
 onClick={generateAISummary}
 
-disabled={aiLoading}
+
 
 className="
 bg-blue-600
@@ -1374,14 +2755,22 @@ py-3
 rounded-xl
 "
 
+
+
 >
 
 {
+
 aiLoading
+
 ?
+
 "Generating..."
+
 :
+
 "Generate AI Summary"
+
 }
 
 
@@ -1389,41 +2778,63 @@ aiLoading
 
 
 
+
+
+
 {
 aiSummary &&
 
+
 <div
+
 className="
 mt-5
 bg-black/30
-p-4
 rounded-xl
+p-4
+space-y-3
 "
+
 >
 
+
 <h3>
+
 Overview
+
 </h3>
 
+
 <p>
+
 {aiSummary.overview}
+
 </p>
 
 
-<h3 className="mt-3">
+
+
+<h3>
+
 Key Points
+
 </h3>
+
+
 
 <ul>
 
 {
-aiSummary.points?.map(
-(point:string,index:number)=>(
-<li key={index}>
-{point}
+
+aiSummary.points?.map((p,i)=>(
+
+<li key={i}>
+
+{p}
+
 </li>
-)
-)
+
+))
 
 }
 
@@ -1431,1202 +2842,733 @@ aiSummary.points?.map(
 
 
 
-<h3 className="mt-3">
+
+<h3>
+
 Impact
+
 </h3>
 
+
 <p>
+
 {aiSummary.impact}
+
 </p>
 
 
 
-<h3 className="mt-3">
+
+<h3>
+
 Takeaway
+
 </h3>
 
+
 <p>
+
 {aiSummary.takeaway}
+
 </p>
+
 
 
 </div>
+
 
 }
 
 
+
+
 </div>
 
 
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
 
-            >
 
+</div>
 
-              <div className="
-              flex
-              justify-between
-              items-center
-              mb-5
-              ">
 
 
-                <h2 className="
-                text-lg
-                font-semibold
-                ">
 
-                  FAQ Section ⭐
 
-                </h2>
 
 
 
-                <button
 
-                  type="button"
 
-                  onClick={
-                    addFAQ
-                  }
 
 
-                  className="
-                  px-4
-                  py-2
-                  rounded-xl
-                  bg-blue-600
-                  "
 
-                >
 
-                  + Add FAQ
+{/* ================= RIGHT COLUMN ================= */}
 
-                </button>
 
 
-              </div>
 
+<div
 
+className="
+space-y-6
+"
 
+>
 
 
 
-              {
-                form.faqItems.length === 0 &&
 
-                <p className="
-                text-gray-400
-                text-sm
-                ">
 
-                  No FAQ added yet.
 
-                </p>
 
-              }
 
 
+{/* PUBLISHING */}
 
 
 
-              {
-                form.faqItems.map(
-                  (item,index)=>(
+<div
 
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
-                    <div
+>
 
-                      key={
-                        index
-                      }
 
-                      className="
-                      mb-5
-                      p-4
-                      rounded-xl
-                      bg-black/20
-                      border
-                      border-white/10
-                      "
+<h2 className="font-semibold mb-4">
 
-                    >
+Publishing
 
+</h2>
 
-                      <div className="
-                      flex
-                      justify-between
-                      mb-3
-                      ">
 
 
-                        <span className="
-                        text-orange-400
-                        ">
 
-                          FAQ {index + 1}
+<input
 
-                        </span>
 
+type="datetime-local"
 
 
-                        <button
+value={form.publishedAt}
 
-                          type="button"
 
-                          onClick={
-                            () =>
-                              removeFAQ(index)
-                          }
 
+onChange={e=>
 
-                          className="
-                          text-red-400
-                          "
+updateField(
+"publishedAt",
+e.target.value
+)
 
-                        >
+}
 
-                          Remove
 
-                        </button>
 
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-                      </div>
 
 
+/>
 
 
 
-                      <input
 
-                        value={
-                          item.question
-                        }
+<select
 
 
-                        onChange={
-                          e =>
-                            updateFAQ(
-                              index,
-                              "question",
-                              e.target.value
-                            )
-                        }
+value={form.status}
 
 
-                        placeholder="
-                        Question
-                        "
 
+onChange={e=>
 
-                        className="
-                        w-full
-                        mb-3
-                        p-3
-                        rounded-xl
-                        bg-black/30
-                        border
-                        border-white/10
-                        "
+updateField(
+"status",
+e.target.value
+)
 
-                      />
+}
 
 
 
+className="
+w-full
+mt-4
+p-3
+rounded-xl
+bg-black/30
+"
 
+>
 
-                      <textarea
 
-                        value={
-                          item.answer
-                        }
+<option value="pending">
 
+Pending
 
-                        onChange={
-                          e =>
-                            updateFAQ(
-                              index,
-                              "answer",
-                              e.target.value
-                            )
-                        }
+</option>
 
 
-                        placeholder="
-                        Answer
-                        "
+<option value="approved">
 
+Approved
 
-                        rows={4}
+</option>
 
 
-                        className="
-                        w-full
-                        p-3
-                        rounded-xl
-                        bg-black/30
-                        border
-                        border-white/10
-                        resize-none
-                        "
+<option value="draft">
 
-                      />
+Draft
 
+</option>
 
-                    </div>
 
+<option value="archived">
 
-                  )
+Archived
 
-                )
+</option>
 
-              }
 
 
-            </div>
+</select>
 
 
-          </div>
 
 
 
+<label className="
+flex
+justify-between
+mt-4
+">
 
 
+Live
 
-          <div className="
-          space-y-6
-          ">
 
 
+<input
 
 
+type="checkbox"
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
+checked={form.live}
 
-            >
 
 
-              <h2 className="
-              font-semibold
-              mb-4
-              ">
+onChange={e=>
 
-                Media Gallery
+updateField(
+"live",
+e.target.checked
+)
 
-              </h2>
+}
 
 
 
+/>
 
 
-              <label className="
-              block
-              mb-5
-              cursor-pointer
-              "
+</label>
 
-              >
 
 
-                <div className="
-                p-4
-                rounded-xl
-                bg-blue-600/20
-                border
-                border-blue-500
-                text-center
-                ">
 
-                  Upload / Change Images
+</div>
 
-                </div>
 
 
 
 
-                <input
 
-                  type="file"
 
-                  accept="image/*"
 
-                  multiple
 
-                  hidden
 
 
-                  onChange={
-                    async e => {
 
-                      const files =
-                        Array.from(
-                          e.target.files || []
-                        );
 
+{/* NEWS CONTROLS */}
 
-                      for(
-                        const file of files
-                      ){
 
-                        await uploadImage(
-                          file
-                        );
 
-                      }
 
-                    }
-                  }
+<div
 
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-5
+"
 
-                />
+>
 
 
-              </label>
-                            <div className="
-              flex
-              flex-wrap
-              gap-4
-              ">
+<h2 className="font-semibold">
 
+News Controls
 
-                {
-                  form.images.map(
-                    (image,index)=>(
+</h2>
 
 
-                      <div
 
-                        key={index}
 
-                        className="
-                        relative
-                        "
 
-                      >
+<label className="
+flex
+justify-between
+">
 
 
-                        <img
+Breaking
 
-                          src={image}
 
-                          alt={`Image ${index + 1}`}
 
-                          className="
-                          w-32
-                          h-24
-                          rounded-xl
-                          object-cover
-                          border
-                          border-white/10
-                          "
+<input
 
-                        />
 
+type="checkbox"
 
 
-                        <button
+checked={form.breaking}
 
-                          type="button"
 
-                          onClick={
-                            () =>
-                              removeImage(index)
-                          }
 
+onChange={e=>
 
-                          className="
-                          absolute
-                          -top-2
-                          -right-2
-                          w-7
-                          h-7
-                          rounded-full
-                          bg-red-600
-                          "
+updateField(
+"breaking",
+e.target.checked
+)
 
-                        >
+}
 
-                          ×
 
-                        </button>
 
+/>
 
-                      </div>
 
+</label>
 
-                    )
 
-                  )
 
-                }
 
 
-              </div>
 
+{
+form.breaking &&
 
-            </div>
 
+<select
 
 
+value={form.breakingDuration}
 
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
+onChange={e=>
 
-            >
+updateField(
+"breakingDuration",
+e.target.value
+)
 
+}
 
-              <h2 className="
-              font-semibold
-              mb-4
-              ">
 
-                Video
 
-              </h2>
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
 
 
-              <input
+>
 
-                value={
-                  form.videoUrl
-                }
 
+<option value="30">
 
-                onChange={
-                  e =>
-                    updateField(
-                      "videoUrl",
-                      e.target.value
-                    )
-                }
+30 Minutes
 
+</option>
 
-                placeholder="YouTube URL"
 
+<option value="60">
 
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
+1 Hour
 
-              />
+</option>
 
 
+<option value="180">
 
-              <select
+3 Hours
 
-                value={
-                  form.videoPosition
-                }
+</option>
 
 
-                onChange={
-                  e =>
-                    updateField(
-                      "videoPosition",
-                      e.target.value
-                    )
-                }
+<option value="360">
 
+6 Hours
 
-                className="
-                w-full
-                mt-4
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
+</option>
 
-              >
 
-                <option value="top">
-                  Top
-                </option>
+<option value="1440">
 
-                <option value="middle">
-                  Middle
-                </option>
+24 Hours
 
-                <option value="bottom">
-                  Bottom
-                </option>
+</option>
 
 
-              </select>
 
+</select>
 
-            </div>
 
+}
 
 
 
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              "
 
-            >
 
-              <h2 className="
-              font-semibold
-              mb-4
-              ">
+<label className="
+flex
+justify-between
+">
 
-                Publishing
 
-              </h2>
+Featured
 
 
 
+<input
 
-              <select
 
-                value={
-                  form.status
-                }
+type="checkbox"
 
 
-                onChange={
-                  e =>
-                    updateField(
-                      "status",
-                      e.target.value
-                    )
-                }
+checked={form.featured}
 
 
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
 
-              >
+onChange={e=>
 
-                <option value="pending">
-                  Pending
-                </option>
+updateField(
+"featured",
+e.target.checked
+)
 
-                <option value="approved">
-                  Approved
-                </option>
+}
 
-                <option value="draft">
-                  Draft
-                </option>
 
-                <option value="rejected">
-                  Rejected
-                </option>
 
+/>
 
-              </select>
 
+</label>
 
 
 
 
-              <input
+<input
 
-                type="datetime-local"
 
-                value={
-                  form.publishedAt
-                }
+type="number"
 
 
-                onChange={
-                  e =>
-                    updateField(
-                      "publishedAt",
-                      e.target.value
-                    )
-                }
+value={form.homepagePriority}
 
 
-                className="
-                w-full
-                mt-4
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
 
-              />
+onChange={e=>
 
+updateField(
+"homepagePriority",
+Number(e.target.value)
+)
 
-            </div>
+}
 
 
 
+placeholder="Homepage Priority"
 
 
 
-            <div
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              space-y-5
-              "
 
-            >
 
-              <h2 className="
-              font-semibold
-              ">
+/>
 
-                News Controls
 
-              </h2>
 
+</div>
 
 
 
-              <label className="
-              flex
-              justify-between
-              items-center
-              ">
 
-                Breaking
 
 
-                <input
 
-                  type="checkbox"
 
-                  checked={
-                    form.breaking
-                  }
 
 
-                  onChange={
-                    e =>
-                      updateField(
-                        "breaking",
-                        e.target.checked
-                      )
-                  }
 
-                />
 
-              </label>
 
 
+{/* SEO */}
 
 
 
-              {
-                form.breaking &&
 
-                <select
+<div
 
-                  value={
-                    form.breakingDuration
-                  }
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-4
+"
 
+>
 
-                  onChange={
-                    e =>
-                      updateField(
-                        "breakingDuration",
-                        e.target.value
-                      )
-                  }
 
+<h2 className="font-semibold">
 
-                  className="
-                  w-full
-                  p-3
-                  rounded-xl
-                  bg-black/30
-                  border
-                  border-white/10
-                  "
+SEO
 
-                >
+</h2>
 
-                  <option value="30">
-                    30 Minutes
-                  </option>
 
-                  <option value="60">
-                    1 Hour
-                  </option>
 
-                  <option value="180">
-                    3 Hours
-                  </option>
 
-                  <option value="1440">
-                    24 Hours
-                  </option>
+<input
 
 
-                </select>
+value={form.metaTitle}
 
-              }
 
 
+onChange={e=>
 
+updateField(
+"metaTitle",
+e.target.value
+)
 
+}
 
 
-              <label className="
-              flex
-              justify-between
-              items-center
-              ">
 
-                Featured
+placeholder="Meta Title"
 
 
-                <input
 
-                  type="checkbox"
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-                  checked={
-                    form.featured
-                  }
 
 
-                  onChange={
-                    e =>
-                      updateField(
-                        "featured",
-                        e.target.checked
-                      )
-                  }
+/>
 
 
-                />
 
 
-              </label>
 
 
+<textarea
 
 
+value={form.metaDescription}
 
-              {
-                form.featured &&
 
-                <select
 
-                  value={
-                    form.featuredDuration
-                  }
+onChange={e=>
 
+updateField(
+"metaDescription",
+e.target.value
+)
 
-                  onChange={
-                    e =>
-                      updateField(
-                        "featuredDuration",
-                        e.target.value
-                      )
-                  }
+}
 
 
-                  className="
-                  w-full
-                  p-3
-                  rounded-xl
-                  bg-black/30
-                  border
-                  border-white/10
-                  "
 
-                >
+placeholder="Meta Description"
 
-                  <option value="24">
-                    24 Hours
-                  </option>
 
-                  <option value="48">
-                    48 Hours
-                  </option>
 
-                  <option value="72">
-                    72 Hours
-                  </option>
+className="
+w-full
+h-28
+p-3
+rounded-xl
+bg-black/30
+"
 
 
-                </select>
 
-              }
+/>
 
 
-            </div>
 
 
 
 
+<input
 
 
-            <div
+value={form.metaKeywords}
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              space-y-4
-              "
 
-            >
 
-              <h2 className="
-              font-semibold
-              ">
+onChange={e=>
 
-                Priority
+updateField(
+"metaKeywords",
+e.target.value
+)
 
-              </h2>
+}
 
 
 
-              <input
+placeholder="Meta Keywords"
 
-                type="number"
 
-                value={
-                  form.breakingPriority
-                }
 
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-                onChange={
-                  e =>
-                    updateField(
-                      "breakingPriority",
-                      Number(
-                        e.target.value
-                      )
-                    )
-                }
 
 
-                placeholder="Breaking Priority"
+/>
 
 
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
 
-              />
+</div>
 
 
 
 
-              <input
 
-                type="number"
 
-                value={
-                  form.homepagePriority
-                }
 
 
-                onChange={
-                  e =>
-                    updateField(
-                      "homepagePriority",
-                      Number(
-                        e.target.value
-                      )
-                    )
-                }
 
 
-                placeholder="Homepage Priority"
 
 
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
+<button
 
-              />
 
+disabled={saving}
 
-            </div>
 
 
+className="
+w-full
+py-4
+rounded-xl
+bg-orange-600
+font-semibold
+text-lg
+"
 
 
 
+>
 
-            <div
 
-              className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              space-y-4
-              "
 
-            >
+{
 
-              <div className="
-              flex
-              justify-between
-              items-center
-              ">
+saving
 
+?
 
-                <h2 className="
-                font-semibold
-                ">
+"Updating Article..."
 
-                  SEO
+:
 
-                </h2>
+"Update Article"
 
+}
 
 
-                <button
 
-                  type="button"
+</button>
 
-                  onClick={
-                    generateSEO
-                  }
 
 
-                  className="
-                  bg-purple-600
-                  px-4
-                  py-2
-                  rounded-lg
-                  text-sm
-                  "
 
-                >
 
-                  Generate SEO
 
-                </button>
 
 
-              </div>
+</div>
 
 
 
 
 
-              <input
 
-                value={
-                  form.metaTitle
-                }
 
 
-                onChange={
-                  e =>
-                    updateField(
-                      "metaTitle",
-                      e.target.value
-                    )
-                }
+</form>
 
 
-                placeholder="Meta Title"
 
 
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
 
-              />
 
+</div>
 
 
+</div>
 
 
-              <textarea
-
-                value={
-                  form.metaDescription
-                }
-
-
-                onChange={
-                  e =>
-                    updateField(
-                      "metaDescription",
-                      e.target.value
-                    )
-                }
-
-
-                placeholder="Meta Description"
-
-
-                className="
-                w-full
-                h-28
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
-
-              />
-
-
-
-
-
-              <input
-
-                value={
-                  form.metaKeywords
-                }
-
-
-                onChange={
-                  e =>
-                    updateField(
-                      "metaKeywords",
-                      e.target.value
-                    )
-                }
-
-
-                placeholder="Meta Keywords"
-
-
-                className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-                "
-
-              />
-
-
-            </div>
-
-
-
-
-
-
-            <button
-
-              disabled={
-                saving
-              }
-
-
-              className="
-              w-full
-              py-4
-              rounded-xl
-              bg-orange-600
-              font-semibold
-              text-lg
-              disabled:opacity-50
-              "
-
-            >
-
-              {
-                saving
-
-                  ? "Updating Article..."
-
-                  : "Update Article"
-              }
-
-
-            </button>
-
-
-
-
-          </div>
-
-
-
-        </form>
-
-
-
-      </div>
-
-
-    </div>
-
-
-  );
-
+);
 
 }

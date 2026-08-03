@@ -1,268 +1,2144 @@
 "use client";
-import nextDynamic from "next/dynamic";
-import { useState } from "react";
-import imageCompression from "browser-image-compression";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import Editor from "@/components/Editor";
+import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
+
 export const dynamic = "force-dynamic";
 
-const ReactQuill = nextDynamic(() => import("react-quill"), {
-  ssr: false,
-});
 
-import "react-quill/dist/quill.snow.css";
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function generateSlug(title: string) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>?/gm, "");
+}
+
+
+function convertHighlights(value: string) {
+  return value
+    .split("\n")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+
+function createEmptyFAQ() {
+  return {
+    question: "",
+    answer: "",
+  };
+}
+
+
+
+/* =====================================================
+   CREATE EDITORIAL
+===================================================== */
 
 export default function CreateEditorial() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [approved, setApproved] = useState(true);
 
-  const [metaTitle, setMetaTitle] = useState("");
-  const [metaDescription, setMetaDescription] = useState("");
-  const [metaKeywords, setMetaKeywords] = useState("");
 
-  const [images, setImages] = useState<File[]>([]);
-  const [preview, setPreview] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+const router = useRouter();
 
-  /* ================= SEO AUTO ================= */
 
-  const autoGenerateSEO = () => {
-    const plain = content.replace(/<[^>]+>/g, "");
-    setMetaTitle(title);
-    setMetaDescription(plain.slice(0, 160));
-    setMetaKeywords(title.split(" ").join(", "));
-  };
+/* =====================================================
+   STATES
+===================================================== */
 
-  /* ================= IMAGE COMPRESS ================= */
 
-  const handleImages = async (e: any) => {
-    const files = Array.from(e.target.files || []);
+const [loading,setLoading] = useState(false);
 
-    if (files.length > 5) {
-      alert("Maximum 5 images allowed");
-      return;
-    }
+const [uploading,setUploading] = useState(false);
 
-    const compressed: File[] = [];
-    const previews: string[] = [];
+const [message,setMessage] = useState("");
 
-    for (let file of files as File[]) {
-      const result = await imageCompression(file, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1200,
-        useWebWorker: true,
-      });
+const [error,setError] = useState("");
 
-      compressed.push(result);
-      previews.push(URL.createObjectURL(result));
-    }
+const [slugLocked,setSlugLocked] = useState(true);
 
-    setImages(compressed);
-    setPreview(previews);
-  };
 
-  /* ================= CLOUDINARY UPLOAD ================= */
 
-  const uploadToCloudinary = async () => {
-    const urls: string[] = [];
 
-    for (let img of images) {
-      const formData = new FormData();
-      formData.append("file", img);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-      );
+/* =====================================================
+   FORM
+===================================================== */
 
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
 
-      const data = await res.json();
+const [form,setForm] = useState({
 
-      if (!data.secure_url) {
-        console.error(data);
-        throw new Error("Image upload failed");
-      }
 
-      urls.push(data.secure_url);
-    }
+title:"",
 
-    return urls;
-  };
+slug:"",
 
-  /* ================= SUBMIT ================= */
+content:"",
 
-  const handleSubmit = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert("Title and Content required");
-      return;
-    }
 
-    try {
-      setLoading(true);
+postType:"editorial",
 
-      const imageUrls = await uploadToCloudinary();
 
-      const res = await fetch("/api/articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          content,
-          videoUrl,
-          images: imageUrls,
-          isEditorial: true,
-          status: approved ? "approved" : "pending",
-          metaTitle: metaTitle || title,
-          metaDescription:
-            metaDescription ||
-            content.replace(/<[^>]+>/g, "").slice(0, 160),
-          metaKeywords: metaKeywords || title,
-        }),
-      });
+isEditorial:true,
 
-      const data = await res.json();
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed");
-      }
+category:"Editorial",
 
-      alert("Editorial Created Successfully 🚀");
 
-      // Reset
-      setTitle("");
-      setContent("");
-      setVideoUrl("");
-      setImages([]);
-      setPreview([]);
-      setMetaTitle("");
-      setMetaDescription("");
-      setMetaKeywords("");
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  return (
-    <div className="p-8 bg-[#0f172a] text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">
-        Create Editorial
-      </h1>
+images:[] as string[],
 
-      <div className="grid grid-cols-3 gap-8">
 
-        {/* LEFT */}
-        <div className="col-span-2 space-y-6">
 
-          <input
-            placeholder="Title"
-            className="w-full bg-[#1e293b] p-3 rounded"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+videoUrl:"",
 
-          <div className="bg-white text-black rounded">
-            <ReactQuill value={content} onChange={setContent} />
-          </div>
+videoPosition:"top",
 
-          <input
-            placeholder="Video URL"
-            className="w-full bg-[#1e293b] p-3 rounded"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
 
-          <div>
-            <input type="file" multiple onChange={handleImages} />
 
-            <div className="flex gap-4 mt-4 flex-wrap">
-              {preview.map((img, i) => (
-                <img
-                  key={i}
-                  src={img}
-                  className="w-24 h-24 object-cover rounded"
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+breaking:false,
 
-        {/* RIGHT PANEL */}
-        <div className="space-y-6">
+featured:false,
 
-          <div className="bg-[#1e293b] p-6 rounded-xl">
-            <h2 className="font-semibold mb-4">
-              Publishing
-            </h2>
 
-            <label className="flex gap-2 items-center">
-              <input
-                type="checkbox"
-                checked={approved}
-                onChange={() => setApproved(!approved)}
-              />
-              Approved
-            </label>
 
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-orange-600 py-2 mt-6 rounded disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? "Publishing..." : "Create Editorial"}
-            </button>
-          </div>
+breakingPriority:0,
 
-          <div className="bg-[#1e293b] p-6 rounded-xl space-y-4">
-            <div className="flex justify-between">
-              <h2 className="font-semibold">
-                SEO Settings
-              </h2>
-              <button
-                onClick={autoGenerateSEO}
-                className="text-sm bg-gray-600 px-3 rounded"
-              >
-                Auto
-              </button>
-            </div>
+homepagePriority:0,
 
-            <input
-              placeholder="Meta Title"
-              className="w-full bg-[#0f172a] p-2 rounded"
-              value={metaTitle}
-              onChange={(e) =>
-                setMetaTitle(e.target.value)
-              }
-            />
 
-            <textarea
-              placeholder="Meta Description"
-              className="w-full bg-[#0f172a] p-2 rounded"
-              value={metaDescription}
-              onChange={(e) =>
-                setMetaDescription(e.target.value)
-              }
-            />
+breakingDuration:"30",
 
-            <input
-              placeholder="Meta Keywords"
-              className="w-full bg-[#0f172a] p-2 rounded"
-              value={metaKeywords}
-              onChange={(e) =>
-                setMetaKeywords(e.target.value)
-              }
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+featuredDuration:"24",
+
+
+
+/* =========================
+   ARTICLE INTELLIGENCE
+========================= */
+
+
+keyHighlights:"",
+
+whyItMatters:"",
+
+
+shortBrief:"",
+
+background:"",
+
+timeline:"",
+
+
+
+expertOpinion:{
+  name:"",
+  role:"",
+  quote:""
+},
+
+
+
+factCheck:{
+  claim:"",
+  status:"",
+  explanation:"",
+  sources:""
+},
+
+
+
+whatsNext:"",
+
+keyTakeaways:"",
+
+sourceDesk:"",
+
+
+
+
+faqItems:[] as {
+question:string;
+answer:string;
+}[],
+
+
+
+publishedAt:"",
+
+
+
+
+metaTitle:"",
+
+metaDescription:"",
+
+metaKeywords:"",
+
+
+
+status:"pending",
+
+
+live:true
+
+
+});
+
+
+
+/* =====================================================
+   UPDATE FIELD
+===================================================== */
+
+
+function updateField(
+key:string,
+value:any
+){
+
+setForm(prev=>({
+
+...prev,
+
+[key]:value
+
+}));
+
+}
+/* =====================================================
+   FAQ HANDLERS
+===================================================== */
+
+
+function addFAQ(){
+
+setForm(prev=>({
+
+...prev,
+
+faqItems:[
+
+...prev.faqItems,
+
+createEmptyFAQ()
+
+]
+
+}));
+
+}
+
+
+
+function updateFAQ(
+index:number,
+key:"question"|"answer",
+value:string
+){
+
+setForm(prev=>({
+
+...prev,
+
+faqItems:
+
+prev.faqItems.map(
+(item,i)=>
+
+i===index
+
+?
+
+{
+
+...item,
+
+[key]:value
+
+}
+
+:
+
+item
+
+)
+
+}));
+
+}
+
+
+
+
+function removeFAQ(index:number){
+
+setForm(prev=>({
+
+...prev,
+
+faqItems:
+
+prev.faqItems.filter(
+(_,i)=>i!==index
+)
+
+}));
+
+}
+
+
+
+
+/* =====================================================
+   AUTO SLUG
+===================================================== */
+
+
+useEffect(()=>{
+
+
+if(
+form.title &&
+slugLocked
+){
+
+setForm(prev=>({
+
+...prev,
+
+slug:
+generateSlug(prev.title),
+
+
+metaTitle:
+prev.metaTitle ||
+prev.title
+
+
+}));
+
+}
+
+
+},[
+form.title,
+slugLocked
+]);
+
+
+
+
+
+
+/* =====================================================
+   AUTO META DESCRIPTION
+===================================================== */
+
+
+useEffect(()=>{
+
+
+if(
+form.content &&
+!form.metaDescription
+){
+
+
+const clean =
+stripHtml(form.content);
+
+
+
+setForm(prev=>({
+
+...prev,
+
+metaDescription:
+clean.substring(0,160)
+
+}));
+
+
+}
+
+
+},[
+form.content
+]);
+
+
+
+
+
+
+/* =====================================================
+   IMAGE REMOVE
+===================================================== */
+
+
+function removeImage(index:number){
+
+setForm(prev=>({
+
+...prev,
+
+images:
+
+prev.images.filter(
+(_,i)=>i!==index
+)
+
+}));
+
+}
+
+
+
+
+
+
+/* =====================================================
+   IMAGE UPLOAD
+===================================================== */
+
+
+async function handleImageUpload(
+files:FileList
+){
+
+
+if(
+files.length + form.images.length > 5
+){
+
+setError(
+"Maximum 5 images allowed"
+);
+
+return;
+
+}
+
+
+setUploading(true);
+
+setError("");
+
+
+
+try{
+
+
+const uploaded:string[]=[];
+
+
+
+for(
+const file of Array.from(files)
+){
+
+
+if(
+file.size > 2*1024*1024
+){
+
+throw new Error(
+"Image size must be under 2MB"
+);
+
+}
+
+
+
+const fd =
+new FormData();
+
+
+fd.append(
+"file",
+file
+);
+
+
+
+fd.append(
+"upload_preset",
+process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+);
+
+
+
+
+
+const response =
+await fetch(
+
+`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+
+{
+
+method:"POST",
+
+body:fd
+
+}
+
+);
+
+
+
+const data =
+await response.json();
+
+
+
+if(data.secure_url){
+
+uploaded.push(
+data.secure_url
+);
+
+}
+
+
+}
+
+
+
+
+setForm(prev=>({
+
+...prev,
+
+images:[
+
+...prev.images,
+
+...uploaded
+
+]
+
+}));
+
+
+
+}
+catch(err:any){
+
+
+setError(
+err.message ||
+"Upload failed"
+);
+
+
+}
+finally{
+
+
+setUploading(false);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+/* =====================================================
+   SUBMIT
+===================================================== */
+
+
+async function handleSubmit(
+e:React.FormEvent
+){
+
+
+e.preventDefault();
+
+
+
+setLoading(true);
+
+setError("");
+
+setMessage("");
+
+
+
+if(
+!form.title.trim() ||
+!form.content.trim()
+){
+
+setError(
+"Title and content required"
+);
+
+
+setLoading(false);
+
+return;
+
+}
+
+
+
+
+try{
+
+
+const payload={
+
+
+...form,
+
+
+keyHighlights:
+
+convertHighlights(
+form.keyHighlights
+),
+
+
+
+publishedAt:
+
+form.publishedAt
+
+?
+
+new Date(
+form.publishedAt
+).toISOString()
+
+:
+
+null
+
+
+
+};
+
+
+
+
+
+const res =
+await fetch(
+"/api/articles",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json"
+
+},
+
+body:
+
+JSON.stringify(payload)
+
+}
+
+);
+
+
+
+
+
+const data =
+await res.json();
+
+
+
+
+
+if(!res.ok){
+
+throw new Error(
+data.error ||
+"Create failed"
+);
+
+}
+
+
+
+
+
+setMessage(
+"Editorial created successfully 🚀"
+);
+
+
+
+
+
+
+setTimeout(()=>{
+
+
+router.push(
+"/admin/posts"
+);
+
+
+},1200);
+
+
+
+
+}
+catch(err:any){
+
+
+console.error(
+"EDITORIAL CREATE ERROR",
+err
+);
+
+
+
+setError(
+err.message ||
+"Failed"
+);
+
+
+}
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
+}
+return (
+
+<div
+
+className="
+min-h-screen
+bg-[#050816]
+text-white
+p-4
+md:p-8
+"
+
+>
+
+
+<div className="mb-8">
+
+<h1 className="text-3xl font-bold">
+
+Create Editorial
+
+</h1>
+
+
+<p className="text-orange-400 mt-2">
+
+NationPath Editorial CMS
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+{
+message &&
+
+<div
+
+className="
+mb-6
+p-4
+rounded-xl
+bg-green-600/20
+border
+border-green-500
+text-green-300
+"
+
+>
+
+{message}
+
+</div>
+
+}
+
+
+
+
+
+{
+error &&
+
+<div
+
+className="
+mb-6
+p-4
+rounded-xl
+bg-red-600/20
+border
+border-red-500
+text-red-300
+"
+
+>
+
+{error}
+
+</div>
+
+}
+
+
+
+
+
+
+<form
+
+onSubmit={handleSubmit}
+
+className="
+grid
+grid-cols-1
+xl:grid-cols-3
+gap-8
+"
+
+>
+
+
+
+
+{/* ================= LEFT COLUMN ================= */}
+
+
+<div
+
+className="
+xl:col-span-2
+space-y-6
+"
+
+>
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<label className="text-gray-400 text-sm">
+
+Headline
+
+</label>
+
+
+<input
+
+className="
+w-full
+mt-3
+p-4
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+placeholder="Enter editorial headline"
+
+
+value={form.title}
+
+
+
+onChange={(e)=>
+
+updateField(
+"title",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<div className="flex justify-between mb-3">
+
+
+<label className="text-gray-400">
+
+URL Slug
+
+</label>
+
+
+
+<button
+
+type="button"
+
+onClick={()=>setSlugLocked(!slugLocked)}
+
+className="
+bg-orange-600
+px-4
+py-2
+rounded-lg
+text-xs
+"
+
+>
+
+{
+slugLocked
+?
+"Auto"
+:
+"Manual"
+}
+
+
+</button>
+
+
+</div>
+
+
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+disabled={slugLocked}
+
+
+
+value={form.slug}
+
+
+
+onChange={(e)=>
+
+updateField(
+"slug",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-white
+rounded-2xl
+overflow-hidden
+text-black
+"
+
+>
+
+
+<Editor
+
+value={form.content}
+
+
+
+onChange={(v:string)=>
+
+updateField(
+"content",
+v
+)
+
+}
+
+
+/>
+
+
+</div>
+
+
+
+
+
+
+
+
+<ArticleIntelligenceForm
+
+form={form}
+
+updateField={updateField}
+
+/>
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+FAQ Section ⭐
+
+</h2>
+
+
+
+
+
+<button
+
+type="button"
+
+onClick={addFAQ}
+
+className="
+bg-blue-600
+px-4
+py-2
+rounded-lg
+mb-5
+"
+
+>
+
++ Add FAQ
+
+</button>
+
+
+
+
+
+
+
+{
+form.faqItems.map(
+(item,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+mb-5
+p-4
+rounded-xl
+bg-black/20
+border
+border-white/10
+"
+
+>
+
+
+
+<div className="flex justify-between mb-3">
+
+
+<span className="text-orange-400">
+
+FAQ {index+1}
+
+</span>
+
+
+
+<button
+
+type="button"
+
+onClick={()=>removeFAQ(index)}
+
+className="text-red-400"
+
+>
+
+Remove
+
+</button>
+
+
+</div>
+
+
+
+
+
+<input
+
+className="
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+placeholder="Question"
+
+
+value={item.question}
+
+
+
+onChange={(e)=>
+
+updateFAQ(
+index,
+"question",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+
+<textarea
+
+className="
+w-full
+h-28
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+placeholder="Answer"
+
+
+value={item.answer}
+
+
+
+onChange={(e)=>
+
+updateFAQ(
+index,
+"answer",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+</div>
+
+
+)
+
+)
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Video
+
+</h2>
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+placeholder="YouTube URL"
+
+
+value={form.videoUrl}
+
+
+
+onChange={(e)=>
+
+updateField(
+"videoUrl",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+<select
+
+className="
+w-full
+mt-4
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+value={form.videoPosition}
+
+
+
+onChange={(e)=>
+
+updateField(
+"videoPosition",
+e.target.value
+)
+
+}
+
+
+>
+
+
+<option value="top">
+
+Top
+
+</option>
+
+
+<option value="middle">
+
+Middle
+
+</option>
+
+
+<option value="bottom">
+
+Bottom
+
+</option>
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Media Gallery
+
+</h2>
+
+
+
+
+<input
+
+type="file"
+
+multiple
+
+accept="image/*"
+
+
+onChange={(e)=>
+
+e.target.files &&
+handleImageUpload(
+e.target.files
+)
+
+}
+
+
+/>
+
+
+
+
+{
+uploading &&
+
+<p className="text-orange-400 mt-3">
+
+Uploading...
+
+</p>
+
+}
+
+
+
+
+<div className="flex gap-4 flex-wrap mt-5">
+
+
+{
+
+form.images.map(
+(img,index)=>(
+
+
+<div
+
+key={index}
+
+className="relative"
+
+>
+
+
+<img
+
+src={img}
+
+className="
+w-32
+h-24
+object-cover
+rounded-xl
+"
+
+/>
+
+
+
+<button
+
+type="button"
+
+onClick={()=>removeImage(index)}
+
+className="
+absolute
+-top-2
+-right-2
+bg-red-600
+rounded-full
+w-6
+h-6
+"
+
+>
+
+×
+
+</button>
+
+
+</div>
+
+
+)
+
+)
+
+}
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* ================= RIGHT COLUMN ================= */}
+
+
+
+<div className="space-y-6">
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Publishing
+
+</h2>
+
+
+
+
+
+<div
+
+className="
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+>
+
+
+Editorial
+
+
+</div>
+
+
+
+<p className="text-xs text-gray-400 mt-3">
+
+Editorial category locked
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Schedule Publish
+
+</h2>
+
+
+
+
+<input
+
+type="datetime-local"
+
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+border
+border-white/10
+"
+
+
+value={form.publishedAt}
+
+
+
+onChange={(e)=>
+
+updateField(
+"publishedAt",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+<p className="text-xs text-gray-400 mt-3">
+
+Leave empty for immediate publishing.
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
+
+>
+
+
+<h2 className="font-semibold mb-4">
+
+Status
+
+</h2>
+
+
+
+
+<select
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+value={form.status}
+
+
+
+onChange={(e)=>
+
+updateField(
+"status",
+e.target.value
+)
+
+}
+
+>
+
+
+
+<option value="pending">
+
+Pending
+
+</option>
+
+
+
+<option value="approved">
+
+Approved
+
+</option>
+
+
+
+<option value="draft">
+
+Draft
+
+</option>
+
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-5
+"
+
+>
+
+
+<h2 className="font-semibold">
+
+Editorial Controls
+
+</h2>
+
+
+
+
+<label className="flex justify-between">
+
+
+Featured
+
+
+<input
+
+type="checkbox"
+
+
+checked={form.featured}
+
+
+
+onChange={(e)=>
+
+updateField(
+"featured",
+e.target.checked
+)
+
+}
+
+
+/>
+
+
+</label>
+
+
+
+
+
+
+
+<label className="flex justify-between">
+
+
+Breaking
+
+
+<input
+
+type="checkbox"
+
+
+checked={form.breaking}
+
+
+
+onChange={(e)=>
+
+updateField(
+"breaking",
+e.target.checked
+)
+
+}
+
+
+/>
+
+
+</label>
+
+
+
+
+
+{
+form.breaking &&
+
+
+<select
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+value={form.breakingDuration}
+
+
+
+onChange={(e)=>
+
+updateField(
+"breakingDuration",
+e.target.value
+)
+
+}
+
+
+>
+
+
+<option value="30">
+
+30 Minutes
+
+</option>
+
+
+<option value="60">
+
+1 Hour
+
+</option>
+
+
+<option value="180">
+
+3 Hours
+
+</option>
+
+
+<option value="360">
+
+6 Hours
+
+</option>
+
+
+<option value="1440">
+
+24 Hours
+
+</option>
+
+
+</select>
+
+
+}
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-4
+"
+
+>
+
+
+<h2 className="font-semibold">
+
+SEO
+
+</h2>
+
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+placeholder="Meta Title"
+
+
+value={form.metaTitle}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaTitle",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+
+
+
+<textarea
+
+className="
+w-full
+h-28
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+placeholder="Meta Description"
+
+
+
+value={form.metaDescription}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaDescription",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+placeholder="Meta Keywords"
+
+
+
+value={form.metaKeywords}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaKeywords",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<button
+
+type="submit"
+
+disabled={loading}
+
+
+
+className="
+w-full
+py-4
+rounded-xl
+bg-orange-600
+font-semibold
+"
+
+>
+
+
+{
+loading
+
+?
+
+"Publishing..."
+
+:
+
+"Create Editorial"
+
+}
+
+
+</button>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+</form>
+
+
+
+
+
+</div>
+
+);
+
 }

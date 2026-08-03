@@ -1,51 +1,70 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+
+//////////////////////////////////////////////////////////////
+//
+// NATIONPATH ASTRO
+//
+// ADMIN INTELLIGENCE CENTER
+//
+// CMS
+// AUTOMATION
+// ANALYTICS
+// LIVE VISITORS
+// ARCHIVE
+//
+//////////////////////////////////////////////////////////////
+
 
 import {
-  Sparkles,
-  FileText,
-  CalendarDays,
-  Orbit,
-  WandSparkles,
-  Search,
-  Settings,
-  Moon,
-  Home,
-  Sun,
-  Activity,
-  Heart,
-  Briefcase,
-  GraduationCap,
-  Wallet,
-  ShieldCheck,
-  Plus,
-  Database,
+useEffect,
+useState
+} from "react";
+
+
+import {
+
+Sparkles,
+Play,
+CheckCircle,
+Clock,
+Archive,
+Eye,
+Users,
+Sun,
+Moon,
+Orbit,
+Activity,
+Heart,
+Wallet,
+Briefcase,
+ShieldCheck,
+CalendarDays
+
 } from "lucide-react";
 
 
 
-export default function AstroCMSPage() {
-
-
-
-const [dashboard,setDashboard] =
-useState<any>(null);
-
-
-const [loading,setLoading] =
-useState(true);
-
-
-
-const [error,setError] =
-useState("");
 
 
 
 
-useEffect(()=>{
+export default function AstroAdminPage(){
+
+
+
+const [dashboard,setDashboard]=useState<any>(null);
+
+const [loading,setLoading]=useState(true);
+
+const [archiveOpen,setArchiveOpen]=useState(false);
+
+const [generating,setGenerating]=useState(false);
+
+
+
+
+
 
 
 async function loadDashboard(){
@@ -54,16 +73,18 @@ async function loadDashboard(){
 try{
 
 
-const res =
-await fetch(
-"/api/admin/astro/dashboard"
+const response = await fetch(
+
+"/api/admin/astro/dashboard",
+
+{
+cache:"no-store"
+}
+
 );
 
 
-
-const json =
-await res.json();
-
+const json = await response.json();
 
 
 if(json.success){
@@ -71,26 +92,14 @@ if(json.success){
 setDashboard(json.data);
 
 }
-else{
-
-setError(
-json.message
-);
-
-}
-
-
-
-}catch(err){
-
-
-setError(
-"Unable to load dashboard"
-);
 
 
 }
+catch(error){
 
+console.error(error);
+
+}
 finally{
 
 setLoading(false);
@@ -101,8 +110,24 @@ setLoading(false);
 }
 
 
+
+
+
+
+
+
+useEffect(()=>{
+
 loadDashboard();
 
+const interval=setInterval(()=>{
+
+loadDashboard();
+
+},30000);
+
+
+return ()=>clearInterval(interval);
 
 
 },[]);
@@ -112,202 +137,70 @@ loadDashboard();
 
 
 
-const modules = [
 
 
-{
-title:"Horoscope",
-description:"Daily, weekly and monthly horoscope.",
-href:"/admin/astro/horoscope",
-icon:Sun
-},
 
 
-{
-title:"Zodiac",
-description:"12 zodiac knowledge database.",
-href:"/admin/astro/zodiac",
-icon:Sparkles
-},
+async function generateHoroscope(){
 
 
-{
-title:"Panchang",
-description:"Panchang intelligence management.",
-href:"/admin/astro/panchang",
-icon:CalendarDays
-},
+if(
+
+dashboard?.today?.ready ||
+
+dashboard?.automation?.running
+
+)
+
+return;
 
 
-{
-title:"Planet Intelligence",
-description:"Planet effects and knowledge.",
-href:"/admin/astro/planet-intelligence",
-icon:Orbit
-},
 
+setGenerating(true);
+
+
+
+try{
+
+
+await fetch(
+
+"/api/admin/astro/automation/horoscope/run",
 
 {
-title:"Nakshatra Intelligence",
-description:"27 Nakshatra database.",
-href:"/admin/astro/nakshatra-intelligence",
-icon:Moon
-},
+
+method:"POST"
+
+}
+
+);
 
 
-{
-title:"House Intelligence",
-description:"12 houses intelligence.",
-href:"/admin/astro/house-intelligence",
-icon:Home
-},
+setTimeout(()=>{
+
+loadDashboard();
+
+},2000);
 
 
-{
-title:"Lagna Intelligence",
-description:"Ascendant intelligence.",
-href:"/admin/astro/lagna-intelligence",
-icon:Sparkles
-},
+
+}
+catch(error){
+
+console.error(error);
+
+}
+finally{
+
+setGenerating(false);
+
+}
 
 
-{
-title:"Dasha Intelligence",
-description:"Dasha interpretation.",
-href:"/admin/astro/dasha-intelligence",
-icon:Activity
-},
+}
 
 
-{
-title:"Dosha Intelligence",
-description:"Dosha knowledge.",
-href:"/admin/astro/dosha-intelligence",
-icon:ShieldCheck
-},
 
-
-{
-title:"Yoga Intelligence",
-description:"Yoga database.",
-href:"/admin/astro/yoga-intelligence",
-icon:Sparkles
-},
-
-
-{
-title:"Muhurat",
-description:"Auspicious timings.",
-href:"/admin/astro/muhurat",
-icon:CalendarDays
-},
-
-
-{
-title:"Remedy Intelligence",
-description:"Astro remedies.",
-href:"/admin/astro/remedy-intelligence",
-icon:Heart
-},
-
-
-{
-title:"Compatibility",
-description:"Relationship matching.",
-href:"/admin/astro/compatibility-intelligence",
-icon:Heart
-},
-
-
-{
-title:"Career Intelligence",
-description:"Career astrology.",
-href:"/admin/astro/career-intelligence",
-icon:Briefcase
-},
-
-
-{
-title:"Education Intelligence",
-description:"Education patterns.",
-href:"/admin/astro/education-intelligence",
-icon:GraduationCap
-},
-
-
-{
-title:"Finance Intelligence",
-description:"Finance astrology.",
-href:"/admin/astro/finance-intelligence",
-icon:Wallet
-},
-
-
-{
-title:"Health Intelligence",
-description:"Health astrology.",
-href:"/admin/astro/health-intelligence",
-icon:Activity
-},
-
-
-{
-title:"Business Intelligence",
-description:"Business astrology.",
-href:"/admin/astro/business-intelligence",
-icon:Briefcase
-},
-
-
-{
-title:"Foreign Settlement",
-description:"Foreign settlement.",
-href:"/admin/astro/foreign-settlement-intelligence",
-icon:Sparkles
-},
-
-
-{
-title:"Birth Chart",
-description:"Birth chart interpretation.",
-href:"/admin/astro/birth-chart-interpretation",
-icon:FileText
-},
-
-
-{
-title:"Templates",
-description:"Prediction templates.",
-href:"/admin/astro/astro-templates",
-icon:WandSparkles
-},
-
-
-{
-title:"Astro FAQ",
-description:"FAQ management.",
-href:"/admin/astro/astro-faq",
-icon:FileText
-},
-
-
-{
-title:"SEO Management",
-description:"Astro SEO system.",
-href:"/admin/astro/seo",
-icon:Search
-},
-
-
-{
-title:"Astro Settings",
-description:"CMS settings.",
-href:"/admin/astro/settings",
-icon:Settings
-},
-
-
-];
 
 
 
@@ -316,17 +209,15 @@ icon:Settings
 
 if(loading){
 
-
-return (
+return(
 
 <div className="p-10 text-gray-400">
 
-Loading Astro Dashboard...
+Loading Astro Intelligence Center...
 
 </div>
 
-);
-
+)
 
 }
 
@@ -336,48 +227,227 @@ Loading Astro Dashboard...
 
 
 
-return (
-
-<div className="space-y-8">
-
+const todayReady =
+dashboard?.today?.ready;
 
 
+const running =
+dashboard?.automation?.running;
+
+
+
+
+
+
+
+return(
+
+
+<div className="p-8 space-y-10 text-white">
+
+
+
+
+
+
+
+{/* HEADER */}
+
+
+<div className="flex justify-between flex-wrap gap-5">
+
+
+<div>
+
+
+<h1 className="text-3xl font-bold flex gap-3 items-center">
+
+<Sparkles/>
+
+Astro Intelligence Center
+
+</h1>
+
+
+<p className="text-gray-400 mt-2">
+
+NationPath Astro CMS + Automation + Analytics
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<button
+
+onClick={generateHoroscope}
+
+disabled={
+todayReady ||
+running ||
+generating
+}
+
+className={`
+px-5 py-3 rounded-xl flex items-center gap-2 font-semibold
+
+${
+todayReady ||
+running ||
+generating
+
+?
+
+"bg-gray-700 cursor-not-allowed"
+
+:
+
+"bg-orange-600 hover:bg-orange-500"
+
+}
+
+`}
+
+>
+
+
+{
+
+generating
+
+?
+
+<>
+
+<Clock size={18}/>
+
+Generating...
+
+</>
+
+
+:
+
+todayReady
+
+?
+
+<>
+
+<CheckCircle size={18}/>
+
+Today's Horoscope Published
+
+</>
+
+
+:
+
+running
+
+?
+
+<>
+
+<Clock size={18}/>
+
+Generation Running
+
+</>
+
+
+:
+
+<>
+
+<Play size={18}/>
+
+Generate Horoscope
+
+</>
+
+}
+
+
+
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* CMS SUMMARY */}
+
+
+
+<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-5">
+
+
+<Card title="Total CMS" value={dashboard.summary.totalContent}/>
+
+<Card title="Published" value={dashboard.summary.published}/>
+
+<Card title="Draft" value={dashboard.summary.draft}/>
+
+<Card title="Review" value={dashboard.summary.review}/>
+
+<Card title="Approved" value={dashboard.summary.approved}/>
+
+<Card title="Archived" value={dashboard.summary.archived}/>
+
+<Card title="Published Today" value={dashboard.summary.publishedToday}/>
+
+<Card title="Total Views" value={dashboard.analytics.totalViews}/>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* LIVE VISITORS */}
+
+
+
+<Panel title="LIVE HOROSCOPE VISITORS">
 
 
 <div className="flex items-center gap-4">
 
 
-<div
-className="
-p-4
-rounded-2xl
-bg-gradient-to-br
-from-[#ff4d4d]
-via-[#ff6a3d]
-to-[#ffb347]
-"
->
-
-<Sparkles
-size={30}
-className="text-white"
-/>
-
-</div>
+<Users className="text-green-400"/>
 
 
 <div>
 
-<h1 className="text-3xl font-bold">
+<h2 className="text-3xl font-bold">
 
-Astro Intelligence Dashboard
+{dashboard.liveVisitors.total}
 
-</h1>
+</h2>
 
 
 <p className="text-gray-400">
 
-NationPath Astrology Knowledge System
+People reading now
 
 </p>
 
@@ -391,295 +461,617 @@ NationPath Astrology Knowledge System
 
 
 
-
-{
-error &&
-
-<div className="p-4 rounded-xl bg-red-500/20 text-red-300">
-
-{error}
-
-</div>
-
-}
-
-
-
-
-
-
-
-<div className="grid md:grid-cols-4 gap-5">
-
-
-<StatCard
-
-title="Total Content"
-
-value={
-dashboard?.summary?.totalContent ?? 0
-}
-
-/>
-
-
-<StatCard
-
-title="Published"
-
-value={
-dashboard?.summary?.published ?? 0
-}
-
-/>
-
-
-<StatCard
-
-title="Draft"
-
-value={
-dashboard?.summary?.drafts ?? 0
-}
-
-/>
-
-
-<StatCard
-
-title="Active Modules"
-
-value={
-dashboard?.summary?.activeModules ?? 0
-}
-
-/>
-
-
-</div>
-
-
-
-
-
-
-
-<div>
-
-<h2 className="text-xl font-semibold mb-4">
-
-Quick Actions
-
-</h2>
-
-
-<div className="grid md:grid-cols-4 gap-4">
-
-
-<QuickAction
-title="Add Horoscope"
-href="/admin/astro/horoscope/create"
-/>
-
-
-<QuickAction
-title="Add Zodiac"
-href="/admin/astro/zodiac/create"
-/>
-
-
-<QuickAction
-title="Add Planet"
-href="/admin/astro/planet-intelligence/create"
-/>
-
-
-<QuickAction
-title="Add Knowledge"
-href="/admin/astro/astro-knowledge/create"
-/>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div>
-
-
-<h2 className="text-xl font-semibold mb-5">
-
-Astro Modules
-
-</h2>
-
-
-<div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+<div className="grid md:grid-cols-4 gap-4 mt-6">
 
 
 {
-modules.map((module)=>{
+
+dashboard.liveVisitors.byZodiac.map(
+
+(item:any)=>(
 
 
-const Icon =
-module.icon;
+<div
 
-
-
-return (
-
-<Link
-
-key={module.title}
-
-href={module.href}
+key={item.zodiac}
 
 className="
-p-6
-rounded-2xl
-bg-black/30
+rounded-xl
+bg-black/20
 border
 border-white/10
-hover:border-orange-400/40
-transition
+p-4
+"
+
+>
+
+<div className="capitalize">
+
+{item.zodiac}
+
+</div>
+
+
+<div className="text-green-400 font-bold mt-2">
+
+{item.viewers}
+
+</div>
+
+
+</div>
+
+
+)
+
+)
+
+}
+
+
+</div>
+
+
+
+</Panel>
+
+
+
+
+
+
+
+
+
+{/* AUTOMATION */}
+
+
+
+<Panel title="Today's Horoscope Automation">
+
+
+<div className="flex justify-between items-center">
+
+
+<div>
+
+
+<p className="text-gray-400">
+
+Coverage
+
+</p>
+
+
+<h2 className="text-3xl font-bold">
+
+{dashboard.today.completed}/12
+
+</h2>
+
+
+</div>
+
+
+
+
+<div>
+
+{
+
+todayReady
+
+?
+
+<span className="text-green-400 flex gap-2">
+
+<CheckCircle/>
+
+Published
+
+</span>
+
+
+:
+
+running
+
+?
+
+<span className="text-yellow-400 flex gap-2">
+
+<Clock/>
+
+Running
+
+</span>
+
+
+:
+
+<span className="text-orange-400 flex gap-2">
+
+<Clock/>
+
+Waiting
+
+</span>
+
+
+}
+
+
+</div>
+
+
+
+</div>
+
+
+</Panel>
+
+
+
+
+
+
+
+
+
+{/* ZODIAC COVERAGE */}
+
+
+
+<Panel title="Zodiac Coverage">
+
+
+<div className="grid md:grid-cols-3 xl:grid-cols-4 gap-4">
+
+
+{
+
+dashboard.zodiacStatus.map(
+
+(item:any)=>(
+
+
+<div
+
+key={item.zodiac}
+
+className={`
+p-4 rounded-xl border
+
+${
+item.published
+
+?
+
+"border-green-500/30 bg-green-500/10"
+
+:
+
+"border-red-500/30 bg-red-500/10"
+
+}
+
+`}
+
+>
+
+
+<div className="flex justify-between">
+
+
+<span className="capitalize">
+
+{item.zodiac}
+
+</span>
+
+
+{
+
+item.published
+
+?
+
+<CheckCircle size={18}/>
+
+:
+
+<Clock size={18}/>
+
+}
+
+
+</div>
+
+
+
+<div className="text-gray-400 mt-3 flex gap-2">
+
+<Eye size={15}/>
+
+{item.views} views
+
+</div>
+
+
+
+</div>
+
+
+)
+
+)
+
+}
+
+
+
+</div>
+
+</Panel>
+
+
+
+
+
+
+
+
+
+{/* MOST VIEWED */}
+
+
+
+<Panel title="Most Viewed Rashifal">
+
+
+{
+
+dashboard.analytics.topViewed.map(
+
+(item:any,index:number)=>(
+
+
+<div
+
+key={index}
+
+className="
+flex
+justify-between
+border-b
+border-white/10
+py-3
+
 "
 
 >
 
 
-<div className="flex gap-4 items-center">
+<span>
+
+#{index+1} {item.zodiac}
+
+</span>
 
 
-<div className="p-3 rounded-xl bg-white/10">
+<span className="text-gray-400">
 
-<Icon size={24}/>
+{item.analytics?.views || 0} views
 
-</div>
-
-
-<h3 className="font-semibold">
-
-{module.title}
-
-</h3>
+</span>
 
 
 </div>
 
 
+)
 
-<p className="mt-4 text-sm text-gray-400">
-
-{module.description}
-
-</p>
-
-
-</Link>
-
-);
-
-
-})
-
-}
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div className="grid md:grid-cols-3 gap-5">
-
-
-<StatusCard
-
-title="Horoscope Coverage"
-
-value={
-
-dashboard?.horoscope?.completed +
-
-"/12"
-
-}
-
-/>
-
-
-
-<StatusCard
-
-title="Recently Added"
-
-value={
-
-dashboard?.recentAdded?.length ?? 0
-
-}
-
-/>
-
-
-
-<StatusCard
-
-title="Recently Updated"
-
-value={
-
-dashboard?.recentlyUpdated?.length ?? 0
-
-}
-
-/>
-
-
-
-</div>
-
-
-
-
-
-
-
-</div>
-
-
-);
+)
 
 
 }
 
 
+</Panel>
 
 
 
 
 
-function StatCard({
+
+
+
+
+{/* RECENT */}
+
+
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<Panel title="Recent Published">
+
+
+{
+
+dashboard.recentPublished.map(
+
+(item:any,index:number)=>(
+
+
+<div key={index}
+
+className="border-b border-white/10 py-3"
+
+>
+
+
+<div className="capitalize">
+
+{item.zodiac}
+
+</div>
+
+
+<div className="text-gray-400 text-sm">
+
+{
+new Date(
+item.meta.publishedAt
+).toLocaleDateString()
+
+}
+
+</div>
+
+
+</div>
+
+
+)
+
+)
+
+
+}
+
+
+</Panel>
+
+
+
+
+
+
+
+<Panel title="Recent Generated">
+
+
+{
+
+dashboard.recentGeneration.map(
+
+(item:any,index:number)=>(
+
+
+<div key={index}
+
+className="border-b border-white/10 py-3"
+
+>
+
+
+<div className="capitalize">
+
+{item.zodiac}
+
+</div>
+
+
+<div className="text-gray-400 text-sm">
+
+{
+new Date(
+item.createdAt
+).toLocaleDateString()
+
+}
+
+</div>
+
+
+</div>
+
+
+)
+
+)
+
+
+}
+
+
+</Panel>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* ARCHIVE */}
+
+
+
+<Panel>
+
+
+<button
+
+onClick={()=>setArchiveOpen(!archiveOpen)}
+
+className="flex gap-3 items-center text-xl"
+
+>
+
+<Archive/>
+
+Archive History Last 3 Days
+
+</button>
+
+
+
+
+{
+
+archiveOpen &&
+
+<div className="mt-5">
+
+
+{
+
+dashboard.archiveHistory.map(
+
+(item:any,index:number)=>(
+
+
+<div
+
+key={index}
+
+className="border-b border-white/10 py-3"
+
+>
+
+
+<div className="capitalize">
+
+{item.zodiac}
+
+</div>
+
+
+<div className="text-gray-400">
+
+{
+new Date(
+item.meta.archivedAt
+).toLocaleDateString()
+
+}
+
+</div>
+
+
+</div>
+
+
+)
+
+)
+
+
+}
+
+
+</div>
+
+
+}
+
+
+
+</Panel>
+
+
+
+
+
+
+
+
+
+{/* FUTURE MODULES */}
+
+
+
+<Panel title="Astro Intelligence Modules">
+
+
+<div className="grid md:grid-cols-3 xl:grid-cols-4 gap-5">
+
+
+<Module name="Horoscope" active icon={Sun}/>
+
+<Module name="Zodiac Intelligence" active icon={Sparkles}/>
+
+<Module name="Panchang" icon={CalendarDays}/>
+
+<Module name="Planet Intelligence" icon={Orbit}/>
+
+<Module name="Nakshatra" icon={Moon}/>
+
+<Module name="Lagna" icon={Sun}/>
+
+<Module name="Dasha" icon={Activity}/>
+
+<Module name="Dosha" icon={ShieldCheck}/>
+
+<Module name="Yoga" icon={Activity}/>
+
+<Module name="Compatibility" icon={Heart}/>
+
+<Module name="Career" icon={Briefcase}/>
+
+<Module name="Finance" icon={Wallet}/>
+
+
+</div>
+
+
+</Panel>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+)
+
+
+}
+
+
+
+
+
+
+
+
+
+function Card({
 
 title,
 
-value,
+value
 
 }:{
 
@@ -690,15 +1082,16 @@ value:number;
 }){
 
 
-return (
+return(
 
 <div className="
-p-5
-rounded-2xl
-bg-black/30
+bg-[#0e1726]
 border
 border-white/10
+rounded-2xl
+p-5
 ">
+
 
 <p className="text-gray-400 text-sm">
 
@@ -707,9 +1100,9 @@ border-white/10
 </p>
 
 
-<h3 className="text-3xl font-bold mt-2">
+<h3 className="text-2xl font-bold mt-2">
 
-{value}
+{value || 0}
 
 </h3>
 
@@ -724,46 +1117,47 @@ border-white/10
 
 
 
-function QuickAction({
+
+
+
+
+function Panel({
 
 title,
 
-href
+children
 
-}:{
-
-title:string;
-
-href:string;
-
-}){
+}:any){
 
 
-return (
+return(
 
-<Link
-
-href={href}
-
-className="
-flex
-items-center
-gap-3
-p-4
-rounded-xl
-bg-white/5
+<div className="
+bg-[#0e1726]
 border
 border-white/10
-hover:bg-orange-500/20
-"
+rounded-2xl
+p-6
+">
 
->
 
-<Plus size={18}/>
+{
+
+title &&
+
+<h2 className="text-xl font-semibold mb-5">
 
 {title}
 
-</Link>
+</h2>
+
+}
+
+
+{children}
+
+
+</div>
 
 )
 
@@ -773,49 +1167,53 @@ hover:bg-orange-500/20
 
 
 
-function StatusCard({
-
-title,
-
-value
-
-}:{
-
-title:string;
-
-value:number|string;
-
-}){
 
 
-return (
 
-<div
-className="
-p-5
-rounded-2xl
-bg-black/30
+
+function Module({
+
+name,
+
+active,
+
+icon:Icon
+
+}:any){
+
+
+return(
+
+<div className="
+rounded-xl
+bg-black/20
 border
 border-white/10
-"
->
+p-5
+flex
+gap-3
+items-center
 
-<p className="text-gray-400 text-sm">
+">
 
-{title}
+
+<Icon size={22}/>
+
+
+<div>
+
+<h3 className="font-semibold">
+
+{name}
+
+</h3>
+
+
+<p className="text-sm text-gray-400">
+
+{active?"Active":"Coming Soon"}
 
 </p>
-
-
-<div className="flex items-center gap-2 mt-3">
-
-<Database size={18}/>
-
-<span className="font-semibold">
-
-{value}
-
-</span>
 
 
 </div>

@@ -3,7 +3,7 @@
 import {
   useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
 
 import Link from "next/link";
@@ -12,1575 +12,1756 @@ import Link from "next/link";
 export default function AdminPostsPage() {
 
 
-const [posts,setPosts] =
-useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
 
-const [loading,setLoading] =
-useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
 
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [category, setCategory] = useState("");
+  const [editorial, setEditorial] = useState("");
+  const [schedule, setSchedule] = useState("");
+  const [breaking, setBreaking] = useState("");
+  const [featured, setFeatured] = useState("");
+  const [flash, setFlash] = useState("");
 
-const [status,setStatus] =
-useState("");
 
+  const [stats, setStats] = useState({
 
+    totalArticles:0,
+    approvedArticles:0,
+    pendingArticles:0,
+    draftArticles:0,
+    featuredArticles:0,
+    breakingArticles:0,
+    editorialArticles:0,
+    scheduledArticles:0,
 
-const [category,setCategory] =
-useState("");
+  });
 
 
+  const categories = [
 
-const [search,setSearch] =
-useState("");
+    "politics",
+    "defence",
+    "international",
+    "economy",
+    "business",
+    "technology",
+    "sports",
+    "education",
+    "health",
+    "science",
+    "environment",
+    "automobile",
+    "entertainment",
+    "lifestyle",
+    "travel",
+    "culture"
 
+  ];
 
 
-const [breaking,setBreaking] =
-useState("");
 
+  const fetchPosts = useCallback(async()=>{
 
 
-const [featured,setFeatured] =
-useState("");
+    try{
 
 
+      setLoading(true);
 
-const [flash,setFlash] =
-useState("");
 
+      const params = new URLSearchParams();
 
 
-const [page,setPage] =
-useState(1);
+      params.set(
+        "page",
+        String(page)
+      );
 
 
+      params.set(
+        "limit",
+        "20"
+      );
 
-const [totalPages,setTotalPages] =
-useState(1);
 
+      if(search)
+      params.set("search",search);
 
 
+      if(status)
+      params.set("status",status);
 
 
-const [stats,setStats] =
-useState({
+      if(category)
+      params.set("category",category);
 
-totalArticles:0,
 
-approvedArticles:0,
+      if(editorial)
+      params.set("editorial",editorial);
 
-pendingArticles:0,
 
-draftArticles:0,
+      if(schedule)
+      params.set("schedule",schedule);
 
-featuredArticles:0,
 
-breakingArticles:0
+      if(breaking)
+      params.set("breaking",breaking);
 
-});
 
+      if(featured)
+      params.set("featured",featured);
 
 
+      if(flash)
+      params.set("flash",flash);
 
 
 
-const categories = [
+      const res = await fetch(
+        `/api/articles?${params.toString()}`
+      );
 
-"politics",
-"defence",
-"international",
-"economy",
-"business",
-"technology",
-"sports",
-"education",
-"health",
-"science",
-"environment",
-"automobile",
-"entertainment",
-"lifestyle",
-"travel",
-"culture"
 
-];
+      const data = await res.json();
 
 
 
+      if(data.success){
 
 
+        setPosts(
+          data.articles || []
+        );
 
-/* ================= FETCH POSTS ================= */
 
+        setTotalPages(
+          data.pagination?.totalPages || 1
+        );
 
-const fetchPosts =
-useCallback(async()=>{
 
+      }
 
-try{
 
+    }
+    catch(error){
 
-setLoading(true);
+      console.error(
+        "FETCH POSTS ERROR",
+        error
+      );
 
+    }
+    finally{
 
+      setLoading(false);
 
-const params =
-new URLSearchParams();
+    }
 
 
+  },[
+    page,
+    search,
+    status,
+    category,
+    editorial,
+    schedule,
+    breaking,
+    featured,
+    flash
+  ]);
 
-params.set(
-"page",
-String(page)
-);
 
 
+  const fetchStats = useCallback(async()=>{
 
-params.set(
-"limit",
-"20"
-);
 
+    try{
 
 
+      const res = await fetch(
+        "/api/articles/stats"
+      );
 
-if(search)
-params.set(
-"search",
-search
-);
 
+      const data = await res.json();
 
 
-if(status)
-params.set(
-"status",
-status
-);
+      if(data.success){
 
+        setStats(data.stats);
 
+      }
 
-if(category)
-params.set(
-"category",
-category
-);
 
+    }
+    catch(error){
 
+      console.error(
+        "STATS ERROR",
+        error
+      );
 
-if(breaking)
-params.set(
-"breaking",
-breaking
-);
+    }
 
 
+  },[]);
 
-if(featured)
-params.set(
-"featured",
-featured
-);
 
 
+  useEffect(()=>{
 
-if(flash)
-params.set(
-"flash",
-flash
-);
+    fetchPosts();
+    fetchStats();
 
+  },[
+    fetchPosts,
+    fetchStats
+  ]);
 
 
 
+  async function updateStatus(
+    id:string,
+    value:string
+  ){
 
-const res =
-await fetch(
-`/api/articles?${params.toString()}`
-);
 
+    await fetch(
+      `/api/articles/${id}`,
+      {
 
+        method:"PATCH",
 
-const data =
-await res.json();
+        headers:{
+          "Content-Type":"application/json"
+        },
 
+        body:JSON.stringify({
 
+          id,
+          status:value
 
+        })
 
-if(data.success){
+      }
+    );
 
 
-setPosts(
-data.articles || []
-);
+    fetchPosts();
+    fetchStats();
 
+  }
 
 
-setTotalPages(
-data.pagination?.totalPages || 1
-);
 
+  async function deletePost(
+    id:string
+  ){
 
-}
 
+    if(
+      !confirm(
+        "Delete this article?"
+      )
+    )
+    return;
 
 
-}
-catch(error){
 
+    await fetch(
+      "/api/articles",
+      {
 
-console.error(
-"Fetch posts error",
-error
-);
+        method:"DELETE",
 
+        headers:{
+          "Content-Type":"application/json"
+        },
 
-}
-finally{
+        body:JSON.stringify({
 
+          id
 
-setLoading(false);
+        })
 
+      }
+    );
 
-}
 
+    fetchPosts();
+    fetchStats();
 
 
-},[
-page,
-search,
-status,
-category,
-breaking,
-featured,
-flash
-]);
+  }
 
 
 
+  function clearFilters(){
 
 
+    setSearch("");
+    setStatus("");
+    setCategory("");
+    setEditorial("");
+    setSchedule("");
+    setBreaking("");
+    setFeatured("");
+    setFlash("");
+    setPage(1);
 
 
+  }
 
 
-/* ================= FETCH STATS ================= */
 
+  function badge(
+    value:string
+  ){
 
-const fetchStats =
-useCallback(async()=>{
+    if(value==="approved")
+    return "bg-green-600";
 
+    if(value==="pending")
+    return "bg-yellow-600";
 
-try{
+    if(value==="draft")
+    return "bg-slate-600";
 
+    if(value==="rejected")
+    return "bg-red-600";
 
-const res =
-await fetch(
-"/api/articles/stats"
-);
 
+    return "bg-gray-600";
 
+  }
+  return (
 
-const data =
-await res.json();
+    <div
+      className="
+      min-h-screen
+      bg-[#020617]
+      text-white
+      p-5
+      md:p-10
+      "
+    >
 
 
+      {/* HEADER */}
 
+      <header className="mb-8">
 
 
-if(data.success && data.stats){
+        <h1
+          className="
+          text-3xl
+          md:text-4xl
+          font-bold
+          "
+        >
 
+          News CMS Control Center
 
-setStats({
+        </h1>
 
-totalArticles:
-data.stats.totalArticles ?? 0,
 
+        <p
+          className="
+          text-gray-400
+          mt-2
+          "
+        >
 
-approvedArticles:
-data.stats.approvedArticles ?? 0,
+          Manage News, Editorial, Publishing and Content Intelligence
 
+        </p>
 
-pendingArticles:
-data.stats.pendingArticles ?? 0,
 
+      </header>
 
-draftArticles:
-data.stats.draftArticles ?? 0,
 
 
-featuredArticles:
-data.stats.featuredArticles ?? 0,
 
 
-breakingArticles:
-data.stats.breakingArticles ?? 0
+      {/* STATS */}
 
-});
 
+      <div
+        className="
+        grid
+        grid-cols-2
+        md:grid-cols-4
+        lg:grid-cols-8
+        gap-4
+        mb-8
+        "
+      >
 
-}
 
+        {[
+          [
+            "Total",
+            stats.totalArticles
+          ],
 
+          [
+            "Published",
+            stats.approvedArticles
+          ],
 
-}
-catch(error){
+          [
+            "Pending",
+            stats.pendingArticles
+          ],
 
+          [
+            "Draft",
+            stats.draftArticles
+          ],
 
-console.error(
-"Stats loading error",
-error
-);
+          [
+            "Scheduled",
+            stats.scheduledArticles
+          ],
 
+          [
+            "Editorial",
+            stats.editorialArticles
+          ],
 
-}
+          [
+            "Featured",
+            stats.featuredArticles
+          ],
 
+          [
+            "Breaking",
+            stats.breakingArticles
+          ]
 
+        ].map(
+          (item:any)=>(
 
-},[]);
 
+            <div
 
+              key={item[0]}
 
+              className="
+              bg-[#0f172a]
+              border
+              border-white/10
+              rounded-xl
+              p-4
+              "
+            >
 
 
+              <p
+                className="
+                text-gray-400
+                text-sm
+                "
+              >
 
+                {item[0]}
 
-useEffect(()=>{
+              </p>
 
 
-fetchPosts();
+              <h2
+                className="
+                text-3xl
+                font-bold
+                mt-2
+                "
+              >
 
-fetchStats();
+                {item[1]}
 
+              </h2>
 
-},[
-fetchPosts,
-fetchStats
-]);
 
+            </div>
 
 
+          )
+        )}
 
 
+      </div>
 
 
 
-/* ================= ACTIONS ================= */
 
 
-async function updateStatus(
-id:string,
-value:string
-){
 
 
-await fetch(
-`/api/articles/${id}`,
-{
+      {/* FILTER PANEL */}
 
-method:"PATCH",
 
-headers:{
-"Content-Type":
-"application/json"
-},
+      <div
+        className="
+        bg-[#0f172a]
+        border
+        border-white/10
+        rounded-2xl
+        p-5
+        mb-8
+        "
+      >
 
 
-body:JSON.stringify({
+        <div
+          className="
+          grid
+          grid-cols-1
+          md:grid-cols-4
+          lg:grid-cols-8
+          gap-3
+          "
+        >
 
-status:value
 
-})
 
-}
+          <input
 
-);
+            value={search}
 
+            onChange={(e)=>{
 
+              setSearch(
+                e.target.value
+              );
 
-fetchPosts();
+              setPage(1);
 
-}
+            }}
 
+            placeholder="Search..."
 
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            px-3
+            py-2
+            "
 
+          />
 
 
-async function deletePost(
-id:string
-){
 
 
-if(
-!confirm(
-"Delete this article?"
-)
-)
-return;
 
+          <select
 
+            value={category}
 
-await fetch(
-`/api/articles/${id}`,
-{
+            onChange={(e)=>{
 
-method:"DELETE",
+              setCategory(
+                e.target.value
+              );
 
-headers:{
-"Content-Type":
-"application/json"
-},
+              setPage(1);
 
-body:JSON.stringify({
+            }}
 
-id
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
-})
+          >
 
-}
+            <option value="">
+              Category
+            </option>
 
-);
 
+            {
+              categories.map(
+                (c)=>(
 
+                  <option
+                    key={c}
+                    value={c}
+                  >
 
-fetchPosts();
+                    {c}
 
-fetchStats();
+                  </option>
 
+                )
+              )
+            }
 
-}
 
+          </select>
 
 
 
 
 
-function clearFilters(){
+          <select
 
+            value={status}
 
-setSearch("");
+            onChange={(e)=>{
 
-setStatus("");
+              setStatus(
+                e.target.value
+              );
 
-setCategory("");
+              setPage(1);
 
-setBreaking("");
+            }}
 
-setFeatured("");
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
-setFlash("");
+          >
 
-setPage(1);
+            <option value="">
+              Status
+            </option>
 
 
-}
+            <option value="approved">
+              Published
+            </option>
 
 
+            <option value="pending">
+              Pending
+            </option>
 
 
+            <option value="draft">
+              Draft
+            </option>
 
-function badge(
-value:string
-){
 
+            <option value="rejected">
+              Rejected
+            </option>
 
-if(value==="approved")
-return "bg-green-600";
 
+          </select>
 
-if(value==="pending")
-return "bg-yellow-600";
 
 
-if(value==="rejected")
-return "bg-red-600";
 
 
-if(value==="draft")
-return "bg-slate-600";
 
+          <select
 
-return "bg-gray-600";
+            value={editorial}
 
+            onChange={(e)=>{
 
-}
-return (
+              setEditorial(
+                e.target.value
+              );
 
-<div
-className="
-min-h-screen
-bg-[#020617]
-text-white
-p-5
-md:p-10
-"
->
+              setPage(1);
 
+            }}
 
-{/* HEADER */}
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
-<header className="mb-8">
+          >
 
 
-<h1
-className="
-text-3xl
-md:text-4xl
-font-bold
-"
->
-Newsroom Control Center
-</h1>
+            <option value="">
+              Content Type
+            </option>
 
 
-<p
-className="
-text-gray-400
-mt-2
-"
->
-Manage articles, publishing and editorial workflow
-</p>
+            <option value="true">
+              Editorial
+            </option>
 
 
-</header>
+            <option value="false">
+              News
+            </option>
 
 
+          </select>
 
 
 
 
-{/* STATS */}
 
-<div
-className="
-grid
-grid-cols-2
-md:grid-cols-6
-gap-4
-mb-8
-"
->
+          <select
 
+            value={schedule}
 
-{[
+            onChange={(e)=>{
 
-[
-"Total",
-stats.totalArticles
-],
+              setSchedule(
+                e.target.value
+              );
 
-[
-"Approved",
-stats.approvedArticles
-],
+              setPage(1);
 
-[
-"Pending",
-stats.pendingArticles
-],
+            }}
 
-[
-"Draft",
-stats.draftArticles
-],
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
-[
-"Featured",
-stats.featuredArticles
-],
+          >
 
-[
-"Breaking",
-stats.breakingArticles
-]
 
+            <option value="">
+              Publishing
+            </option>
 
 
-].map(
-(item:any)=>(
+            <option value="scheduled">
+              Scheduled
+            </option>
 
 
-<div
+            <option value="published">
+              Published
+            </option>
 
-key={item[0]}
 
-className="
-bg-[#0f172a]
-border
-border-white/10
-rounded-xl
-p-5
-"
+          </select>
 
->
+          <select
 
+            value={breaking}
 
-<p
-className="
-text-gray-400
-text-sm
-"
->
-{item[0]}
-</p>
+            onChange={(e)=>{
 
+              setBreaking(
+                e.target.value
+              );
 
-<h2
-className="
-text-3xl
-font-bold
-mt-2
-"
->
-{item[1]}
-</h2>
+              setPage(1);
 
+            }}
 
-</div>
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
+          >
 
-)
+            <option value="">
+              Breaking
+            </option>
 
+            <option value="true">
+              Yes
+            </option>
 
-)}
+            <option value="false">
+              No
+            </option>
 
 
+          </select>
 
-</div>
 
 
 
 
+          <select
 
+            value={featured}
 
+            onChange={(e)=>{
 
+              setFeatured(
+                e.target.value
+              );
 
-{/* FILTERS */}
+              setPage(1);
 
-<div
-className="
-bg-[#0f172a]
-border
-border-white/10
-rounded-2xl
-p-5
-mb-8
-"
->
+            }}
 
+            className="
+            bg-[#020617]
+            border
+            border-white/10
+            rounded-lg
+            "
 
-<div
-className="
-grid
-grid-cols-1
-md:grid-cols-7
-gap-4
-"
->
+          >
 
 
-<input
+            <option value="">
+              Featured
+            </option>
 
-value={search}
 
-onChange={(e)=>{
+            <option value="true">
+              Yes
+            </option>
 
-setSearch(
-e.target.value
-);
 
-setPage(1);
+            <option value="false">
+              No
+            </option>
 
-}}
 
-placeholder="Search articles..."
+          </select>
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-px-4
-py-3
-outline-none
-"
 
-/>
 
 
 
+          <button
 
+            onClick={clearFilters}
 
-<select
+            className="
+            bg-[#EA661B]
+            rounded-lg
+            font-semibold
+            "
 
-value={category}
+          >
 
-onChange={(e)=>{
+            Clear
 
-setCategory(
-e.target.value
-);
+          </button>
 
-setPage(1);
 
-}}
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-px-3
-"
+        </div>
 
->
 
-<option value="">
-Category
-</option>
+      </div>
 
 
-{
-categories.map(
-(item)=>(
 
-<option
-key={item}
-value={item}
->
-{item}
-</option>
 
-)
 
-)
 
-}
 
+      {/* CREATE BUTTONS */}
 
-</select>
 
+      <div
+        className="
+        flex
+        justify-end
+        gap-3
+        mb-6
+        "
+      >
 
 
+        <Link
 
+          href="/admin/posts/create"
 
+          className="
+          bg-[#163C80]
+          px-5
+          py-3
+          rounded-xl
+          font-semibold
+          "
 
+        >
 
-<select
+          + Create News
 
-value={status}
+        </Link>
 
-onChange={(e)=>{
 
-setStatus(
-e.target.value
-);
 
-setPage(1);
 
-}}
+        <Link
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-"
+          href="/admin/posts/editorial/create"
 
->
+          className="
+          bg-purple-600
+          px-5
+          py-3
+          rounded-xl
+          font-semibold
+          "
 
-<option value="">
-Status
-</option>
+        >
 
-<option value="pending">
-Pending
-</option>
+          + Create Editorial
 
-<option value="approved">
-Approved
-</option>
+        </Link>
 
-<option value="draft">
-Draft
-</option>
 
-<option value="rejected">
-Rejected
-</option>
 
+      </div>
 
-</select>
 
 
 
 
 
 
+      {/* DESKTOP TABLE */}
 
-<select
 
-value={breaking}
+      <div
 
-onChange={(e)=>{
+        className="
+        hidden
+        md:block
+        bg-[#0f172a]
+        border
+        border-white/10
+        rounded-2xl
+        overflow-hidden
+        "
 
-setBreaking(
-e.target.value
-);
+      >
 
-setPage(1);
 
-}}
+        <table
+          className="
+          w-full
+          text-sm
+          "
+        >
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-"
 
->
+          <thead
 
-<option value="">
-Breaking
-</option>
+            className="
+            bg-[#0b1220]
+            text-gray-400
+            "
 
-<option value="true">
-Yes
-</option>
+          >
 
-<option value="false">
-No
-</option>
+            <tr>
 
 
-</select>
+              <th className="p-4 text-left">
+                Title
+              </th>
 
 
+              <th>
+                Type
+              </th>
 
 
+              <th>
+                Category
+              </th>
 
 
+              <th>
+                Status
+              </th>
 
-<select
 
-value={featured}
+              <th>
+                Publishing
+              </th>
 
-onChange={(e)=>{
 
-setFeatured(
-e.target.value
-);
+              <th>
+                Flags
+              </th>
 
-setPage(1);
 
-}}
+              <th>
+                Actions
+              </th>
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-"
 
->
+            </tr>
 
-<option value="">
-Featured
-</option>
 
-<option value="true">
-Yes
-</option>
+          </thead>
 
-<option value="false">
-No
-</option>
 
 
-</select>
 
 
 
+          <tbody>
 
 
+          {
 
 
-<select
+          loading ?
 
-value={flash}
 
-onChange={(e)=>{
+          <tr>
 
-setFlash(
-e.target.value
-);
+            <td
 
-setPage(1);
+              colSpan={7}
 
-}}
+              className="
+              p-10
+              text-center
+              "
 
-className="
-bg-[#020617]
-border
-border-white/10
-rounded-lg
-"
+            >
 
->
+              Loading...
 
-<option value="">
-Flash
-</option>
+            </td>
 
-<option value="true">
-Yes
-</option>
 
-<option value="false">
-No
-</option>
+          </tr>
 
 
-</select>
 
+          :
 
 
+          posts.length===0 ?
 
 
 
-<button
+          <tr>
 
-onClick={clearFilters}
+            <td
 
-className="
-bg-[#EA661B]
-rounded-lg
-font-semibold
-px-4
-"
+              colSpan={7}
 
->
-Clear
-</button>
+              className="
+              p-10
+              text-center
+              text-gray-400
+              "
 
+            >
 
+              No content found
 
+            </td>
 
-</div>
 
+          </tr>
 
-</div>
 
 
+          :
 
 
 
+          posts.map(
 
+            (post)=>(
 
 
-{/* CREATE BUTTON */}
+              <tr
 
-<div
-className="
-flex
-justify-end
-mb-6
-"
->
+                key={post.id}
 
+                className="
+                border-t
+                border-white/10
+                hover:bg-white/5
+                "
 
-<Link
+              >
 
-href="/admin/posts/create"
 
-className="
-bg-[#EA661B]
-px-5
-py-3
-rounded-xl
-font-semibold
-"
 
->
-+ Create News
-</Link>
 
+                <td
 
-</div>
+                  className="
+                  p-4
+                  max-w-md
+                  "
 
+                >
 
 
+                  <p
+                    className="
+                    font-semibold
+                    line-clamp-2
+                    "
+                  >
 
+                    {post.title}
 
+                  </p>
 
 
 
+                  <div
 
-{/* DESKTOP TABLE */}
+                    className="
+                    text-xs
+                    text-gray-500
+                    mt-2
+                    "
 
-<div
-className="
-hidden
-md:block
-bg-[#0f172a]
-rounded-2xl
-overflow-hidden
-border
-border-white/10
-"
->
+                  >
 
+                    {
+                      new Date(
+                        post.createdAt
+                      )
+                      .toLocaleDateString()
+                    }
 
-<table
-className="
-w-full
-text-sm
-"
->
 
+                  </div>
 
-<thead
-className="
-bg-[#0b1220]
-text-gray-400
-"
->
 
-<tr>
+                </td>
 
-<th className="p-4 text-left">
-Title
-</th>
 
-<th>
-Category
-</th>
 
-<th>
-Status
-</th>
 
-<th>
-Flags
-</th>
 
-<th>
-Actions
-</th>
 
+                <td>
 
-</tr>
 
+                {
 
-</thead>
+                post.isEditorial ?
 
 
+                <span
 
+                  className="
+                  bg-purple-600
+                  px-2
+                  py-1
+                  rounded
+                  text-xs
+                  "
 
+                >
 
-<tbody>
+                  Editorial
 
+                </span>
 
-{
 
-loading ?
+                :
 
 
-<tr>
+                <span
 
-<td
-colSpan={5}
-className="
-p-10
-text-center
-"
->
-Loading...
-</td>
+                  className="
+                  bg-blue-600
+                  px-2
+                  py-1
+                  rounded
+                  text-xs
+                  "
 
-</tr>
+                >
 
+                  News
 
-:
+                </span>
 
 
-posts.length===0 ?
+                }
 
 
-<tr>
 
-<td
-colSpan={5}
-className="
-p-10
-text-center
-text-gray-400
-"
->
-No articles found
-</td>
+                </td>
 
-</tr>
 
 
 
-:
 
+                <td>
 
-posts.map(
-(post)=>(
 
+                  {
+                    post.category?.name
+                    ||
+                    "-"
+                  }
 
-<tr
 
-key={post.id}
+                </td>
 
-className="
-border-t
-border-white/10
-hover:bg-white/5
-"
 
->
 
 
-<td
-className="
-p-4
-max-w-md
-"
->
 
-<p className="font-medium">
-{post.title}
-</p>
+                <td>
 
 
-</td>
+                  <select
 
 
+                    value={post.status}
 
 
+                    onChange={(e)=>
 
-<td>
+                      updateStatus(
+                        post.id,
+                        e.target.value
+                      )
 
-{
-post.category?.name
-||
-"-"
-}
+                    }
 
 
-</td>
+                    className={`
 
+                    rounded-lg
 
+                    px-3
 
+                    py-2
 
+                    ${badge(post.status)}
 
+                    `}
 
-<td>
 
+                  >
 
-<select
 
-value={post.status}
+                    <option value="pending">
+                      Pending
+                    </option>
 
-onChange={(e)=>
 
-updateStatus(
-post.id,
-e.target.value
-)
+                    <option value="approved">
+                      Published
+                    </option>
 
-}
 
-className={`
-rounded-lg
-px-3
-py-2
-${badge(post.status)}
-`}
+                    <option value="draft">
+                      Draft
+                    </option>
 
->
 
+                    <option value="rejected">
+                      Rejected
+                    </option>
 
-<option value="pending">
-Pending
-</option>
 
+                    <option value="archived">
+                      Archived
+                    </option>
 
-<option value="approved">
-Approved
-</option>
 
+                  </select>
 
-<option value="draft">
-Draft
-</option>
 
 
-<option value="rejected">
-Rejected
-</option>
+                </td>
+                <td>
 
 
-</select>
+                  {
+                    post.publishedAt
+                    &&
+                    new Date(post.publishedAt) > new Date()
 
+                    ?
 
-</td>
+                    <span
 
+                      className="
+                      bg-orange-600
+                      px-2
+                      py-1
+                      rounded
+                      text-xs
+                      "
 
+                    >
 
+                      Scheduled
 
+                    </span>
 
 
-<td>
+                    :
 
-{
 
-post.breaking &&
+                    <span
 
-<div className="text-orange-400">
-Breaking
-</div>
+                      className="
+                      bg-green-600
+                      px-2
+                      py-1
+                      rounded
+                      text-xs
+                      "
 
-}
+                    >
 
+                      Published
 
-{
+                    </span>
 
-post.featured &&
 
-<div className="text-yellow-400">
-Featured
-</div>
+                  }
 
-}
 
+                </td>
 
-{
 
-post.flash &&
 
-<div className="text-blue-400">
-Flash
-</div>
 
-}
 
+                <td>
 
-</td>
 
+                  {
+                    post.breaking &&
 
+                    <div className="text-orange-400">
+                      Breaking
+                    </div>
+                  }
 
 
 
+                  {
+                    post.featured &&
 
-<td>
+                    <div className="text-yellow-400">
+                      Featured
+                    </div>
+                  }
 
 
-<div
-className="
-flex
-gap-2
-"
->
 
+                  {
+                    post.flash &&
 
-<Link
+                    <div className="text-blue-400">
+                      Flash
+                    </div>
+                  }
 
-href={
-`/admin/posts/edit/${post.id}`
-}
 
-className="
-bg-[#163C80]
-px-3
-py-2
-rounded-lg
-"
 
->
-Edit
-</Link>
+                </td>
 
 
 
-<button
 
-onClick={()=>
-deletePost(post.id)
-}
 
-className="
-bg-red-600
-px-3
-py-2
-rounded-lg
-"
 
->
-Delete
-</button>
+                <td>
 
 
-</div>
+                  <div
+                    className="
+                    flex
+                    gap-2
+                    "
+                  >
 
 
-</td>
+                    <Link
 
+                      href={`/admin/posts/edit/${post.id}`}
 
+                      className="
+                      bg-[#163C80]
+                      px-3
+                      py-2
+                      rounded-lg
+                      "
 
+                    >
 
+                      Edit
 
+                    </Link>
 
-</tr>
 
 
-)
 
+                    <Link
 
-)
+                      href={`/article/${post.slug}`}
 
+                      target="_blank"
 
-}
+                      className="
+                      bg-green-700
+                      px-3
+                      py-2
+                      rounded-lg
+                      "
 
+                    >
 
+                      View
 
-</tbody>
+                    </Link>
 
 
-</table>
 
 
-</div>
+                    <button
 
+                      onClick={()=>
+                        deletePost(post.id)
+                      }
 
+                      className="
+                      bg-red-600
+                      px-3
+                      py-2
+                      rounded-lg
+                      "
 
+                    >
 
+                      Delete
 
+                    </button>
 
 
 
+                  </div>
 
-{/* MOBILE CARDS */}
 
-<div
-className="
-md:hidden
-space-y-4
-"
->
+                </td>
 
 
-{
 
-posts.map(
-(post)=>(
 
+              </tr>
 
-<div
 
-key={post.id}
+            )
 
-className="
-bg-[#0f172a]
-border
-border-white/10
-rounded-xl
-p-4
-"
 
->
+          )
 
 
-<h3
-className="
-font-semibold
-"
->
-{post.title}
-</h3>
+          }
 
 
+          </tbody>
 
-<p
-className="
-text-gray-400
-text-sm
-mt-2
-"
->
-{post.category?.name || "-"}
-</p>
 
+        </table>
 
 
-<div
-className="
-flex
-gap-2
-mt-4
-"
->
+      </div>
 
 
-<Link
 
-href={
-`/admin/posts/edit/${post.id}`
-}
 
-className="
-bg-[#163C80]
-px-3
-py-2
-rounded-lg
-"
 
->
-Edit
-</Link>
 
 
-<button
+      {/* MOBILE */}
 
-onClick={()=>
-deletePost(post.id)
-}
 
-className="
-bg-red-600
-px-3
-py-2
-rounded-lg
-"
+      <div
+        className="
+        md:hidden
+        space-y-4
+        "
+      >
 
->
-Delete
-</button>
 
+        {
+          posts.map(
+            (post)=>(
 
-</div>
 
+              <div
 
-</div>
+                key={post.id}
 
+                className="
+                bg-[#0f172a]
+                border
+                border-white/10
+                rounded-xl
+                p-4
+                "
 
+              >
 
-)
 
+                <h3 className="font-semibold">
 
-)
+                  {post.title}
 
+                </h3>
 
 
-}
 
 
+                <div
+                  className="
+                  flex
+                  gap-2
+                  mt-3
+                  "
+                >
 
-</div>
 
+                  {
+                    post.isEditorial &&
 
+                    <span
+                      className="
+                      bg-purple-600
+                      px-2
+                      py-1
+                      rounded
+                      text-xs
+                      "
+                    >
 
+                      Editorial
 
+                    </span>
+                  }
 
 
+                  {
+                    post.breaking &&
 
+                    <span
+                      className="
+                      bg-orange-600
+                      px-2
+                      py-1
+                      rounded
+                      text-xs
+                      "
+                    >
 
+                      Breaking
 
-{/* PAGINATION */}
+                    </span>
+                  }
 
-<div
 
-className="
-flex
-justify-center
-items-center
-gap-5
-mt-8
-"
+                </div>
 
->
 
 
-<button
 
-disabled={
-page<=1
-}
 
-onClick={()=>
-setPage(
-p=>p-1
-)
-}
+                <p className="
+                text-gray-400
+                text-sm
+                mt-3
+                ">
 
-className="
-bg-[#163C80]
-px-4
-py-2
-rounded-lg
-disabled:opacity-40
-"
+                  {
+                    post.category?.name
+                    ||
+                    "Editorial"
+                  }
 
->
-Previous
-</button>
+                </p>
 
 
 
 
-<span>
+                <div
+                  className="
+                  flex
+                  gap-2
+                  mt-5
+                  "
+                >
 
-Page {page} / {totalPages}
 
-</span>
+                  <Link
 
+                    href={`/admin/posts/edit/${post.id}`}
 
+                    className="
+                    bg-[#163C80]
+                    px-3
+                    py-2
+                    rounded-lg
+                    "
 
+                  >
 
+                    Edit
 
-<button
+                  </Link>
 
-disabled={
-page>=totalPages
-}
 
-onClick={()=>
-setPage(
-p=>p+1
-)
-}
 
-className="
-bg-[#163C80]
-px-4
-py-2
-rounded-lg
-disabled:opacity-40
-"
 
->
-Next
-</button>
+                  <button
 
+                    onClick={()=>
+                      deletePost(post.id)
+                    }
 
+                    className="
+                    bg-red-600
+                    px-3
+                    py-2
+                    rounded-lg
+                    "
 
-</div>
+                  >
 
+                    Delete
 
+                  </button>
 
 
+                </div>
 
 
+              </div>
 
-</div>
 
-);
+            )
+          )
+        }
+
+
+      </div>
+
+
+
+
+
+
+
+      {/* PAGINATION */}
+
+
+      <div
+
+        className="
+        flex
+        justify-center
+        items-center
+        gap-5
+        mt-8
+        "
+
+      >
+
+
+        <button
+
+          disabled={page<=1}
+
+          onClick={()=>{
+
+            setPage(
+              p=>p-1
+            );
+
+          }}
+
+          className="
+          bg-[#163C80]
+          px-4
+          py-2
+          rounded-lg
+          disabled:opacity-40
+          "
+
+        >
+
+          Previous
+
+        </button>
+
+
+
+
+        <span className="text-gray-300">
+
+          Page {page} / {totalPages}
+
+        </span>
+
+
+
+
+
+        <button
+
+          disabled={page>=totalPages}
+
+          onClick={()=>{
+
+            setPage(
+              p=>p+1
+            );
+
+          }}
+
+          className="
+          bg-[#163C80]
+          px-4
+          py-2
+          rounded-lg
+          disabled:opacity-40
+          "
+
+        >
+
+          Next
+
+        </button>
+
+
+
+      </div>
+
+
+
+
+
+    </div>
+
+  );
 
 
 }

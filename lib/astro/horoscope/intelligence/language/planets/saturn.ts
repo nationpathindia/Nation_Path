@@ -32,36 +32,56 @@ const SATURN_LIBRARY = {
       "Saturn strengthens discipline, patience and long-term transformation. This influence supports growth through responsibility, commitment and consistent effort.",
 
 
+    personality:
+      "Saturn develops maturity, self-control and inner strength. Personal growth improves through patience, responsibility and learning from experience.",
+
+
     career:
-      "Saturn supports professional achievement through dedication, structure and perseverance. Long-term success develops through patience and disciplined action.",
+      "Saturn supports professional achievement through dedication, structure and perseverance. Long-term success develops through disciplined action and steady improvement.",
 
 
     finance:
-      "Saturn encourages stable financial growth through planning, responsibility and careful management of resources.",
+      "Saturn encourages stable financial progress through planning, responsibility and careful management of resources.",
 
 
     relationship:
-      "Saturn strengthens relationships through loyalty, maturity and understanding of responsibilities. Stable connections grow through commitment and patience.",
-
-
-    education:
-      "Saturn supports deep learning through discipline, focus and consistent practice. Knowledge develops through persistence.",
-
-
-    spirituality:
-      "Saturn encourages inner maturity through reflection, patience and acceptance of personal growth processes.",
+      "Saturn strengthens relationships through loyalty, maturity and commitment. Strong connections develop through patience and mutual responsibility.",
 
 
     health:
-      "Saturn supports well-being through routine, discipline and maintaining consistent healthy practices.",
+      "Saturn supports well-being through discipline, routine and maintaining consistent personal practices.",
+
+
+    mind:
+      "Saturn improves focus, patience and practical thinking. Mental strength develops through experience and thoughtful decisions.",
+
+
+    spirituality:
+      "Saturn encourages inner maturity through reflection, acceptance and deeper understanding of personal lessons.",
+
+
+    education:
+      "Saturn supports deep learning through discipline, concentration and continuous practice. Knowledge develops through persistence.",
 
 
     communication:
-      "Saturn encourages thoughtful communication through patience, maturity and careful expression.",
+      "Saturn encourages thoughtful communication through maturity, patience and responsible expression.",
+
+
+    ambition:
+      "Saturn strengthens ambition through endurance, planning and the ability to work steadily toward meaningful goals.",
 
 
     responsibility:
-      "Saturn strengthens the ability to handle duties with seriousness, commitment and practical wisdom.",
+      "Saturn enhances the ability to handle duties with seriousness, commitment and practical wisdom.",
+
+
+    travel:
+      "Saturn supports purposeful experiences where patience, planning and responsibility create meaningful growth.",
+
+
+    research:
+      "Saturn encourages detailed investigation, patience and deeper understanding through consistent effort.",
 
 
   },
@@ -75,36 +95,56 @@ const SATURN_LIBRARY = {
       "Saturn indicates gradual progress through patience, responsibility and learning from experience.",
 
 
+    personality:
+      "Saturn highlights maturity, discipline and the importance of developing inner stability.",
+
+
     career:
       "Saturn suggests steady professional development through effort, structure and commitment to improvement.",
 
 
     finance:
-      "Saturn highlights the importance of financial discipline, planning and controlled decisions.",
+      "Saturn highlights financial discipline, planning and controlled decision-making.",
 
 
     relationship:
-      "Saturn encourages building relationships through trust, maturity and realistic expectations.",
+      "Saturn encourages relationships built through trust, patience and realistic understanding.",
+
+
+    health:
+      "Saturn emphasizes routine, balance and consistent personal care.",
+
+
+    mind:
+      "Saturn encourages practical thinking, patience and managing challenges with awareness.",
+
+
+    spirituality:
+      "Saturn creates opportunities for deeper understanding through reflection and self-development.",
 
 
     education:
       "Saturn supports progress through regular practice, focus and dedication toward learning goals.",
 
 
-    spirituality:
-      "Saturn creates opportunities for deeper understanding through patience and self-reflection.",
-
-
-    health:
-      "Saturn emphasizes the importance of routine, balance and consistent personal care.",
-
-
     communication:
-      "Saturn supports careful communication where clarity and responsibility create stronger connections.",
+      "Saturn supports careful communication where responsibility and clarity create stronger connections.",
+
+
+    ambition:
+      "Saturn highlights the importance of steady effort and long-term planning toward achievement.",
 
 
     responsibility:
-      "Saturn highlights duties that require patience, organization and long-term commitment.",
+      "Saturn highlights duties requiring patience, organization and commitment.",
+
+
+    travel:
+      "Saturn suggests meaningful experiences through planning, discipline and purposeful movement.",
+
+
+    research:
+      "Saturn supports exploration through patience, structure and detailed observation.",
 
 
   },
@@ -118,42 +158,63 @@ const SATURN_LIBRARY = {
       "Saturn asks for patience during demanding phases. Progress improves when challenges are approached with discipline rather than frustration.",
 
 
+    personality:
+      "Saturn encourages avoiding excessive seriousness and developing confidence through patience and self-awareness.",
+
+
     career:
-      "Saturn advises avoiding shortcuts and focusing on steady improvement. Professional growth may require persistence and strategic effort.",
+      "Saturn advises avoiding shortcuts and focusing on steady improvement. Professional growth requires persistence and strategic effort.",
 
 
     finance:
-      "Saturn suggests careful financial decisions and avoiding unnecessary risks. Stability comes through planning and restraint.",
+      "Saturn suggests careful financial choices and avoiding unnecessary risks. Stability develops through planning and restraint.",
 
 
     relationship:
-      "Saturn encourages emotional maturity and patience. Relationships require understanding rather than rigid expectations.",
+      "Saturn reminds you that strong relationships require patience, understanding and emotional maturity.",
+
+
+    health:
+      "Saturn encourages maintaining routines and avoiding neglect of important personal responsibilities.",
+
+
+    mind:
+      "Saturn suggests reducing negative thinking and focusing on practical solutions with patience.",
+
+
+    spirituality:
+      "Saturn encourages accepting lessons and developing wisdom through reflection and awareness.",
 
 
     education:
       "Saturn reminds you that meaningful achievement requires consistency, effort and dedication.",
 
 
-    spirituality:
-      "Saturn encourages accepting personal lessons and developing wisdom through patience and self-awareness.",
-
-
-    health:
-      "Saturn suggests creating stronger routines and avoiding neglect of important personal responsibilities.",
-
-
     communication:
-      "Saturn advises avoiding excessive seriousness and maintaining balanced expression with others.",
+      "Saturn advises balancing seriousness with openness and maintaining flexibility in conversations.",
+
+
+    ambition:
+      "Saturn suggests balancing ambition with patience and avoiding pressure for immediate results.",
 
 
     responsibility:
-      "Saturn reminds you to handle obligations carefully while maintaining patience and confidence.",
+      "Saturn reminds you to handle obligations carefully while maintaining confidence and balance.",
+
+
+    travel:
+      "Saturn advises careful planning and patience during transitions or important journeys.",
+
+
+    research:
+      "Saturn encourages avoiding rushed conclusions and developing understanding through detailed analysis.",
 
 
   },
 
 
 };
+
 
 
 
@@ -198,9 +259,42 @@ export function generateSaturnLanguage(
     statement,
 
 
+
     explanation:
 
-      "Saturn represents discipline, responsibility, patience and long-term development. Its expression changes according to the life area being explored.",
+      area === "career"
+
+        ?
+
+        "Saturn represents discipline, professional responsibility and long-term achievement. Growth develops through consistency, patience and structured effort."
+
+        :
+
+      area === "finance"
+
+        ?
+
+        "Saturn connects stability with planning, restraint and responsible management. Financial strength develops through careful decisions."
+
+        :
+
+      area === "education"
+
+        ?
+
+        "Saturn represents dedication, concentration and learning through persistence. Knowledge grows through regular practice."
+
+        :
+
+      area === "relationship"
+
+        ?
+
+        "Saturn influences commitment, loyalty and maturity in connections. Strong relationships develop through patience and understanding."
+
+        :
+
+        "Saturn represents discipline, responsibility, patience and long-term development. Its expression changes according to the life area being explored.",
 
 
 
@@ -210,17 +304,34 @@ export function generateSaturnLanguage(
 
         ?
 
-        "Accept gradual progress and focus on consistent improvement rather than immediate results."
+        "Stay patient, maintain discipline and focus on gradual improvement."
 
         :
 
-        "Continue building strong foundations through discipline and patience.",
+      area === "career"
+
+        ?
+
+        "Build progress through consistency, responsibility and long-term planning."
+
+        :
+
+      area === "finance"
+
+        ?
+
+        "Follow disciplined financial habits and prioritize stability over quick results."
+
+        :
+
+      "Continue developing patience, discipline and strong foundations for future growth.",
 
 
   };
 
 
 }
+
 
 
 

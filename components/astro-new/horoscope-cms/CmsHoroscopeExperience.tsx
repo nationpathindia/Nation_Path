@@ -1,6 +1,7 @@
 "use client";
 
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ASTRO
 //
 // PREMIUM HOROSCOPE EXPERIENCE SHELL
@@ -13,7 +14,14 @@
 // NO ENGINE
 // NO CALCULATION
 // NO AI GENERATION
+//
 //////////////////////////////////////////////////////////////
+
+import {
+  useEffect,
+  useRef
+} from "react";
+
 
 import type {
   CmsHoroscopeData
@@ -31,6 +39,8 @@ import ZodiacExplorerPanel from "./ZodiacExplorerPanel";
 import HoroscopeLucky from "./HoroscopeLucky";
 import HoroscopeRemedy from "./HoroscopeRemedy";
 import HoroscopePremium from "./HoroscopePremium";
+import HoroscopeNavigationCTA from "./HoroscopeNavigationCTA";
+
 
 
 
@@ -40,6 +50,8 @@ interface Props {
 data:CmsHoroscopeData;
 
 currentSign?:string;
+
+slug?:string;
 
 }
 
@@ -51,9 +63,162 @@ export default function CmsHoroscopeExperience({
 
 data,
 
-currentSign
+currentSign,
+
+slug
 
 }:Props){
+
+
+
+const viewTracked = useRef(false);
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+//
+// HOROSCOPE PAGE VIEW TRACKING
+//
+// Responsibilities:
+//
+// 1. Increase analytics.views
+// 2. Update live reader session
+//
+//////////////////////////////////////////////////////////////
+
+
+useEffect(()=>{
+
+
+if(
+viewTracked.current
+){
+
+return;
+
+}
+
+
+
+if(
+!data?.zodiac ||
+!slug
+){
+
+return;
+
+}
+
+
+
+viewTracked.current=true;
+
+
+
+
+let sessionId =
+
+localStorage.getItem(
+
+"nationpath_horoscope_session"
+
+);
+
+
+
+if(!sessionId){
+
+
+sessionId =
+
+crypto.randomUUID();
+
+
+
+localStorage.setItem(
+
+"nationpath_horoscope_session",
+
+sessionId
+
+);
+
+
+}
+
+
+
+
+
+fetch(
+
+"/api/astro/horoscope/view",
+
+{
+
+
+method:"POST",
+
+
+headers:{
+
+
+"Content-Type":"application/json"
+
+
+},
+
+
+body:JSON.stringify({
+
+
+sessionId,
+
+
+zodiac:data.zodiac,
+
+
+slug
+
+
+})
+
+
+}
+
+)
+
+.catch((error)=>{
+
+
+console.error(
+
+"NATIONPATH HOROSCOPE VIEW TRACKING ERROR",
+
+error
+
+);
+
+
+});
+
+
+
+
+
+},[
+
+data?.zodiac,
+
+slug
+
+]);
+
+
+
+
 
 
 
@@ -73,10 +238,6 @@ text-[#3B2600]
 
 
 
-{/* =====================================================
-    GLOBAL COSMIC ATMOSPHERE
-===================================================== */}
-
 
 
 <div
@@ -89,6 +250,7 @@ overflow-hidden
 "
 
 >
+
 
 
 <div
@@ -151,7 +313,6 @@ blur-[120px]
 
 
 
-
 <div
 
 className="
@@ -165,26 +326,9 @@ pb-12
 
 
 
-
-
-
-{/* =====================================================
-    DAILY PANCHANG
-===================================================== */}
-
-
 <PanchangHeroBanner />
 
 
-
-
-
-
-
-
-{/* =====================================================
-    ZODIAC IDENTITY HERO
-===================================================== */}
 
 
 
@@ -206,16 +350,6 @@ identity={data.identity}
 
 
 
-
-
-
-
-{/* =====================================================
-    EDITORIAL COSMIC STORY
-===================================================== */}
-
-
-
 {
 
 data.editorial &&
@@ -229,16 +363,6 @@ editorial={data.editorial}
 }
 
 
-
-
-
-
-
-
-
-{/* =====================================================
-    LIFE BLUEPRINT
-===================================================== */}
 
 
 
@@ -258,16 +382,6 @@ life={data.life}
 
 
 
-
-
-
-
-{/* =====================================================
-    COSMIC INTELLIGENCE
-===================================================== */}
-
-
-
 {
 
 data.insights &&
@@ -281,16 +395,6 @@ insights={data.insights}
 }
 
 
-
-
-
-
-
-
-
-{/* =====================================================
-    PLANETARY INTELLIGENCE
-===================================================== */}
 
 
 
@@ -339,14 +443,6 @@ planet.strength,
 
 
 
-
-
-
-
-{/* =====================================================
-    ZODIAC EXPLORER
-===================================================== */}
-
 <ZodiacExplorerPanel
 
 zodiac={data.zodiacList || []}
@@ -356,10 +452,6 @@ active={currentSign}
 />
 
 
-
-{/* =====================================================
-    FORTUNE SIGNATURE
-===================================================== */}
 
 
 
@@ -379,16 +471,6 @@ lucky={data.lucky}
 
 
 
-
-
-
-
-{/* =====================================================
-    SACRED REMEDY
-===================================================== */}
-
-
-
 {
 
 data.remedy &&
@@ -402,16 +484,6 @@ remedy={data.remedy}
 }
 
 
-
-
-
-
-
-
-
-{/* =====================================================
-    PREMIUM JOURNEY
-===================================================== */}
 
 
 
@@ -430,6 +502,8 @@ premium={data.premium}
 
 
 
+
+<HoroscopeNavigationCTA />
 
 
 

@@ -1,0 +1,437 @@
+//////////////////////////////////////////////////////////////
+// NATIONPATH AI HOROSCOPE ADAPTER
+//
+// Engine Result → AI Context Transformer
+//
+// Responsibility:
+//
+// Astro Engine
+//        ↓
+// Horoscope Result
+//        ↓
+// AI Context Layer
+//        ↓
+// NationPath AI Runtime
+//
+// Rules:
+//
+// AI does NOT calculate astrology
+// AI does NOT modify astro data
+// AI ONLY enhances experience
+//
+// NationPath AI Core v1
+//////////////////////////////////////////////////////////////
+
+
+import type {
+  HoroscopeResult,
+} from "@/lib/astro/horoscope/types";
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// AI HOROSCOPE CONTEXT
+//////////////////////////////////////////////////////////////
+
+export interface AIHoroscopeContext {
+
+
+  ////////////////////////////////////////////////////////////
+  // AI PURPOSE
+  ////////////////////////////////////////////////////////////
+
+  purpose:
+
+    "horoscope_editorial_enhancement";
+
+
+
+  mode:
+
+    "enhancement_only";
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // BASIC CONTEXT
+  ////////////////////////////////////////////////////////////
+
+  date:
+    string;
+
+
+
+  language:
+    string;
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // CELESTIAL IDENTITY
+  ////////////////////////////////////////////////////////////
+
+  sunSign: {
+
+
+    name:
+      string;
+
+
+    longitude:
+      number;
+
+
+  };
+
+
+
+
+
+  moonSign: {
+
+
+    name:
+      string;
+
+
+    longitude:
+      number;
+
+
+  };
+
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // ASTRO DATA
+  //
+  // Source of truth remains Astro Engine
+  ////////////////////////////////////////////////////////////
+
+  planets:
+    unknown;
+
+
+
+  analysis?:
+    unknown;
+
+
+
+  influences:
+    unknown;
+
+
+
+  interpretation?:
+    unknown;
+
+
+
+  prediction?:
+    unknown;
+
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // EXPERIENCE SUMMARY
+  ////////////////////////////////////////////////////////////
+
+  summary: {
+
+
+    title:
+      string;
+
+
+
+    description:
+      string;
+
+
+
+  };
+
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////
+  // AI INSTRUCTIONS
+  ////////////////////////////////////////////////////////////
+
+  instructions: {
+
+
+    preserveAstroData:
+      boolean;
+
+
+
+    enhanceLanguage:
+      boolean;
+
+
+
+    generatePrediction:
+      boolean;
+
+
+
+    modifyCalculation:
+      boolean;
+
+
+  };
+
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// HOROSCOPE RESULT ADAPTER
+//////////////////////////////////////////////////////////////
+
+export function adaptHoroscopeForAI(
+
+  horoscope:HoroscopeResult
+
+):AIHoroscopeContext {
+
+
+
+  return {
+
+
+
+    //////////////////////////////////////////////////////////
+    // AI CONTROL
+    //////////////////////////////////////////////////////////
+
+
+    purpose:
+
+      "horoscope_editorial_enhancement",
+
+
+
+    mode:
+
+      "enhancement_only",
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+    // BASIC
+    //////////////////////////////////////////////////////////
+
+
+    date:
+
+      horoscope.date.toISOString(),
+
+
+
+    language:
+
+      horoscope.language,
+
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+    // SIGNS
+    //////////////////////////////////////////////////////////
+
+
+    sunSign: {
+
+
+      name:
+
+        horoscope.sunSign.name,
+
+
+
+      longitude:
+
+        horoscope.sunSign.longitude,
+
+
+    },
+
+
+
+
+
+    moonSign: {
+
+
+      name:
+
+        horoscope.moonSign.name,
+
+
+
+      longitude:
+
+        horoscope.moonSign.longitude,
+
+
+    },
+
+
+
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+    // ASTRO SOURCE DATA
+    //////////////////////////////////////////////////////////
+
+
+    planets:
+
+      horoscope.planets,
+
+
+
+    analysis:
+
+      horoscope.analysis,
+
+
+
+    influences:
+
+      horoscope.influences,
+
+
+
+    interpretation:
+
+      horoscope.interpretation,
+
+
+
+    prediction:
+
+      horoscope.prediction,
+
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+    // SUMMARY
+    //////////////////////////////////////////////////////////
+
+
+    summary:
+
+      horoscope.summary,
+
+
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+    // AI BEHAVIOUR CONTROL
+    //////////////////////////////////////////////////////////
+
+
+    instructions: {
+
+
+      preserveAstroData:
+
+        true,
+
+
+
+      enhanceLanguage:
+
+        true,
+
+
+
+      generatePrediction:
+
+        false,
+
+
+
+      modifyCalculation:
+
+        false,
+
+
+    },
+
+
+
+  };
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// DEFAULT EXPORT
+//////////////////////////////////////////////////////////////
+
+export default {
+
+
+  adaptHoroscopeForAI,
+
+
+};

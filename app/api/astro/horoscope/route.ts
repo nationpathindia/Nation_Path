@@ -3,6 +3,7 @@
 //
 // Deterministic Engine
 // + Prediction Intelligence
+// + NationPath AI Editorial Layer
 // + Experience Intelligence
 // + Frontend Mapper
 // + CMS Editorial Layer
@@ -14,6 +15,8 @@
 // Astro Engine
 //        ↓
 // Prediction Intelligence
+//        ↓
+// NationPath AI Enhancement
 //        ↓
 // Experience Intelligence
 //        ↓
@@ -27,6 +30,7 @@
 // - Calculation untouched
 // - Swiss Ephemeris untouched
 // - Prediction rules untouched
+// - AI only language enhancement
 //////////////////////////////////////////////////////////////
 
 import { z } from "zod";
@@ -35,6 +39,11 @@ import { z } from "zod";
 import {
   generateHoroscope,
 } from "@/lib/services/horoscopeService";
+
+
+import {
+  enhanceHoroscopeWithAI,
+} from "@/lib/services/horoscopeAIService";
 
 
 import {
@@ -82,13 +91,20 @@ import {
   ASTRO_API_ERRORS,
 } from "@/lib/astro/api/errors";
 
+
+
 console.log(
   "🔥 ASTRO HOROSCOPE ROUTE LOADED"
 );
 
-export const runtime = "nodejs";
 
-export const dynamic = "force-dynamic";
+
+export const runtime =
+"nodejs";
+
+
+export const dynamic =
+"force-dynamic";
 
 
 
@@ -100,14 +116,18 @@ export const dynamic = "force-dynamic";
 
 const RequestSchema = z.object({
 
+
   zodiacSign:
+
     z.string()
       .trim()
       .toLowerCase()
       .min(1),
 
 
+
   horoscopeDate:
+
     z.coerce.date()
       .refine(
 
@@ -118,13 +138,15 @@ const RequestSchema = z.object({
 
         {
           message:
-            "Invalid horoscopeDate",
+          "Invalid horoscopeDate",
         }
 
       ),
 
 
+
   language:
+
     z.enum([
 
       "english",
@@ -135,8 +157,13 @@ const RequestSchema = z.object({
       "nepali",
 
     ])
+
     .optional()
-    .default("english"),
+
+    .default(
+      "english"
+    ),
+
 
 });
 
@@ -146,11 +173,11 @@ const RequestSchema = z.object({
 
 
 //////////////////////////////////////////////////////////////
-// POST
+// POST HOROSCOPE
 //////////////////////////////////////////////////////////////
 
 export async function POST(
-  req: Request
+ req:Request
 ){
 
 
@@ -169,29 +196,38 @@ await req.json();
 
 const validated =
 RequestSchema.parse(
-  body
+ body
 );
+
 
 
 console.log(
-  "REQUEST INPUT",
-  {
-    zodiacSign: validated.zodiacSign,
-    horoscopeDate: validated.horoscopeDate,
-    language: validated.language,
-  }
+ "HOROSCOPE REQUEST",
+ {
+  zodiacSign:
+    validated.zodiacSign,
+
+  date:
+    validated.horoscopeDate,
+
+  language:
+    validated.language,
+ }
 );
 
 
+
+
+
+
 //////////////////////////////////////////////////////////////
-// ENGINE
+// ASTRO ENGINE
 //////////////////////////////////////////////////////////////
 
 const horoscope =
 
 await generateHoroscope({
 
-  
   zodiacSign:
     validated.zodiacSign,
 
@@ -206,22 +242,26 @@ await generateHoroscope({
 });
 
 console.log(
-  "HOROSCOPE ENGINE OUTPUT",
+  "🔥 ZODIAC PLANET CHECK",
   {
-    zodiacSign: validated.zodiacSign,
-    planets: horoscope.planets
+    zodiac:
+      validated.zodiacSign,
+
+    planets:
+      horoscope.planets,
   }
 );
 
 
 
 
+
+
+
+
 //////////////////////////////////////////////////////////////
 // PREDICTION INTELLIGENCE
-//
-// Zodiac context added
 //////////////////////////////////////////////////////////////
-
 const prediction =
 
 predictHoroscope(
@@ -239,29 +279,44 @@ predictHoroscope(
 
 );
 
+
+
 console.log(
-  "PREDICTION OUTPUT",
-  {
-    zodiacSign: validated.zodiacSign,
+ "PREDICTION COMPLETE",
+ {
+  headline:
+    prediction.headline,
 
-    headline:
-      prediction.headline,
-
-    overview:
-      prediction.overview,
-
-    naturalSummary:
-      prediction.naturalSummary,
-
-    dominant:
-      prediction.predictionRanking?.slice(0,3)
-  }
+  summary:
+    prediction.naturalSummary,
+ }
 );
 
 
 
 
 
+
+//////////////////////////////////////////////////////////////
+// NATIONPATH AI EDITORIAL ENHANCEMENT
+//////////////////////////////////////////////////////////////
+
+const aiEnhancedHoroscope =
+
+await enhanceHoroscopeWithAI({
+
+  ...horoscope,
+
+  prediction,
+
+});
+
+
+
+
+console.log(
+ "AI ENHANCEMENT COMPLETE"
+);
 //////////////////////////////////////////////////////////////
 // EXPERIENCE INTELLIGENCE
 //////////////////////////////////////////////////////////////
@@ -269,50 +324,48 @@ console.log(
 let experience = null;
 
 
-
-try{
-
-
-const sections =
-
-buildExperienceSections(
-
-  prediction
-
-);
+try {
 
 
+  const sections =
 
-experience =
+    buildExperienceSections(
 
-createFormattedExperience(
+      aiEnhancedHoroscope.prediction
 
-  sections
+    );
 
-);
 
+
+  experience =
+
+    createFormattedExperience(
+
+      sections
+
+    );
 
 
 }
+
 
 catch(error){
 
 
-console.warn(
+  console.warn(
 
-"[HOROSCOPE_EXPERIENCE_FAILED]",
+    "[HOROSCOPE_EXPERIENCE_FAILED]",
 
-error instanceof Error
+    error instanceof Error
 
-? error.message
+    ? error.message
 
-: error
+    : error
 
-);
+  );
 
 
 }
-
 
 
 
@@ -321,14 +374,14 @@ error instanceof Error
 
 
 //////////////////////////////////////////////////////////////
-// FRONTEND CONTRACT
+// FRONTEND RESPONSE MAPPER
 //////////////////////////////////////////////////////////////
 
 const frontendResponse =
 
 mapHoroscopeResponse(
 
-  horoscope,
+  aiEnhancedHoroscope,
 
   validated.zodiacSign
 
@@ -341,7 +394,7 @@ mapHoroscopeResponse(
 
 
 //////////////////////////////////////////////////////////////
-// ENRICH RESPONSE
+// RESPONSE ENRICHMENT
 //////////////////////////////////////////////////////////////
 
 const enrichedResponse = {
@@ -350,16 +403,18 @@ const enrichedResponse = {
   ...frontendResponse,
 
 
+
   prediction:{
 
 
     ...frontendResponse.prediction,
 
 
-    ...prediction,
+    ...aiEnhancedHoroscope.prediction,
 
 
   },
+
 
 
   experience,
@@ -368,18 +423,35 @@ const enrichedResponse = {
 };
 
 
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// CMS EDITORIAL LAYER
+// CMS EDITORIAL CONTENT
 //////////////////////////////////////////////////////////////
+
 const cmsDate =
 
 validated.horoscopeDate
+
 .toISOString()
+
 .split("T")[0];
 
+
+
+
 console.log(
-  "===== HOROSCOPE ROUTE CMS SECTION HIT ====="
+
+  "===== HOROSCOPE CMS SECTION ====="
+
 );
+
+
+
 
 const astrologyContent =
 
@@ -392,19 +464,37 @@ await getAstrologyContent(
 );
 
 
+
+
 console.log(
-  "CMS FETCH CHECK",
+
+  "CMS FETCH",
+
   {
+
     found:
+
       !!astrologyContent,
 
+
     headline:
+
       astrologyContent?.headline,
 
-    hasExperience:
-      !!astrologyContent?.experience
+
+    experience:
+
+      !!astrologyContent?.experience,
+
+
   }
+
 );
+
+
+
+
+
 
 const finalResponse =
 
@@ -416,52 +506,50 @@ mergeHoroscopeContent(
 
 );
 
-console.log(
-  "FINAL CMS CHECK",
-  {
-    editorial:
-      finalResponse.editorial,
 
-    cmsHeadline:
-      finalResponse.editorial?.headline,
 
-    cmsPrediction:
-      finalResponse.editorial?.prediction,
 
-    cmsExperience:
-      !!finalResponse.editorial?.experience
-  }
-);
 
 
 console.log(
-  "FINAL API RESPONSE CHECK",
+
+  "FINAL RESPONSE CHECK",
+
   {
-    zodiacSign:
+
+    zodiac:
+
       validated.zodiacSign,
 
-    engineHeadline:
-      finalResponse.prediction?.headline,
 
-    engineSummary:
-      finalResponse.prediction?.naturalSummary,
+    aiHeadline:
+
+      finalResponse.prediction?.headline,
 
 
     editorialHeadline:
+
       finalResponse.editorial?.headline,
 
-    editorialPrediction:
-      finalResponse.editorial?.prediction,
 
-    editorialExperience:
-      finalResponse.editorial?.experience,
+    hasExperience:
+
+      !!finalResponse.experience,
+
 
   }
+
 );
 
 
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
-// RESPONSE
+// SUCCESS RESPONSE
 //////////////////////////////////////////////////////////////
 
 return astroSuccess(
@@ -477,9 +565,11 @@ return astroSuccess(
       validated.zodiacSign,
 
 
+
     requestedDate:
 
       validated.horoscopeDate
+
       .toISOString(),
 
 
@@ -496,16 +586,24 @@ return astroSuccess(
 
 
 
+    ai:
+
+      "nationpath-ai-core-v1",
+
+
+
     version:
 
-      "2.0",
+      "3.0",
 
 
 
     responseTime:
 
       Date.now()
+
       -
+
       startedAt,
 
 
@@ -516,41 +614,76 @@ return astroSuccess(
 
 
 }
-
-
+//////////////////////////////////////////////////////////////
+// ERROR HANDLING
+//////////////////////////////////////////////////////////////
 
 catch(error){
 
 
+  console.error(
 
-console.error(
+    "[HOROSCOPE_API_ERROR]",
 
-"[HOROSCOPE_API_ERROR]",
+    error
 
-error
-
-);
-
+  );
 
 
 
 
-if(
-  error instanceof z.ZodError
-){
+
+  if(
+    error instanceof z.ZodError
+  ){
 
 
-return astroError(
+    return astroError(
 
-"VALIDATION_ERROR",
+      "VALIDATION_ERROR",
 
-"Invalid horoscope request",
+      "Invalid horoscope request",
 
-400,
+      400,
 
-error.flatten()
+      error.flatten()
 
-);
+    );
+
+
+  }
+
+
+
+
+
+  return astroError(
+
+    ASTRO_API_ERRORS.INTERNAL_ERROR.code,
+
+
+    ASTRO_API_ERRORS.INTERNAL_ERROR.message,
+
+
+    500,
+
+
+    error instanceof Error
+
+    ?
+
+    error.message
+
+    :
+
+    "Internal Horoscope Error"
+
+
+  );
+
+
+}
+
 
 
 }
@@ -559,25 +692,145 @@ error.flatten()
 
 
 
-return astroError(
 
-ASTRO_API_ERRORS.INTERNAL_ERROR.code,
 
-ASTRO_API_ERRORS.INTERNAL_ERROR.message,
 
-500,
 
-error instanceof Error
+//////////////////////////////////////////////////////////////
+// GET HEALTH CHECK
+//
+// Browser testing support
+//////////////////////////////////////////////////////////////
 
-? error.message
+export async function GET(){
 
-: "Internal Horoscope Error"
 
-);
+  return astroSuccess(
 
+
+    {
+
+
+      status:
+
+        "HOROSCOPE API ONLINE",
+
+
+
+      pipeline:
+
+
+        [
+
+
+          "Astro Engine",
+
+
+          "Prediction Intelligence",
+
+
+          "NationPath AI Enhancement",
+
+
+          "Experience Intelligence",
+
+
+          "Frontend Mapper",
+
+
+          "CMS Editorial Layer",
+
+
+        ],
+
+
+
+      rules:
+
+
+        {
+
+
+          calculation:
+
+            "immutable",
+
+
+
+          ai:
+
+            "editorial-only",
+
+
+
+          provider:
+
+            "NationPath Internal AI",
+
+
+        },
+
+
+
+    },
+
+
+    {
+
+
+      engine:
+
+        "nationpath-astro-intelligence",
+
+
+
+      ai:
+
+        "nationpath-ai-core-v1",
+
+
+
+      version:
+
+        "3.0",
+
+
+    }
+
+
+  );
 
 
 }
 
 
-}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// END OF NATIONPATH HOROSCOPE API
+//
+// Flow:
+//
+// Request
+//    ↓
+// Astro Engine
+//    ↓
+// Prediction Intelligence
+//    ↓
+// NationPath AI Core
+//    ↓
+// Experience Intelligence
+//    ↓
+// CMS Editorial
+//    ↓
+// Premium Horoscope
+//
+// Calculation Immutable
+// AI Editorial Only
+//
+// NO OPENAI
+// NO EXTERNAL PROVIDER
+//////////////////////////////////////////////////////////////

@@ -29,31 +29,31 @@ const MARS_LIBRARY = {
 
 
     overall:
-      "Mars activates courage, determination and the ability to take meaningful action. This influence supports confidence, initiative and focused progress.",
+      "Mars activates courage, determination and purposeful action. This influence supports initiative, confidence and the ability to move forward with focus.",
 
 
     personality:
-      "Mars strengthens confidence, independence and the willingness to face challenges with determination.",
+      "Mars strengthens independence, confidence and the ability to face challenges with determination and resilience.",
 
 
     career:
-      "Mars supports career advancement through initiative, courage and focused effort. Success develops when energy is directed toward constructive goals.",
+      "Mars supports professional progress through initiative, leadership and focused effort. Results improve when motivation is directed toward meaningful goals.",
 
 
     finance:
-      "Mars encourages financial progress through decisive action, calculated risks and strong motivation to achieve goals.",
+      "Mars encourages financial progress through decisive thinking, disciplined action and practical management of opportunities.",
 
 
     relationship:
-      "Mars brings passion, protection and strong emotional energy. Relationships improve when strength is balanced with patience.",
+      "Mars brings passion, loyalty and protective energy. Relationships grow stronger when strength is balanced with understanding.",
 
 
     health:
-      "Mars supports vitality, physical energy and active efforts toward maintaining strength and discipline.",
+      "Mars supports physical vitality, discipline and active efforts toward maintaining strength and well-being.",
 
 
     mind:
-      "Mars enhances determination, focus and the ability to act decisively during important situations.",
+      "Mars enhances focus, determination and the ability to make clear decisions during important situations.",
 
 
     spirituality:
@@ -61,18 +61,27 @@ const MARS_LIBRARY = {
 
 
     education:
-      "Mars supports competitive learning, determination and the drive to achieve challenging goals.",
+      "Mars supports competitive learning, persistence and the motivation to achieve challenging objectives.",
 
 
     ambition:
-      "Mars strengthens ambition, motivation and the ability to transform intentions into action.",
+      "Mars strengthens ambition and the ability to transform ideas into consistent action.",
 
 
     communication:
-      "Mars supports direct expression, confidence and the courage to communicate clearly.",
+      "Mars supports direct expression, confidence and the courage to communicate with clarity.",
+
+
+    travel:
+      "Mars supports adventurous experiences, exploration and confidence while adapting to new environments.",
+
+
+    research:
+      "Mars encourages investigation, determination and focused effort toward discovering deeper insights.",
 
 
   },
+
 
 
 
@@ -80,50 +89,59 @@ const MARS_LIBRARY = {
 
 
     overall:
-      "Mars indicates a period where focused action, discipline and balanced effort can create progress.",
+      "Mars indicates a phase where focused effort, discipline and balanced action can create gradual progress.",
 
 
     personality:
-      "Mars highlights personal drive, independence and the importance of managing energy wisely.",
+      "Mars highlights personal drive, independence and the importance of managing motivation wisely.",
 
 
     career:
-      "Mars suggests progress through initiative, practical effort and maintaining focus on objectives.",
+      "Mars suggests progress through initiative, practical effort and maintaining focus on important objectives.",
 
 
     finance:
-      "Mars encourages careful action and balanced decisions while pursuing financial goals.",
+      "Mars encourages thoughtful decisions and controlled effort while pursuing financial goals.",
 
 
     relationship:
-      "Mars highlights passion and strong feelings while encouraging patience and understanding.",
+      "Mars highlights passion and strong emotions while encouraging patience and mutual understanding.",
 
 
     health:
-      "Mars emphasizes maintaining energy through discipline, activity and balanced routines.",
+      "Mars emphasizes maintaining physical balance through activity, discipline and healthy routines.",
 
 
     mind:
-      "Mars encourages focused thinking and directing energy toward productive outcomes.",
+      "Mars encourages focused thinking and directing attention toward productive outcomes.",
 
 
     spirituality:
-      "Mars supports personal transformation through courage, discipline and self-control.",
+      "Mars supports personal transformation through discipline, courage and self-control.",
 
 
     education:
-      "Mars encourages determination and consistent effort toward learning goals.",
+      "Mars encourages consistent effort, determination and active participation in learning.",
 
 
     ambition:
-      "Mars highlights the importance of directing motivation through patience and strategy.",
+      "Mars highlights the importance of combining motivation with planning and patience.",
 
 
     communication:
-      "Mars supports confident expression while maintaining awareness of tone and timing.",
+      "Mars supports confident expression while maintaining awareness of timing and approach.",
+
+
+    travel:
+      "Mars encourages learning through movement, experiences and adapting to new situations.",
+
+
+    research:
+      "Mars supports focused observation and persistent effort while exploring complex subjects.",
 
 
   },
+
 
 
 
@@ -135,35 +153,35 @@ const MARS_LIBRARY = {
 
 
     personality:
-      "Mars encourages balancing confidence with patience and avoiding unnecessary conflicts.",
+      "Mars encourages balancing confidence with patience and avoiding unnecessary conflicts or reactions.",
 
 
     career:
-      "Mars advises controlling impatience and directing competitive energy toward productive results.",
+      "Mars advises controlling impatience and directing competitive energy toward constructive achievements.",
 
 
     finance:
-      "Mars suggests avoiding rushed financial decisions and evaluating risks carefully.",
+      "Mars suggests avoiding rushed decisions and evaluating risks before taking financial actions.",
 
 
     relationship:
-      "Mars reminds you to balance passion with understanding and avoid reacting emotionally.",
+      "Mars reminds you to balance passion with understanding and avoid reactions driven by temporary emotions.",
 
 
     health:
-      "Mars encourages managing stress, excessive activity and impulsive habits through discipline.",
+      "Mars encourages managing stress, excessive activity and maintaining disciplined routines.",
 
 
     mind:
-      "Mars suggests calming restless thoughts and focusing energy on meaningful priorities.",
+      "Mars suggests calming restless thoughts and focusing attention on meaningful priorities.",
 
 
     spirituality:
-      "Mars encourages transforming aggression into courage, discipline and inner strength.",
+      "Mars encourages transforming intensity into discipline, courage and personal growth.",
 
 
     education:
-      "Mars advises maintaining patience and consistency instead of relying only on motivation.",
+      "Mars advises maintaining consistency and patience instead of depending only on motivation.",
 
 
     ambition:
@@ -171,13 +189,152 @@ const MARS_LIBRARY = {
 
 
     communication:
-      "Mars advises choosing words carefully and avoiding unnecessary confrontation.",
+      "Mars advises choosing words carefully and avoiding unnecessary disagreements.",
+
+
+    travel:
+      "Mars encourages patience and awareness while handling unexpected situations during journeys.",
+
+
+    research:
+      "Mars suggests avoiding rushed conclusions and combining determination with careful analysis.",
 
 
   },
 
 
 };
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// MARS DYNAMIC EXPLANATION
+//////////////////////////////////////////////////////////////
+
+function getMarsExplanation(
+
+  area: LanguageLifeArea
+
+): string {
+
+
+  switch(area){
+
+
+    case "career":
+
+      return "Mars influences initiative, leadership and the ability to direct effort toward professional goals.";
+
+
+    case "finance":
+
+      return "Mars influences decision-making, risk approach and the motivation behind financial actions.";
+
+
+    case "relationship":
+
+      return "Mars influences passion, emotional intensity and the way strength is expressed within relationships.";
+
+
+    case "health":
+
+      return "Mars reflects physical drive, discipline and the connection between energy and personal routines.";
+
+
+    case "education":
+
+      return "Mars influences determination, competition and the willingness to overcome learning challenges.";
+
+
+    case "communication":
+
+      return "Mars influences confidence, direct expression and the ability to communicate with force and clarity.";
+
+
+    case "ambition":
+
+      return "Mars represents motivation, persistence and the ability to convert intentions into action.";
+
+
+    case "spirituality":
+
+      return "Mars reflects inner courage, discipline and the strength required for personal transformation.";
+
+
+    default:
+
+      return "Mars represents courage, action, determination and personal drive. Its expression changes according to the life area being explored.";
+
+  }
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// MARS DYNAMIC GUIDANCE
+//////////////////////////////////////////////////////////////
+
+function getMarsAdvice(
+
+  area: LanguageLifeArea,
+
+  tone: LanguageTone
+
+): string {
+
+
+  if(tone === "caution"){
+
+
+    return "Channel energy carefully and allow patience to guide important decisions and actions.";
+
+  }
+
+
+
+  switch(area){
+
+
+    case "career":
+
+      return "Direct your motivation toward focused goals while maintaining discipline and teamwork.";
+
+
+    case "health":
+
+      return "Maintain active routines while balancing effort with proper recovery.";
+
+
+    case "relationship":
+
+      return "Express passion with patience and allow understanding to guide interactions.";
+
+
+    case "education":
+
+      return "Use determination consistently and approach challenges with persistence.";
+
+
+    case "finance":
+
+      return "Combine confidence with careful planning before making important choices.";
+
+
+    default:
+
+      return "Use determination and courage while maintaining balance and awareness.";
+
+  }
+
+
+}
+
 
 
 
@@ -189,10 +346,12 @@ const MARS_LIBRARY = {
 export function generateMarsLanguage(
 
   area:
+
     LanguageLifeArea = "overall",
 
 
   tone:
+
     LanguageTone = "neutral"
 
 
@@ -215,7 +374,6 @@ export function generateMarsLanguage(
 
 
 
-
   return {
 
 
@@ -224,27 +382,31 @@ export function generateMarsLanguage(
 
     explanation:
 
-      "Mars represents energy, courage, action and determination. Its expression changes according to the life area being explored.",
+      getMarsExplanation(
+
+        area
+
+      ),
 
 
 
     advice:
 
-      tone === "caution"
+      getMarsAdvice(
 
-        ?
+        area,
 
-        "Channel energy carefully and allow patience to guide important actions."
+        tone
 
-        :
-
-        "Use determination and courage while maintaining balance and awareness.",
+      ),
 
 
   };
 
 
 }
+
+
 
 
 

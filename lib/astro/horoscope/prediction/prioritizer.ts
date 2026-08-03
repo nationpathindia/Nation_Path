@@ -663,7 +663,16 @@ function rankPlanetPredictions(
 
 ):PredictionRanking[] {
 
-
+console.log(
+ "PLANET PREDICTION INPUT",
+ {
+   zodiac: context.zodiacSign,
+   planets: context.planetaryPredictions.map(item=>({
+     planet:item.planet,
+     strength:item.strengthScore
+   }))
+ }
+);
 
  return safeArray(
 
@@ -788,7 +797,17 @@ function rankLifePredictions(
 
 ):PredictionRanking[] {
 
-
+ console.log(
+   "LIFE PREDICTION INPUT",
+   {
+     zodiac: context.zodiacSign,
+     lifePredictions: context.lifePredictions.map(item=>({
+  area:item.area,
+  score:item.score,
+  topMessage:item.messages?.[0]?.prediction
+}))
+   }
+ );
 
  return safeArray(
 
@@ -1108,7 +1127,6 @@ function balanceCategories(
 //////////////////////////////////////////////////////////////
 // FINAL RANKING BUILDER
 //////////////////////////////////////////////////////////////
-
 export function buildPredictionRanking(
 
  context:PredictionContext
@@ -1116,59 +1134,28 @@ export function buildPredictionRanking(
 ):PredictionRanking[] {
 
 
-
  const combined = [
 
+  ...rankPlanetPredictions(context),
 
-  ...rankPlanetPredictions(
+  ...rankLifePredictions(context),
 
-   context
+  ...rankInsights(context?.opportunities),
 
-  ),
-
-
-
-  ...rankLifePredictions(
-
-   context
-
-  ),
-
-
-
-  ...rankInsights(
-
-   context?.opportunities
-
-  ),
-
-
-
-  ...rankInsights(
-
-   context?.cautions
-
-  )
-
+  ...rankInsights(context?.cautions)
 
  ];
-
-
-
-
 
 
  const ranked =
 
  balanceCategories(
 
-
   removeDuplicateRankings(
 
    combined
 
   )
-
 
   .filter(
 
@@ -1178,26 +1165,18 @@ export function buildPredictionRanking(
 
   )
 
-
   .sort(
 
    (a,b)=>
 
-   b.score -
-
-   a.score
+   b.score - a.score
 
   )
-
 
  );
 
 
-
-
-
-
- return normalizeRankingSpread(
+ const finalRanking = normalizeRankingSpread(
 
   ranked
 
@@ -1211,5 +1190,24 @@ export function buildPredictionRanking(
 
  );
 
+
+ console.log(
+   "FINAL RANKING ENGINE OUTPUT",
+   {
+     zodiac: context.zodiacSign,
+     phase: context.phase,
+     totalCombined: combined.length,
+     rankedCount: ranked.length,
+     finalCount: finalRanking.length,
+     rankings: finalRanking.map(item => ({
+       title:item.title,
+       category:item.category,
+       score:item.score
+     }))
+   }
+ );
+
+
+ return finalRanking;
 
 }

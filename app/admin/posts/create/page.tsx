@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Editor from "@/components/Editor";
-
+import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
 export const dynamic = "force-dynamic";
 
 
@@ -159,11 +159,39 @@ featuredDuration:"24",
 
 
 
-
 keyHighlights:"",
 
 whyItMatters:"",
 
+
+//////////////////////////////////////////////////////
+// ARTICLE INTELLIGENCE V1
+//////////////////////////////////////////////////////
+
+shortBrief:"",
+
+background:"",
+
+timeline:"",
+
+expertOpinion:{
+  name:"",
+  role:"",
+  quote:""
+},
+
+factCheck:{
+  claim:"",
+  status:"",
+  explanation:"",
+  sources:""
+},
+
+whatsNext:"",
+
+keyTakeaways:"",
+
+sourceDesk:"",
 
 
 
@@ -1257,7 +1285,10 @@ v
 
 
 
-
+<ArticleIntelligenceForm
+  form={form}
+  updateField={updateField}
+/>
 
 
 

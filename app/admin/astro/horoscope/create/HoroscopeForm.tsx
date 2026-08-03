@@ -161,7 +161,7 @@ featured:false,
 version:"1.0",
 
 
-language:"en",
+language:"english",
 
 
 },
@@ -1770,12 +1770,15 @@ form.meta?.featured
 
 
 
+meta:{
 
+...form.meta,
 
 language:
 
-form.meta?.language || "en",
+form.meta?.language || "english",
 
+},
 
 
 

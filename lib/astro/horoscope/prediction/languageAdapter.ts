@@ -1,12 +1,16 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
 //
-// PREDICTION LANGUAGE ADAPTER
+// PREDICTION LANGUAGE ADAPTER v3
 //
 // Connects:
+//
 // Prediction Engine
 //        |
+//        |
 // Language Intelligence Layer
+//
+// Zodiac Context Enabled
 //
 // No calculations.
 // No planetary logic changes.
@@ -20,7 +24,6 @@ import type {
 } from "../types";
 
 
-
 import type {
 
   PredictionCategory,
@@ -28,7 +31,6 @@ import type {
   PredictionMessage,
 
 } from "./types";
-
 
 
 import {
@@ -53,7 +55,50 @@ import type {
 
   PlanetLanguageOutput,
 
+  LanguageLifeArea,
+
 } from "../intelligence/language";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SUPPORTED LANGUAGE AREAS
+//////////////////////////////////////////////////////////////
+
+const LANGUAGE_AREAS: LanguageLifeArea[] = [
+
+  "overall",
+
+  "personality",
+
+  "career",
+
+  "finance",
+
+  "relationship",
+
+  "health",
+
+  "mind",
+
+  "spirituality",
+
+  "education",
+
+  "communication",
+
+  "travel",
+
+  "research",
+
+  "ambition",
+
+];
+
+
 
 
 
@@ -64,50 +109,29 @@ import type {
 
 function normalizeArea(
 
-  area:PredictionCategory
+  area: PredictionCategory
 
-):any {
-
-
-  const supported = [
-
-    "overall",
-
-    "personality",
-
-    "career",
-
-    "finance",
-
-    "relationship",
-
-    "health",
-
-    "mind",
-
-    "spirituality",
-
-    "education",
-
-    "communication",
-
-    "travel",
-
-    "research",
-
-    "ambition",
-
-  ];
+): LanguageLifeArea {
 
 
+  return LANGUAGE_AREAS.includes(
 
-  return supported.includes(area)
+    area as LanguageLifeArea
 
-    ? area
+  )
 
-    : "overall";
+    ?
+
+    area as LanguageLifeArea
+
+    :
+
+    "overall";
+
 
 }
+
+
 
 
 
@@ -118,23 +142,41 @@ function normalizeArea(
 
 export function generatePlanetPredictionLanguage(
 
-  planet:HoroscopePlanet,
 
-  area:PredictionCategory = "overall"
-
-):PlanetLanguageOutput {
+  planet: HoroscopePlanet,
 
 
+  area: PredictionCategory = "overall",
 
- const context =
+
+  zodiac?: string
+
+
+): PlanetLanguageOutput {
+
+
+
+  const planetName =
+
+
+    getPredictionPlanetId(
+
+      planet
+
+    );
+
+
+
+
+
+
+  const context =
+
 
     createLanguageContext(
 
-      getPredictionPlanetId(
 
-        planet
-
-      ),
+      planetName,
 
 
       planet.strength.score,
@@ -144,9 +186,16 @@ export function generatePlanetPredictionLanguage(
 
         area
 
-      )
+      ),
+
+
+      zodiac
+
 
     );
+
+
+
 
 
 
@@ -163,54 +212,325 @@ export function generatePlanetPredictionLanguage(
 
 
 
+
+
+
 //////////////////////////////////////////////////////////////
 // PREDICTION MESSAGE ENHANCER
 //////////////////////////////////////////////////////////////
 
 export function enhancePredictionMessage(
 
-  planet:HoroscopePlanet,
 
-  message:PredictionMessage
-
-):PredictionMessage {
+  planet: HoroscopePlanet,
 
 
-  const language =
+  message: PredictionMessage,
 
-    generatePlanetPredictionLanguage(
 
-      planet,
+  zodiac?: string
 
-      message.category
+
+): PredictionMessage {
+
+
+
+  try {
+
+
+
+    const language =
+
+
+
+      generatePlanetPredictionLanguage(
+
+
+
+        planet,
+
+
+
+        message.category,
+
+
+
+        zodiac
+
+
+
+      );
+
+
+
+
+
+
+
+    return {
+
+
+      ...message,
+
+
+
+      prediction:
+
+        language.statement,
+
+
+
+      explanation:
+
+        language.explanation,
+
+
+
+      guidance:
+
+        language.advice,
+
+
+
+    };
+
+
+
+  }
+
+
+  catch {
+
+
+
+    return message;
+
+
+  }
+
+
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// MULTI PLANET PREMIUM COMPOSER
+//////////////////////////////////////////////////////////////
+
+export function composePremiumPrediction(
+
+
+  planets: HoroscopePlanet[],
+
+
+  area: PredictionCategory = "overall",
+
+
+  zodiac?: string
+
+
+){
+
+
+
+  const languageArea =
+
+
+    normalizeArea(
+
+      area
 
     );
 
 
 
 
+
+
+  const outputs =
+
+
+
+    planets.map(
+
+
+
+      planet =>
+
+
+
+        generatePlanetPredictionLanguage(
+
+
+
+          planet,
+
+
+
+          area,
+
+
+
+          zodiac
+
+
+
+        )
+
+
+
+    );
+
+
+
+
+
+
+
+  return composeLanguage(
+
+
+    outputs,
+
+
+    languageArea
+
+
+  );
+
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// PLANET SUMMARY BUILDER
+//
+// Future premium sections use this
+//////////////////////////////////////////////////////////////
+
+export function buildPlanetLanguageSummary(
+
+
+  planet: HoroscopePlanet,
+
+
+  zodiac?: string
+
+
+){
+
+
+
   return {
 
 
-    ...message,
+    planet:
+
+
+      getPredictionPlanetId(
+
+        planet
+
+      ),
 
 
 
-    prediction:
-
-      language.statement,
+    strength:
 
 
-
-    explanation:
-
-      language.explanation,
+      planet.strength.score,
 
 
 
-    guidance:
+    zodiac,
 
-      language.advice,
+
+
+    overall:
+
+
+      generatePlanetPredictionLanguage(
+
+
+        planet,
+
+
+        "overall",
+
+
+        zodiac
+
+
+      ),
+
+
+
+    career:
+
+
+      generatePlanetPredictionLanguage(
+
+
+        planet,
+
+
+        "career",
+
+
+        zodiac
+
+
+      ),
+
+
+
+    relationship:
+
+
+      generatePlanetPredictionLanguage(
+
+
+        planet,
+
+
+        "relationship",
+
+
+        zodiac
+
+
+      ),
+
+
+
+    finance:
+
+
+      generatePlanetPredictionLanguage(
+
+
+        planet,
+
+
+        "finance",
+
+
+        zodiac
+
+
+      ),
 
 
 
@@ -223,72 +543,28 @@ export function enhancePredictionMessage(
 
 
 
-//////////////////////////////////////////////////////////////
-// MULTI PLANET COMPOSER
-//////////////////////////////////////////////////////////////
-
-export function composePremiumPrediction(
-
-  planets:HoroscopePlanet[],
-
-  area:PredictionCategory = "overall"
-
-){
-
-
-  const outputs =
-
-
-    planets.map(
-
-      planet =>
-
-
-        generatePlanetPredictionLanguage(
-
-          planet,
-
-          area
-
-        )
-
-
-    );
-
-
-
-
-
-  return composeLanguage(
-
-    outputs,
-
-    normalizeArea(
-
-      area
-
-    )
-
-  );
-
-
-}
-
 
 
 
 
 //////////////////////////////////////////////////////////////
-// SAFE FALLBACK WRAPPER
+// SAFE LANGUAGE ENHANCEMENT WRAPPER
 //////////////////////////////////////////////////////////////
 
 export function safeLanguageEnhancement(
 
-  planet:HoroscopePlanet,
 
-  message:PredictionMessage
+  planet: HoroscopePlanet,
 
-):PredictionMessage {
+
+  message: PredictionMessage,
+
+
+  zodiac?: string
+
+
+): PredictionMessage {
+
 
 
   try {
@@ -296,14 +572,21 @@ export function safeLanguageEnhancement(
 
     return enhancePredictionMessage(
 
+
       planet,
 
-      message
+
+      message,
+
+
+      zodiac
+
 
     );
 
 
   }
+
 
   catch {
 

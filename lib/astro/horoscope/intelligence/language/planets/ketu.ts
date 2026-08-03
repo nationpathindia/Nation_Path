@@ -29,55 +29,55 @@ const KETU_LIBRARY = {
 
 
     overall:
-      "Ketu encourages inner awareness, deep understanding and transformation through reflection. This influence supports wisdom beyond external achievements.",
+      "Ketu encourages inner awareness, deep understanding and transformation through reflection. This influence supports wisdom beyond external achievements and develops awareness of deeper purpose.",
 
 
     personality:
-      "Ketu strengthens intuition, independence and the ability to understand experiences from a deeper perspective.",
+      "Ketu strengthens intuition, independence and inner observation. Personal growth develops through self-awareness and understanding unique experiences.",
 
 
     career:
-      "Ketu supports specialized knowledge, research-oriented work and growth through focused expertise.",
+      "Ketu supports specialized knowledge, research-oriented work and growth through expertise, investigation and focused abilities.",
 
 
     finance:
-      "Ketu encourages a balanced approach toward material goals and wiser understanding of long-term values.",
+      "Ketu encourages a balanced relationship with material goals by developing awareness of priorities and long-term values.",
 
 
     relationship:
-      "Ketu brings depth to relationships by encouraging understanding beyond surface-level connections.",
+      "Ketu brings depth to relationships by encouraging understanding beyond surface connections and appreciating emotional awareness.",
 
 
     health:
-      "Ketu supports awareness of inner balance, mindful habits and understanding personal needs.",
+      "Ketu supports mindful living, inner balance and awareness of personal needs through reflection and conscious habits.",
 
 
     mind:
-      "Ketu enhances intuition, observation and the ability to look beyond obvious patterns.",
+      "Ketu enhances intuition, observation and the ability to recognize deeper patterns beyond ordinary thinking.",
 
 
     spirituality:
-      "Ketu strengthens spiritual awareness, meditation, inner exploration and connection with deeper wisdom.",
+      "Ketu strengthens spiritual awareness, meditation and inner exploration. This influence supports deeper understanding of consciousness and purpose.",
 
 
     education:
-      "Ketu supports advanced learning, research and discovering hidden knowledge through dedication.",
-
-
-    travel:
-      "Ketu encourages meaningful journeys that create reflection, learning and inner transformation.",
-
-
-    research:
-      "Ketu enhances investigation, analysis and interest in hidden or unexplored subjects.",
+      "Ketu supports advanced learning, research and discovering hidden knowledge through dedication and curiosity.",
 
 
     communication:
-      "Ketu encourages thoughtful expression, silence when needed and communication with deeper meaning.",
+      "Ketu encourages meaningful expression, thoughtful silence and communication guided by deeper understanding.",
 
 
     ambition:
-      "Ketu transforms ambition by shifting focus from external recognition toward meaningful purpose.",
+      "Ketu transforms ambition by shifting focus from external recognition toward meaningful contribution and inner purpose.",
+
+
+    travel:
+      "Ketu encourages journeys that create reflection, learning and personal transformation through new experiences.",
+
+
+    research:
+      "Ketu enhances investigation, analysis and interest in hidden knowledge, patterns and unexplored subjects.",
 
 
   },
@@ -92,27 +92,27 @@ const KETU_LIBRARY = {
 
 
     personality:
-      "Ketu highlights independence, intuition and the importance of inner awareness.",
+      "Ketu highlights independence, intuition and developing awareness of personal thoughts and experiences.",
 
 
     career:
-      "Ketu suggests growth through specialization, patience and developing unique abilities.",
+      "Ketu suggests growth through specialization, patience and developing unique abilities over time.",
 
 
     finance:
-      "Ketu encourages understanding priorities and maintaining balance between material goals and personal values.",
+      "Ketu encourages understanding priorities and maintaining balance between material needs and personal values.",
 
 
     relationship:
-      "Ketu highlights the importance of emotional understanding and respecting personal space.",
+      "Ketu highlights emotional understanding, personal space and deeper awareness within connections.",
 
 
     health:
-      "Ketu emphasizes awareness, mindfulness and maintaining inner balance.",
+      "Ketu emphasizes mindfulness, awareness and maintaining inner balance.",
 
 
     mind:
-      "Ketu encourages observation, reflection and reducing unnecessary distractions.",
+      "Ketu encourages reflection, observation and reducing unnecessary distractions.",
 
 
     spirituality:
@@ -120,23 +120,23 @@ const KETU_LIBRARY = {
 
 
     education:
-      "Ketu encourages focused learning and exploring subjects beyond ordinary understanding.",
-
-
-    travel:
-      "Ketu indicates experiences that encourage reflection and personal discovery.",
-
-
-    research:
-      "Ketu supports exploration, investigation and deeper analysis of hidden information.",
+      "Ketu encourages focused learning and exploring subjects beyond ordinary perspectives.",
 
 
     communication:
-      "Ketu encourages meaningful communication with awareness and thoughtfulness.",
+      "Ketu supports thoughtful communication where awareness and meaning become important.",
 
 
     ambition:
-      "Ketu highlights the importance of aligning goals with deeper purpose and values.",
+      "Ketu highlights aligning goals with deeper purpose rather than only external achievement.",
+
+
+    travel:
+      "Ketu indicates experiences that encourage reflection, learning and personal discovery.",
+
+
+    research:
+      "Ketu supports exploration, investigation and deeper analysis of complex information.",
 
 
   },
@@ -151,19 +151,19 @@ const KETU_LIBRARY = {
 
 
     personality:
-      "Ketu advises avoiding excessive isolation and maintaining healthy connections with others.",
+      "Ketu advises avoiding excessive isolation and maintaining healthy emotional connections with others.",
 
 
     career:
-      "Ketu suggests avoiding lack of direction and maintaining commitment toward important responsibilities.",
+      "Ketu suggests avoiding uncertainty and maintaining commitment toward important responsibilities and goals.",
 
 
     finance:
-      "Ketu reminds you to avoid ignoring practical financial matters while seeking deeper priorities.",
+      "Ketu reminds you to maintain practical financial awareness while exploring deeper priorities.",
 
 
     relationship:
-      "Ketu encourages avoiding emotional distance and maintaining understanding within relationships.",
+      "Ketu encourages avoiding emotional distance and creating balance between independence and connection.",
 
 
     health:
@@ -175,33 +175,34 @@ const KETU_LIBRARY = {
 
 
     spirituality:
-      "Ketu encourages balancing spiritual exploration with daily responsibilities.",
+      "Ketu encourages balancing spiritual exploration with everyday responsibilities and practical awareness.",
 
 
     education:
-      "Ketu suggests maintaining consistency and completing learning journeys patiently.",
-
-
-    travel:
-      "Ketu advises awareness during unfamiliar experiences and maintaining practical planning.",
-
-
-    research:
-      "Ketu encourages patience and verification while exploring complex subjects.",
+      "Ketu reminds you to maintain consistency and complete learning paths with patience.",
 
 
     communication:
-      "Ketu advises expressing thoughts clearly instead of relying only on silence or assumptions.",
+      "Ketu advises expressing thoughts clearly instead of depending only on silence or assumptions.",
 
 
     ambition:
       "Ketu reminds you to balance detachment with practical goals and responsibilities.",
 
 
+    travel:
+      "Ketu advises careful awareness during unfamiliar experiences and maintaining practical planning.",
+
+
+    research:
+      "Ketu encourages patience, verification and careful analysis while exploring complex subjects.",
+
+
   },
 
 
 };
+
 
 
 
@@ -246,9 +247,42 @@ export function generateKetuLanguage(
     statement,
 
 
+
     explanation:
 
-      "Ketu represents intuition, spirituality, research and inner transformation. Its expression changes according to the life area being explored.",
+      area === "research"
+
+        ?
+
+        "Ketu represents investigation, hidden knowledge and deeper analysis. Its influence supports exploring subjects beyond ordinary understanding."
+
+        :
+
+      area === "spirituality"
+
+        ?
+
+        "Ketu represents inner transformation, awareness and spiritual understanding. Growth develops through reflection and self-discovery."
+
+        :
+
+      area === "education"
+
+        ?
+
+        "Ketu supports focused learning, specialized knowledge and exploring deeper aspects of information."
+
+        :
+
+      area === "relationship"
+
+        ?
+
+        "Ketu influences emotional depth, independence and understanding beyond surface-level connections."
+
+        :
+
+        "Ketu represents intuition, spirituality, research and inner transformation. Its expression changes according to the life area being explored.",
 
 
 
@@ -262,13 +296,30 @@ export function generateKetuLanguage(
 
         :
 
-        "Use awareness, intuition and deeper understanding to guide your journey.",
+      area === "research"
+
+        ?
+
+        "Explore deeply, verify information and develop understanding through patience."
+
+        :
+
+      area === "spirituality"
+
+        ?
+
+        "Use reflection and awareness while maintaining balance with daily responsibilities."
+
+        :
+
+        "Use intuition, awareness and deeper understanding to guide decisions.",
 
 
   };
 
 
 }
+
 
 
 

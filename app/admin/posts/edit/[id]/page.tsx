@@ -12,7 +12,9 @@ import {
 
 
 import Editor from "@/components/Editor";
+
 import VideoPreview from "@/components/admin/article/VideoPreview";
+
 import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
 
 
@@ -21,24 +23,25 @@ import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntellige
 
 interface AISummary {
 
-overview:string;
+  overview:string;
 
-points:string[];
+  points:string[];
 
-impact:string;
+  impact:string;
 
-takeaway:string;
+  takeaway:string;
 
 }
 
 
 
 
+
 interface FAQItem {
 
-question:string;
+  question:string;
 
-answer:string;
+  answer:string;
 
 }
 
@@ -49,125 +52,119 @@ answer:string;
 interface ArticleForm {
 
 
-title:string;
+  title:string;
 
 
-slug:string;
+  slug:string;
 
 
-content:string;
+  content:string;
 
 
 
-categoryId:string;
+  categoryId:string;
 
 
 
-images:string[];
+  images:string[];
 
 
 
-videoUrl:string;
+  videoUrl:string;
 
 
-videoPosition:string;
+  videoPosition:string;
 
 
 
 
-breaking:boolean;
+  breaking:boolean;
 
 
-featured:boolean;
+  featured:boolean;
 
 
 
-breakingPriority:number;
+  breakingPriority:number;
 
 
-homepagePriority:number;
+  homepagePriority:number;
 
 
 
-breakingDuration:string;
+  breakingDuration:string;
 
 
-featuredDuration:string;
+  featuredDuration:string;
 
 
 
 
 
-keyHighlights:string;
+  keyHighlights:string;
 
 
-whyItMatters:string;
+  whyItMatters:string;
 
 
 
 
 
+  shortBrief:string;
 
-shortBrief:string;
 
+  background:string;
 
-background:string;
 
+  timeline:any;
 
 
-timeline:string;
 
+  expertOpinion:any;
 
 
-expertOpinion:any;
+  factCheck:any;
 
 
 
-factCheck:any;
+  whatsNext:string;
 
 
+  keyTakeaways:string;
 
-whatsNext:string;
 
+  sourceDesk:string;
 
 
-keyTakeaways:string;
 
 
+  faqItems:FAQItem[];
 
-sourceDesk:string;
 
 
 
 
+  publishedAt:string;
 
-faqItems:FAQItem[];
 
 
 
 
+  metaTitle:string;
 
-publishedAt:string;
 
+  metaDescription:string;
 
 
+  metaKeywords:string;
 
 
-metaTitle:string;
 
 
-metaDescription:string;
+  status:string;
 
 
-metaKeywords:string;
-
-
-
-
-status:string;
-
-
-live:boolean;
+  live:boolean;
 
 
 }
@@ -184,168 +181,130 @@ const initialForm:ArticleForm={
 
 
 
-title:"",
+  title:"",
 
 
-slug:"",
+  slug:"",
 
 
 
-content:"",
+  content:"",
 
 
 
-categoryId:"",
+  categoryId:"",
 
 
 
-images:[],
+  images:[],
 
 
-videoUrl:"",
+  videoUrl:"",
 
 
-videoPosition:"top",
+  videoPosition:"top",
 
 
 
 
 
-breaking:false,
+  breaking:false,
 
 
-featured:false,
+  featured:false,
 
 
 
-breakingPriority:0,
+  breakingPriority:0,
 
 
-homepagePriority:0,
+  homepagePriority:0,
 
 
 
-breakingDuration:"30",
+  breakingDuration:"30",
 
 
-featuredDuration:"24",
+  featuredDuration:"24",
 
 
 
 
-keyHighlights:"",
 
 
-whyItMatters:"",
 
+  keyHighlights:"",
 
 
+  whyItMatters:"",
 
 
-shortBrief:"",
 
 
-background:"",
 
+  shortBrief:"",
 
 
-timeline:"",
+  background:"",
 
 
+  timeline:[],
 
-expertOpinion:{
 
 
-name:"",
 
+  expertOpinion:[],
 
-role:"",
 
+  factCheck:[],
 
-quote:""
 
 
-},
 
 
+  whatsNext:"",
 
 
-factCheck:{
+  keyTakeaways:"",
 
 
-claim:"",
+  sourceDesk:"",
 
 
-status:"",
 
 
-explanation:"",
 
+  faqItems:[],
 
-sources:""
 
 
-},
 
 
+  publishedAt:"",
 
 
 
-whatsNext:"",
 
 
+  metaTitle:"",
 
-keyTakeaways:"",
 
+  metaDescription:"",
 
 
-sourceDesk:"",
+  metaKeywords:"",
 
 
 
 
+  status:"pending",
 
-faqItems:[],
 
-
-
-
-
-publishedAt:"",
-
-
-
-
-
-metaTitle:"",
-
-
-metaDescription:"",
-
-
-metaKeywords:"",
-
-
-
-
-status:"pending",
-
-
-
-live:true
+  live:true
 
 
 
 };
-
-
-
-
-
-
-
-
-
 export default function EditPost(){
 
 
@@ -356,69 +315,80 @@ id
 
 
 
-const router=useRouter();
+const router = useRouter();
 
 
 
 
 
 
-const [loading,setLoading]=useState(true);
+const [loading,setLoading] =
+useState(true);
 
 
-const [saving,setSaving]=useState(false);
-
-
-
-const [uploading,setUploading]=useState(false);
-
-
-
-const [categories,setCategories]=useState<any[]>([]);
+const [saving,setSaving] =
+useState(false);
 
 
 
-const [error,setError]=useState("");
+const [uploading,setUploading] =
+useState(false);
 
 
 
-const [message,setMessage]=useState("");
+const [categories,setCategories] =
+useState<any[]>([]);
 
 
 
-const [aiLoading,setAiLoading]=useState(false);
+const [error,setError] =
+useState("");
 
 
 
-const [aiSummary,setAiSummary]=useState<AISummary|null>(null);
+const [message,setMessage] =
+useState("");
 
 
 
-
-
-const [slugLocked,setSlugLocked]=useState(true);
-
-
+const [aiLoading,setAiLoading] =
+useState(false);
 
 
 
-const [form,setForm]=useState<ArticleForm>(
-initialForm
-);
+const [aiSummary,setAiSummary] =
+useState<AISummary | null>(null);
 
 
 
 
+const [slugLocked,setSlugLocked] =
+useState(true);
 
 
+
+
+const [form,setForm] =
+useState<ArticleForm>(initialForm);
+
+
+
+
+
+
+
+
+
+
+// =====================================================
+// LOAD ARTICLE
+// =====================================================
 
 
 useEffect(()=>{
 
 
 if(!id) return;
-
-
 
 
 
@@ -432,14 +402,10 @@ setLoading(true);
 
 
 
-
-
 const res =
 await fetch(
 `/api/articles/${id}`
 );
-
-
 
 
 
@@ -449,11 +415,10 @@ await res.json();
 
 
 
-
 if(!data.success){
 
 throw new Error(
-"Article not found"
+data.error || "Article not found"
 );
 
 }
@@ -461,9 +426,8 @@ throw new Error(
 
 
 
-
-const article=data.article;
-
+const article =
+data.article;
 
 
 
@@ -501,6 +465,7 @@ article.categoryId || "",
 
 
 
+
 images:
 
 Array.isArray(article.images)
@@ -512,6 +477,7 @@ article.images
 :
 
 [],
+
 
 
 
@@ -532,6 +498,7 @@ article.videoPosition || "top",
 
 
 
+
 breaking:
 Boolean(article.breaking),
 
@@ -540,6 +507,7 @@ Boolean(article.breaking),
 
 featured:
 Boolean(article.featured),
+
 
 
 
@@ -556,14 +524,17 @@ article.homepagePriority || 0,
 
 
 
+
 breakingDuration:
-article.breakingDuration || "30",
+"30",
+
 
 
 
 
 featuredDuration:
-article.featuredDuration || "24",
+"24",
+
 
 
 
@@ -580,13 +551,18 @@ article.keyHighlights.join("\n")
 
 :
 
-"",
+""
+
+,
+
+
 
 
 
 
 
 whyItMatters:
+
 article.whyItMatters || "",
 
 
@@ -596,21 +572,28 @@ article.whyItMatters || "",
 
 
 shortBrief:
+
 article.shortBrief || "",
 
 
 
 
 
+
 background:
+
 article.background || "",
 
 
 
 
 
+
 timeline:
-article.timeline || "",
+
+article.timeline || [],
+
+
 
 
 
@@ -618,15 +601,8 @@ article.timeline || "",
 
 expertOpinion:
 
-article.expertOpinion || {
+article.expertOpinion || [],
 
-name:"",
-
-role:"",
-
-quote:""
-
-},
 
 
 
@@ -634,17 +610,8 @@ quote:""
 
 factCheck:
 
-article.factCheck || {
+article.factCheck || [],
 
-claim:"",
-
-status:"",
-
-explanation:"",
-
-sources:""
-
-},
 
 
 
@@ -652,6 +619,7 @@ sources:""
 
 
 whatsNext:
+
 article.whatsNext || "",
 
 
@@ -669,14 +637,20 @@ article.keyTakeaways.join("\n")
 
 :
 
-"",
+""
+
+,
+
 
 
 
 
 
 sourceDesk:
+
 article.sourceDesk || "",
+
+
 
 
 
@@ -713,43 +687,61 @@ new Date(article.publishedAt)
 
 :
 
-"",
+""
+
+,
+
+
 
 
 
 
 
 metaTitle:
+
 article.metaTitle || "",
 
 
 
 
+
 metaDescription:
+
 article.metaDescription || "",
 
 
 
 
+
 metaKeywords:
+
 article.metaKeywords || "",
 
 
 
 
 
+
+
 status:
+
 article.status || "pending",
 
 
 
 
+
 live:
+
 article.live ?? true
 
 
 
+
+
 });
+
+
 
 
 
@@ -762,6 +754,8 @@ article.aiSummary
 );
 
 }
+
+
 
 
 
@@ -786,6 +780,7 @@ setLoading(false);
 }
 
 
+
 }
 
 
@@ -793,7 +788,17 @@ setLoading(false);
 loadArticle();
 
 
+
 },[id]);
+
+
+
+
+
+
+
+
+
 
 
 // =====================================================
@@ -822,7 +827,10 @@ await res.json();
 
 
 
+
+
 const list =
+
 Array.isArray(data)
 
 ?
@@ -832,6 +840,7 @@ data
 :
 
 data?.categories || [];
+
 
 
 
@@ -850,13 +859,16 @@ err
 );
 
 
+
 setCategories([]);
 
 
 }
 
 
+
 }
+
 
 
 
@@ -866,35 +878,22 @@ loadCategories();
 
 },[]);
 
-
-
-
-
-
-
-
-
-
-
 // =====================================================
 // UPDATE FIELD
 // =====================================================
 
 
 function updateField(
-key:keyof ArticleForm,
-value:any
+  key:keyof ArticleForm,
+  value:any
 ){
 
 
 setForm(prev=>({
 
-
 ...prev,
 
-
 [key]:value
-
 
 
 }));
@@ -910,10 +909,8 @@ setForm(prev=>({
 
 
 
-
-
 // =====================================================
-// SLUG LOCK
+// SLUG SYSTEM
 // =====================================================
 
 
@@ -941,6 +938,8 @@ return value
 
 
 
+
+
 function handleTitleChange(
 value:string
 ){
@@ -953,6 +952,7 @@ setForm(prev=>({
 
 
 title:value,
+
 
 
 slug:
@@ -969,17 +969,26 @@ prev.slug,
 
 
 
+
 metaTitle:
 
-prev.metaTitle || value
+prev.metaTitle
+
+?
+
+prev.metaTitle
+
+:
+
+value
 
 
 
 }));
 
 
-
 }
+
 
 
 
@@ -990,14 +999,10 @@ prev.metaTitle || value
 function toggleSlugLock(){
 
 
-setSlugLocked(
-prev=>!prev
-);
+setSlugLocked(prev=>!prev);
 
 
 }
-
-
 
 
 
@@ -1027,7 +1032,9 @@ setForm(prev=>({
 images:
 
 prev.images.filter(
+
 (_,i)=>i!==index
+
 )
 
 
@@ -1035,7 +1042,6 @@ prev.images.filter(
 
 
 }
-
 
 
 
@@ -1076,10 +1082,12 @@ return;
 
 
 
+
 setUploading(true);
 
-
 setError("");
+
+
 
 
 
@@ -1090,6 +1098,7 @@ const uploaded:string[]=[];
 
 
 
+
 for(
 const file of Array.from(files)
 ){
@@ -1097,16 +1106,15 @@ const file of Array.from(files)
 
 
 if(
-file.size > 2*1024*1024
+file.size > 2 * 1024 * 1024
 ){
-
 
 throw new Error(
 "Image size must be under 2MB"
 );
 
-
 }
+
 
 
 
@@ -1121,6 +1129,8 @@ fd.append(
 "file",
 file
 );
+
+
 
 
 
@@ -1139,8 +1149,12 @@ body:fd
 
 
 
+
+
 const data =
 await res.json();
+
+
 
 
 
@@ -1151,6 +1165,7 @@ data.url
 );
 
 }
+
 
 
 
@@ -1187,10 +1202,12 @@ catch(err:any){
 
 
 setError(
-err.message ||
-"Upload failed"
-);
 
+err.message ||
+
+"Upload failed"
+
+);
 
 
 }
@@ -1216,6 +1233,7 @@ setUploading(false);
 
 
 
+
 // =====================================================
 // AI SUMMARY
 // =====================================================
@@ -1225,6 +1243,7 @@ async function generateAISummary(){
 
 
 if(!id) return;
+
 
 
 
@@ -1251,8 +1270,13 @@ method:"POST"
 
 
 
+
+
+
 const data =
 await res.json();
+
+
 
 
 
@@ -1261,12 +1285,18 @@ if(!data.success){
 
 
 throw new Error(
+
 data.error ||
+
 "AI Summary failed"
+
 );
 
 
 }
+
+
+
 
 
 
@@ -1277,10 +1307,11 @@ data.summary
 
 
 
+
+
 setMessage(
 "AI Summary generated successfully ✅"
 );
-
 
 
 
@@ -1289,11 +1320,14 @@ setMessage(
 catch(err:any){
 
 
-setError(
-err.message ||
-"AI Summary failed"
-);
 
+setError(
+
+err.message ||
+
+"AI Summary failed"
+
+);
 
 
 }
@@ -1308,16 +1342,6 @@ setAiLoading(false);
 
 
 }
-
-
-
-
-
-
-
-
-
-
 
 // =====================================================
 // SUBMIT UPDATE
@@ -1338,6 +1362,7 @@ if(!id) return;
 
 
 
+
 try{
 
 
@@ -1352,11 +1377,14 @@ setMessage("");
 
 
 
-const payload:any={
 
+
+const payload = {
 
 
 ...form,
+
+
 
 
 
@@ -1366,9 +1394,11 @@ form.keyHighlights
 
 .split("\n")
 
-.map(x=>x.trim())
+.map(item=>item.trim())
 
 .filter(Boolean),
+
+
 
 
 
@@ -1380,9 +1410,11 @@ form.keyTakeaways
 
 .split("\n")
 
-.map(x=>x.trim())
+.map(item=>item.trim())
 
 .filter(Boolean),
+
+
 
 
 
@@ -1403,6 +1435,8 @@ null
 
 
 
+
+
 };
 
 
@@ -1410,7 +1444,10 @@ null
 
 
 
+
+
 const res =
+
 await fetch(
 
 `/api/articles/${id}`,
@@ -1443,8 +1480,12 @@ JSON.stringify(payload)
 
 
 
+
+
 const data =
+
 await res.json();
+
 
 
 
@@ -1454,8 +1495,11 @@ if(!data.success){
 
 
 throw new Error(
+
 data.error ||
-"Update failed"
+
+"Article update failed"
+
 );
 
 
@@ -1468,8 +1512,12 @@ data.error ||
 
 
 setMessage(
+
 "Article updated successfully ✅"
+
 );
+
+
 
 
 
@@ -1480,7 +1528,9 @@ setTimeout(()=>{
 
 
 router.push(
+
 "/admin/posts"
+
 );
 
 
@@ -1497,8 +1547,11 @@ catch(err:any){
 
 
 setError(
+
 err.message ||
+
 "Update failed"
+
 );
 
 
@@ -1530,15 +1583,35 @@ md:p-8
 >
 
 
+<div
 
-<div className="max-w-7xl mx-auto">
+className="
+max-w-7xl
+mx-auto
+"
+
+>
 
 
 
-<div className="mb-8">
+
+<div
+
+className="
+mb-8
+"
+
+>
 
 
-<h1 className="text-3xl font-bold">
+<h1
+
+className="
+text-3xl
+font-bold
+"
+
+>
 
 Edit Article
 
@@ -1546,14 +1619,24 @@ Edit Article
 
 
 
-<p className="text-orange-400 mt-2">
+<p
+
+className="
+mt-2
+text-orange-400
+"
+
+>
 
 NationPath Editorial CMS
 
 </p>
 
 
+
 </div>
+
+
 
 
 
@@ -1566,11 +1649,11 @@ message &&
 
 className="
 mb-6
-p-4
 rounded-xl
-bg-green-600/20
 border
 border-green-500
+bg-green-600/20
+p-4
 text-green-300
 "
 
@@ -1593,11 +1676,11 @@ error &&
 
 className="
 mb-6
-p-4
 rounded-xl
-bg-red-600/20
 border
 border-red-500
+bg-red-600/20
+p-4
 text-red-300
 "
 
@@ -1613,6 +1696,8 @@ text-red-300
 
 
 
+
+
 <form
 
 onSubmit={handleSubmit}
@@ -1620,8 +1705,8 @@ onSubmit={handleSubmit}
 className="
 grid
 grid-cols-1
-xl:grid-cols-3
 gap-8
+xl:grid-cols-3
 "
 
 >
@@ -1630,19 +1715,22 @@ gap-8
 
 
 
-{/* ================= LEFT COLUMN ================= */}
+
+
+
+
+{/* ================= LEFT ================= */}
 
 
 
 <div
 
 className="
-xl:col-span-2
 space-y-6
+xl:col-span-2
 "
 
 >
-
 
 
 
@@ -1657,22 +1745,31 @@ space-y-6
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
+<h2
 
-<h2 className="font-semibold mb-5">
+className="
+mb-5
+font-semibold
+"
+
+>
 
 Article Information
 
 </h2>
+
+
+
 
 
 
@@ -1695,14 +1792,17 @@ e.target.value
 placeholder="Headline"
 
 
+
 className="
 w-full
-p-4
 rounded-xl
-bg-black/30
 border
 border-white/10
+bg-black/30
+p-4
 "
+
+
 
 
 />
@@ -1711,18 +1811,47 @@ border-white/10
 
 
 
-<div className="grid md:grid-cols-2 gap-4 mt-5">
+
+
+
+<div
+
+className="
+mt-5
+grid
+gap-4
+md:grid-cols-2
+"
+
+>
+
+
+
+
 
 
 
 <div>
 
 
+<div
 
-<div className="flex justify-between">
+className="
+flex
+justify-between
+"
+
+>
 
 
-<label className="text-gray-400 text-sm">
+<label
+
+className="
+text-sm
+text-gray-400
+"
+
+>
 
 Slug
 
@@ -1737,11 +1866,15 @@ type="button"
 
 onClick={toggleSlugLock}
 
-className="text-orange-400 text-xs"
+className="
+text-xs
+text-orange-400
+"
 
 >
 
 {
+
 slugLocked
 
 ?
@@ -1764,7 +1897,6 @@ slugLocked
 
 
 
-
 <input
 
 
@@ -1779,8 +1911,11 @@ disabled={slugLocked}
 onChange={e=>
 
 updateField(
+
 "slug",
+
 e.target.value
+
 )
 
 }
@@ -1788,15 +1923,14 @@ e.target.value
 
 
 className="
-w-full
 mt-2
-p-3
+w-full
 rounded-xl
-bg-black/30
 border
 border-white/10
+bg-black/30
+p-3
 "
-
 
 
 
@@ -1815,15 +1949,24 @@ border-white/10
 
 
 
+
+
 <div>
 
 
+<label
 
-<label className="text-gray-400 text-sm">
+className="
+text-sm
+text-gray-400
+"
+
+>
 
 Category
 
 </label>
+
 
 
 
@@ -1838,26 +1981,29 @@ value={form.categoryId}
 onChange={e=>
 
 updateField(
+
 "categoryId",
+
 e.target.value
+
 )
 
 }
 
 
 
-
 className="
-w-full
 mt-2
-p-3
+w-full
 rounded-xl
-bg-black/30
 border
 border-white/10
+bg-black/30
+p-3
 "
 
 >
+
 
 
 <option value="">
@@ -1868,7 +2014,9 @@ Select Category
 
 
 
+
 {
+
 categories.map(cat=>(
 
 
@@ -1887,8 +2035,8 @@ value={cat.id}
 
 
 ))
-}
 
+}
 
 
 
@@ -1901,12 +2049,14 @@ value={cat.id}
 
 
 
-</div>
-
-
-
 
 </div>
+
+
+
+
+</div>
+
 
 
 
@@ -1926,9 +2076,9 @@ value={cat.id}
 <div
 
 className="
-bg-white
-rounded-2xl
 overflow-hidden
+rounded-2xl
+bg-white
 "
 
 >
@@ -1941,15 +2091,17 @@ value={form.content}
 
 
 
-onChange={(value)=>
+onChange={value=>
 
 updateField(
+
 "content",
+
 value
+
 )
 
 }
-
 
 
 />
@@ -1983,7 +2135,6 @@ form={form}
 updateField={updateField}
 
 
-
 />
 
 
@@ -2005,17 +2156,24 @@ updateField={updateField}
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
-<h2 className="font-semibold mb-4">
+<h2
+
+className="
+mb-4
+font-semibold
+"
+
+>
 
 Key Highlights ⭐
 
@@ -2034,35 +2192,34 @@ value={form.keyHighlights}
 onChange={e=>
 
 updateField(
+
 "keyHighlights",
+
 e.target.value
+
 )
 
 }
 
 
 
-
 placeholder="
-Important update
-
-Major point
-
-Reader benefit
+Important points
 "
 
 
 
 
 className="
-w-full
 h-36
-p-4
+w-full
 rounded-xl
-bg-black/30
 border
 border-white/10
+bg-black/30
+p-4
 "
+
 
 
 
@@ -2071,7 +2228,6 @@ border-white/10
 
 
 </div>
-
 
 
 
@@ -2088,26 +2244,32 @@ border-white/10
 
 
 
-
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
+<h2
 
-<h2 className="font-semibold mb-4">
+className="
+mb-4
+font-semibold
+"
 
-Why It Matters ⭐⭐⭐
+>
+
+Why It Matters ⭐
 
 </h2>
+
 
 
 
@@ -2115,17 +2277,18 @@ Why It Matters ⭐⭐⭐
 <textarea
 
 
-
 value={form.whyItMatters}
-
 
 
 
 onChange={e=>
 
 updateField(
+
 "whyItMatters",
+
 e.target.value
+
 )
 
 }
@@ -2134,21 +2297,22 @@ e.target.value
 
 
 placeholder="
-Explain why this news matters...
+Explain why this matters...
 "
 
 
 
 
 className="
-w-full
 h-36
-p-4
+w-full
 rounded-xl
-bg-black/30
 border
 border-white/10
+bg-black/30
+p-4
 "
+
 
 
 
@@ -2166,9 +2330,6 @@ border-white/10
 
 
 
-
-
-
 {/* FAQ */}
 
 
@@ -2176,17 +2337,26 @@ border-white/10
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
-<div className="flex justify-between mb-5">
+<div
+
+className="
+mb-5
+flex
+items-center
+justify-between
+"
+
+>
 
 
 <h2 className="font-semibold">
@@ -2200,7 +2370,10 @@ FAQ Section ⭐
 
 <button
 
+
 type="button"
+
+
 
 onClick={()=>
 
@@ -2213,15 +2386,16 @@ setForm(prev=>({
 
 faqItems:[
 
-
 ...prev.faqItems,
 
 
 {
-question:"",
-answer:""
-}
 
+question:"",
+
+answer:""
+
+}
 
 ]
 
@@ -2233,10 +2407,10 @@ answer:""
 
 
 className="
+rounded-lg
 bg-blue-600
 px-4
 py-2
-rounded-lg
 "
 
 >
@@ -2247,14 +2421,17 @@ rounded-lg
 
 
 
-
 </div>
 
 
 
 
 
+
+
+
 {
+
 form.faqItems.map((item,index)=>(
 
 
@@ -2263,10 +2440,10 @@ form.faqItems.map((item,index)=>(
 key={index}
 
 className="
-bg-black/20
-rounded-xl
-p-4
 mb-4
+rounded-xl
+bg-black/20
+p-4
 "
 
 >
@@ -2296,8 +2473,11 @@ i===index
 ?
 
 {
+
 ...f,
+
 question:e.target.value
+
 }
 
 :
@@ -2305,6 +2485,7 @@ question:e.target.value
 f
 
 )
+
 
 
 }))
@@ -2316,13 +2497,16 @@ f
 placeholder="Question"
 
 
+
 className="
-w-full
 mb-3
-p-3
+w-full
 rounded-xl
 bg-black/30
+p-3
 "
+
+
 
 
 />
@@ -2355,8 +2539,11 @@ i===index
 ?
 
 {
+
 ...f,
+
 answer:e.target.value
+
 }
 
 :
@@ -2364,6 +2551,7 @@ answer:e.target.value
 f
 
 )
+
 
 
 }))
@@ -2375,13 +2563,15 @@ f
 placeholder="Answer"
 
 
+
 className="
-w-full
 h-28
-p-3
+w-full
 rounded-xl
 bg-black/30
+p-3
 "
+
 
 
 
@@ -2390,9 +2580,13 @@ bg-black/30
 
 
 
+
 <button
 
+
 type="button"
+
+
 
 onClick={()=>
 
@@ -2406,7 +2600,9 @@ setForm(prev=>({
 faqItems:
 
 prev.faqItems.filter(
+
 (_,i)=>i!==index
+
 )
 
 
@@ -2416,7 +2612,11 @@ prev.faqItems.filter(
 }
 
 
-className="text-red-400 mt-3"
+
+className="
+mt-3
+text-red-400
+"
 
 >
 
@@ -2430,8 +2630,9 @@ Remove
 </div>
 
 
-
 ))
+
+
 }
 
 
@@ -2443,48 +2644,82 @@ Remove
 
 
 
+
+
+
+
+
+
+
+
+
+
 {/* VIDEO */}
 
+
+
 <div
+
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
+
 >
 
-<h2 className="font-semibold mb-4">
+
+<h2 className="mb-4 font-semibold">
+
 Video
+
 </h2>
+
+
+
 
 
 <input
 
+
 value={form.videoUrl}
+
+
 
 onChange={e=>
 
 updateField(
+
 "videoUrl",
+
 e.target.value
+
 )
 
 }
 
+
+
 placeholder="YouTube URL"
+
+
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
+p-3
 "
 
+
+
+
 />
+
+
+
 
 
 <VideoPreview
@@ -2494,72 +2729,109 @@ url={form.videoUrl}
 />
 
 
+
+
+
+
 <select
 
+
 value={form.videoPosition}
+
+
 
 onChange={e=>
 
 updateField(
+
 "videoPosition",
+
 e.target.value
+
 )
 
 }
 
+
+
 className="
-w-full
 mt-4
-p-3
+w-full
 rounded-xl
 bg-black/30
-border
-border-white/10
+p-3
 "
 
 >
 
+
 <option value="top">
+
 Top
+
 </option>
+
 
 <option value="middle">
+
 Middle
+
 </option>
 
+
 <option value="bottom">
+
 Bottom
+
 </option>
+
+
 
 </select>
 
 
+
+
+
 </div>
 
-{/* MEDIA GALLERY */}
 
+
+
+
+
+
+
+
+
+
+
+
+
+{/* MEDIA GALLERY */}
 
 
 
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
-
-<h2 className="font-semibold mb-4">
+<h2 className="mb-4 font-semibold">
 
 Media Gallery
 
 </h2>
+
+
 
 
 
@@ -2579,17 +2851,21 @@ accept="image/*"
 
 onChange={e=>{
 
+
 if(e.target.files)
 
 uploadImage(
+
 e.target.files
-)
+
+);
+
 
 }}
 
 
 
- />
+/>
 
 
 
@@ -2597,9 +2873,10 @@ e.target.files
 
 
 {
+
 uploading &&
 
-<p className="text-orange-400 mt-3">
+<p className="mt-3 text-orange-400">
 
 Uploading...
 
@@ -2611,15 +2888,23 @@ Uploading...
 
 
 
-<div className="
+
+
+
+<div
+
+className="
+mt-5
 flex
 flex-wrap
 gap-4
-mt-5
-">
+"
+
+>
 
 
 {
+
 form.images.map((img,index)=>(
 
 
@@ -2639,15 +2924,18 @@ src={img}
 
 
 className="
-w-32
 h-24
-object-cover
+w-32
 rounded-xl
+object-cover
 "
 
 
 
+
 />
+
+
 
 
 
@@ -2663,12 +2951,11 @@ onClick={()=>removeImage(index)}
 
 className="
 absolute
--top-2
--right-2
-bg-red-600
+right-1
+top-1
 rounded-full
-w-7
-h-7
+bg-red-600
+px-2
 "
 
 >
@@ -2679,11 +2966,14 @@ h-7
 
 
 
+
+
 </div>
 
 
-
 ))
+
+
 }
 
 
@@ -2694,6 +2984,7 @@ h-7
 
 
 
+
 </div>
 
 
@@ -2705,28 +2996,24 @@ h-7
 
 
 
-
-
-
-
-{/* AI SUMMARY EXTRA */}
+{/* AI SUMMARY */}
 
 
 
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
-<h2 className="font-semibold mb-4">
+<h2 className="mb-4 font-semibold">
 
 AI Summary Intelligence 🤖
 
@@ -2734,10 +3021,13 @@ AI Summary Intelligence 🤖
 
 
 
+
+
 <button
 
 
 type="button"
+
 
 
 disabled={aiLoading}
@@ -2749,15 +3039,14 @@ onClick={generateAISummary}
 
 
 className="
+rounded-xl
 bg-blue-600
 px-5
 py-3
-rounded-xl
 "
 
-
-
 >
+
 
 {
 
@@ -2774,6 +3063,7 @@ aiLoading
 }
 
 
+
 </button>
 
 
@@ -2781,7 +3071,9 @@ aiLoading
 
 
 
+
 {
+
 aiSummary &&
 
 
@@ -2789,48 +3081,55 @@ aiSummary &&
 
 className="
 mt-5
-bg-black/30
+space-y-4
 rounded-xl
+bg-black/30
 p-4
-space-y-3
 "
 
 >
 
 
-<h3>
+
+<div>
+
+<h3 className="font-semibold">
 
 Overview
 
 </h3>
 
-
-<p>
+<p className="mt-2 text-gray-300">
 
 {aiSummary.overview}
 
 </p>
 
+</div>
 
 
 
-<h3>
+
+
+
+<div>
+
+<h3 className="font-semibold">
 
 Key Points
 
 </h3>
 
 
-
-<ul>
+<ul className="mt-2 list-disc pl-5 text-gray-300">
 
 {
 
-aiSummary.points?.map((p,i)=>(
+aiSummary.points?.map((item,index)=>(
 
-<li key={i}>
+<li key={index}>
 
-{p}
+{item}
 
 </li>
 
@@ -2840,37 +3139,57 @@ aiSummary.points?.map((p,i)=>(
 
 </ul>
 
+</div>
 
 
 
-<h3>
+
+
+
+
+<div>
+
+<h3 className="font-semibold">
 
 Impact
 
 </h3>
 
 
-<p>
+<p className="mt-2 text-gray-300">
 
 {aiSummary.impact}
 
 </p>
 
 
+</div>
 
 
-<h3>
+
+
+
+
+
+<div>
+
+<h3 className="font-semibold">
 
 Takeaway
 
 </h3>
 
 
-<p>
+<p className="mt-2 text-gray-300">
 
 {aiSummary.takeaway}
 
 </p>
+
+
+</div>
+
+
 
 
 
@@ -2882,7 +3201,9 @@ Takeaway
 
 
 
+
 </div>
+
 
 
 
@@ -2924,7 +3245,6 @@ space-y-6
 
 
 
-
 {/* PUBLISHING */}
 
 
@@ -2932,21 +3252,22 @@ space-y-6
 <div
 
 className="
-bg-[#0e1726]
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
 "
 
 >
 
 
-<h2 className="font-semibold mb-4">
+<h2 className="mb-4 font-semibold">
 
 Publishing
 
 </h2>
+
 
 
 
@@ -2957,6 +3278,7 @@ Publishing
 type="datetime-local"
 
 
+
 value={form.publishedAt}
 
 
@@ -2964,8 +3286,11 @@ value={form.publishedAt}
 onChange={e=>
 
 updateField(
+
 "publishedAt",
+
 e.target.value
+
 )
 
 }
@@ -2974,14 +3299,18 @@ e.target.value
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
+p-3
 "
 
 
 
+
 />
+
+
+
 
 
 
@@ -2996,8 +3325,11 @@ value={form.status}
 onChange={e=>
 
 updateField(
+
 "status",
+
 e.target.value
+
 )
 
 }
@@ -3005,14 +3337,15 @@ e.target.value
 
 
 className="
-w-full
 mt-4
-p-3
+w-full
 rounded-xl
 bg-black/30
+p-3
 "
 
 >
+
 
 
 <option value="pending">
@@ -3022,6 +3355,7 @@ Pending
 </option>
 
 
+
 <option value="approved">
 
 Approved
@@ -3029,11 +3363,13 @@ Approved
 </option>
 
 
+
 <option value="draft">
 
 Draft
 
 </option>
+
 
 
 <option value="archived">
@@ -3050,11 +3386,15 @@ Archived
 
 
 
+
+
 <label className="
+mt-4
 flex
 justify-between
-mt-4
-">
+"
+
+>
 
 
 Live
@@ -3074,8 +3414,11 @@ checked={form.live}
 onChange={e=>
 
 updateField(
+
 "live",
+
 e.target.checked
+
 )
 
 }
@@ -3086,6 +3429,8 @@ e.target.checked
 
 
 </label>
+
+
 
 
 
@@ -3108,16 +3453,15 @@ e.target.checked
 
 
 
-
 <div
 
 className="
-bg-[#0e1726]
+space-y-5
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
-space-y-5
 "
 
 >
@@ -3133,14 +3477,15 @@ News Controls
 
 
 
+
 <label className="
 flex
 justify-between
-">
+"
 
+>
 
 Breaking
-
 
 
 <input
@@ -3156,8 +3501,11 @@ checked={form.breaking}
 onChange={e=>
 
 updateField(
+
 "breaking",
+
 e.target.checked
+
 )
 
 }
@@ -3167,6 +3515,7 @@ e.target.checked
 />
 
 
+
 </label>
 
 
@@ -3174,7 +3523,11 @@ e.target.checked
 
 
 
+
+
+
 {
+
 form.breaking &&
 
 
@@ -3188,8 +3541,11 @@ value={form.breakingDuration}
 onChange={e=>
 
 updateField(
+
 "breakingDuration",
+
 e.target.value
+
 )
 
 }
@@ -3198,12 +3554,10 @@ e.target.value
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
+p-3
 "
-
-
 
 >
 
@@ -3229,13 +3583,6 @@ bg-black/30
 </option>
 
 
-<option value="360">
-
-6 Hours
-
-</option>
-
-
 <option value="1440">
 
 24 Hours
@@ -3247,7 +3594,9 @@ bg-black/30
 </select>
 
 
+
 }
+
 
 
 
@@ -3258,8 +3607,9 @@ bg-black/30
 <label className="
 flex
 justify-between
-">
+"
 
+>
 
 Featured
 
@@ -3278,8 +3628,11 @@ checked={form.featured}
 onChange={e=>
 
 updateField(
+
 "featured",
+
 e.target.checked
+
 )
 
 }
@@ -3290,6 +3643,9 @@ e.target.checked
 
 
 </label>
+
+
+
 
 
 
@@ -3307,8 +3663,11 @@ value={form.homepagePriority}
 onChange={e=>
 
 updateField(
+
 "homepagePriority",
+
 Number(e.target.value)
+
 )
 
 }
@@ -3321,14 +3680,16 @@ placeholder="Homepage Priority"
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
+p-3
 "
 
 
 
+
 />
+
 
 
 
@@ -3351,16 +3712,15 @@ bg-black/30
 
 
 
-
 <div
 
 className="
-bg-[#0e1726]
+space-y-4
+rounded-2xl
 border
 border-white/10
-rounded-2xl
+bg-[#0e1726]
 p-6
-space-y-4
 "
 
 >
@@ -3375,6 +3735,7 @@ SEO
 
 
 
+
 <input
 
 
@@ -3385,8 +3746,11 @@ value={form.metaTitle}
 onChange={e=>
 
 updateField(
+
 "metaTitle",
+
 e.target.value
+
 )
 
 }
@@ -3399,10 +3763,11 @@ placeholder="Meta Title"
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
+p-3
 "
+
 
 
 
@@ -3423,8 +3788,11 @@ value={form.metaDescription}
 onChange={e=>
 
 updateField(
+
 "metaDescription",
+
 e.target.value
+
 )
 
 }
@@ -3436,16 +3804,19 @@ placeholder="Meta Description"
 
 
 className="
-w-full
 h-28
-p-3
+w-full
 rounded-xl
 bg-black/30
+p-3
 "
 
 
 
+
 />
+
+
 
 
 
@@ -3462,8 +3833,11 @@ value={form.metaKeywords}
 onChange={e=>
 
 updateField(
+
 "metaKeywords",
+
 e.target.value
+
 )
 
 }
@@ -3476,10 +3850,11 @@ placeholder="Meta Keywords"
 
 className="
 w-full
-p-3
 rounded-xl
 bg-black/30
+p-3
 "
+
 
 
 
@@ -3487,7 +3862,10 @@ bg-black/30
 
 
 
+
+
 </div>
+
 
 
 
@@ -3509,17 +3887,14 @@ disabled={saving}
 
 className="
 w-full
-py-4
 rounded-xl
 bg-orange-600
-font-semibold
+py-4
 text-lg
+font-semibold
 "
 
-
-
 >
-
 
 
 {
@@ -3547,8 +3922,8 @@ saving
 
 
 
-</div>
 
+</div>
 
 
 
@@ -3566,7 +3941,11 @@ saving
 </div>
 
 
+
+
+
 </div>
+
 
 
 );

@@ -990,7 +990,6 @@ articles={featureGrid}
     DYNAMIC CATEGORY SECTIONS
 ================================================== */}
 
-
 {
 
 homepageCategories.map(
@@ -1014,9 +1013,6 @@ return null;
 
 
 
-
-
-
 return (
 
 <CategoryBlock
@@ -1033,12 +1029,10 @@ articles={categoryArticles}
 
 />
 
-
 );
 
 
 }
-
 
 )
 
@@ -1050,10 +1044,23 @@ articles={categoryArticles}
 
 
 
+{/* ==================================================
+    ENGAGEMENT MODULE
+================================================== */}
 
+
+<section
+
+className="
+mt-4
+"
+
+>
 
 <PollOfDay />
 
+
+</section>
 
 
 
@@ -1071,7 +1078,6 @@ py-8
 "
 
 >
-
 
 <AdRenderer
 
@@ -1095,9 +1101,6 @@ placement="homepage_mid"
 articles={latest}
 
 />
-
-
-
 
 
 

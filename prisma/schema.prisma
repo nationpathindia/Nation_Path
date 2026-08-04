@@ -514,6 +514,9 @@ model User {
   articles Article[]
   comments Comment[]
   activity ActivityLog[]
+  createdPolls Poll[]
+
+pollVotes PollVote[]
 
   sentMessages     ChatMessage[] @relation("MessageSender")
   receivedMessages ChatMessage[] @relation("MessageReceiver")
@@ -642,4 +645,207 @@ model VisitorChat {
   @@index([isRead])
   @@index([status])
   @@map("VisitorChat")
+}
+//////////////////////////////////////////////////////
+// POLL SYSTEM
+//////////////////////////////////////////////////////
+
+model Poll {
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+
+
+  //////////////////////////////////////////////////////
+  // CONTENT
+  //////////////////////////////////////////////////////
+
+  question String
+
+ slug String? @unique
+
+  category String?
+
+
+
+  //////////////////////////////////////////////////////
+  // STATUS
+  //////////////////////////////////////////////////////
+
+  status String @default("draft")
+
+
+
+  //////////////////////////////////////////////////////
+  // PUBLISH CONTROL
+  //////////////////////////////////////////////////////
+
+  publishedAt DateTime?
+
+  expiresAt DateTime?
+
+
+
+  //////////////////////////////////////////////////////
+  // ENGAGEMENT
+  //////////////////////////////////////////////////////
+
+  totalVotes Int @default(0)
+
+
+
+  //////////////////////////////////////////////////////
+  // CREATOR
+  //////////////////////////////////////////////////////
+
+  createdById String? @db.ObjectId
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  options PollOption[]
+
+  votes PollVote[]
+
+
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime? @updatedAt
+
+
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([status])
+
+  @@index([publishedAt])
+
+  @@index([expiresAt])
+
+  @@map("Poll")
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////
+// POLL OPTION
+//////////////////////////////////////////////////////
+
+model PollOption {
+
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+
+
+  text String
+
+
+  votes Int @default(0)
+
+
+
+  pollId String @db.ObjectId
+
+
+  poll Poll @relation(fields: [pollId], references: [id])
+
+
+  pollVotes PollVote[]
+
+
+
+  createdAt DateTime @default(now())
+
+
+
+  @@index([pollId])
+
+
+  @@map("PollOption")
+
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////
+// POLL VOTE
+//////////////////////////////////////////////////////
+
+model PollVote {
+
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+
+
+  pollId String @db.ObjectId
+
+
+  optionId String @db.ObjectId
+
+
+
+  userId String? @db.ObjectId
+
+
+
+  user User? @relation(fields: [userId], references: [id])
+
+
+
+  poll Poll @relation(fields: [pollId], references: [id])
+
+
+  option PollOption @relation(fields: [optionId], references: [id])
+
+
+
+  ip String?
+
+
+  userAgent String?
+
+
+
+  createdAt DateTime @default(now())
+
+
+
+  @@index([pollId])
+
+  @@index([optionId])
+
+  @@index([userId])
+
+  @@index([createdAt])
+
+
+  @@map("PollVote")
+
 }

@@ -23,6 +23,7 @@ function stripHtml(html:string){
 
 
 
+
 function calculateReadingTime(content:string){
 
   const clean =
@@ -33,10 +34,8 @@ function calculateReadingTime(content:string){
 
   const words =
     clean
-      ?
-      clean.split(" ").length
-      :
-      0;
+      ? clean.split(" ").length
+      : 0;
 
 
   return Math.max(
@@ -57,12 +56,17 @@ function generateExcerpt(content:string){
       .trim();
 
 
-  if(!clean)
+  if(!clean){
+
     return "";
+
+  }
+
 
 
   const words =
     clean.split(" ");
+
 
 
   const excerpt =
@@ -87,6 +91,9 @@ function generateExcerpt(content:string){
 
 
 
+
+
+
 async function generateUniqueSlug(
   title:string,
   currentId:string
@@ -101,12 +108,10 @@ async function generateUniqueSlug(
       .replace(/[^\w-]+/g,"");
 
 
-  let slug =
-    baseSlug;
 
+  let slug = baseSlug;
 
-  let counter =
-    1;
+  let counter = 1;
 
 
 
@@ -132,8 +137,11 @@ async function generateUniqueSlug(
 
 
 
-    if(!existing)
+    if(!existing){
+
       break;
+
+    }
 
 
 
@@ -144,9 +152,13 @@ async function generateUniqueSlug(
   }
 
 
+
   return slug;
 
 }
+
+
+
 
 
 
@@ -176,6 +188,7 @@ try{
   const article =
     await prisma.article.findUnique({
 
+
       where:{
 
         id:params.id
@@ -185,15 +198,19 @@ try{
 
       include:{
 
+
         category:true,
 
         author:true,
 
         comments:true
 
+
       }
 
+
     });
+
 
 
 
@@ -203,18 +220,24 @@ try{
     return NextResponse.json(
 
       {
+
         success:false,
+
         error:"Article not found"
+
       },
 
       {
+
         status:404
+
       }
 
     );
 
-
   }
+
+
 
 
 
@@ -235,20 +258,29 @@ catch(error:any){
 
 
   console.error(
+
     "GET ARTICLE ERROR",
+
     error
+
   );
+
 
 
   return NextResponse.json(
 
     {
+
       success:false,
+
       error:error.message
+
     },
 
     {
+
       status:500
+
     }
 
   );
@@ -258,6 +290,7 @@ catch(error:any){
 
 
 }
+
 
 
 
@@ -283,6 +316,7 @@ export async function PATCH(
 ){
 
 
+
 try{
 
 
@@ -296,6 +330,7 @@ try{
 
     await prisma.article.update({
 
+
       where:{
 
         id:params.id
@@ -303,27 +338,38 @@ try{
       },
 
 
+
       data:{
 
 
         status:
 
-          Object.values(PostStatus)
-          .includes(body.status)
 
-          ?
+        Object.values(PostStatus)
 
-          body.status
+        .includes(body.status)
 
-          :
 
-          undefined
+        ?
+
+
+        body.status
+
+
+        :
+
+
+        undefined
+
 
 
       }
 
 
+
     });
+
+
 
 
 
@@ -338,14 +384,19 @@ try{
 
 
 
+
 }
 catch(error:any){
 
 
   console.error(
-    "PATCH ERROR",
+
+    "PATCH ARTICLE ERROR",
+
     error
+
   );
+
 
 
   return NextResponse.json({
@@ -356,7 +407,9 @@ catch(error:any){
 
   },{
 
+
     status:500
+
 
   });
 
@@ -366,6 +419,7 @@ catch(error:any){
 
 
 }
+ 
 /* =====================================================
    PUT UPDATE ARTICLE
 ===================================================== */
@@ -392,6 +446,7 @@ try{
 
 
 
+
   const existing =
     await prisma.article.findUnique({
 
@@ -407,6 +462,7 @@ try{
 
 
 
+
   if(!existing){
 
 
@@ -415,6 +471,7 @@ try{
       success:false,
 
       error:"Article not found"
+
 
     },{
 
@@ -431,47 +488,23 @@ try{
 
 
 
-  const content =
 
-    body.content !== undefined
-
-    ?
-
-    body.content
-
-    :
-
-    existing.content;
+/* =====================================================
+   BASIC DATA
+===================================================== */
 
 
+const content =
 
+body.content !== undefined
 
+?
 
+body.content
 
+:
 
-  const slug =
-
-
-    body.title &&
-    body.title !== existing.title
-
-
-    ?
-
-
-    await generateUniqueSlug(
-
-      body.title,
-
-      params.id
-
-    )
-
-
-    :
-
-
-    existing.slug;
+existing.content;
 
 
 
@@ -479,34 +512,105 @@ try{
 
 
 
+const slug =
 
 
-  const cleanImages =
+body.title &&
+
+body.title !== existing.title
 
 
-    Array.isArray(body.images)
+?
 
 
-    ?
+await generateUniqueSlug(
+
+  body.title,
+
+  params.id
+
+)
 
 
-    body.images.filter(
-
-      (img:any)=>
-
-        typeof img === "string"
-
-        &&
-
-        img.trim()
-
-    )
+:
 
 
-    :
+existing.slug;
 
 
-    existing.images;
+
+
+
+
+
+
+
+/* =====================================================
+   IMAGES
+===================================================== */
+
+
+const cleanImages =
+
+
+Array.isArray(body.images)
+
+
+?
+
+
+body.images.filter(
+
+(img:any)=>
+
+typeof img === "string"
+
+&&
+
+img.trim()
+
+)
+
+
+:
+
+
+existing.images;
+
+
+
+
+
+
+
+const cleanImageGallery =
+
+
+Array.isArray(body.imageGallery)
+
+
+?
+
+
+body.imageGallery.filter(
+
+(item:any)=>
+
+item &&
+
+typeof item.url === "string"
+
+&&
+
+item.url.trim()
+
+)
+
+
+:
+
+
+existing.imageGallery;
 
 
 
@@ -532,38 +636,43 @@ existing.breakingEnd;
 
 
 
+
 if(body.breaking === true){
 
 
-  const duration =
+const duration =
 
-    Number(body.breakingDuration)
+Number(body.breakingDuration)
 
-    ||
+||
 
-    60;
-
-
-
-  breakingStart =
-    new Date();
+60;
 
 
 
-  breakingEnd =
 
-    new Date(
+breakingStart =
+new Date();
 
-      Date.now()
 
-      +
 
-      duration * 60 * 1000
 
-    );
+breakingEnd =
+
+new Date(
+
+Date.now()
+
++
+
+duration * 60 * 1000
+
+);
+
 
 
 }
+
 
 
 
@@ -572,15 +681,13 @@ if(body.breaking === true){
 if(body.breaking === false){
 
 
-  breakingStart =
-    null;
+breakingStart = null;
 
-
-  breakingEnd =
-    null;
+breakingEnd = null;
 
 
 }
+
 
 
 
@@ -591,44 +698,58 @@ if(body.breaking === false){
 
 
 /* =====================================================
-   INTELLIGENCE NORMALIZERS
+   INTELLIGENCE DATA
 ===================================================== */
 
 
-const timeline =
+
+const normalizeArray = (value:any, fallback:any)=>{
 
 
-Array.isArray(body.timeline)
+if(Array.isArray(value)){
+
+return value;
+
+}
 
 
-?
+
+if(typeof value === "string"){
 
 
-body.timeline
+return value
+
+.split("\n")
+
+.map((x:string)=>x.trim())
+
+.filter(Boolean);
 
 
-:
+}
 
 
-typeof body.timeline === "string"
+
+return fallback;
 
 
-?
+};
 
 
-body.timeline
-
-  .split("\n")
-
-  .map((x:string)=>x.trim())
-
-  .filter(Boolean)
 
 
-:
 
 
-existing.timeline;
+
+const keyHighlights =
+
+normalizeArray(
+
+body.keyHighlights,
+
+existing.keyHighlights
+
+);
 
 
 
@@ -638,42 +759,37 @@ existing.timeline;
 
 const keyTakeaways =
 
+normalizeArray(
 
-Array.isArray(body.keyTakeaways)
+body.keyTakeaways,
+
+existing.keyTakeaways
+
+);
+
+
+
+
+
+
+
+
+const timeline =
+
+
+body.timeline !== undefined
 
 
 ?
 
 
-body.keyTakeaways
+body.timeline
 
 
 :
 
 
-typeof body.keyTakeaways === "string"
-
-
-?
-
-
-body.keyTakeaways
-
-.split("\n")
-
-.map((x:string)=>x.trim())
-
-.filter(Boolean)
-
-
-:
-
-
-existing.keyTakeaways;
-
-
-
-
+existing.timeline;
 
 
 
@@ -731,9 +847,6 @@ existing.factCheck;
 
 
 
-
-
-
 const faqItems =
 
 
@@ -763,19 +876,11 @@ existing.faqItems;
 
 
 
-
-
-
-
-
-
-
-
-
+ 
 const updated =
 
-
 await prisma.article.update({
+
 
 where:{
 
@@ -784,13 +889,18 @@ id:params.id
 },
 
 
+
 data:{
 
 
 
-/* =====================
+
+
+
+
+/* =====================================================
    BASIC ARTICLE
-===================== */
+===================================================== */
 
 
 title:
@@ -803,11 +913,14 @@ existing.title,
 
 
 
+
 slug,
 
 
 
+
 content,
+
 
 
 
@@ -829,10 +942,22 @@ generateExcerpt(content),
 
 
 
+
+/* =====================================================
+   MEDIA
+===================================================== */
+
+
 images:
 
 cleanImages,
 
+
+
+
+imageGallery:
+
+cleanImageGallery,
 
 
 
@@ -862,9 +987,14 @@ existing.videoPosition,
 
 
 
-/* =====================
+
+
+
+
+
+/* =====================================================
    NEWS CONTROLS
-===================== */
+===================================================== */
 
 
 breaking:
@@ -919,51 +1049,18 @@ body.homepagePriority
 ??
 
 existing.homepagePriority,
-/* =====================
+
+
+
+
+
+
+
+
+
+/* =====================================================
    ARTICLE INTELLIGENCE
-===================== */
-
-
-keyHighlights:
-
-Array.isArray(body.keyHighlights)
-
-?
-
-body.keyHighlights
-
-:
-
-typeof body.keyHighlights === "string"
-
-?
-
-body.keyHighlights
-
-.split("\n")
-
-.map((x:string)=>x.trim())
-
-.filter(Boolean)
-
-:
-
-existing.keyHighlights,
-
-
-
-
-
-whyItMatters:
-
-body.whyItMatters
-
-??
-
-existing.whyItMatters,
-
-
-
+===================================================== */
 
 
 shortBrief:
@@ -978,6 +1075,7 @@ existing.shortBrief,
 
 
 
+
 background:
 
 body.background
@@ -985,6 +1083,7 @@ body.background
 ??
 
 existing.background,
+
 
 
 
@@ -1003,7 +1102,9 @@ expertOpinion,
 
 
 
+
 factCheck,
+
 
 
 
@@ -1022,7 +1123,34 @@ existing.whatsNext,
 
 
 
+
+
+keyHighlights,
+
+
+
+
+
+
+
 keyTakeaways,
+
+
+
+
+
+
+
+whyItMatters:
+
+body.whyItMatters
+
+??
+
+existing.whyItMatters,
+
+
+
 
 
 
@@ -1041,6 +1169,16 @@ existing.sourceDesk,
 
 
 
+
+
+
+
+
+/* =====================================================
+   FAQ
+===================================================== */
+
+
 faqItems,
 
 
@@ -1051,26 +1189,34 @@ faqItems,
 
 
 
-/* =====================
+
+
+/* =====================================================
    SEO
-===================== */
+===================================================== */
 
 
 readingTime:
 
 body.readingTime !== undefined
 
+
 ?
+
 
 Number(body.readingTime)
 
+
 :
+
 
 existing.readingTime
 
 ??
 
 calculateReadingTime(content),
+
+
 
 
 
@@ -1092,6 +1238,9 @@ body.title,
 
 
 
+
+
+
 metaDescription:
 
 body.metaDescription
@@ -1103,6 +1252,9 @@ existing.metaDescription
 ??
 
 generateExcerpt(content),
+
+
+
 
 
 
@@ -1124,9 +1276,12 @@ existing.metaKeywords,
 
 
 
-/* =====================
+
+
+
+/* =====================================================
    PUBLISHING
-===================== */
+===================================================== */
 
 
 publishedAt:
@@ -1163,6 +1318,7 @@ existing.publishedAt,
 
 
 
+
 status:
 
 body.status
@@ -1179,9 +1335,9 @@ existing.status,
 
 
 
-/* =====================
+/* =====================================================
    CATEGORY
-===================== */
+===================================================== */
 
 
 categoryId:
@@ -1215,18 +1371,22 @@ existing.categoryId
 
 
 
+
 return NextResponse.json({
+
 
 success:true,
 
+
 article:updated
+
+
 
 });
 
 
 
-
-
+ 
 }
 catch(error:any){
 
@@ -1238,6 +1398,7 @@ console.error(
 error
 
 );
+
 
 
 
@@ -1261,10 +1422,20 @@ status:500
 });
 
 
+
 }
 
 
 }
+
+
+
+
+
+
+
+
+
 /* =====================================================
    DELETE ARTICLE
 ===================================================== */
@@ -1287,13 +1458,19 @@ try{
 
   await prisma.article.delete({
 
+
     where:{
+
 
       id:params.id
 
+
     }
 
+
   });
+
+
 
 
 
@@ -1301,9 +1478,13 @@ try{
 
   return NextResponse.json({
 
+
     success:true
 
+
   });
+
+
 
 
 
@@ -1311,34 +1492,40 @@ try{
 catch(error:any){
 
 
-  console.error(
+console.error(
 
-    "DELETE ARTICLE ERROR",
+"DELETE ARTICLE ERROR",
 
-    error
+error
 
-  );
-
-
-
-  return NextResponse.json({
-
-    success:false,
-
-    error:
-
-      error.message
-
-      ||
-
-      "Delete failed"
+);
 
 
-  },{
 
-    status:500
 
-  });
+
+return NextResponse.json({
+
+
+success:false,
+
+
+error:
+
+error.message
+
+||
+
+"Delete failed"
+
+
+
+},{
+
+status:500
+
+
+});
 
 
 

@@ -1,48 +1,84 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
 
-import {
-LineChart,
-Line,
-BarChart,
-Bar,
-XAxis,
-YAxis,
-Tooltip,
-ResponsiveContainer,
-CartesianGrid
-} from "recharts"
+import { useEffect, useState } from "react";
+
+import Link from "next/link";
+
+
+import StatsGrid from "@/components/admin/dashboard/StatsGrid";
+
+import TrafficChart from "@/components/admin/dashboard/TrafficChart";
+
+import PublishingTrend from "@/components/admin/dashboard/PublishingTrend";
+
+import CategoryPerformance from "@/components/admin/dashboard/CategoryPerformance";
+
+import NewsroomPanel from "@/components/admin/dashboard/NewsroomPanel";
+
+import PollOverview from "@/components/admin/dashboard/PollOverview";
+
+import AstroStatus from "@/components/admin/dashboard/AstroStatus";
+
+import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
+
+import SystemHealth from "@/components/admin/dashboard/SystemHealth";
+
+import AdsOverview from "@/components/admin/dashboard/AdsOverview";
+
+
+
 
 
 interface DashboardData{
 
-stats:any
 
-latest:any[]
+stats:any;
 
-top:any[]
+latest:any[];
 
-trending:any[]
+top:any[];
 
-viral:any[]
+trending:any[];
 
-activity:any[]
+viral:any[];
 
-chart:any[]
 
-categories:any[]
+activity:any[];
+
+
+charts:{
+
+dailyViews:any[];
+
+publishingTrend:any[];
+
+categoryPerformance:any[];
+
+};
+
+
+poll?:any;
+
+astro?:any;
+
+system?:any;
+
 
 }
+
+
+
 
 
 
 export default function AdminDashboard(){
 
 
-const [data,setData] =
-useState<DashboardData | null>(null)
+
+const [data,setData] = useState<DashboardData|null>(null);
+
+
 
 
 
@@ -56,7 +92,8 @@ fetch("/api/admin/dashboard")
 .then(res=>setData(res))
 
 
-},[])
+},[]);
+
 
 
 
@@ -64,11 +101,12 @@ fetch("/api/admin/dashboard")
 
 if(!data){
 
+
 return(
 
 <div className="p-10 text-white">
 
-Loading dashboard...
+Loading NationPath Intelligence Center...
 
 </div>
 
@@ -80,25 +118,23 @@ Loading dashboard...
 
 
 
-const {
 
-stats,
 
-latest,
+const ads={
 
-top,
 
-trending,
+activeAds:data.stats?.activeAds || 0,
 
-viral,
 
-activity,
+adViews:data.stats?.adViews || 0,
 
-chart,
 
-categories
+adClicks:data.stats?.adClicks || 0
 
-}=data
+
+};
+
+
 
 
 
@@ -108,7 +144,16 @@ categories
 return(
 
 
-<div className="p-8 space-y-10 text-white">
+<div
+
+className="
+space-y-10
+text-white
+"
+
+>
+
+
 
 
 
@@ -117,23 +162,36 @@ return(
 {/* HEADER */}
 
 
-<div className="flex flex-col md:flex-row md:justify-between gap-5">
+<div
+
+className="
+flex
+justify-between
+items-center
+flex-wrap
+gap-5
+"
+
+>
 
 
 <div>
 
+
 <h1 className="text-3xl font-bold">
 
-NationPath Newsroom Control Center
+NationPath CMS Intelligence Center
 
 </h1>
 
 
+
 <p className="text-gray-400 mt-2">
 
-Monitor publishing, audience growth and content performance.
+Newsroom, audience, publishing and platform intelligence.
 
 </p>
+
 
 
 </div>
@@ -142,41 +200,58 @@ Monitor publishing, audience growth and content performance.
 
 
 
-<div className="flex gap-3 flex-wrap">
+
+
+<div className="flex gap-3">
 
 
 <Link
 
 href="/admin/posts/create"
 
-className="bg-orange-600 px-5 py-3 rounded-xl font-semibold"
+className="
+bg-[#EA661B]
+px-5
+py-3
+rounded-xl
+font-semibold
+"
 
 >
 
-+ Create Article
+Create Article
 
 </Link>
+
+
 
 
 
 <Link
 
-href="/admin/posts"
+href="/admin/polls"
 
-className="bg-blue-700 px-5 py-3 rounded-xl font-semibold"
+className="
+bg-[#163C80]
+px-5
+py-3
+rounded-xl
+font-semibold
+"
 
 >
 
-Manage Articles
+Manage Polls
 
 </Link>
 
 
-</div>
-
-
 
 </div>
+
+
+</div>
+
 
 
 
@@ -188,446 +263,165 @@ Manage Articles
 {/* CORE METRICS */}
 
 
+<StatsGrid
 
-<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-5">
-
-
-<Card
-title="Articles"
-value={stats.totalArticles}
-/>
-
-
-<Card
-title="Published Today"
-value={stats.publishedToday}
-/>
-
-
-
-<Card
-title="Pending Review"
-value={stats.pendingArticles}
-/>
-
-
-
-<Card
-title="Drafts"
-value={stats.drafts}
-/>
-
-
-
-<Card
-title="Views"
-value={stats.totalViews}
-/>
-
-
-
-<Card
-title="Users"
-value={stats.totalUsers}
-/>
-
-
-
-</div>
-
-
-
-
-
-
-
-{/* EDITORIAL PIPELINE */}
-
-
-
-<div className="grid md:grid-cols-4 gap-5">
-
-
-<Card
-
-title="This Week"
-
-value={stats.weekArticles}
+stats={data.stats}
 
 />
 
 
-<Card
 
-title="This Month"
 
-value={stats.monthArticles}
 
-/>
 
 
-<Card
 
-title="Comments"
 
-value={stats.totalComments}
-
-/>
-
-
-<Card
-
-title="Active Ads"
-
-value={stats.activeAds}
-
-/>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* ANALYTICS */}
-
-
-
-<div className="grid lg:grid-cols-2 gap-8">
-
-
-
-
-
-<div className="panel">
-
-
-<h2 className="heading">
-
-Traffic Analytics
-
-</h2>
-
-
-
-<ResponsiveContainer width="100%" height={300}>
-
-
-<LineChart data={chart}>
-
-
-<CartesianGrid stroke="#1f2937"/>
-
-
-<XAxis
-
-dataKey="day"
-
-stroke="#888"
-
-/>
-
-
-<YAxis stroke="#888"/>
-
-
-<Tooltip/>
-
-
-<Line
-
-type="monotone"
-
-dataKey="views"
-
-stroke="#ff7a18"
-
-strokeWidth={3}
-
-/>
-
-
-</LineChart>
-
-
-</ResponsiveContainer>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<div className="panel">
-
-
-<h2 className="heading">
-
-Content Distribution
-
-</h2>
-
-
-
-<ResponsiveContainer width="100%" height={300}>
-
-
-<BarChart data={categories}>
-
-
-<CartesianGrid stroke="#1f2937"/>
-
-
-<XAxis
-
-dataKey="name"
-
-stroke="#888"
-
-/>
-
-
-<YAxis stroke="#888"/>
-
-
-<Tooltip/>
-
-
-<Bar
-
-dataKey="count"
-
-fill="#f97316"
-
-/>
-
-
-</BarChart>
-
-
-</ResponsiveContainer>
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* CONTENT PERFORMANCE */}
-
-
-
-<div className="grid lg:grid-cols-2 gap-8">
-
-
-
-<Panel title="Most Viewed">
-
-
-{top?.map((a:any)=>(
-
-<Row
-
-key={a.id}
-
-title={a.title}
-
-value={`${a.views} views`}
-
-/>
-
-))}
-
-
-
-</Panel>
-
-
-
-
-
-<Panel title="Trending News">
-
-
-{trending?.map((a:any)=>(
-
-
-<Row
-
-key={a.id}
-
-title={a.title}
-
-value={`Score ${a.trendingScore}`}
-
-/>
-
-
-))}
-
-
-</Panel>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div className="grid lg:grid-cols-2 gap-8">
-
-
-
-<Panel title="Viral Articles">
-
-
-{viral?.map((a:any)=>(
-
-
-<Row
-
-key={a.id}
-
-title={a.title}
-
-value={`${a.views} views`}
-
-/>
-
-
-))}
-
-
-
-</Panel>
-
-
-
-
-
-<Panel title="Recent Activity">
-
-
-{activity?.map((a:any)=>(
-
-
-<Row
-
-key={a.id}
-
-title={a.title}
-
-value={a.time}
-
-/>
-
-
-))}
-
-
-
-</Panel>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* LATEST NEWS */}
-
-
-
-<div className="panel">
-
-
-<h2 className="heading mb-5">
-
-Latest Published Articles
-
-</h2>
-
-
-
-<div className="space-y-4">
-
-
-{latest?.map((a:any)=>(
+{/* TRAFFIC */}
 
 
 <div
 
-key={a.id}
-
-className="border-b border-gray-800 pb-4"
+className="
+grid
+xl:grid-cols-2
+gap-6
+"
 
 >
 
 
-<h3 className="font-semibold">
+<TrafficChart
 
-{a.title}
+data={data.charts.dailyViews}
 
-</h3>
-
-
-
-<div className="flex flex-wrap gap-4 text-sm text-gray-400 mt-2">
-
-
-<span>
-
-{a.category?.name || "News"}
-
-</span>
+/>
 
 
 
-<span>
+<PublishingTrend
 
-{a.status}
+data={data.charts.publishingTrend}
 
-</span>
+/>
 
 
 
-<span>
+</div>
 
-{a.views} views
 
-</span>
+
+
+
+
+
+
+
+{/* CATEGORY */}
+
+
+<CategoryPerformance
+
+data={data.charts.categoryPerformance}
+
+/>
+
+
+
+
+
+
+
+
+
+{/* NEWSROOM */}
+
+
+<div
+
+className="
+grid
+xl:grid-cols-[minmax(0,3fr)_360px]
+gap-6
+items-start
+"
+
+>
+
+
+
+
+<div>
+
+
+<NewsroomPanel
+
+latest={data.latest}
+
+/>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+space-y-6
+"
+
+>
+
+
+<ActivityFeed
+
+activity={data.activity}
+
+/>
+
+
+
+
+
+
+<PollOverview
+
+poll={data.poll}
+
+recent={data.poll?.recent || []}
+
+/>
+
+
+
+
+
+
+<AstroStatus
+
+astro={data.astro}
+
+/>
+
+
+
+
+
+
+<AdsOverview
+
+ads={ads}
+
+/>
+
+
 
 
 
@@ -638,127 +432,80 @@ className="border-b border-gray-800 pb-4"
 </div>
 
 
-))}
 
 
 
-</div>
 
 
-</div>
 
 
+{/* STRIPE REVENUE BANNER */}
 
 
+<div
 
+className="
+bg-[#163C80]/30
+border
+border-blue-400/20
+rounded-xl
+px-6
+py-5
+flex
+justify-between
+items-center
+flex-wrap
+gap-5
+"
 
-</div>
+>
 
 
-)
+<div>
 
 
-}
+<h2 className="font-semibold text-lg">
 
-
-
-
-
-
-
-
-function Card({
-
-title,
-
-value
-
-}:{
-
-title:string,
-
-value:number
-
-}){
-
-
-return(
-
-
-<div className="bg-[#0e1726] border border-gray-800 rounded-xl p-5">
-
-
-<p className="text-gray-400 text-sm">
-
-{title}
-
-</p>
-
-
-<h3 className="text-2xl font-bold mt-2">
-
-{value?.toLocaleString()}
-
-</h3>
-
-
-</div>
-
-
-)
-
-
-}
-
-
-
-
-
-
-
-
-function Panel({
-
-title,
-
-children
-
-}:{
-
-title:string,
-
-children:any
-
-}){
-
-
-return(
-
-
-<div className="bg-[#0e1726] border border-gray-800 rounded-xl p-6">
-
-
-<h2 className="text-lg font-semibold mb-5">
-
-{title}
+Revenue Intelligence
 
 </h2>
 
 
-<div className="space-y-3">
+<p className="text-sm text-gray-400 mt-1">
 
-{children}
+Stripe subscription and payment analytics
+
+</p>
+
 
 </div>
 
 
+
+
+
+<div className="text-right">
+
+
+<p className="text-xs text-gray-400">
+
+Stripe Status
+
+</p>
+
+
+<p className="font-semibold">
+
+Not Connected
+
+</p>
+
+
 </div>
 
 
-)
 
-}
-
+</div>
 
 
 
@@ -766,40 +513,20 @@ return(
 
 
 
-function Row({
-
-title,
-
-value
-
-}:{
-
-title:string,
-
-value?:string
-
-}){
 
 
-return(
+{/* SYSTEM */}
 
 
-<div className="flex justify-between gap-4 border-b border-gray-800 pb-2">
+<SystemHealth
 
+system={data.system}
 
-<span className="hover:text-orange-400">
-
-{title}
-
-</span>
+/>
 
 
 
-<span className="text-gray-400 text-sm">
 
-{value}
-
-</span>
 
 
 

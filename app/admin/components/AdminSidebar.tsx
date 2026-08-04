@@ -19,6 +19,8 @@ import {
   ChevronDown,
   Menu,
   LogOut,
+
+  // Astro
   Sparkles,
   Telescope,
   Star,
@@ -34,8 +36,11 @@ import {
   Activity,
   Globe2,
   FileSearch,
-} from "lucide-react";
 
+  // Poll Intelligence
+  Vote,
+
+} from "lucide-react";
 
 
 
@@ -214,13 +219,12 @@ roles:[
 
 
 
-
 {
-name:"Analytics",
+name:"Poll Management",
 
-href:"/admin/analytics",
+href:"/admin/polls",
 
-icon:BarChart3,
+icon:Vote,
 
 roles:[
 

@@ -40,13 +40,9 @@ const role = session.user?.role;
 const adminRoles = [
 
 "superadmin",
-
 "admin",
-
 "editor",
-
 "reporter",
-
 "advertiser",
 
 ];
@@ -54,16 +50,11 @@ const adminRoles = [
 
 
 
-
 if(!adminRoles.includes(role)){
-
 
 redirect("/dashboard");
 
-
 }
-
-
 
 
 
@@ -72,16 +63,101 @@ redirect("/dashboard");
 return (
 
 <div
+
 className="
-flex
+
 min-h-screen
+
+flex
+
+overflow-hidden
+
+bg-[#020617]
+
 text-white
-bg-gradient-to-br
-from-[#0c0f17]
-via-[#111827]
-to-[#1a2238]
+
+relative
+
 "
+
 >
+
+
+{/* BACKGROUND GLOW */}
+
+<div
+
+className="
+
+fixed
+
+inset-0
+
+pointer-events-none
+
+"
+
+>
+
+
+<div
+
+className="
+
+absolute
+
+top-[-200px]
+
+left-[-150px]
+
+w-[500px]
+
+h-[500px]
+
+bg-orange-500/10
+
+blur-[140px]
+
+rounded-full
+
+"
+
+/>
+
+
+
+<div
+
+className="
+
+absolute
+
+bottom-[-200px]
+
+right-[-150px]
+
+w-[500px]
+
+h-[500px]
+
+bg-blue-500/10
+
+blur-[140px]
+
+rounded-full
+
+"
+
+/>
+
+
+
+</div>
+
+
+
+
+
 
 
 {/* SIDEBAR */}
@@ -92,16 +168,35 @@ to-[#1a2238]
 
 
 
-{/* MAIN AREA */}
+
+
+
+
+{/* MAIN */}
 
 <div
+
 className="
+
 flex-1
+
+min-w-0
+
 flex
+
 flex-col
+
+relative
+
+z-10
+
 "
+
 >
 
+
+
+{/* HEADER */}
 
 <AdminHeader />
 
@@ -109,16 +204,68 @@ flex-col
 
 
 
+
+
+{/* CONTENT AREA */}
+
+
 <main
+
 className="
+
 flex-1
-p-8
+
+p-3
+
+sm:p-4
+
+md:p-6
+
+lg:p-8
+
+overflow-y-auto
+
 "
+
 >
+
+
+<div
+
+className="
+
+min-h-full
+
+rounded-3xl
+
+bg-white/[0.03]
+
+backdrop-blur-xl
+
+border
+
+border-white/10
+
+shadow-2xl
+
+p-4
+
+md:p-6
+
+"
+
+>
+
 
 {children}
 
+
+</div>
+
+
 </main>
+
+
 
 
 
@@ -128,9 +275,13 @@ p-8
 
 
 
-{/* CHAT */}
+
+
+{/* FLOATING CHAT */}
 
 <TeamChat />
+
+
 
 
 

@@ -1,1767 +1,914 @@
 "use client";
 
+
 import {
   useCallback,
   useEffect,
   useState,
 } from "react";
 
-import Link from "next/link";
 
+import PostsHeader 
+from "@/components/admin/posts/PostsHeader";
 
-export default function AdminPostsPage() {
+import PostsStatsCards 
+from "@/components/admin/posts/PostsStatsCards";
 
+import PostsFilters 
+from "@/components/admin/posts/PostsFilters";
 
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+import PostsActions 
+from "@/components/admin/posts/PostsActions";
 
+import PostsTable 
+from "@/components/admin/posts/PostsTable";
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+import PostsMobileCards 
+from "@/components/admin/posts/PostsMobileCards";
 
+import PostsPagination 
+from "@/components/admin/posts/PostsPagination";
 
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [category, setCategory] = useState("");
-  const [editorial, setEditorial] = useState("");
-  const [schedule, setSchedule] = useState("");
-  const [breaking, setBreaking] = useState("");
-  const [featured, setFeatured] = useState("");
-  const [flash, setFlash] = useState("");
 
 
-  const [stats, setStats] = useState({
 
-    totalArticles:0,
-    approvedArticles:0,
-    pendingArticles:0,
-    draftArticles:0,
-    featuredArticles:0,
-    breakingArticles:0,
-    editorialArticles:0,
-    scheduledArticles:0,
 
-  });
+interface AdminPost {
 
 
-  const categories = [
+  id:string;
 
-    "politics",
-    "defence",
-    "international",
-    "economy",
-    "business",
-    "technology",
-    "sports",
-    "education",
-    "health",
-    "science",
-    "environment",
-    "automobile",
-    "entertainment",
-    "lifestyle",
-    "travel",
-    "culture"
 
-  ];
+  title:string;
 
 
+  slug:string;
 
-  const fetchPosts = useCallback(async()=>{
 
+  status:string;
 
-    try{
 
+  createdAt:string;
 
-      setLoading(true);
 
+  publishedAt?:string | null;
 
-      const params = new URLSearchParams();
 
+  isEditorial?:boolean;
 
-      params.set(
-        "page",
-        String(page)
-      );
 
+  breaking?:boolean;
 
-      params.set(
-        "limit",
-        "20"
-      );
 
+  featured?:boolean;
 
-      if(search)
-      params.set("search",search);
 
+  flash?:boolean;
 
-      if(status)
-      params.set("status",status);
 
+  category?:{
 
-      if(category)
-      params.set("category",category);
+    name:string;
 
+  } | null;
 
-      if(editorial)
-      params.set("editorial",editorial);
 
 
-      if(schedule)
-      params.set("schedule",schedule);
+}
 
 
-      if(breaking)
-      params.set("breaking",breaking);
 
 
-      if(featured)
-      params.set("featured",featured);
 
 
-      if(flash)
-      params.set("flash",flash);
+interface PostStats {
 
 
+  totalArticles:number;
 
-      const res = await fetch(
-        `/api/articles?${params.toString()}`
-      );
 
+  approvedArticles:number;
 
-      const data = await res.json();
 
+  pendingArticles:number;
 
 
-      if(data.success){
+  draftArticles:number;
 
 
-        setPosts(
-          data.articles || []
-        );
+  featuredArticles:number;
 
 
-        setTotalPages(
-          data.pagination?.totalPages || 1
-        );
+  breakingArticles:number;
 
 
-      }
+  editorialArticles:number;
 
 
-    }
-    catch(error){
+  scheduledArticles:number;
 
-      console.error(
-        "FETCH POSTS ERROR",
-        error
-      );
 
-    }
-    finally{
+}
 
-      setLoading(false);
 
-    }
 
 
-  },[
-    page,
-    search,
-    status,
-    category,
-    editorial,
-    schedule,
-    breaking,
-    featured,
-    flash
-  ]);
 
 
 
-  const fetchStats = useCallback(async()=>{
 
+export default function AdminPostsPage(){
 
-    try{
 
 
-      const res = await fetch(
-        "/api/articles/stats"
-      );
+const [posts,setPosts] = useState<AdminPost[]>([]);
 
 
-      const data = await res.json();
+const [loading,setLoading] = useState(false);
 
 
-      if(data.success){
 
-        setStats(data.stats);
 
-      }
+const [page,setPage] = useState(1);
 
 
-    }
-    catch(error){
+const [totalPages,setTotalPages] = useState(1);
 
-      console.error(
-        "STATS ERROR",
-        error
-      );
 
-    }
 
 
-  },[]);
 
 
+// Filters
 
-  useEffect(()=>{
 
-    fetchPosts();
-    fetchStats();
+const [search,setSearch] = useState("");
 
-  },[
-    fetchPosts,
-    fetchStats
-  ]);
 
+const [status,setStatus] = useState("");
 
 
-  async function updateStatus(
-    id:string,
-    value:string
-  ){
+const [category,setCategory] = useState("");
 
 
-    await fetch(
-      `/api/articles/${id}`,
-      {
+const [editorial,setEditorial] = useState("");
 
-        method:"PATCH",
 
-        headers:{
-          "Content-Type":"application/json"
-        },
+const [schedule,setSchedule] = useState("");
 
-        body:JSON.stringify({
 
-          id,
-          status:value
+const [breaking,setBreaking] = useState("");
 
-        })
 
-      }
-    );
+const [featured,setFeatured] = useState("");
 
 
-    fetchPosts();
-    fetchStats();
+const [flash,setFlash] = useState("");
 
-  }
 
 
 
-  async function deletePost(
-    id:string
-  ){
 
 
-    if(
-      !confirm(
-        "Delete this article?"
-      )
-    )
-    return;
 
 
+const [stats,setStats] = useState<PostStats>({
 
-    await fetch(
-      "/api/articles",
-      {
 
-        method:"DELETE",
+totalArticles:0,
 
-        headers:{
-          "Content-Type":"application/json"
-        },
 
-        body:JSON.stringify({
+approvedArticles:0,
 
-          id
 
-        })
+pendingArticles:0,
 
-      }
-    );
 
+draftArticles:0,
 
-    fetchPosts();
-    fetchStats();
 
+featuredArticles:0,
 
-  }
 
+breakingArticles:0,
 
 
-  function clearFilters(){
+editorialArticles:0,
 
 
-    setSearch("");
-    setStatus("");
-    setCategory("");
-    setEditorial("");
-    setSchedule("");
-    setBreaking("");
-    setFeatured("");
-    setFlash("");
-    setPage(1);
+scheduledArticles:0,
 
 
-  }
+});
 
 
 
-  function badge(
-    value:string
-  ){
 
-    if(value==="approved")
-    return "bg-green-600";
 
-    if(value==="pending")
-    return "bg-yellow-600";
 
-    if(value==="draft")
-    return "bg-slate-600";
 
-    if(value==="rejected")
-    return "bg-red-600";
 
 
-    return "bg-gray-600";
+const fetchPosts = useCallback(async()=>{
 
-  }
-  return (
 
-    <div
-      className="
-      min-h-screen
-      bg-[#020617]
-      text-white
-      p-5
-      md:p-10
-      "
-    >
+try{
 
 
-      {/* HEADER */}
+setLoading(true);
 
-      <header className="mb-8">
 
 
-        <h1
-          className="
-          text-3xl
-          md:text-4xl
-          font-bold
-          "
-        >
+const params = new URLSearchParams();
 
-          News CMS Control Center
 
-        </h1>
 
+params.set(
+"page",
+String(page)
+);
 
-        <p
-          className="
-          text-gray-400
-          mt-2
-          "
-        >
 
-          Manage News, Editorial, Publishing and Content Intelligence
 
-        </p>
+params.set(
+"limit",
+"20"
+);
 
 
-      </header>
 
 
 
+if(search)
+params.set(
+"search",
+search
+);
 
 
-      {/* STATS */}
 
 
-      <div
-        className="
-        grid
-        grid-cols-2
-        md:grid-cols-4
-        lg:grid-cols-8
-        gap-4
-        mb-8
-        "
-      >
+if(status)
+params.set(
+"status",
+status
+);
 
 
-        {[
-          [
-            "Total",
-            stats.totalArticles
-          ],
 
-          [
-            "Published",
-            stats.approvedArticles
-          ],
 
-          [
-            "Pending",
-            stats.pendingArticles
-          ],
+if(category)
+params.set(
+"category",
+category
+);
 
-          [
-            "Draft",
-            stats.draftArticles
-          ],
 
-          [
-            "Scheduled",
-            stats.scheduledArticles
-          ],
 
-          [
-            "Editorial",
-            stats.editorialArticles
-          ],
 
-          [
-            "Featured",
-            stats.featuredArticles
-          ],
+if(editorial)
+params.set(
+"editorial",
+editorial
+);
 
-          [
-            "Breaking",
-            stats.breakingArticles
-          ]
 
-        ].map(
-          (item:any)=>(
 
 
-            <div
+if(schedule)
+params.set(
+"schedule",
+schedule
+);
 
-              key={item[0]}
 
-              className="
-              bg-[#0f172a]
-              border
-              border-white/10
-              rounded-xl
-              p-4
-              "
-            >
 
 
-              <p
-                className="
-                text-gray-400
-                text-sm
-                "
-              >
+if(breaking)
+params.set(
+"breaking",
+breaking
+);
 
-                {item[0]}
 
-              </p>
 
 
-              <h2
-                className="
-                text-3xl
-                font-bold
-                mt-2
-                "
-              >
+if(featured)
+params.set(
+"featured",
+featured
+);
 
-                {item[1]}
 
-              </h2>
 
 
-            </div>
+if(flash)
+params.set(
+"flash",
+flash
+);
 
 
-          )
-        )}
 
 
-      </div>
 
 
+const res = await fetch(
 
+`/api/articles?${params.toString()}`
 
+);
 
 
 
-      {/* FILTER PANEL */}
 
+const data = await res.json();
 
-      <div
-        className="
-        bg-[#0f172a]
-        border
-        border-white/10
-        rounded-2xl
-        p-5
-        mb-8
-        "
-      >
 
 
-        <div
-          className="
-          grid
-          grid-cols-1
-          md:grid-cols-4
-          lg:grid-cols-8
-          gap-3
-          "
-        >
 
+if(data.success){
 
 
-          <input
 
-            value={search}
+setPosts(
 
-            onChange={(e)=>{
+data.articles || []
 
-              setSearch(
-                e.target.value
-              );
+);
 
-              setPage(1);
 
-            }}
 
-            placeholder="Search..."
+setTotalPages(
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            px-3
-            py-2
-            "
+data.pagination?.totalPages || 1
 
-          />
+);
 
 
 
+}
 
 
-          <select
 
-            value={category}
 
-            onChange={(e)=>{
+}
 
-              setCategory(
-                e.target.value
-              );
+catch(error){
 
-              setPage(1);
 
-            }}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
+console.error(
 
-          >
+"FETCH POSTS ERROR",
 
-            <option value="">
-              Category
-            </option>
+error
 
+);
 
-            {
-              categories.map(
-                (c)=>(
 
-                  <option
-                    key={c}
-                    value={c}
-                  >
 
-                    {c}
+}
 
-                  </option>
 
-                )
-              )
-            }
+finally{
 
 
-          </select>
+setLoading(false);
 
 
+}
 
 
 
-          <select
+},[
 
-            value={status}
+page,
+search,
+status,
+category,
+editorial,
+schedule,
+breaking,
+featured,
+flash
 
-            onChange={(e)=>{
+]);
 
-              setStatus(
-                e.target.value
-              );
 
-              setPage(1);
 
-            }}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
 
-          >
 
-            <option value="">
-              Status
-            </option>
 
 
-            <option value="approved">
-              Published
-            </option>
 
+const fetchStats = useCallback(async()=>{
 
-            <option value="pending">
-              Pending
-            </option>
 
+try{
 
-            <option value="draft">
-              Draft
-            </option>
 
+const res = await fetch(
 
-            <option value="rejected">
-              Rejected
-            </option>
+"/api/articles/stats"
 
+);
 
-          </select>
 
 
+const data = await res.json();
 
 
 
+if(data.success){
 
-          <select
 
-            value={editorial}
+setStats(
 
-            onChange={(e)=>{
+data.stats
 
-              setEditorial(
-                e.target.value
-              );
+);
 
-              setPage(1);
 
-            }}
+}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
 
-          >
 
+}
 
-            <option value="">
-              Content Type
-            </option>
+catch(error){
 
 
-            <option value="true">
-              Editorial
-            </option>
+console.error(
 
+"STATS ERROR",
 
-            <option value="false">
-              News
-            </option>
+error
 
+);
 
-          </select>
 
 
+}
 
 
 
-          <select
+},[]);
 
-            value={schedule}
 
-            onChange={(e)=>{
 
-              setSchedule(
-                e.target.value
-              );
 
-              setPage(1);
 
-            }}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
 
-          >
 
 
-            <option value="">
-              Publishing
-            </option>
+useEffect(()=>{
 
 
-            <option value="scheduled">
-              Scheduled
-            </option>
+fetchPosts();
 
 
-            <option value="published">
-              Published
-            </option>
+fetchStats();
 
 
-          </select>
 
-          <select
+},[
 
-            value={breaking}
+fetchPosts,
+fetchStats
 
-            onChange={(e)=>{
+]);
 
-              setBreaking(
-                e.target.value
-              );
 
-              setPage(1);
 
-            }}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
 
-          >
 
-            <option value="">
-              Breaking
-            </option>
 
-            <option value="true">
-              Yes
-            </option>
 
-            <option value="false">
-              No
-            </option>
 
+async function updateStatus(
 
-          </select>
+id:string,
 
+value:string
 
+){
 
 
 
-          <select
+await fetch(
 
-            value={featured}
+`/api/articles/${id}`,
 
-            onChange={(e)=>{
+{
 
-              setFeatured(
-                e.target.value
-              );
 
-              setPage(1);
+method:"PATCH",
 
-            }}
 
-            className="
-            bg-[#020617]
-            border
-            border-white/10
-            rounded-lg
-            "
+headers:{
 
-          >
 
+"Content-Type":
 
-            <option value="">
-              Featured
-            </option>
+"application/json"
 
 
-            <option value="true">
-              Yes
-            </option>
+},
 
 
-            <option value="false">
-              No
-            </option>
+body:JSON.stringify({
 
 
-          </select>
+id,
 
 
+status:value
 
 
+})
 
-          <button
 
-            onClick={clearFilters}
+}
 
-            className="
-            bg-[#EA661B]
-            rounded-lg
-            font-semibold
-            "
 
-          >
+);
 
-            Clear
 
-          </button>
 
+fetchPosts();
 
 
-        </div>
+fetchStats();
 
 
-      </div>
 
+}
 
 
 
 
 
 
-      {/* CREATE BUTTONS */}
 
 
-      <div
-        className="
-        flex
-        justify-end
-        gap-3
-        mb-6
-        "
-      >
 
+async function deletePost(
 
-        <Link
+id:string
 
-          href="/admin/posts/create"
+){
 
-          className="
-          bg-[#163C80]
-          px-5
-          py-3
-          rounded-xl
-          font-semibold
-          "
 
-        >
 
-          + Create News
+if(
 
-        </Link>
+!confirm(
 
+"Delete this article?"
 
+)
 
+)
 
-        <Link
+return;
 
-          href="/admin/posts/editorial/create"
 
-          className="
-          bg-purple-600
-          px-5
-          py-3
-          rounded-xl
-          font-semibold
-          "
 
-        >
 
-          + Create Editorial
 
-        </Link>
 
+await fetch(
 
+"/api/articles",
 
-      </div>
+{
 
 
+method:"DELETE",
 
 
+headers:{
 
 
+"Content-Type":
 
-      {/* DESKTOP TABLE */}
+"application/json"
 
 
-      <div
+},
 
-        className="
-        hidden
-        md:block
-        bg-[#0f172a]
-        border
-        border-white/10
-        rounded-2xl
-        overflow-hidden
-        "
 
-      >
+body:JSON.stringify({
 
+id
 
-        <table
-          className="
-          w-full
-          text-sm
-          "
-        >
+})
 
 
-          <thead
+}
 
-            className="
-            bg-[#0b1220]
-            text-gray-400
-            "
 
-          >
+);
 
-            <tr>
 
 
-              <th className="p-4 text-left">
-                Title
-              </th>
 
 
-              <th>
-                Type
-              </th>
+fetchPosts();
 
 
-              <th>
-                Category
-              </th>
+fetchStats();
 
 
-              <th>
-                Status
-              </th>
 
+}
 
-              <th>
-                Publishing
-              </th>
 
 
-              <th>
-                Flags
-              </th>
 
 
-              <th>
-                Actions
-              </th>
 
 
-            </tr>
 
+function clearFilters(){
 
-          </thead>
 
 
+setSearch("");
 
+setStatus("");
 
+setCategory("");
 
+setEditorial("");
 
-          <tbody>
+setSchedule("");
 
+setBreaking("");
 
-          {
+setFeatured("");
 
+setFlash("");
 
-          loading ?
+setPage(1);
 
 
-          <tr>
 
-            <td
+}
+return (
 
-              colSpan={7}
+<div
 
-              className="
-              p-10
-              text-center
-              "
+className="
+min-h-screen
+bg-[#020617]
+text-white
+p-5
+md:p-10
+"
 
-            >
+>
 
-              Loading...
 
-            </td>
+{/* HEADER */}
 
+<PostsHeader />
 
-          </tr>
 
 
 
-          :
 
 
-          posts.length===0 ?
 
+{/* STATS */}
 
+<PostsStatsCards
 
-          <tr>
+stats={stats}
 
-            <td
+/>
 
-              colSpan={7}
 
-              className="
-              p-10
-              text-center
-              text-gray-400
-              "
 
-            >
 
-              No content found
 
-            </td>
 
 
-          </tr>
 
+{/* FILTERS */}
 
+<PostsFilters
 
-          :
 
+search={search}
 
+setSearch={(value)=>{
 
-          posts.map(
+setSearch(value);
 
-            (post)=>(
+setPage(1);
 
+}}
 
-              <tr
 
-                key={post.id}
 
-                className="
-                border-t
-                border-white/10
-                hover:bg-white/5
-                "
 
-              >
+category={category}
 
+setCategory={(value)=>{
 
+setCategory(value);
 
+setPage(1);
 
-                <td
+}}
 
-                  className="
-                  p-4
-                  max-w-md
-                  "
 
-                >
 
 
-                  <p
-                    className="
-                    font-semibold
-                    line-clamp-2
-                    "
-                  >
 
-                    {post.title}
+status={status}
 
-                  </p>
+setStatus={(value)=>{
 
+setStatus(value);
 
+setPage(1);
 
-                  <div
+}}
 
-                    className="
-                    text-xs
-                    text-gray-500
-                    mt-2
-                    "
 
-                  >
 
-                    {
-                      new Date(
-                        post.createdAt
-                      )
-                      .toLocaleDateString()
-                    }
 
 
-                  </div>
+editorial={editorial}
 
+setEditorial={(value)=>{
 
-                </td>
+setEditorial(value);
 
+setPage(1);
 
+}}
 
 
 
 
-                <td>
 
+schedule={schedule}
 
-                {
+setSchedule={(value)=>{
 
-                post.isEditorial ?
+setSchedule(value);
 
+setPage(1);
 
-                <span
+}}
 
-                  className="
-                  bg-purple-600
-                  px-2
-                  py-1
-                  rounded
-                  text-xs
-                  "
 
-                >
 
-                  Editorial
 
-                </span>
 
+breaking={breaking}
 
-                :
+setBreaking={(value)=>{
 
+setBreaking(value);
 
-                <span
+setPage(1);
 
-                  className="
-                  bg-blue-600
-                  px-2
-                  py-1
-                  rounded
-                  text-xs
-                  "
+}}
 
-                >
 
-                  News
 
-                </span>
 
 
-                }
+featured={featured}
 
+setFeatured={(value)=>{
 
+setFeatured(value);
 
-                </td>
+setPage(1);
 
+}}
 
 
 
 
-                <td>
 
+flash={flash}
 
-                  {
-                    post.category?.name
-                    ||
-                    "-"
-                  }
+setFlash={(value)=>{
 
+setFlash(value);
 
-                </td>
+setPage(1);
 
+}}
 
 
 
 
-                <td>
 
+clearFilters={clearFilters}
 
-                  <select
 
+/>
 
-                    value={post.status}
 
 
-                    onChange={(e)=>
 
-                      updateStatus(
-                        post.id,
-                        e.target.value
-                      )
 
-                    }
 
 
-                    className={`
 
-                    rounded-lg
 
-                    px-3
 
-                    py-2
+{/* CREATE ACTIONS */}
 
-                    ${badge(post.status)}
 
-                    `}
+<PostsActions />
 
 
-                  >
 
 
-                    <option value="pending">
-                      Pending
-                    </option>
 
 
-                    <option value="approved">
-                      Published
-                    </option>
 
 
-                    <option value="draft">
-                      Draft
-                    </option>
 
+{/* TABLE */}
 
-                    <option value="rejected">
-                      Rejected
-                    </option>
 
+<PostsTable
 
-                    <option value="archived">
-                      Archived
-                    </option>
 
+posts={posts}
 
-                  </select>
+loading={loading}
 
+updateStatus={updateStatus}
 
+deletePost={deletePost}
 
-                </td>
-                <td>
 
+/>
 
-                  {
-                    post.publishedAt
-                    &&
-                    new Date(post.publishedAt) > new Date()
 
-                    ?
 
-                    <span
 
-                      className="
-                      bg-orange-600
-                      px-2
-                      py-1
-                      rounded
-                      text-xs
-                      "
 
-                    >
 
-                      Scheduled
 
-                    </span>
 
 
-                    :
+{/* MOBILE VIEW */}
 
 
-                    <span
+<PostsMobileCards
 
-                      className="
-                      bg-green-600
-                      px-2
-                      py-1
-                      rounded
-                      text-xs
-                      "
 
-                    >
+posts={posts}
 
-                      Published
+deletePost={deletePost}
 
-                    </span>
 
+/>
 
-                  }
 
 
-                </td>
 
 
 
 
 
-                <td>
 
+{/* PAGINATION */}
 
-                  {
-                    post.breaking &&
 
-                    <div className="text-orange-400">
-                      Breaking
-                    </div>
-                  }
+<PostsPagination
 
 
+page={page}
 
-                  {
-                    post.featured &&
+totalPages={totalPages}
 
-                    <div className="text-yellow-400">
-                      Featured
-                    </div>
-                  }
+setPage={setPage}
 
 
+/>
 
-                  {
-                    post.flash &&
 
-                    <div className="text-blue-400">
-                      Flash
-                    </div>
-                  }
 
 
 
-                </td>
+</div>
 
 
-
-
-
-
-                <td>
-
-
-                  <div
-                    className="
-                    flex
-                    gap-2
-                    "
-                  >
-
-
-                    <Link
-
-                      href={`/admin/posts/edit/${post.id}`}
-
-                      className="
-                      bg-[#163C80]
-                      px-3
-                      py-2
-                      rounded-lg
-                      "
-
-                    >
-
-                      Edit
-
-                    </Link>
-
-
-
-
-                    <Link
-
-                      href={`/article/${post.slug}`}
-
-                      target="_blank"
-
-                      className="
-                      bg-green-700
-                      px-3
-                      py-2
-                      rounded-lg
-                      "
-
-                    >
-
-                      View
-
-                    </Link>
-
-
-
-
-                    <button
-
-                      onClick={()=>
-                        deletePost(post.id)
-                      }
-
-                      className="
-                      bg-red-600
-                      px-3
-                      py-2
-                      rounded-lg
-                      "
-
-                    >
-
-                      Delete
-
-                    </button>
-
-
-
-                  </div>
-
-
-                </td>
-
-
-
-
-              </tr>
-
-
-            )
-
-
-          )
-
-
-          }
-
-
-          </tbody>
-
-
-        </table>
-
-
-      </div>
-
-
-
-
-
-
-
-      {/* MOBILE */}
-
-
-      <div
-        className="
-        md:hidden
-        space-y-4
-        "
-      >
-
-
-        {
-          posts.map(
-            (post)=>(
-
-
-              <div
-
-                key={post.id}
-
-                className="
-                bg-[#0f172a]
-                border
-                border-white/10
-                rounded-xl
-                p-4
-                "
-
-              >
-
-
-                <h3 className="font-semibold">
-
-                  {post.title}
-
-                </h3>
-
-
-
-
-                <div
-                  className="
-                  flex
-                  gap-2
-                  mt-3
-                  "
-                >
-
-
-                  {
-                    post.isEditorial &&
-
-                    <span
-                      className="
-                      bg-purple-600
-                      px-2
-                      py-1
-                      rounded
-                      text-xs
-                      "
-                    >
-
-                      Editorial
-
-                    </span>
-                  }
-
-
-                  {
-                    post.breaking &&
-
-                    <span
-                      className="
-                      bg-orange-600
-                      px-2
-                      py-1
-                      rounded
-                      text-xs
-                      "
-                    >
-
-                      Breaking
-
-                    </span>
-                  }
-
-
-                </div>
-
-
-
-
-
-                <p className="
-                text-gray-400
-                text-sm
-                mt-3
-                ">
-
-                  {
-                    post.category?.name
-                    ||
-                    "Editorial"
-                  }
-
-                </p>
-
-
-
-
-                <div
-                  className="
-                  flex
-                  gap-2
-                  mt-5
-                  "
-                >
-
-
-                  <Link
-
-                    href={`/admin/posts/edit/${post.id}`}
-
-                    className="
-                    bg-[#163C80]
-                    px-3
-                    py-2
-                    rounded-lg
-                    "
-
-                  >
-
-                    Edit
-
-                  </Link>
-
-
-
-
-                  <button
-
-                    onClick={()=>
-                      deletePost(post.id)
-                    }
-
-                    className="
-                    bg-red-600
-                    px-3
-                    py-2
-                    rounded-lg
-                    "
-
-                  >
-
-                    Delete
-
-                  </button>
-
-
-                </div>
-
-
-              </div>
-
-
-            )
-          )
-        }
-
-
-      </div>
-
-
-
-
-
-
-
-      {/* PAGINATION */}
-
-
-      <div
-
-        className="
-        flex
-        justify-center
-        items-center
-        gap-5
-        mt-8
-        "
-
-      >
-
-
-        <button
-
-          disabled={page<=1}
-
-          onClick={()=>{
-
-            setPage(
-              p=>p-1
-            );
-
-          }}
-
-          className="
-          bg-[#163C80]
-          px-4
-          py-2
-          rounded-lg
-          disabled:opacity-40
-          "
-
-        >
-
-          Previous
-
-        </button>
-
-
-
-
-        <span className="text-gray-300">
-
-          Page {page} / {totalPages}
-
-        </span>
-
-
-
-
-
-        <button
-
-          disabled={page>=totalPages}
-
-          onClick={()=>{
-
-            setPage(
-              p=>p+1
-            );
-
-          }}
-
-          className="
-          bg-[#163C80]
-          px-4
-          py-2
-          rounded-lg
-          disabled:opacity-40
-          "
-
-        >
-
-          Next
-
-        </button>
-
-
-
-      </div>
-
-
-
-
-
-    </div>
-
-  );
-
-
+);
 }

@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-
 
 import {
   LayoutDashboard,
@@ -13,14 +12,13 @@ import {
   Users,
   Bell,
   DollarSign,
-  BarChart3,
   Settings,
   Megaphone,
   ChevronDown,
   Menu,
+  X,
   LogOut,
 
-  // Astro
   Sparkles,
   Telescope,
   Star,
@@ -28,7 +26,6 @@ import {
   Orbit,
   Moon,
   Home,
-  Sun,
   Heart,
   Briefcase,
   GraduationCap,
@@ -37,26 +34,19 @@ import {
   Globe2,
   FileSearch,
 
-  // Poll Intelligence
-  Vote,
+  Vote
 
 } from "lucide-react";
-
 
 
 
 export default function AdminSidebar(){
 
 
-
-const pathname =
-usePathname();
+const pathname = usePathname();
 
 
-
-const {data:session}=
-useSession();
-
+const {data:session}=useSession();
 
 
 
@@ -64,25 +54,42 @@ const role =
 session?.user?.role || "user";
 
 
-
 const userName =
 session?.user?.name || "Admin";
 
 
 
+const [desktopCollapsed,setDesktopCollapsed]
+=
+useState(false);
 
-const [collapsed,setCollapsed]=
+
+const [mobileOpen,setMobileOpen]
+=
+useState(false);
+
+
+const [openAstro,setOpenAstro]
+=
+useState(false);
+
+
+const [openAds,setOpenAds]
+=
 useState(false);
 
 
 
-const [openAstro,setOpenAstro]=
-useState(true);
+/*
+AUTO CLOSE MOBILE MENU
+*/
 
 
+useEffect(()=>{
 
-const [openAds,setOpenAds]=
-useState(true);
+setMobileOpen(false);
+
+},[pathname]);
 
 
 
@@ -93,167 +100,105 @@ useState(true);
 const navItems=[
 
 
-
 {
 name:"Dashboard",
-
 href:"/admin",
-
 icon:LayoutDashboard,
-
 roles:[
-
 "superadmin",
 "admin",
 "editor",
 "reporter",
 "advertiser"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"News Control",
-
 href:"/admin/posts",
-
 icon:FileText,
-
 roles:[
-
 "superadmin",
 "admin",
 "editor",
 "reporter"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"Categories",
-
 href:"/admin/categories",
-
 icon:Folder,
-
 roles:[
-
 "superadmin",
 "admin",
 "editor"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"Users",
-
 href:"/admin/users",
-
 icon:Users,
-
 roles:[
-
 "superadmin",
 "admin"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"Newsletter",
-
 href:"/admin/newsletter",
-
 icon:Bell,
-
 roles:[
-
 "superadmin",
 "admin"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"Revenue",
-
 href:"/admin/revenue",
-
 icon:DollarSign,
-
 roles:[
-
 "superadmin",
 "admin"
-
 ]
-
 },
-
 
 
 
 {
 name:"Poll Management",
-
 href:"/admin/polls",
-
 icon:Vote,
-
 roles:[
-
 "superadmin",
 "admin",
 "editor"
-
 ]
-
 },
-
-
 
 
 
 {
 name:"Settings",
-
 href:"/admin/settings",
-
 icon:Settings,
-
 roles:[
-
 "superadmin"
-
 ]
-
-},
+}
 
 
 
@@ -267,202 +212,123 @@ roles:[
 const astroItems=[
 
 
-
 {
 name:"Astro Dashboard",
-
 href:"/admin/astro",
-
 icon:Telescope
-
 },
-
 
 
 {
 name:"Horoscope",
-
 href:"/admin/astro/horoscope",
-
-icon:Sun
-
+icon:Star
 },
-
 
 
 {
 name:"Zodiac",
-
 href:"/admin/astro/zodiac",
-
 icon:Star
-
 },
-
 
 
 {
 name:"Panchang",
-
 href:"/admin/astro/panchang",
-
 icon:CalendarDays
-
 },
-
 
 
 {
 name:"Planet Intelligence",
-
 href:"/admin/astro/planet-intelligence",
-
 icon:Orbit
-
 },
-
 
 
 {
 name:"Nakshatra",
-
 href:"/admin/astro/nakshatra-intelligence",
-
 icon:Moon
-
 },
-
 
 
 {
 name:"House Intelligence",
-
 href:"/admin/astro/house-intelligence",
-
 icon:Home
-
 },
-
 
 
 {
 name:"Lagna Intelligence",
-
 href:"/admin/astro/lagna-intelligence",
-
 icon:Sparkles
-
 },
-
 
 
 {
 name:"Dasha Intelligence",
-
 href:"/admin/astro/dasha-intelligence",
-
 icon:Activity
-
 },
-
-
-
-{
-name:"Yoga Intelligence",
-
-href:"/admin/astro/yoga-intelligence",
-
-icon:Star
-
-},
-
 
 
 {
 name:"Remedy Intelligence",
-
 href:"/admin/astro/remedy-intelligence",
-
 icon:Heart
-
 },
-
 
 
 {
 name:"Career Intelligence",
-
 href:"/admin/astro/career-intelligence",
-
 icon:Briefcase
-
 },
-
 
 
 {
 name:"Education Intelligence",
-
 href:"/admin/astro/education-intelligence",
-
 icon:GraduationCap
-
 },
-
 
 
 {
 name:"Finance Intelligence",
-
 href:"/admin/astro/finance-intelligence",
-
 icon:Wallet
-
 },
-
 
 
 {
 name:"Health Intelligence",
-
 href:"/admin/astro/health-intelligence",
-
 icon:Activity
-
 },
-
 
 
 {
 name:"Business Intelligence",
-
 href:"/admin/astro/business-intelligence",
-
 icon:Briefcase
-
 },
-
 
 
 {
 name:"Foreign Settlement",
-
 href:"/admin/astro/foreign-settlement-intelligence",
-
 icon:Globe2
-
 },
-
 
 
 {
 name:"Birth Chart",
-
 href:"/admin/astro/birth-chart-interpretation",
-
 icon:FileSearch
-
-},
+}
 
 
 ];
@@ -472,41 +338,90 @@ icon:FileSearch
 
 
 
-
-
-
-/*
-========================================
-ROLE ACCESS CONTROL
-========================================
-*/
-
-
 const canSeeAstro =
-
 [
-
 "superadmin",
-
 "admin"
-
-].includes(role);
-
-
+]
+.includes(role);
 
 
 
 const canSeeAds =
-
 [
-
 "superadmin",
-
 "admin",
-
 "advertiser"
+]
+.includes(role);
+return (
 
-].includes(role);
+<>
+
+{/* MOBILE MENU BUTTON */}
+
+<div
+className="
+lg:hidden
+fixed
+top-4
+left-4
+z-[100]
+"
+>
+
+<button
+
+onClick={()=>setMobileOpen(true)}
+
+className="
+w-11
+h-11
+flex
+items-center
+justify-center
+rounded-xl
+bg-black/70
+backdrop-blur-xl
+border
+border-white/10
+shadow-xl
+"
+
+>
+
+<Menu size={22}/>
+
+</button>
+
+</div>
+
+
+
+
+
+{/* MOBILE OVERLAY */}
+
+{
+
+mobileOpen &&
+
+<div
+
+onClick={()=>setMobileOpen(false)}
+
+className="
+fixed
+inset-0
+bg-black/60
+backdrop-blur-sm
+z-40
+lg:hidden
+"
+
+/>
+
+}
 
 
 
@@ -514,10 +429,7 @@ const canSeeAds =
 
 
 
-
-
-return(
-
+{/* SIDEBAR */}
 
 
 <aside
@@ -525,19 +437,67 @@ return(
 
 className={`
 
-${collapsed?"w-20":"w-72"}
+fixed
+lg:static
 
-transition-all duration-300
+top-0
+left-0
 
-bg-black/50
+h-screen
 
-backdrop-blur-xl
+z-50
 
-border-r border-white/10
 
-flex flex-col justify-between
+bg-[#050816]/90
+
+backdrop-blur-2xl
+
+
+border-r
+border-white/10
+
+
+flex
+flex-col
+justify-between
+
 
 text-white
+
+
+transition-all
+duration-300
+
+
+${
+
+mobileOpen
+
+?
+
+"translate-x-0 w-72"
+
+:
+
+"-translate-x-full lg:translate-x-0"
+
+}
+
+
+${
+
+desktopCollapsed
+
+?
+
+"lg:w-20"
+
+:
+
+"lg:w-72"
+
+}
+
 
 `}
 
@@ -549,25 +509,10 @@ text-white
 
 
 
-
-<div>
-
-
-
-
-
-
-
 <div
 
 className="
-
-flex items-center justify-between
-
-px-5 py-6
-
-border-b border-white/10
-
+flex-1
 "
 
 >
@@ -575,18 +520,36 @@ border-b border-white/10
 
 
 
+
+
+{/* HEADER */}
+
+
+<div
+
+className="
+h-[72px]
+px-5
+flex
+items-center
+justify-between
+border-b
+border-white/10
+"
+
+>
+
+
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
 <h2
 
 className="
-
-text-xl
-
 font-bold
-
+text-xl
+whitespace-nowrap
 "
 
 >
@@ -599,24 +562,54 @@ NationPath Admin
 
 
 
+
+
 <button
 
 
-onClick={()=>setCollapsed(!collapsed)}
+onClick={()=>{
+
+
+if(mobileOpen){
+
+setMobileOpen(false);
+
+}
+
+else{
+
+setDesktopCollapsed(
+!desktopCollapsed
+);
+
+}
+
+
+}}
 
 
 className="
-
-p-2 rounded-lg
-
+p-2
+rounded-lg
 hover:bg-white/10
-
 "
-
 
 >
 
+
+{
+
+mobileOpen
+
+?
+
+<X size={20}/>
+
+:
+
 <Menu size={20}/>
+
+}
 
 
 </button>
@@ -631,23 +624,24 @@ hover:bg-white/10
 
 
 
+{/* PROFILE */}
 
 
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
 
 <div
 
 className="
-
-px-5 py-5
-
-border-b border-white/10
-
-flex gap-3 items-center
-
+px-5
+py-5
+border-b
+border-white/10
+flex
+items-center
+gap-3
 "
 
 >
@@ -656,26 +650,24 @@ flex gap-3 items-center
 <div
 
 className="
-
-w-12 h-12
-
+w-11
+h-11
 rounded-full
-
 bg-gradient-to-br
-
 from-orange-400
-
 to-red-500
-
-flex items-center justify-center
-
-font-bold text-black
-
+flex
+items-center
+justify-center
+font-bold
+text-black
 "
 
 >
 
-{userName.charAt(0)}
+{
+userName.charAt(0)
+}
 
 </div>
 
@@ -685,25 +677,26 @@ font-bold text-black
 
 <div>
 
+<p
 
-<p className="font-semibold">
+className="
+font-semibold
+truncate
+"
+
+>
 
 {userName}
 
 </p>
 
 
-
 <p
 
 className="
-
 text-xs
-
 text-orange-400
-
 capitalize
-
 "
 
 >
@@ -711,7 +704,6 @@ capitalize
 {role}
 
 </p>
-
 
 
 </div>
@@ -729,7 +721,16 @@ capitalize
 
 
 
-<nav className="p-4 space-y-2">
+
+
+<nav
+
+className="
+p-4
+space-y-2
+"
+
+>
 
 
 
@@ -751,7 +752,6 @@ item.roles.includes(role)
 .map(item=>(
 
 
-
 <NavItem
 
 key={item.href}
@@ -760,10 +760,9 @@ item={item}
 
 pathname={pathname}
 
-collapsed={collapsed}
+collapsed={desktopCollapsed}
 
 />
-
 
 
 ))
@@ -776,51 +775,54 @@ collapsed={collapsed}
 
 
 
+
+{/* ASTRO */}
+
+
 {
 
 canSeeAstro &&
 
 
-
-<div>
-
+<div className="pt-4">
 
 
 <button
 
 
-
 onClick={()=>setOpenAstro(!openAstro)}
 
 
-
 className="
-
-w-full flex justify-between
-
-px-4 py-3
-
+w-full
+flex
+items-center
+justify-between
+px-4
+py-3
 rounded-xl
-
 hover:bg-white/10
-
 "
-
-
 
 >
 
 
-<span className="flex gap-3 items-center">
+<span
 
+className="
+flex
+items-center
+gap-3
+"
+
+>
 
 <Sparkles size={18}/>
 
 
-
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
 "Astro Intelligence"
 
@@ -833,10 +835,10 @@ hover:bg-white/10
 
 
 
-
 {
 
-!collapsed &&
+!desktopCollapsed &&
+
 
 <ChevronDown
 
@@ -872,21 +874,17 @@ openAstro
 
 
 
-
 {
 
-openAstro &&
-
-!collapsed &&
-
+openAstro && !desktopCollapsed &&
 
 
 <div
 
 className="
-
-ml-6 mt-2 space-y-1
-
+ml-6
+mt-2
+space-y-1
 "
 
 >
@@ -894,29 +892,20 @@ ml-6 mt-2 space-y-1
 
 {
 
-
 astroItems.map(item=>(
-
 
 
 <SubItem
 
-
 key={item.href}
-
 
 href={item.href}
 
-
 label={item.name}
-
 
 pathname={pathname}
 
-
-
 />
-
 
 
 ))
@@ -925,6 +914,10 @@ pathname={pathname}
 }
 
 
+</div>
+
+
+}
 
 
 
@@ -937,21 +930,9 @@ pathname={pathname}
 
 
 
-</div>
 
 
-}
-
-
-
-
-
-
-
-
-
-
-
+{/* ADS */}
 
 
 {
@@ -959,52 +940,49 @@ pathname={pathname}
 canSeeAds &&
 
 
-
-<div>
-
+<div className="pt-4">
 
 
 <button
 
 
-
 onClick={()=>setOpenAds(!openAds)}
 
 
-
 className="
-
-w-full flex justify-between
-
-px-4 py-3
-
+w-full
+flex
+items-center
+justify-between
+px-4
+py-3
 rounded-xl
-
 hover:bg-white/10
-
 "
-
-
 
 >
 
 
+<span
 
-<span className="flex gap-3 items-center">
+className="
+flex
+items-center
+gap-3
+"
 
+>
 
 <Megaphone size={18}/>
 
 
-
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
 "Advertisements"
 
 }
-
 
 
 </span>
@@ -1013,14 +991,11 @@ hover:bg-white/10
 
 
 
-
-
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
 <ChevronDown size={16}/>
-
 
 }
 
@@ -1034,26 +1009,20 @@ hover:bg-white/10
 
 
 
-
-
 {
 
-openAds &&
-
-!collapsed &&
-
+openAds && !desktopCollapsed &&
 
 
 <div
 
 className="
-
-ml-6 mt-2 space-y-1
-
+ml-6
+mt-2
+space-y-1
 "
 
 >
-
 
 
 <SubItem
@@ -1065,8 +1034,6 @@ label="All Ads"
 pathname={pathname}
 
 />
-
-
 
 
 
@@ -1082,8 +1049,6 @@ pathname={pathname}
 
 
 
-
-
 <SubItem
 
 href="/admin/ads/performance"
@@ -1095,9 +1060,6 @@ pathname={pathname}
 />
 
 
-
-
-
 </div>
 
 
@@ -1109,8 +1071,6 @@ pathname={pathname}
 
 
 }
-
-
 
 
 
@@ -1118,75 +1078,56 @@ pathname={pathname}
 </nav>
 
 
-
-
-
 </div>
-
-
-
-
-
-
-
-
+{/* LOGOUT */}
 
 <div
 
 className="
-
 p-4
-
 border-t
-
 border-white/10
-
 "
 
 >
-
 
 
 <button
 
 
-
 onClick={()=>signOut()}
 
 
-
 className="
-
-w-full flex gap-3
-
-px-4 py-3
-
+w-full
+flex
+items-center
+gap-3
+px-4
+py-3
 rounded-xl
-
 bg-red-600/20
-
 hover:bg-red-600/40
-
+transition
 "
 
-
-
 >
-
 
 
 <LogOut size={18}/>
 
 
-
 {
 
-!collapsed &&
+!desktopCollapsed &&
 
-"Logout"
+<span>
+
+Logout
+
+</span>
 
 }
-
 
 
 </button>
@@ -1199,20 +1140,14 @@ hover:bg-red-600/40
 
 
 
-
-
 </aside>
 
-
+</>
 
 );
 
 
-
 }
-
-
-
 
 
 
@@ -1231,7 +1166,6 @@ pathname,
 collapsed
 
 }:any){
-
 
 
 const Icon = item.icon;
@@ -1254,26 +1188,34 @@ pathname.startsWith(item.href);
 
 
 
-return(
-
+return (
 
 
 <Link
 
 
-
 href={item.href}
-
 
 
 className={`
 
-flex items-center gap-3
+group
 
-px-4 py-3
+flex
+
+items-center
+
+gap-3
+
+px-4
+
+py-3
 
 rounded-xl
 
+transition-all
+
+duration-200
 
 
 ${
@@ -1282,25 +1224,49 @@ active
 
 ?
 
-"bg-gradient-to-r from-orange-500 to-red-500"
+"bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
 
 :
 
-"hover:bg-white/10 text-gray-300"
+"text-gray-300 hover:bg-white/10 hover:text-white"
 
 }
-
 
 
 `}
 
 
-
 >
 
 
+<Icon
 
-<Icon size={18}/>
+size={18}
+
+className={`
+
+shrink-0
+
+
+${
+
+active
+
+?
+
+"text-white"
+
+:
+
+"text-gray-400 group-hover:text-orange-400"
+
+}
+
+`}
+
+/>
+
+
 
 
 
@@ -1308,7 +1274,21 @@ active
 
 !collapsed &&
 
-item.name
+
+<span
+
+className="
+text-sm
+font-medium
+whitespace-nowrap
+"
+
+>
+
+{item.name}
+
+</span>
+
 
 }
 
@@ -1317,9 +1297,7 @@ item.name
 </Link>
 
 
-
 );
-
 
 
 }
@@ -1343,7 +1321,6 @@ pathname
 }:any){
 
 
-
 const active =
 
 pathname === href
@@ -1351,32 +1328,35 @@ pathname === href
 ||
 
 pathname.startsWith(
-
 href + "/"
-
 );
 
 
 
 
-
-return(
-
+return (
 
 
 <Link
 
 
-
 href={href}
-
 
 
 className={`
 
-block px-4 py-2
 
-rounded-lg text-sm
+block
+
+px-4
+
+py-2
+
+rounded-lg
+
+text-sm
+
+transition-all
 
 
 
@@ -1390,30 +1370,24 @@ active
 
 :
 
-"text-gray-300 hover:bg-white/10"
+"text-gray-300 hover:bg-white/10 hover:text-white"
 
 }
-
 
 
 `}
 
 
-
 >
-
 
 
 {label}
 
 
-
 </Link>
 
 
-
 );
-
 
 
 }

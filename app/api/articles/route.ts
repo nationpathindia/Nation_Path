@@ -2,7 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { PostStatus } from "@prisma/client";
 
+
 export const dynamic = "force-dynamic";
+
+
 
 
 
@@ -19,6 +22,10 @@ function stripHtml(html:string){
 
 
 
+
+
+
+
 function generateExcerpt(content:string){
 
   const clean =
@@ -27,12 +34,16 @@ function generateExcerpt(content:string){
       .trim();
 
 
+
   if(!clean)
     return "";
 
 
+
   const words =
     clean.split(" ");
+
+
 
 
   const excerpt =
@@ -41,20 +52,31 @@ function generateExcerpt(content:string){
       .join(" ");
 
 
+
+
   return excerpt.length < clean.length
     ? `${excerpt}...`
     : excerpt;
+
 
 }
 
 
 
+
+
+
+
+
 function calculateReadingTime(content:string){
+
 
   const clean =
     stripHtml(content)
       .replace(/\s+/g," ")
       .trim();
+
+
 
 
   const words =
@@ -63,12 +85,19 @@ function calculateReadingTime(content:string){
       : 0;
 
 
+
   return Math.max(
     1,
     Math.ceil(words / 200)
   );
 
+
 }
+
+
+
+
+
 
 
 
@@ -78,7 +107,9 @@ async function generateUniqueSlug(
   currentId?:string
 ){
 
+
   const baseSlug =
+
     title
       .toLowerCase()
       .trim()
@@ -86,20 +117,31 @@ async function generateUniqueSlug(
       .replace(/[^\w-]+/g,"");
 
 
+
+
   let slug = baseSlug;
+
 
   let counter = 1;
 
 
 
+
+
+
   while(true){
 
+
     const existing =
+
       await prisma.article.findFirst({
+
 
         where:{
 
+
           slug,
+
 
           ...(currentId
             ?
@@ -112,9 +154,13 @@ async function generateUniqueSlug(
             {}
           )
 
+
         }
 
+
       });
+
+
 
 
 
@@ -123,16 +169,211 @@ async function generateUniqueSlug(
 
 
 
+
+
     slug =
       `${baseSlug}-${counter++}`;
+
 
   }
 
 
 
+
+
   return slug;
 
+
 }
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   IMAGE INTELLIGENCE
+===================================================== */
+
+
+
+type ImageGalleryItem = {
+
+  url:string;
+
+  alt:string;
+
+  caption:string;
+
+  isPrimary:boolean;
+
+};
+
+
+
+
+
+
+
+
+function normalizeImageGallery(
+images:any
+):ImageGalleryItem[]{
+
+
+
+  if(
+    !Array.isArray(images)
+  ){
+
+    return [];
+
+  }
+
+
+
+
+
+  const gallery =
+
+    images
+
+    .filter(
+      (img:any)=>
+
+        img
+
+        &&
+        typeof img.url==="string"
+
+        &&
+        img.url.trim()
+
+    )
+
+    .slice(0,5)
+
+    .map(
+      (img:any)=>({
+
+
+        url:
+        img.url.trim(),
+
+
+
+        alt:
+
+        img.alt?.trim()
+
+        ||
+
+        "NationPath Editorial Image",
+
+
+
+
+        caption:
+
+        img.caption?.trim()
+
+        ||
+
+        "",
+
+
+
+
+
+        isPrimary:
+
+        Boolean(
+          img.isPrimary
+        )
+
+
+      })
+
+    );
+
+
+
+
+
+
+
+  if(
+    gallery.length
+    &&
+    !gallery.some(
+      img=>img.isPrimary
+    )
+  ){
+
+    gallery[0].isPrimary=true;
+
+  }
+
+
+
+
+
+
+
+  if(
+    gallery.filter(
+      img=>img.isPrimary
+    ).length > 1
+  ){
+
+
+    let found=false;
+
+
+    gallery.forEach(
+      img=>{
+
+
+        if(
+          img.isPrimary
+        ){
+
+          if(found){
+
+            img.isPrimary=false;
+
+          }
+          else{
+
+            found=true;
+
+          }
+
+
+        }
+
+
+      }
+    );
+
+
+  }
+
+
+
+
+
+
+  return gallery;
+
+
+}
+
+
+
 
 
 
@@ -146,15 +387,19 @@ async function generateUniqueSlug(
 
 export async function GET(req:Request){
 
+
 try{
 
 
 const {searchParams} =
+
 new URL(req.url);
 
 
 
+
 const page =
+
 Math.max(
 Number(searchParams.get("page")) || 1,
 1
@@ -162,7 +407,10 @@ Number(searchParams.get("page")) || 1,
 
 
 
+
+
 const limit =
+
 Math.min(
 Number(searchParams.get("limit")) || 20,
 50
@@ -170,71 +418,80 @@ Number(searchParams.get("limit")) || 20,
 
 
 
+
+
 const status =
+
 searchParams.get("status");
 
 
 
 const search =
+
 searchParams.get("search") || "";
 
 
 
 const editorial =
+
 searchParams.get("editorial");
 
 
 
-const schedule =
-searchParams.get("schedule");
-
-
-
 const type =
+
 searchParams.get("type");
 
 
 
-const sort =
-searchParams.get("sort") || "latest";
-
-
-
 const category =
+
 searchParams.get("category");
 
 
 
 const skip =
-(page - 1) * limit;
+
+(page-1)*limit;
+
+
 
 
 
 const where:any = {
 
+
 isDeleted:false
+
 
 };
 
 
 
 
+
 if(status){
+
 
 const value =
 status.toLowerCase();
 
 
+
 if(
 Object.values(PostStatus)
-.includes(value as PostStatus)
+.includes(
+value as PostStatus
+)
 ){
 
 where.status=value;
 
 }
 
+
 }
+
 
 
 
@@ -242,7 +499,9 @@ where.status=value;
 
 if(search){
 
+
 where.OR=[
+
 
 {
 
@@ -269,9 +528,13 @@ mode:"insensitive"
 
 }
 
+
 ];
 
+
 }
+
+
 
 
 
@@ -283,12 +546,12 @@ where.isEditorial=true;
 }
 
 
-
 if(editorial==="false"){
 
 where.isEditorial=false;
 
 }
+
 
 
 
@@ -311,16 +574,8 @@ where.isAstrology=false;
 
 
 
-if(type==="astro"){
-
-where.isAstrology=true;
-
-}
-
-
-
-
 if(category){
+
 
 where.category={
 
@@ -334,41 +589,23 @@ mode:"insensitive"
 
 };
 
-}
-
-
-
-
-if(schedule==="scheduled"){
-
-where.publishedAt={
-
-gt:new Date()
-
-};
 
 }
 
 
-
-if(schedule==="published"){
-
-where.publishedAt={
-
-lte:new Date()
-
-};
-
-}
 
 
 
 
 
 const [
+
 articles,
+
 total
-] =
+
+]=
+
 await Promise.all([
 
 
@@ -381,21 +618,7 @@ skip,
 take:limit,
 
 
-orderBy:
-
-sort==="oldest"
-
-?
-
-{
-
-createdAt:"asc"
-
-}
-
-:
-
-{
+orderBy:{
 
 createdAt:"desc"
 
@@ -404,9 +627,11 @@ createdAt:"desc"
 
 include:{
 
+
 category:true,
 
 author:true
+
 
 }
 
@@ -428,6 +653,9 @@ where
 
 
 
+
+
+
 return NextResponse.json({
 
 success:true,
@@ -436,6 +664,7 @@ articles,
 
 pagination:{
 
+
 page,
 
 limit,
@@ -443,9 +672,12 @@ limit,
 total,
 
 totalPages:
-Math.ceil(total / limit)
+
+Math.ceil(total/limit)
+
 
 }
+
 
 });
 
@@ -467,7 +699,7 @@ return NextResponse.json({
 success:false,
 
 error:
-error?.message || "Server error"
+error.message || "Server error"
 
 },{
 status:500
@@ -478,7 +710,15 @@ status:500
 
 
 }
- 
+
+
+
+
+
+
+
+
+
 /* =====================================================
    CREATE ARTICLE
 ===================================================== */
@@ -486,20 +726,26 @@ status:500
 
 export async function POST(req:Request){
 
+
 try{
 
 
 const body =
+
 await req.json();
 
-
-
 const isEditorial =
-Boolean(body.isEditorial);
+
+Boolean(
+body.isEditorial
+);
+
+
 
 
 
 if(!body.title?.trim()){
+
 
 return NextResponse.json({
 
@@ -511,11 +757,16 @@ error:"Title required"
 status:400
 });
 
+
 }
 
 
 
+
+
+
 if(!body.content?.trim()){
+
 
 return NextResponse.json({
 
@@ -527,15 +778,21 @@ error:"Content required"
 status:400
 });
 
+
 }
 
 
 
 
+
+
+
 if(
-!isEditorial &&
+!isEditorial
+&&
 !body.categoryId
 ){
+
 
 return NextResponse.json({
 
@@ -547,19 +804,26 @@ error:"Category required"
 status:400
 });
 
+
 }
 
 
 
 
 
+
+
+
 if(
-body.categoryId &&
+body.categoryId
+&&
 !isEditorial
 ){
 
 
+
 const category =
+
 await prisma.category.findUnique({
 
 where:{
@@ -572,7 +836,9 @@ id:body.categoryId
 
 
 
+
 if(!category){
+
 
 return NextResponse.json({
 
@@ -584,10 +850,13 @@ error:"Invalid category"
 status:400
 });
 
+
 }
 
 
 }
+
+
 
 
 
@@ -596,8 +865,11 @@ status:400
 
 
 const slug =
+
 await generateUniqueSlug(
+
 body.title
+
 );
 
 
@@ -606,34 +878,40 @@ body.title
 
 
 
-let breakingStart:null|Date=null;
-
-let breakingEnd:null|Date=null;
 
 
-
-if(body.breaking){
-
-
-const duration =
-Number(body.breakingDuration) || 60;
+/* =====================================================
+   IMAGE INTELLIGENCE
+===================================================== */
 
 
 
-breakingStart =
-new Date();
+const imageGallery =
 
+normalizeImageGallery(
 
+body.imageGallery
 
-breakingEnd =
-new Date(
-Date.now()
-+
-duration * 60 * 1000
 );
 
 
-}
+
+
+
+
+const primaryImage =
+
+imageGallery.find(
+
+(img)=>
+
+img.isPrimary
+
+)
+
+||
+
+imageGallery[0];
 
 
 
@@ -642,36 +920,29 @@ duration * 60 * 1000
 
 
 
-let publishedAt:null|Date=null;
+/*
 
+Backward compatibility
 
+Old images:String[]
 
-if(body.publishedAt){
+continues.
 
+Primary image gets priority.
 
-const date =
-new Date(body.publishedAt);
-
-
-
-if(
-!isNaN(date.getTime())
-){
-
-publishedAt=date;
-
-}
-
-
-}
-
-
-
-
-
-
+*/
 
 const images =
+
+primaryImage
+
+?
+
+[
+primaryImage.url
+]
+
+:
 
 Array.isArray(body.images)
 
@@ -680,16 +951,23 @@ Array.isArray(body.images)
 body.images
 
 .filter(
+
 (img:any)=>
 
 typeof img==="string"
+
 &&
+
 img.trim()
 
 )
 
 .map(
-(img:string)=>img.trim()
+
+(img:string)=>
+
+img.trim()
+
 )
 
 :
@@ -704,34 +982,166 @@ img.trim()
 
 
 
+
+
+
+
+/* =====================================================
+   BREAKING
+===================================================== */
+
+
+let breakingStart:null|Date=null;
+
+let breakingEnd:null|Date=null;
+
+
+
+
+
+if(body.breaking){
+
+
+const duration =
+
+Number(
+body.breakingDuration
+)
+||
+60;
+
+
+
+breakingStart =
+
+new Date();
+
+
+
+
+breakingEnd =
+
+new Date(
+
+Date.now()
+
++
+
+duration * 60 * 1000
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   PUBLISH DATE
+===================================================== */
+
+
+let publishedAt:null|Date=null;
+
+
+
+
+
+if(body.publishedAt){
+
+
+const date =
+
+new Date(
+body.publishedAt
+);
+
+
+
+
+if(
+!isNaN(
+date.getTime()
+)
+){
+
+
+publishedAt=date;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+
 let validStatus:
+
 PostStatus =
+
 PostStatus.pending;
+
+
 
 
 
 if(body.status){
 
 
+
 const value =
+
 body.status.toLowerCase();
 
 
 
+
+
 if(
+
 Object.values(PostStatus)
+
 .includes(
+
 value as PostStatus
+
 )
+
 ){
 
+
 validStatus =
+
 value as PostStatus;
 
+
 }
 
 
 }
+
+
+
 
 
 
@@ -748,8 +1158,15 @@ await prisma.article.create({
 data:{
 
 
+
+/* BASIC */
+
+
 title:
+
 body.title.trim(),
+
+
 
 
 
@@ -757,26 +1174,72 @@ slug,
 
 
 
+
+
 content:
+
 body.content,
 
 
 
+
+
 excerpt:
+
 body.excerpt
+
 ||
+
 generateExcerpt(
+
 body.content
+
 ),
 
+
+
+
+
+
+
+/* IMAGE STORAGE */
 
 
 images,
 
 
 
+
+
+imageGallery:
+
+imageGallery.length
+
+?
+
+imageGallery
+
+:
+
+undefined,
+
+
+
+
+
+
+
+
+/* VIDEO */
+
+
 videoUrl:
+
 body.videoUrl || null,
+
+
+
+
 
 
 
@@ -786,7 +1249,10 @@ body.videoUrl || null,
 
 
 breaking:
-Boolean(body.breaking),
+
+Boolean(
+body.breaking
+),
 
 
 
@@ -799,12 +1265,18 @@ breakingEnd,
 
 
 flash:
-Boolean(body.flash),
+
+Boolean(
+body.flash
+),
 
 
 
 featured:
-Boolean(body.featured),
+
+Boolean(
+body.featured
+),
 
 
 
@@ -813,25 +1285,43 @@ isEditorial,
 
 
 isAstrology:
-Boolean(body.isAstrology),
+
+Boolean(
+body.isAstrology
+),
+
 
 
 
 
 
 breakingPriority:
-Number(body.breakingPriority) || 0,
+
+Number(
+body.breakingPriority
+)
+||
+0,
 
 
 
 flashPriority:
-Number(body.flashPriority) || 0,
+
+Number(
+body.flashPriority
+)
+||
+0,
 
 
 
 homepagePriority:
-Number(body.homepagePriority) || 0,
 
+Number(
+body.homepagePriority
+)
+||
+0,
 
 
 
@@ -844,7 +1334,9 @@ Number(body.homepagePriority) || 0,
 
 keyHighlights:
 
-Array.isArray(body.keyHighlights)
+Array.isArray(
+body.keyHighlights
+)
 
 ?
 
@@ -853,7 +1345,9 @@ body.keyHighlights.filter(
 (item:any)=>
 
 typeof item==="string"
+
 &&
+
 item.trim()
 
 )
@@ -865,44 +1359,60 @@ item.trim()
 
 
 
+
+
+
 whyItMatters:
+
 body.whyItMatters || null,
 
 
 
 shortBrief:
+
 body.shortBrief || null,
 
 
 
 background:
+
 body.background || null,
 
 
 
 timeline:
+
 body.timeline || null,
 
 
 
 expertOpinion:
+
 body.expertOpinion || null,
 
 
 
 factCheck:
+
 body.factCheck || null,
 
 
 
 whatsNext:
+
 body.whatsNext || null,
+
+
+
+
 
 
 
 keyTakeaways:
 
-Array.isArray(body.keyTakeaways)
+Array.isArray(
+body.keyTakeaways
+)
 
 ?
 
@@ -911,7 +1421,9 @@ body.keyTakeaways.filter(
 (item:any)=>
 
 typeof item==="string"
+
 &&
+
 item.trim()
 
 )
@@ -922,8 +1434,14 @@ item.trim()
 
 
 
+
+
+
+
 sourceDesk:
+
 body.sourceDesk || null,
+
 
 
 
@@ -937,7 +1455,9 @@ body.sourceDesk || null,
 
 faqItems:
 
-Array.isArray(body.faqItems)
+Array.isArray(
+body.faqItems
+)
 
 ?
 
@@ -948,7 +1468,9 @@ body.faqItems
 (item:any)=>
 
 item.question?.trim()
+
 &&
+
 item.answer?.trim()
 
 )
@@ -958,10 +1480,14 @@ item.answer?.trim()
 (item:any)=>({
 
 question:
+
 item.question.trim(),
 
+
 answer:
+
 item.answer.trim()
+
 
 })
 
@@ -988,18 +1514,33 @@ body.readingTime
 
 ?
 
-Number(body.readingTime)
+Number(
+body.readingTime
+)
 
 :
 
 calculateReadingTime(
+
 body.content
+
 ),
 
 
 
+
+
+
 metaTitle:
-body.metaTitle || body.title,
+
+body.metaTitle
+
+||
+
+body.title,
+
+
+
 
 
 
@@ -1010,8 +1551,13 @@ body.metaDescription
 ||
 
 generateExcerpt(
+
 body.content
+
 ),
+
+
+
 
 
 
@@ -1022,10 +1568,15 @@ body.metaKeywords
 ||
 
 body.title
+
 .toLowerCase()
+
 .split(" ")
+
 .slice(0,10)
+
 .join(","),
+
 
 
 
@@ -1042,6 +1593,7 @@ publishedAt,
 
 
 status:
+
 validStatus,
 
 
@@ -1065,19 +1617,17 @@ body.categoryId
 
 include:{
 
+
 category:true,
 
 author:true
 
+
 }
 
 
+
 });
-
-
-
-
-
 
 return NextResponse.json({
 
@@ -1107,6 +1657,7 @@ success:false,
 error:
 error?.message || "Server error"
 
+
 },{
 status:500
 });
@@ -1117,6 +1668,14 @@ status:500
 
 }
 
+
+
+
+
+
+
+
+
 /* =====================================================
    UPDATE ARTICLE STATUS / FLAGS
 ===================================================== */
@@ -1124,15 +1683,20 @@ status:500
 
 export async function PATCH(req:Request){
 
+
 try{
 
 
 const body =
+
 await req.json();
 
 
 
+
+
 if(!body.id){
+
 
 return NextResponse.json({
 
@@ -1144,7 +1708,11 @@ error:"ID required"
 status:400
 });
 
+
 }
+
+
+
 
 
 
@@ -1157,49 +1725,155 @@ const updateData:any = {};
 
 
 
-/* ================= STATUS ================= */
+
+
+
+
+/* =====================================================
+   IMAGE INTELLIGENCE UPDATE
+===================================================== */
+
+
+if(
+Array.isArray(
+body.imageGallery
+)
+){
+
+
+const imageGallery =
+
+normalizeImageGallery(
+
+body.imageGallery
+
+);
+
+
+
+
+const primaryImage =
+
+imageGallery.find(
+
+(img)=>
+
+img.isPrimary
+
+)
+
+||
+
+imageGallery[0];
+
+
+
+
+
+updateData.imageGallery =
+
+imageGallery.length
+
+?
+
+imageGallery
+
+:
+
+undefined;
+
+
+
+
+
+updateData.images =
+
+primaryImage
+
+?
+
+[
+primaryImage.url
+]
+
+:
+
+[];
+
+
+}
+
+
+
+
+
+
+
+
+
+/* STATUS */
 
 
 if(body.status){
 
 
+
 const value =
+
 body.status.toLowerCase();
 
 
 
+
+
 if(
+
 Object.values(PostStatus)
+
 .includes(
+
 value as PostStatus
+
 )
+
 ){
 
+
 updateData.status =
+
 value;
 
-}
-
 
 }
 
 
+}
 
 
 
 
 
-/* ================= FLAGS ================= */
+
+
+
+
+/* FLAGS */
 
 
 if(
 typeof body.featured === "boolean"
 ){
 
+
 updateData.featured =
+
 body.featured;
 
+
 }
+
+
+
 
 
 
@@ -1207,10 +1881,16 @@ if(
 typeof body.breaking === "boolean"
 ){
 
+
 updateData.breaking =
+
 body.breaking;
 
+
 }
+
+
+
 
 
 
@@ -1218,8 +1898,11 @@ if(
 typeof body.flash === "boolean"
 ){
 
+
 updateData.flash =
+
 body.flash;
+
 
 }
 
@@ -1229,15 +1912,20 @@ body.flash;
 
 
 
-/* ================= EDITORIAL ================= */
+
+
+/* EDITORIAL */
 
 
 if(
 typeof body.isEditorial === "boolean"
 ){
 
+
 updateData.isEditorial =
+
 body.isEditorial;
+
 
 }
 
@@ -1247,30 +1935,43 @@ body.isEditorial;
 
 
 
-/* ================= SCHEDULE ================= */
+
+
+/* SCHEDULE */
 
 
 if(body.publishedAt){
 
 
 const date =
+
 new Date(
 body.publishedAt
 );
 
 
 
+
 if(
-!isNaN(date.getTime())
+!isNaN(
+date.getTime()
+)
 ){
 
+
 updateData.publishedAt =
+
 date;
 
+
 }
 
 
 }
+
+
+
+
 
 
 
@@ -1294,14 +1995,18 @@ data:updateData,
 
 include:{
 
+
 category:true,
 
 author:true
+
 
 }
 
 
 });
+
+
 
 
 
@@ -1314,7 +2019,9 @@ success:true,
 
 article
 
+
 });
+
 
 
 
@@ -1324,8 +2031,11 @@ catch(error:any){
 
 
 console.error(
+
 "PATCH ARTICLE ERROR",
+
 error
+
 );
 
 
@@ -1335,7 +2045,9 @@ return NextResponse.json({
 success:false,
 
 error:
+
 error?.message || "Update failed"
+
 
 },{
 status:500
@@ -1347,6 +2059,14 @@ status:500
 
 }
 
+
+
+
+
+
+
+
+
 /* =====================================================
    DELETE ARTICLE
 ===================================================== */
@@ -1354,15 +2074,20 @@ status:500
 
 export async function DELETE(req:Request){
 
+
 try{
 
 
 const body =
+
 await req.json();
 
 
 
+
+
 if(!body.id){
+
 
 return NextResponse.json({
 
@@ -1370,9 +2095,11 @@ success:false,
 
 error:"ID required"
 
+
 },{
 status:400
 });
+
 
 }
 
@@ -1380,7 +2107,7 @@ status:400
 
 
 
-/* ================= SOFT DELETE ================= */
+
 
 
 await prisma.article.update({
@@ -1394,15 +2121,20 @@ id:body.id
 
 data:{
 
+
 isDeleted:true,
 
+
 status:
+
 PostStatus.archived
+
 
 }
 
 
 });
+
 
 
 
@@ -1420,14 +2152,20 @@ success:true
 
 
 
+
 }
 catch(error:any){
 
 
 console.error(
+
 "DELETE ARTICLE ERROR",
+
 error
+
 );
+
+
 
 
 
@@ -1435,8 +2173,11 @@ return NextResponse.json({
 
 success:false,
 
+
 error:
+
 error?.message || "Delete failed"
+
 
 },{
 status:500

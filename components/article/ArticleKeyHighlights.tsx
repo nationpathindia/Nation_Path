@@ -13,358 +13,337 @@ export default function ArticleKeyHighlights({
 
   highlights = [],
 
-}: Props) {
+}:Props){
 
 
-  if(!highlights.length){
 
-    return null;
+if(
+  !highlights.length
+){
 
-  }
+  return null;
 
+}
 
 
 
-  return (
 
 
-    <section
+return (
 
-      className="
+<section
 
-      my-10
+className="
 
-      relative
+my-12
 
-      overflow-hidden
+relative
 
-      rounded-2xl
+overflow-hidden
 
-      border
+rounded-2xl
 
-      border-[#D7E3FF]
+border
 
-      bg-white
+border-gray-200
 
-      p-5
+bg-white
 
-      sm:p-6
+p-6
 
-      shadow-[0_12px_35px_rgba(22,60,128,0.08)]
+sm:p-8
 
-      "
+"
 
-    >
+>
 
 
 
 
 
-      {/* Accent Line */}
+{/* LEFT ACCENT */}
 
+<div
 
-      <div
+className="
 
-        className="
+absolute
 
-        absolute
+left-0
 
-        left-0
+top-0
 
-        top-0
+h-full
 
-        h-full
+w-1
 
-        w-1
+bg-[#EA661B]
 
-        bg-gradient-to-b
+"
 
-        from-[#163C80]
+/>
 
-        to-[#EA661B]
 
-        "
 
-      />
 
 
 
 
+{/* HEADER */}
 
+<header
 
+className="
 
-      {/* HEADER */}
+mb-7
 
+flex
 
-      <div
+items-start
 
-        className="
+gap-4
 
-        flex
+"
 
-        items-center
+>
 
-        gap-3
 
-        mb-5
+<div
 
-        "
+className="
 
-      >
+flex
 
+h-10
 
+w-10
 
-        <div
+shrink-0
 
-          className="
+items-center
 
-          flex
+justify-center
 
-          h-9
+rounded-xl
 
-          w-9
+bg-[#163C80]
 
-          items-center
+text-white
 
-          justify-center
+text-lg
 
-          rounded-xl
+"
 
-          bg-[#163C80]
+>
 
-          text-white
+★
 
-          text-sm
+</div>
 
-          shadow
 
-          "
 
-        >
 
-          ★
 
-        </div>
 
+<div>
 
+<p
 
+className="
 
+text-[10px]
 
-        <div>
+font-bold
 
+uppercase
 
-          <p
+tracking-[0.25em]
 
-            className="
+text-[#EA661B]
 
-            text-[10px]
+"
 
-            uppercase
+>
 
-            tracking-[0.25em]
+Editorial Insight
 
-            font-bold
+</p>
 
-            text-[#EA661B]
 
-            "
 
-          >
 
-            Editorial Insight
 
-          </p>
+<h2
 
+className="
 
+mt-1
 
+font-serif
 
-          <h2
+text-2xl
 
-            className="
+font-bold
 
-            mt-0.5
+tracking-tight
 
-            text-xl
+text-gray-900
 
-            sm:text-2xl
+"
 
-            font-serif
+>
 
-            font-bold
+Key Highlights
 
-            text-[#163C80]
+</h2>
 
-            "
 
-          >
 
-            Key Highlights
+</div>
 
-          </h2>
 
 
 
-        </div>
+</header>
 
 
 
-      </div>
 
 
 
 
 
 
+{/* HIGHLIGHTS */}
 
+<div
 
+className="
 
-      {/* ITEMS */}
+space-y-3
 
+"
 
-      <div
+>
 
-        className="
 
-        grid
+{
 
-        gap-3
+highlights
 
-        "
+.slice(0,6)
 
-      >
+.map((item,index)=>(
 
 
-        {
+<div
 
-          highlights
+key={`${item}-${index}`}
 
-          .slice(0,6)
+className="
 
-          .map((item,index)=>(
+flex
 
+items-start
 
+gap-4
 
-            <div
+rounded-xl
 
-              key={index}
+bg-gray-50
 
-              className="
+px-4
 
-              group
+py-4
 
-              flex
+transition
 
-              items-start
+hover:bg-[#FAFCFF]
 
-              gap-3
+"
 
-              rounded-xl
+>
 
-              border
 
-              border-[#EDF2FF]
+<span
 
-              bg-[#FAFCFF]
+className="
 
-              px-3
+mt-0.5
 
-              py-3
+flex
 
-              transition
+h-7
 
-              hover:border-[#163C80]/20
+w-7
 
-              hover:shadow-sm
+shrink-0
 
-              "
+items-center
 
-            >
+justify-center
 
+rounded-full
 
+bg-[#163C80]
 
+text-xs
 
+font-bold
 
-              <span
+text-white
 
-                className="
+"
 
-                shrink-0
+>
 
-                flex
+{index+1}
 
-                h-7
+</span>
 
-                w-7
 
-                items-center
 
-                justify-center
 
-                rounded-lg
 
-                bg-[#163C80]
+<p
 
-                text-white
+className="
 
-                text-[11px]
+text-[15px]
 
-                font-bold
+leading-7
 
-                "
+text-gray-700
 
-              >
+"
 
-                {index + 1}
+>
 
-              </span>
+{item}
 
+</p>
 
 
 
+</div>
 
 
+))
 
-              <p
 
-                className="
+}
 
-                text-sm
 
-                leading-relaxed
+</div>
 
-                text-[#374151]
 
-                "
 
-              >
 
-                {item}
 
-              </p>
 
+</section>
 
 
-
-
-            </div>
-
-
-
-          ))
-
-        }
-
-
-
-      </div>
-
-
-
-
-
-    </section>
-
-
-  );
+);
 
 }

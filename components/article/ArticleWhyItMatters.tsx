@@ -13,207 +13,207 @@ export default function ArticleWhyItMatters({
 
   whyItMatters,
 
-}: Props) {
+}:Props){
 
 
-  if(!whyItMatters){
 
-    return null;
+if(
+  !whyItMatters ||
+  !whyItMatters.trim()
+){
 
-  }
+  return null;
 
+}
 
 
-  return (
 
 
-    <section
 
-      className="
+return (
 
-      my-10
+<section
 
-      relative
+className="
 
-      overflow-hidden
+my-12
 
-      rounded-2xl
+relative
 
-      border
+overflow-hidden
 
-      border-[#FFD9B8]
+rounded-2xl
 
-      bg-white
+border
 
-      p-5
+border-gray-200
 
-      sm:p-6
+bg-white
 
-      shadow-[0_12px_35px_rgba(234,102,27,0.08)]
+p-6
 
-      "
+sm:p-8
 
-    >
+"
 
+>
 
 
 
 
-      {/* Accent Line */}
 
+{/* ACCENT */}
 
-      <div
+<div
 
-        className="
+className="
 
-        absolute
+absolute
 
-        left-0
+left-0
 
-        top-0
+top-0
 
-        h-full
+h-full
 
-        w-1
+w-1
 
-        bg-gradient-to-b
+bg-[#EA661B]
 
-        from-[#EA661B]
+"
 
-        to-[#F5B041]
+/>
 
-        "
 
-      />
 
 
 
 
 
 
+{/* HEADER */}
 
+<header
 
-      {/* HEADER */}
+className="
 
+mb-6
 
+flex
 
-      <div
+items-start
 
-        className="
+gap-4
 
-        flex
+"
 
-        items-center
+>
 
-        gap-3
 
-        mb-5
 
-        "
 
-      >
+<div
 
+className="
 
+flex
 
+h-10
 
-        <div
+w-10
 
-          className="
+shrink-0
 
-          flex
+items-center
 
-          h-9
+justify-center
 
-          w-9
+rounded-xl
 
-          items-center
+bg-[#EA661B]
 
-          justify-center
+text-white
 
-          rounded-xl
+text-lg
 
-          bg-[#EA661B]
+"
 
-          text-white
+>
 
-          text-sm
+💡
 
-          shadow
+</div>
 
-          "
 
-        >
 
-          💡
 
-        </div>
 
 
 
+<div>
 
 
+<p
 
+className="
 
-        <div>
+text-[10px]
 
+font-bold
 
-          <p
+uppercase
 
-            className="
+tracking-[0.25em]
 
-            text-[10px]
+text-[#EA661B]
 
-            uppercase
+"
 
-            tracking-[0.25em]
+>
 
-            font-bold
+Editorial Analysis
 
-            text-[#EA661B]
+</p>
 
-            "
 
-          >
 
-            Editorial Analysis
 
-          </p>
 
+<h2
 
+className="
 
+mt-1
 
-          <h2
+font-serif
 
-            className="
+text-2xl
 
-            mt-0.5
+font-bold
 
-            text-xl
+tracking-tight
 
-            sm:text-2xl
+text-gray-900
 
-            font-serif
+"
 
-            font-bold
+>
 
-            text-[#C65312]
+Why This Matters
 
-            "
+</h2>
 
-          >
 
-            Why It Matters
 
-          </h2>
 
+</div>
 
 
-        </div>
 
 
+</header>
 
 
-      </div>
 
 
 
@@ -221,69 +221,61 @@ export default function ArticleWhyItMatters({
 
 
 
+{/* CONTENT */}
 
 
-      {/* CONTENT */}
 
+<div
 
+className="
 
-      <div
+rounded-xl
 
-        className="
+bg-[#FFF9F4]
 
-        rounded-xl
+px-5
 
-        border
+py-5
 
-        border-orange-100
+sm:px-6
 
-        bg-[#FFF9F4]
+"
 
-        px-4
+>
 
-        py-4
 
-        sm:px-5
+<p
 
-        "
+className="
 
-      >
+text-[15px]
 
+leading-8
 
+text-gray-700
 
-        <p
+sm:text-base
 
-          className="
+"
 
-          text-sm
+>
 
-          sm:text-base
+{whyItMatters}
 
-          leading-[1.85]
+</p>
 
-          text-[#374151]
 
-          "
 
-        >
+</div>
 
-          {whyItMatters}
 
 
-        </p>
 
 
 
-      </div>
+</section>
 
 
-
-
-
-
-    </section>
-
-
-  );
+);
 
 }

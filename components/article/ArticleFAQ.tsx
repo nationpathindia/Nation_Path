@@ -32,465 +32,384 @@ export default function ArticleFAQ({
 
 
 
-  const [openIndex,setOpenIndex] =
-  useState<number | null>(0);
+const [openIndex,setOpenIndex] =
+useState<number | null>(0);
 
 
 
 
+const validFAQs = faqItems.filter(
 
-  if(!faqItems.length){
+(item)=>
 
-    return null;
+item.question?.trim() &&
+item.answer?.trim()
 
-  }
+);
 
 
 
 
+if(!validFAQs.length){
 
+return null;
 
+}
 
-  return (
 
 
-    <section
 
-      className="
-      my-12
 
-      md:my-16
+return (
 
-      "
 
-    >
+<section
 
+className="
+my-12
+md:my-16
+"
 
+>
 
 
+{/* HEADER */}
 
-      {/* HEADER */}
+<div
 
+className="
+mb-8
+"
 
-      <div
+>
 
-        className="
-        mb-8
 
-        "
+<div
 
-      >
+className="
+flex
+items-center
+gap-3
+mb-4
+"
 
+>
 
 
-        <div
+<span
 
-          className="
-          flex
+className="
+h-[2px]
+w-8
+bg-[#EA661B]
+"
 
-          items-center
+/>
 
-          gap-3
 
-          mb-4
 
-          "
+<p
 
-        >
+className="
+text-[11px]
+font-bold
+uppercase
+tracking-[0.35em]
+text-[#163C80]
+"
 
+>
 
+FAQ
 
-          <span
+</p>
 
-            className="
-            h-[2px]
 
-            w-8
 
-            bg-[#EA661B]
+</div>
 
-            "
 
-          />
 
 
 
-          <p
+<h2
 
-            className="
-            text-[11px]
+className="
+font-serif
+text-2xl
+font-bold
+tracking-tight
+text-[#111]
 
-            font-bold
+md:text-3xl
+"
 
-            uppercase
+>
 
-            tracking-[0.35em]
+Frequently Asked Questions
 
-            text-[#163C80]
+</h2>
 
-            "
 
-          >
 
-            FAQ
 
-          </p>
 
+<p
 
+className="
+mt-2
+text-sm
+text-gray-600
+"
 
-        </div>
+>
 
+Clear answers to help readers understand the story better.
 
+</p>
 
 
 
+</div>
 
-        <h2
 
-          className="
-          font-serif
 
-          text-2xl
 
-          font-bold
 
-          tracking-tight
 
-          text-[#111]
 
 
-          md:text-3xl
+{/* ACCORDION */}
 
-          "
 
-        >
+<div
 
-          Frequently Asked Questions
+className="
+divide-y
+divide-black/10
+border-y
+border-black/10
+"
 
-        </h2>
+>
 
 
+{
 
+validFAQs.map((item,index)=>(
 
 
 
-        <p
+<div
 
-          className="
-          mt-2
+key={`${item.question}-${index}`}
 
-          text-sm
+>
 
-          text-gray-600
 
-          "
 
-        >
 
-          Important questions explained for readers.
 
-        </p>
+<button
 
+type="button"
 
+aria-expanded={
+openIndex === index
+}
 
+onClick={()=>
 
 
-      </div>
+setOpenIndex(
 
+openIndex === index
 
+?
 
+null
 
+:
 
+index
 
+)
 
 
+}
 
-      {/* ACCORDION */}
+className="
+flex
+w-full
+items-start
+justify-between
+gap-5
+py-5
+text-left
+"
 
+>
 
 
-      <div
 
-        className="
-        divide-y
+<div
 
-        divide-black/10
+className="
+flex
+gap-4
+"
 
-        border-y
+>
 
-        border-black/10
 
-        "
 
-      >
+<span
 
+className="
+font-serif
+text-lg
+font-bold
+text-[#163C80]/30
+"
 
+>
 
+{
 
+String(index+1)
+.padStart(2,"0")
 
-        {
+}
 
-          faqItems.map((item,index)=>(
+</span>
 
 
 
-            <div
 
-              key={index}
 
-              className="
-              "
+<span
 
-            >
+className="
+text-sm
+font-semibold
+leading-relaxed
+text-[#111]
 
+md:text-base
+"
 
+>
 
+{item.question}
 
+</span>
 
-              <button
 
-                type="button"
 
-                onClick={()=>
+</div>
 
 
-                  setOpenIndex(
 
-                    openIndex === index
 
-                    ?
 
-                    null
 
-                    :
 
-                    index
+<ChevronDown
 
-                  )
+size={20}
 
+className={`
 
-                }
+mt-1
 
-                className="
-                w-full
+shrink-0
 
-                flex
+text-[#EA661B]
 
-                items-start
+transition-transform
 
-                justify-between
+duration-300
 
-                gap-5
 
-                py-5
+${
+openIndex === index
 
-                text-left
+?
 
-                "
+"rotate-180"
 
-              >
+:
 
+""
+}
 
+`}
 
+/>
 
 
 
-                <div
+</button>
 
-                  className="
-                  flex
 
-                  gap-4
 
-                  "
 
-                >
 
 
 
+{
 
-                  <span
+openIndex === index && (
 
-                    className="
-                    font-serif
 
-                    text-lg
+<div
 
-                    font-bold
+className="
+ml-10
+pb-6
+pr-6
+text-sm
+leading-7
+text-gray-600
 
-                    text-[#163C80]/30
+md:text-base
+"
 
-                    "
+>
 
-                  >
+{item.answer}
 
-                    {
+</div>
 
-                      String(index+1)
-                      .padStart(2,"0")
 
-                    }
+)
 
-                  </span>
+}
 
 
 
+</div>
 
 
 
-                  <span
+))
 
-                    className="
-                    font-semibold
 
-                    text-sm
+}
 
-                    leading-relaxed
 
-                    text-[#111]
 
+</div>
 
-                    md:text-base
 
-                    "
 
-                  >
 
-                    {item.question}
 
-                  </span>
 
 
+</section>
 
 
-
-                </div>
-
-
-
-
-
-
-
-
-
-                <ChevronDown
-
-                  size={20}
-
-                  className={`
-
-                  shrink-0
-
-                  mt-1
-
-                  text-[#EA661B]
-
-                  transition-transform
-
-                  duration-300
-
-
-                  ${
-
-                  openIndex === index
-
-                  ?
-
-                  "rotate-180"
-
-                  :
-
-                  ""
-
-                  }
-
-                  `}
-
-                />
-
-
-
-
-
-              </button>
-
-
-
-
-
-
-
-
-
-              {
-
-                openIndex === index && (
-
-
-                  <div
-
-                    className="
-                    ml-10
-
-                    pb-5
-
-                    pr-4
-
-                    text-sm
-
-                    leading-7
-
-                    text-gray-600
-
-
-                    md:text-base
-
-                    "
-
-                  >
-
-                    {item.answer}
-
-                  </div>
-
-
-                )
-
-              }
-
-
-
-
-
-
-
-            </div>
-
-
-
-          ))
-
-        }
-
-
-
-
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-    </section>
-
-
-  );
+);
 
 }

@@ -2,14 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import Editor from "@/components/Editor";
 import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
+
 export const dynamic = "force-dynamic";
 
 
-/* =====================================================
-   HELPERS
-===================================================== */
+type ImageGalleryItem = {
+  url:string;
+  alt:string;
+  caption:string;
+  isPrimary:boolean;
+};
+
+
+type FAQItem = {
+  question:string;
+  answer:string;
+};
+
 
 function generateSlug(title:string){
 
@@ -32,25 +44,11 @@ function stripHtml(html:string){
 
 
 
-function convertHighlights(value:string){
-
-  return value
-    .split("\n")
-    .map(item=>item.trim())
-    .filter(Boolean);
-
-}
-
-
-
-function createEmptyFAQ(){
+function createEmptyFAQ():FAQItem{
 
   return {
-
     question:"",
-
     answer:""
-
   };
 
 }
@@ -58,13 +56,7 @@ function createEmptyFAQ(){
 
 
 
-
-/* =====================================================
-   CREATE POST
-===================================================== */
-
 export default function CreatePost(){
-
 
 const router = useRouter();
 
@@ -74,12 +66,6 @@ const searchParams = useSearchParams();
 const typeFromUrl =
 searchParams.get("type") || "news";
 
-
-
-
-/* =====================================================
-   STATES
-===================================================== */
 
 
 const [categories,setCategories] =
@@ -102,21 +88,13 @@ const [error,setError] =
 useState("");
 
 
-
 const [slugLocked,setSlugLocked] =
 useState(true);
 
 
 
 
-
-/* =====================================================
-   FORM
-===================================================== */
-
-
-const [form,setForm] =
-useState({
+const [form,setForm] = useState({
 
 title:"",
 
@@ -127,10 +105,21 @@ content:"",
 
 categoryId:"",
 
+
 postType:typeFromUrl,
 
 
-images:[] as string[],
+isEditorial:false,
+
+
+
+imageGallery:
+[] as ImageGalleryItem[],
+
+
+
+images:
+[] as string[],
 
 
 
@@ -140,17 +129,14 @@ videoPosition:"top",
 
 
 
-
 breaking:false,
 
 featured:false,
 
 
-
 breakingPriority:0,
 
 homepagePriority:0,
-
 
 
 breakingDuration:"30",
@@ -159,52 +145,46 @@ featuredDuration:"24",
 
 
 
-keyHighlights:"",
-
-whyItMatters:"",
-
-
-//////////////////////////////////////////////////////
-// ARTICLE INTELLIGENCE V1
-//////////////////////////////////////////////////////
 
 shortBrief:"",
+
+keyHighlights:
+[] as string[],
+
+whyItMatters:"",
 
 background:"",
 
 timeline:"",
 
-expertOpinion:{
-  name:"",
-  role:"",
-  quote:""
-},
 
-factCheck:{
-  claim:"",
-  status:"",
-  explanation:"",
-  sources:""
-},
+
+expertOpinion:
+[] as any[],
+
+
+factCheck:
+[] as any[],
+
 
 whatsNext:"",
 
-keyTakeaways:"",
+
+keyTakeaways:
+[] as string[],
+
+
 
 sourceDesk:"",
 
 
 
-faqItems:[] as {
-question:string;
-answer:string;
-}[],
+faqItems:
+[] as FAQItem[],
 
 
 
 publishedAt:"",
-
-
 
 
 metaTitle:"",
@@ -212,7 +192,6 @@ metaTitle:"",
 metaDescription:"",
 
 metaKeywords:"",
-
 
 
 
@@ -228,10 +207,148 @@ live:true
 
 
 
+function updateField(
+key:string,
+value:any
+){
 
-/* =====================================================
-   FAQ HANDLERS
-===================================================== */
+setForm(prev=>({
+
+...prev,
+
+[key]:value
+
+}));
+
+}
+
+
+
+
+
+
+useEffect(()=>{
+
+async function loadCategories(){
+
+try{
+
+const res =
+await fetch("/api/categories");
+
+
+const data =
+await res.json();
+
+
+const list =
+Array.isArray(data)
+?
+data
+:
+data?.categories || [];
+
+
+setCategories(list);
+
+
+}
+catch(err){
+
+console.error(
+"Category load error",
+err
+);
+
+setCategories([]);
+
+}
+
+}
+
+
+loadCategories();
+
+
+},[]);
+
+
+
+
+
+
+
+useEffect(()=>{
+
+
+if(
+form.title &&
+slugLocked
+){
+
+setForm(prev=>({
+
+...prev,
+
+slug:
+generateSlug(prev.title),
+
+
+metaTitle:
+prev.metaTitle || prev.title
+
+
+}));
+
+}
+
+
+},[
+form.title,
+slugLocked
+]);
+
+
+
+
+
+
+
+
+useEffect(()=>{
+
+
+if(
+form.content &&
+!form.metaDescription
+){
+
+
+const clean =
+stripHtml(form.content);
+
+
+
+setForm(prev=>({
+
+...prev,
+
+metaDescription:
+clean.substring(0,160)
+
+}));
+
+
+}
+
+
+},[
+form.content
+]);
+
+
+
+
 
 
 function addFAQ(){
@@ -254,18 +371,16 @@ createEmptyFAQ()
 
 
 
+
 function updateFAQ(
 index:number,
 key:"question"|"answer",
 value:string
 ){
 
-
 setForm(prev=>({
 
-
 ...prev,
-
 
 faqItems:
 
@@ -277,11 +392,8 @@ i===index
 ?
 
 {
-
 ...item,
-
 [key]:value
-
 }
 
 :
@@ -290,7 +402,6 @@ item
 
 )
 
-
 }));
 
 }
@@ -298,14 +409,12 @@ item
 
 
 
-function removeFAQ(index:number){
 
+function removeFAQ(index:number){
 
 setForm(prev=>({
 
-
 ...prev,
-
 
 faqItems:
 
@@ -313,7 +422,6 @@ prev.faqItems.filter(
 (_,i)=>i!==index
 )
 
-
 }));
 
 }
@@ -322,257 +430,147 @@ prev.faqItems.filter(
 
 
 
-/* =====================================================
-   LOAD CATEGORY
-===================================================== */
 
+function syncPrimaryImages(
+gallery:ImageGalleryItem[]
+){
 
-useEffect(()=>{
+const primary =
 
+gallery.find(
+img=>img.isPrimary
+)
 
-async function loadCategories(){
+||
 
-
-try{
-
-
-const res =
-await fetch("/api/categories");
-
-
-const data =
-await res.json();
+gallery[0];
 
 
 
-const list =
-Array.isArray(data)
+return {
+
+imageGallery:
+
+gallery.map(
+(img,index)=>({
+
+...img,
+
+isPrimary:
+
+primary
 ?
-data
+img.url===primary.url
 :
-data?.categories || [];
+index===0
 
+})
 
-
-setCategories(list);
-
-
-}
-catch(err){
-
-
-console.error(
-"Category fetch error",
-err
-);
-
-
-setCategories([]);
-
-
-}
-
-
-}
-
-
-
-loadCategories();
-
-
-},[]);
-
-
-
-
-
-
-
-/* =====================================================
-   AUTO SLUG
-===================================================== */
-
-
-useEffect(()=>{
-
-
-if(
-form.title &&
-slugLocked
-){
-
-
-setForm(prev=>({
-
-
-...prev,
-
-
-slug:
-generateSlug(prev.title),
-
-
-
-metaTitle:
-prev.metaTitle ||
-prev.title
-
-
-}));
-
-
-}
-
-
-},[
-form.title,
-slugLocked
-]);
-
-
-
-
-
-
-
-/* =====================================================
-   AUTO DESCRIPTION
-===================================================== */
-
-
-useEffect(()=>{
-
-
-if(
-form.content &&
-!form.metaDescription
-){
-
-
-const clean =
-stripHtml(form.content);
-
-
-
-setForm(prev=>({
-
-
-...prev,
-
-
-metaDescription:
-clean.substring(0,160)
-
-
-}));
-
-
-}
-
-
-},[
-form.content
-]);
-
-
-
-
-
-
-
-/* =====================================================
-   UPDATE FIELD
-===================================================== */
-
-
-function updateField(
-key:string,
-value:any
-){
-
-
-setForm(prev=>({
-
-...prev,
-
-[key]:value
-
-}));
-
-}
-
-
-
-
-
-
-/* =====================================================
-   IMAGE REMOVE
-===================================================== */
-
-
-function removeImage(index:number){
-
-
-setForm(prev=>({
-
-
-...prev,
+),
 
 
 images:
 
-prev.images.filter(
-(_,i)=>i!==index
-)
+primary
+?
+[primary.url]
+:
+[]
 
+};
 
-}));
 
 }
 
 
 
+function setPrimaryImage(index:number){
+
+setForm(prev=>{
+
+
+const updated =
+
+prev.imageGallery.map(
+(img,i)=>({
+
+...img,
+
+isPrimary:i===index
+
+})
+
+);
 
 
 
-/* =====================================================
-   IMAGE UPLOAD
-===================================================== */
+return {
+
+...prev,
+
+...syncPrimaryImages(updated)
+
+};
 
 
+});
+
+
+}
+
+
+
+function removeImage(index:number){
+
+setForm(prev=>{
+
+
+const updated =
+
+prev.imageGallery.filter(
+(_,i)=>i!==index
+);
+
+
+
+return {
+
+...prev,
+
+...syncPrimaryImages(updated)
+
+};
+
+
+});
+
+
+}
 async function handleImageUpload(
 files:FileList
 ){
 
-
 if(
-files.length + form.images.length > 5
+files.length + form.imageGallery.length > 5
 ){
-
 
 setError(
 "Maximum 5 images allowed"
 );
 
-
 return;
-
 
 }
 
 
 setUploading(true);
-
 setError("");
-
 
 
 try{
 
 
-const uploaded:string[]=[];
-
+const uploaded:ImageGalleryItem[]=[];
 
 
 for(
@@ -581,23 +579,18 @@ const file of Array.from(files)
 
 
 if(
-file.size > 2*1024*1024
+file.size > 2 * 1024 * 1024
 ){
-
 
 throw new Error(
 "Image size must be under 2MB"
 );
 
-
 }
 
 
 
-
-const fd =
-new FormData();
-
+const fd = new FormData();
 
 
 fd.append(
@@ -615,9 +608,7 @@ process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
 
 
 
-
-const response =
-await fetch(
+const response = await fetch(
 
 `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
 
@@ -633,16 +624,37 @@ body:fd
 
 
 
-const data =
-await response.json();
+const data = await response.json();
 
 
 
 if(data.secure_url){
 
-uploaded.push(
-data.secure_url
-);
+uploaded.push({
+
+url:data.secure_url,
+
+
+alt:
+
+form.title
+?
+`${form.title} - NationPath Image`
+:
+"NationPath Image",
+
+
+caption:
+
+form.title
+||
+"NationPath Article",
+
+
+isPrimary:false
+
+
+});
 
 }
 
@@ -653,49 +665,51 @@ data.secure_url
 
 
 
-setForm(prev=>({
+setForm(prev=>{
 
 
-...prev,
+const merged=[
 
-
-images:[
-
-...prev.images,
+...prev.imageGallery,
 
 ...uploaded
 
-]
+];
 
 
-}));
+return {
+
+...prev,
+
+...syncPrimaryImages(merged)
+
+};
+
+
+});
 
 
 }
 catch(err:any){
 
-
 setError(
-err.message ||
-"Upload failed"
+err.message || "Upload failed"
 );
-
 
 }
 finally{
 
-
 setUploading(false);
 
-
 }
 
 
 }
- 
-/* =====================================================
-   SUBMIT
-===================================================== */
+
+
+
+
+
 
 
 async function handleSubmit(
@@ -714,7 +728,8 @@ setMessage("");
 
 
 if(
-!form.title.trim() ||
+!form.title.trim()
+||
 !form.content.trim()
 ){
 
@@ -732,8 +747,10 @@ return;
 
 
 
+
 if(
-form.postType==="news" &&
+form.postType==="news"
+&&
 !form.categoryId
 ){
 
@@ -751,44 +768,141 @@ return;
 
 
 
-
 try{
 
 
-const payload = {
+const primaryImage =
+
+form.imageGallery.find(
+img=>img.isPrimary
+)
+
+||
+
+form.imageGallery[0];
+
+
+
+
+
+const payload={
 
 
 ...form,
 
 
+images:
+
+primaryImage
+?
+[primaryImage.url]
+:
+[],
+
+
+
+imageGallery:
+
+form.imageGallery,
+
+
+
 keyHighlights:
 
-convertHighlights(
-form.keyHighlights
-),
+Array.isArray(form.keyHighlights)
+
+?
+
+form.keyHighlights.filter(
+(item:string)=>item.trim()
+)
+
+:
+
+[],
+
+
+
+expertOpinion:
+
+Array.isArray(form.expertOpinion)
+
+?
+form.expertOpinion
+:
+[],
+
+
+
+factCheck:
+
+Array.isArray(form.factCheck)
+
+?
+form.factCheck
+:
+[],
+
+
+
+keyTakeaways:
+
+Array.isArray(form.keyTakeaways)
+
+?
+form.keyTakeaways
+:
+[],
+
+
+
+faqItems:
+
+Array.isArray(form.faqItems)
+
+?
+form.faqItems
+:
+[],
+
 
 
 
 publishedAt:
 
 form.publishedAt
+
 ?
+
 new Date(
 form.publishedAt
 ).toISOString()
+
 :
+
 null
 
 
 };
-console.log("EDITOR HTML:", form.content);
 
 
 
 
-const res =
-await fetch(
+
+console.log(
+"ARTICLE CREATE PAYLOAD",
+payload
+);
+
+
+
+
+
+
+const res = await fetch(
+
 "/api/articles",
+
 {
 
 method:"POST",
@@ -796,6 +910,7 @@ method:"POST",
 headers:{
 
 "Content-Type":
+
 "application/json"
 
 },
@@ -812,8 +927,9 @@ JSON.stringify(payload)
 
 
 
-const data =
-await res.json();
+
+
+const data = await res.json();
 
 
 
@@ -822,8 +938,11 @@ await res.json();
 if(!res.ok){
 
 throw new Error(
+
 data.error ||
+
 "Create failed"
+
 );
 
 }
@@ -840,13 +959,13 @@ setMessage(
 
 
 
-
-
 if(form.breaking){
 
 
 await fetch(
+
 "/api/push-breaking",
+
 {
 
 method:"POST",
@@ -854,9 +973,11 @@ method:"POST",
 headers:{
 
 "Content-Type":
+
 "application/json"
 
 },
+
 
 body:
 
@@ -866,7 +987,7 @@ type:"article_created",
 
 breaking:true,
 
-id:data.id
+id:data.article?.id
 
 })
 
@@ -882,10 +1003,10 @@ id:data.id
 
 
 
-
-
 await fetch(
+
 "/api/revalidate-breaking",
+
 {
 
 method:"POST"
@@ -904,12 +1025,13 @@ setTimeout(()=>{
 
 
 router.push(
+
 "/admin/posts"
+
 );
 
 
 },1200);
-
 
 
 
@@ -926,13 +1048,16 @@ err
 
 
 setError(
+
 err.message ||
+
 "Failed"
+
 );
 
 
-
 }
+
 finally{
 
 
@@ -942,10 +1067,7 @@ setLoading(false);
 }
 
 
-
 }
-
-
 
 
 
@@ -970,13 +1092,11 @@ md:p-8
 
 <div className="mb-8">
 
-
 <h1 className="text-3xl font-bold">
 
 Create {typeFromUrl.toUpperCase()} Post
 
 </h1>
-
 
 
 <p className="text-orange-400 mt-2">
@@ -987,7 +1107,6 @@ NationPath Editorial CMS
 
 
 </div>
-
 
 
 
@@ -1015,7 +1134,6 @@ text-green-300
 </div>
 
 }
-
 
 
 
@@ -1064,11 +1182,6 @@ gap-8
 
 
 
-
-{/* LEFT COLUMN */}
-
-
-
 <div
 
 className="
@@ -1077,11 +1190,6 @@ space-y-6
 "
 
 >
-
-
-
-
-
 
 
 <div
@@ -1097,7 +1205,7 @@ p-6
 >
 
 
-<label className="text-gray-400 text-sm">
+<label>
 
 Headline
 
@@ -1115,15 +1223,12 @@ rounded-xl
 bg-black/30
 border
 border-white/10
-outline-none
 "
+
+placeholder="Enter headline"
 
 
 value={form.title}
-
-
-
-placeholder="Enter headline"
 
 
 
@@ -1137,14 +1242,10 @@ e.target.value
 }
 
 
-
 />
 
+
 </div>
-
-
-
-
 
 
 
@@ -1162,11 +1263,10 @@ p-6
 
 >
 
-
 <div className="flex justify-between mb-3">
 
 
-<label className="text-gray-400">
+<label>
 
 URL Slug
 
@@ -1191,12 +1291,19 @@ text-xs
 >
 
 {
+
 slugLocked
+
 ?
+
 "Auto"
+
 :
+
 "Manual"
+
 }
+
 
 </button>
 
@@ -1205,8 +1312,9 @@ slugLocked
 
 
 
-
 <input
+
+disabled={slugLocked}
 
 className="
 w-full
@@ -1216,11 +1324,6 @@ bg-black/30
 border
 border-white/10
 "
-
-
-disabled={slugLocked}
-
-
 
 value={form.slug}
 
@@ -1236,15 +1339,10 @@ e.target.value
 }
 
 
-
 />
 
 
 </div>
-
-
-
-
 
 
 
@@ -1285,153 +1383,16 @@ v
 
 
 
+
+
 <ArticleIntelligenceForm
-  form={form}
-  updateField={updateField}
-/>
 
+form={form}
 
-
-
-
-<div
-
-className="
-bg-[#0e1726]
-border
-border-white/10
-rounded-2xl
-p-6
-"
-
->
-
-
-<h2 className="font-semibold mb-4">
-
-Key Highlights ⭐
-
-</h2>
-
-
-
-<textarea
-
-className="
-w-full
-h-36
-p-4
-rounded-xl
-bg-black/30
-border
-border-white/10
-"
-
-
-value={form.keyHighlights}
-
-
-
-placeholder="
-Important update
-
-Major point
-
-Reader benefit
-"
-
-
-
-onChange={(e)=>
-
-updateField(
-"keyHighlights",
-e.target.value
-)
-
-}
-
+updateField={updateField}
 
 />
-
-
-</div>
-
-
-
-
-
-
-
-
-<div
-
-className="
-bg-[#0e1726]
-border
-border-white/10
-rounded-2xl
-p-6
-"
-
->
-
-
-<h2 className="font-semibold mb-4">
-
-Why It Matters ⭐⭐⭐
-
-</h2>
-
-
-
-<textarea
-
-className="
-w-full
-h-36
-p-4
-rounded-xl
-bg-black/30
-border
-border-white/10
-"
-
-
-
-value={form.whyItMatters}
-
-
-
-placeholder="Explain why this news matters..."
-
-
-
-onChange={(e)=>
-
-updateField(
-"whyItMatters",
-e.target.value
-)
-
-}
-
-
-/>
-
-
-</div>
-
-
-
-
-
-
-
-
-{/* FAQ MODULE */}
-
-
+{/* FAQ */}
 
 <div
 
@@ -1468,7 +1429,6 @@ bg-blue-600
 px-4
 py-2
 rounded-lg
-text-sm
 "
 
 >
@@ -1483,9 +1443,10 @@ text-sm
 
 
 
-
 {
+
 form.faqItems.map(
+
 (item,index)=>(
 
 
@@ -1498,47 +1459,9 @@ mb-5
 p-4
 rounded-xl
 bg-black/20
-border
-border-white/10
 "
 
 >
-
-
-<div className="flex justify-between mb-3">
-
-
-<span className="text-orange-400 text-sm">
-
-FAQ {index+1}
-
-</span>
-
-
-
-<button
-
-type="button"
-
-onClick={()=>removeFAQ(index)}
-
-className="
-text-red-400
-text-sm
-"
-
->
-
-Remove
-
-</button>
-
-
-
-</div>
-
-
-
 
 
 <input
@@ -1549,13 +1472,9 @@ mb-3
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
 
-
 placeholder="Question"
-
 
 
 value={item.question}
@@ -1577,8 +1496,6 @@ e.target.value
 
 
 
-
-
 <textarea
 
 className="
@@ -1587,13 +1504,9 @@ h-28
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
 
-
 placeholder="Answer"
-
 
 
 value={item.answer}
@@ -1615,6 +1528,25 @@ e.target.value
 
 
 
+<button
+
+type="button"
+
+onClick={()=>removeFAQ(index)}
+
+className="
+text-red-400
+mt-3
+"
+
+>
+
+Remove
+
+</button>
+
+
+
 </div>
 
 
@@ -1627,811 +1559,1003 @@ e.target.value
 
 
 </div>
-          <div
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-            "
-          >
 
-            <h2 className="font-semibold mb-4">
-              Video
-            </h2>
 
 
-            <input
 
-              className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-              "
 
-              placeholder="YouTube URL"
 
+{/* VIDEO */}
 
-              value={form.videoUrl}
 
+<div
 
-              onChange={(e)=>
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
-                updateField(
-                  "videoUrl",
-                  e.target.value
-                )
+>
 
-              }
 
-            />
+<h2 className="font-semibold mb-4">
 
+Video
 
+</h2>
 
-            <select
 
-              className="
-                w-full
-                mt-4
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-              "
 
+<input
 
-              value={form.videoPosition}
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
+placeholder="YouTube URL"
 
-              onChange={(e)=>
 
-                updateField(
-                  "videoPosition",
-                  e.target.value
-                )
+value={form.videoUrl}
 
-              }
 
-            >
 
-              <option value="top">
-                Top
-              </option>
+onChange={(e)=>
 
-              <option value="middle">
-                Middle
-              </option>
+updateField(
+"videoUrl",
+e.target.value
+)
 
-              <option value="bottom">
-                Bottom
-              </option>
+}
 
 
-            </select>
+/>
 
 
-          </div>
 
 
+<select
 
+className="
+w-full
+mt-4
+p-3
+rounded-xl
+bg-black/30
+"
 
+value={form.videoPosition}
 
 
 
-          <div
+onChange={(e)=>
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-            "
+updateField(
+"videoPosition",
+e.target.value
+)
 
-          >
+}
 
-            <h2 className="font-semibold mb-4">
-              Media Gallery
-            </h2>
 
+>
 
 
-            <input
+<option value="top">
+Top
+</option>
 
-              type="file"
+<option value="middle">
+Middle
+</option>
 
-              multiple
+<option value="bottom">
+Bottom
+</option>
 
-              accept="image/*"
 
+</select>
 
-              onChange={(e)=>
 
-                e.target.files &&
-                handleImageUpload(
-                  e.target.files
-                )
 
-              }
+</div>
 
 
-            />
 
 
 
-            {
-              uploading &&
 
-              <p className="text-orange-400 mt-3">
-                Uploading...
-              </p>
+{/* MEDIA GALLERY */}
 
-            }
 
+<div
 
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
+>
 
-            <div className="flex gap-4 flex-wrap mt-5">
 
+<h2 className="font-semibold mb-4">
 
-              {
-                form.images.map(
-                  (img,index)=>(
+Media Gallery
 
-                    <div
+</h2>
 
-                      key={index}
 
-                      className="relative"
 
-                    >
+<input
 
+type="file"
 
-                      <img
+multiple
 
-                        src={img}
+accept="image/*"
 
-                        className="
-                          w-32
-                          h-24
-                          object-cover
-                          rounded-xl
-                        "
 
-                      />
 
+onChange={(e)=>
 
+e.target.files &&
+handleImageUpload(
+e.target.files
+)
 
-                      <button
+}
 
-                        type="button"
 
-                        onClick={()=>
-                          removeImage(index)
-                        }
+/>
 
-                        className="
-                          absolute
-                          -top-2
-                          -right-2
-                          bg-red-600
-                          rounded-full
-                          w-6
-                          h-6
-                        "
 
-                      >
 
-                        ×
 
-                      </button>
+{
 
+uploading &&
 
-                    </div>
+<p className="text-orange-400 mt-3">
 
-                  )
+Uploading...
 
-                )
+</p>
 
-              }
+}
 
 
-            </div>
 
 
-          </div>
+<div className="space-y-6 mt-6">
 
 
+{
 
+form.imageGallery.map(
 
+(img,index)=>(
 
-        </div>
 
+<div
 
+key={index}
 
+className="
+bg-black/20
+rounded-xl
+p-4
+"
 
+>
 
 
+<img
 
+src={img.url}
 
+alt={img.alt}
 
+className="
+w-full
+h-48
+object-cover
+rounded-xl
+mb-4
+"
 
-        {/* RIGHT COLUMN */}
+/>
 
 
-        <div className="space-y-6">
 
 
+<input
 
+className="
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
+"
 
+placeholder="SEO Alt Text"
 
 
-          <div
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-            "
+value={img.alt}
 
-          >
 
-            <h2 className="font-semibold mb-4">
 
-              Publishing
+onChange={(e)=>
 
-            </h2>
+setForm(prev=>({
 
+...prev,
 
+imageGallery:
 
+prev.imageGallery.map(
 
-            <select
+(item,i)=>
 
-              className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-              "
+i===index
 
+?
 
-              value={form.categoryId}
+{
 
+...item,
 
-              onChange={(e)=>
+alt:e.target.value
 
-                updateField(
-                  "categoryId",
-                  e.target.value
-                )
+}
 
-              }
+:
 
+item
 
-            >
+)
 
-              <option value="">
-                Select Category
-              </option>
+}))
 
+}
 
 
-              {
-                categories.map(cat=>(
 
-                  <option
+/>
 
-                    key={cat.id}
 
-                    value={cat.id}
 
-                  >
+<input
 
-                    {cat.name}
+className="
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
+"
 
-                  </option>
+placeholder="Caption"
 
 
-                ))
-              }
 
+value={img.caption}
 
-            </select>
 
 
-          </div>
+onChange={(e)=>
 
+setForm(prev=>({
 
+...prev,
 
+imageGallery:
 
+prev.imageGallery.map(
 
+(item,i)=>
 
+i===index
 
-          <div
+?
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-            "
+{
 
-          >
+...item,
 
-            <h2 className="font-semibold mb-4">
+caption:e.target.value
 
-              Schedule Publish
+}
 
-            </h2>
+:
 
+item
 
+)
 
-            <input
+}))
 
-              type="datetime-local"
+}
 
 
-              className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-                border
-                border-white/10
-              "
 
+/>
 
-              value={form.publishedAt}
 
 
-              onChange={(e)=>
 
-                updateField(
-                  "publishedAt",
-                  e.target.value
-                )
+<div className="flex gap-3">
 
-              }
 
+<button
 
-            />
+type="button"
 
+onClick={()=>setPrimaryImage(index)}
 
+className="
+bg-orange-600
+px-4
+py-2
+rounded-lg
+"
 
-            <p className="text-xs text-gray-400 mt-3">
+>
 
-              Leave empty for immediate publishing.
 
-            </p>
+{
 
+img.isPrimary
 
-          </div>
+?
 
+"⭐ Primary"
 
+:
 
+"Set Primary"
 
+}
 
 
+</button>
 
 
 
 
-          <div
+<button
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-            "
+type="button"
 
-          >
+onClick={()=>removeImage(index)}
 
-            <label>
+className="
+bg-red-600
+px-4
+py-2
+rounded-lg
+"
 
-              Status
+>
 
-            </label>
+Remove
 
+</button>
 
 
-            <select
+</div>
 
-              className="
-                w-full
-                mt-3
-                p-3
-                rounded-xl
-                bg-black/30
-              "
 
 
-              value={form.status}
+</div>
 
 
-              onChange={(e)=>
+)
 
-                updateField(
-                  "status",
-                  e.target.value
-                )
+)
 
-              }
+}
 
 
-            >
+</div>
 
-              <option value="pending">
-                Pending
-              </option>
 
-              <option value="approved">
-                Approved
-              </option>
+</div>
 
-              <option value="draft">
-                Draft
-              </option>
 
 
-            </select>
 
+</div>
 
-          </div>
 
 
 
 
 
 
+{/* RIGHT COLUMN */}
 
 
 
+<div
 
-          <div
+className="
+space-y-6
+"
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              space-y-5
-            "
+>
 
-          >
 
-            <h2 className="font-semibold">
 
-              News Controls
 
-            </h2>
 
 
+<div
 
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
+>
 
-            <label className="flex justify-between">
 
-              Breaking
+<h2 className="font-semibold mb-4">
 
+Publishing
 
-              <input
+</h2>
 
-                type="checkbox"
 
 
-                checked={form.breaking}
+<select
 
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-                onChange={(e)=>
+value={form.categoryId}
 
-                  updateField(
-                    "breaking",
-                    e.target.checked
-                  )
 
-                }
 
+onChange={(e)=>
 
-              />
+updateField(
+"categoryId",
+e.target.value
+)
 
+}
 
-            </label>
 
+>
 
 
+<option value="">
 
+Select Category
 
+</option>
 
-            {
-              form.breaking &&
 
-              <select
 
-                className="
-                  w-full
-                  p-3
-                  rounded-xl
-                  bg-black/30
-                "
+{
 
+categories.map(cat=>(
 
-                value={form.breakingDuration}
 
+<option
 
-                onChange={(e)=>
+key={cat.id}
 
-                  updateField(
-                    "breakingDuration",
-                    e.target.value
-                  )
+value={cat.id}
 
-                }
+>
 
+{cat.name}
 
-              >
+</option>
 
-                <option value="30">
-                  30 Minutes
-                </option>
 
-                <option value="60">
-                  1 Hour
-                </option>
+))
 
-                <option value="180">
-                  3 Hours
-                </option>
+}
 
-                <option value="360">
-                  6 Hours
-                </option>
 
-                <option value="1440">
-                  24 Hours
-                </option>
 
+</select>
 
-              </select>
 
-            }
+</div>
 
 
 
 
 
 
-            <label className="flex justify-between">
+<div
 
-              Featured
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
+>
 
-              <input
+<h2 className="font-semibold mb-4">
 
-                type="checkbox"
+Schedule Publish
 
-                checked={form.featured}
+</h2>
 
 
-                onChange={(e)=>
 
-                  updateField(
-                    "featured",
-                    e.target.checked
-                  )
+<input
 
-                }
+type="datetime-local"
 
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-              />
+value={form.publishedAt}
 
 
-            </label>
 
+onChange={(e)=>
 
+updateField(
+"publishedAt",
+e.target.value
+)
 
-          </div>
+}
 
 
+/>
 
 
+</div>
 
 
 
 
 
-          <div
 
-            className="
-              bg-[#0e1726]
-              border
-              border-white/10
-              rounded-2xl
-              p-6
-              space-y-4
-            "
+<div
 
-          >
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+"
 
-            <h2 className="font-semibold">
+>
 
-              SEO
+<h2 className="font-semibold mb-4">
 
-            </h2>
+Status
 
+</h2>
 
 
 
-            <input
+<select
 
-              className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-              "
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
+value={form.status}
 
-              placeholder="Meta Title"
 
 
-              value={form.metaTitle}
+onChange={(e)=>
 
+updateField(
+"status",
+e.target.value
+)
 
-              onChange={(e)=>
+}
 
-                updateField(
-                  "metaTitle",
-                  e.target.value
-                )
 
-              }
+>
 
 
-            />
+<option value="pending">
 
+Pending
 
+</option>
 
 
+<option value="approved">
 
+Approved
 
-            <textarea
+</option>
 
-              className="
-                w-full
-                h-28
-                p-3
-                rounded-xl
-                bg-black/30
-              "
 
+<option value="draft">
 
-              placeholder="Meta Description"
+Draft
 
+</option>
 
-              value={form.metaDescription}
 
+</select>
 
-              onChange={(e)=>
 
-                updateField(
-                  "metaDescription",
-                  e.target.value
-                )
 
-              }
+</div>
 
 
-            />
 
 
 
 
 
+<div
 
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-5
+"
 
-            <input
+>
 
-              className="
-                w-full
-                p-3
-                rounded-xl
-                bg-black/30
-              "
 
+<h2 className="font-semibold">
 
-              placeholder="Meta Keywords"
+News Controls
 
+</h2>
 
-              value={form.metaKeywords}
 
 
-              onChange={(e)=>
+<label className="flex justify-between">
 
-                updateField(
-                  "metaKeywords",
-                  e.target.value
-                )
+Breaking
 
-              }
 
+<input
 
-            />
+type="checkbox"
 
+checked={form.breaking}
 
 
-          </div>
 
+onChange={(e)=>
 
+updateField(
+"breaking",
+e.target.checked
+)
 
+}
 
 
+/>
 
+</label>
 
 
 
 
-          <button
 
-            disabled={loading}
+{
 
+form.breaking &&
 
-            className="
-              w-full
-              py-4
-              rounded-xl
-              bg-orange-600
-              font-semibold
-            "
 
+<select
 
-          >
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
 
-            {
-              loading
+value={form.breakingDuration}
 
-              ?
 
-              "Publishing..."
 
-              :
+onChange={(e)=>
 
-              "Create Post"
+updateField(
+"breakingDuration",
+e.target.value
+)
 
-            }
+}
 
 
-          </button>
+>
 
 
+<option value="30">
 
+30 Minutes
 
+</option>
 
 
-        </div>
+<option value="60">
 
+1 Hour
 
+</option>
 
 
+<option value="180">
 
-      </form>
+3 Hours
 
+</option>
 
-    </div>
 
-  );
+<option value="1440">
 
+24 Hours
+
+</option>
+
+
+</select>
+
+
+}
+
+
+
+
+
+<label className="flex justify-between">
+
+Featured
+
+
+<input
+
+type="checkbox"
+
+checked={form.featured}
+
+
+
+onChange={(e)=>
+
+updateField(
+"featured",
+e.target.checked
+)
+
+}
+
+
+/>
+
+
+</label>
+
+
+
+</div>
+
+
+
+
+
+
+<div
+
+className="
+bg-[#0e1726]
+border
+border-white/10
+rounded-2xl
+p-6
+space-y-4
+"
+
+>
+
+
+<h2>
+
+SEO
+
+</h2>
+
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+placeholder="Meta Title"
+
+
+
+value={form.metaTitle}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaTitle",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+<textarea
+
+className="
+w-full
+h-28
+p-3
+rounded-xl
+bg-black/30
+"
+
+placeholder="Meta Description"
+
+
+
+value={form.metaDescription}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaDescription",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+
+
+<input
+
+className="
+w-full
+p-3
+rounded-xl
+bg-black/30
+"
+
+placeholder="Meta Keywords"
+
+
+
+value={form.metaKeywords}
+
+
+
+onChange={(e)=>
+
+updateField(
+"metaKeywords",
+e.target.value
+)
+
+}
+
+
+/>
+
+
+</div>
+
+
+
+
+
+
+<button
+
+type="submit"
+
+disabled={loading}
+
+className="
+w-full
+py-4
+rounded-xl
+bg-orange-600
+font-semibold
+"
+
+>
+
+
+{
+
+loading
+
+?
+
+"Publishing..."
+
+:
+
+"Create Post"
+
+}
+
+
+</button>
+
+
+
+
+</div>
+
+
+
+
+
+
+</form>
+
+
+</div>
+
+
+);
 
 }

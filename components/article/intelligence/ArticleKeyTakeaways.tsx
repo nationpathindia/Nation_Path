@@ -5,6 +5,7 @@ interface ArticleKeyTakeawaysProps {
 export default function ArticleKeyTakeaways({
   keyTakeaways,
 }: ArticleKeyTakeawaysProps) {
+
   if (
     !Array.isArray(keyTakeaways) ||
     keyTakeaways.length === 0
@@ -13,38 +14,77 @@ export default function ArticleKeyTakeaways({
   }
 
   return (
-    <ul
+
+    <div
       className="
-        space-y-3
+        grid
+        gap-4
+        md:grid-cols-2
       "
     >
+
       {keyTakeaways.map((item, index) => (
-        <li
+
+        <div
           key={`${item}-${index}`}
           className="
             flex
-            gap-3
-            text-base
-            leading-7
-            text-gray-700
+            items-start
+            gap-4
+            rounded-2xl
+            border
+            border-gray-100
+            bg-gradient-to-br
+            from-white
+            to-[#FAFAFB]
+            p-5
+            shadow-sm
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:shadow-md
           "
         >
-          <span
+
+          <div
             className="
-              mt-2
-              h-2
-              w-2
+              mt-1
+              flex
+              h-8
+              w-8
               shrink-0
+              items-center
+              justify-center
               rounded-full
               bg-[#163C80]
+              text-sm
+              font-bold
+              text-white
             "
-          />
+          >
+            ✓
+          </div>
 
-          <span>
-            {item}
-          </span>
-        </li>
+          <div>
+
+            <p
+              className="
+                text-[15px]
+                leading-7
+                text-gray-800
+              "
+            >
+              {item}
+            </p>
+
+          </div>
+
+        </div>
+
       ))}
-    </ul>
+
+    </div>
+
   );
+
 }

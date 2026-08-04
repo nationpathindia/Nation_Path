@@ -2,14 +2,32 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+
 import ArticleShareBar from "@/components/article/ArticleShareBar";
+
+
+
+interface GalleryImage {
+
+  url:string;
+
+  alt?:string;
+
+  caption?:string;
+
+  isPrimary?:boolean;
+
+}
+
 
 
 interface ArticleHeroProps {
 
-  image?: string;
+  image?:string;
 
-  images?: string[];
+  images?:string[];
+
+  imageGallery?:GalleryImage[];
 
   title:string;
 
@@ -19,11 +37,17 @@ interface ArticleHeroProps {
 
 
 
+
+
+
+
 export default function ArticleHero({
 
   image,
 
   images = [],
+
+  imageGallery = [],
 
   title,
 
@@ -33,73 +57,79 @@ export default function ArticleHero({
 
 
 
-  const gallery =
 
-    images.length > 0
 
-    ? images
+const gallery:GalleryImage[] =
 
-    : image
 
-    ? [image]
+imageGallery.length > 0
 
-    : [];
 
+?
 
+imageGallery
 
 
+:
 
-  const [activeIndex,setActiveIndex] = useState(0);
 
+images.length > 0
 
 
+?
 
 
-  useEffect(()=>{
+images.map((url)=>({
 
 
-    if(gallery.length <= 1){
+url,
 
-      return;
 
-    }
+alt:title,
 
 
-    const timer = setInterval(()=>{
+caption:"",
 
 
-      setActiveIndex((prev)=>
+isPrimary:false
 
-        prev === gallery.length - 1
 
-        ? 0
 
-        : prev + 1
+}))
 
-      );
 
+:
 
-    },5000);
 
+image
+?
 
+[{
+  url:image,
+  alt:title,
+  caption:"",
+  isPrimary:true
+}]
 
-    return ()=>clearInterval(timer);
+:
 
+[];
 
 
-  },[gallery.length]);
 
 
 
 
 
+const primaryIndex =
 
+gallery.findIndex(
 
-  if(!gallery.length){
+(img)=>
 
-    return null;
+img.isPrimary
 
-  }
+);
 
 
 
@@ -107,21 +137,22 @@ export default function ArticleHero({
 
 
 
-  function nextImage(){
+const [activeIndex,setActiveIndex] =
 
+useState(
 
-    setActiveIndex((prev)=>
+primaryIndex >= 0
 
-      prev === gallery.length - 1
+?
 
-      ? 0
+primaryIndex
 
-      : prev + 1
+:
 
-    );
+0
 
+);
 
-  }
 
 
 
@@ -129,389 +160,328 @@ export default function ArticleHero({
 
 
 
-  function previousImage(){
 
+/*
+=====================================================
+ RESET ACTIVE IMAGE
+=====================================================
+*/
 
-    setActiveIndex((prev)=>
 
-      prev === 0
+useEffect(()=>{
 
-      ? gallery.length - 1
 
-      : prev - 1
+const primary =
 
-    );
+gallery.findIndex(
 
+(img)=>
 
-  }
+img.isPrimary
 
+);
 
 
 
 
+setActiveIndex(
 
+primary >= 0
 
+?
 
-  return (
+primary
 
+:
 
-    <figure
+0
 
-      className="
-      mb-12
-      "
+);
 
-    >
 
 
+},[imageGallery]);
 
 
-      <div
 
-        className="
-        group
-        relative
 
-        aspect-[16/10]
 
-        sm:aspect-[16/9]
 
-        w-full
 
-        overflow-hidden
 
-        rounded-2xl
 
-        bg-black/5
 
-        "
 
-      >
+/*
+=====================================================
+ AUTO SLIDER
+=====================================================
+*/
 
 
+useEffect(()=>{
 
 
+if(gallery.length <= 1){
 
-        <Image
+return;
 
-          key={gallery[activeIndex]}
+}
 
-          src={gallery[activeIndex]}
 
-          alt={title}
 
-          fill
+const timer = setInterval(()=>{
 
-          priority={activeIndex === 0}
 
-          sizes="
-          (max-width:640px) 100vw,
-          (max-width:1024px) 90vw,
-          900px
-          "
+setActiveIndex((prev)=>
 
-          className="
-          object-cover
 
-          scale-100
+prev === gallery.length - 1
 
-          group-hover:scale-105
 
-          transition-all
+?
 
-          duration-[1200ms]
+0
 
-          ease-out
 
-          "
+:
 
-        />
 
+prev + 1
 
 
 
+);
 
 
 
+},5000);
 
-        {
-          gallery.length > 1 &&
 
-          <>
 
 
-            <button
 
-              type="button"
+return ()=>clearInterval(timer);
 
-              onClick={previousImage}
 
-              aria-label="Previous image"
 
-              className="
-              absolute
+},[gallery.length]);
 
-              left-4
 
-              top-1/2
 
-              -translate-y-1/2
 
-              flex
 
-              items-center
 
-              justify-center
 
-              h-10
 
-              w-10
 
-              rounded-full
+if(!gallery.length){
 
-              bg-black/40
+return null;
 
-              backdrop-blur-md
+}
 
-              border
 
-              border-white/20
 
-              text-white
 
-              text-xl
 
-              "
 
-            >
 
-              ‹
 
-            </button>
 
+function nextImage(){
 
 
+setActiveIndex((prev)=>
 
 
+prev === gallery.length - 1
 
 
-            <button
+?
 
-              type="button"
 
-              onClick={nextImage}
+0
 
-              aria-label="Next image"
 
-              className="
-              absolute
+:
 
-              right-4
 
-              top-1/2
+prev + 1
 
-              -translate-y-1/2
 
-              flex
 
-              items-center
+);
 
-              justify-center
 
-              h-10
+}
 
-              w-10
 
-              rounded-full
 
-              bg-black/40
 
-              backdrop-blur-md
 
-              border
 
-              border-white/20
 
-              text-white
+function previousImage(){
 
-              text-xl
 
-              "
+setActiveIndex((prev)=>
 
-            >
 
-              ›
+prev === 0
 
-            </button>
 
+?
 
 
+gallery.length - 1
 
 
+:
 
 
+prev - 1
 
-            <div
 
-              className="
-              absolute
 
-              bottom-5
+);
 
-              left-1/2
 
-              -translate-x-1/2
+}
 
-              flex
 
-              gap-2
 
-              "
 
-            >
 
 
-              {
-                gallery.map((_,index)=>(
 
 
-                  <button
+const activeImage =
 
-                    key={index}
+gallery[activeIndex];
 
-                    type="button"
 
-                    onClick={()=>setActiveIndex(index)}
 
-                    aria-label={`Go to image ${index + 1}`}
 
-                    className={`
 
-                    h-2
 
-                    rounded-full
 
-                    transition-all
 
+return (
 
-                    ${
-                      activeIndex === index
 
-                      ?
 
-                      "w-6 bg-white"
+<figure
 
-                      :
+className="
 
-                      "w-2 bg-white/60"
+mb-12
 
-                    }
+"
 
-                    `}
+>
 
-                  />
 
 
-                ))
 
-              }
 
 
-            </div>
 
 
+<div
 
-          </>
+className="
 
+group
 
-        }
+relative
 
+aspect-[16/10]
 
+sm:aspect-[16/9]
 
+w-full
 
+overflow-hidden
 
-      </div>
+rounded-2xl
 
+bg-black/5
 
+"
 
+>
 
 
 
 
 
 
-      {/* ================= HERO FOOTER ================= */}
 
+<Image
 
-      <figcaption
 
-        className="
-        mt-2
+key={activeImage.url}
 
-        flex
 
-        flex-col
+src={activeImage.url}
 
-        gap-3
 
+alt={
 
-        sm:flex-row
+activeImage.alt
 
-        sm:items-center
+||
 
-        sm:justify-between
+title
 
-        "
+}
 
-      >
 
 
+fill
 
 
 
-        {/* LEFT */}
+priority={
 
-        <div
+activeIndex===0
 
-          className="
-          flex
+}
 
-          items-center
 
-          gap-3
 
-          text-xs
+sizes="
 
-          uppercase
+(max-width:640px) 100vw,
 
-          tracking-[0.18em]
+(max-width:1024px) 90vw,
 
-          text-gray-500
+900px
 
-          "
+"
 
-        >
 
 
-          <span
+className="
 
-            className="
-            h-[1px]
+object-cover
 
-            w-8
+scale-100
 
-            bg-[#EA661B]
+group-hover:scale-105
 
-            "
+transition-all
 
-          />
+duration-[1200ms]
 
+ease-out
 
-          NationPath Visual Report
+"
 
 
-        </div>
 
+/>
 
 
 
@@ -519,31 +489,395 @@ export default function ArticleHero({
 
 
 
-        {/* RIGHT */}
 
-        <ArticleShareBar
 
-          title={title}
 
-          url={shareUrl}
 
-        />
 
+{
 
+gallery.length > 1
 
+&&
 
+<>
 
-      </figcaption>
 
+<button
 
 
+type="button"
 
 
+onClick={previousImage}
 
 
-    </figure>
+aria-label="Previous image"
 
 
-  );
+className="
+
+absolute
+
+left-4
+
+top-1/2
+
+-translate-y-1/2
+
+flex
+
+items-center
+
+justify-center
+
+h-10
+
+w-10
+
+rounded-full
+
+bg-black/40
+
+backdrop-blur-md
+
+border
+
+border-white/20
+
+text-white
+
+text-xl
+
+"
+
+
+>
+
+‹
+
+</button>
+
+
+
+
+
+
+
+
+<button
+
+
+type="button"
+
+
+onClick={nextImage}
+
+
+aria-label="Next image"
+
+
+className="
+
+absolute
+
+right-4
+
+top-1/2
+
+-translate-y-1/2
+
+flex
+
+items-center
+
+justify-center
+
+h-10
+
+w-10
+
+rounded-full
+
+bg-black/40
+
+backdrop-blur-md
+
+border
+
+border-white/20
+
+text-white
+
+text-xl
+
+"
+
+
+>
+
+›
+
+</button>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+
+absolute
+
+bottom-5
+
+left-1/2
+
+-translate-x-1/2
+
+flex
+
+gap-2
+
+"
+
+>
+
+
+{
+
+gallery.map((_,index)=>(
+
+
+<button
+
+
+key={index}
+
+
+type="button"
+
+
+onClick={()=>setActiveIndex(index)}
+
+
+aria-label={`Go to image ${index+1}`}
+
+
+className={`
+
+h-2
+
+rounded-full
+
+transition-all
+
+
+${
+
+activeIndex===index
+
+?
+
+"w-6 bg-white"
+
+:
+
+"w-2 bg-white/60"
+
+}
+
+`}
+
+
+/>
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+</>
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+{
+
+activeImage.caption &&
+
+
+<p
+
+className="
+
+mt-3
+
+text-sm
+
+italic
+
+text-gray-500
+
+"
+
+>
+
+
+{activeImage.caption}
+
+
+</p>
+
+
+}
+
+
+
+
+
+
+
+
+
+<figcaption
+
+className="
+
+mt-4
+
+flex
+
+flex-col
+
+gap-3
+
+sm:flex-row
+
+sm:items-center
+
+sm:justify-between
+
+"
+
+>
+
+
+
+
+
+
+<div
+
+className="
+
+flex
+
+items-center
+
+gap-3
+
+text-xs
+
+uppercase
+
+tracking-[0.18em]
+
+text-gray-500
+
+"
+
+>
+
+
+<span
+
+className="
+
+h-[1px]
+
+w-8
+
+bg-[#EA661B]
+
+"
+
+/>
+
+
+
+NationPath Visual Report
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<ArticleShareBar
+
+
+title={title}
+
+
+url={shareUrl}
+
+
+/>
+
+
+
+
+
+
+
+</figcaption>
+
+
+
+
+
+
+
+
+</figure>
+
+
+);
+
 
 }

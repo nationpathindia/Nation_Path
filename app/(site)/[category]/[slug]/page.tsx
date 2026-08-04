@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRenderer";
+
 import ArticleIntelligence from "@/components/article/ArticleIntelligence";
 import ArticleReadingProgress from "@/components/article/ArticleReadingProgress";
 import ArticleHeader from "@/components/article/ArticleHeader";
@@ -27,6 +28,12 @@ export const revalidate = 0;
 
 
 
+/*
+=====================================================
+ TYPES
+=====================================================
+*/
+
 
 interface Props {
 
@@ -42,12 +49,28 @@ interface Props {
 
 
 
+type ImageGalleryItem = {
+
+  url:string;
+
+  alt?:string;
+
+  caption?:string;
+
+  isPrimary?:boolean;
+
+};
+
+
+
+
 
 /*
 =====================================================
  SITE URL
 =====================================================
 */
+
 
 const SITE_URL =
 process.env.NEXT_PUBLIC_SITE_URL ||
@@ -58,11 +81,13 @@ process.env.NEXT_PUBLIC_SITE_URL ||
 
 
 
+
 /*
 =====================================================
- PUBLISHED FILTER
+ HELPERS
 =====================================================
 */
+
 
 function isPublishedFilter(){
 
@@ -92,6 +117,89 @@ function isPublishedFilter(){
 
 
 
+function cleanText(html:string){
+
+
+return html
+
+.replace(/<\/?[^>]+(>|$)/g,"")
+
+.replace(/\s+/g," ")
+
+.trim();
+
+
+}
+
+
+
+
+
+
+function getPrimaryImage(article:any){
+
+
+const gallery:Array<ImageGalleryItem> =
+
+Array.isArray(article.imageGallery)
+
+?
+
+article.imageGallery
+
+:
+
+[];
+
+
+
+
+return (
+
+gallery.find(
+
+(img)=>img.isPrimary
+
+)?.url
+
+)
+
+||
+
+article.images?.[0]
+
+||
+
+null;
+
+
+}
+
+
+
+
+
+
+function getGallery(article:any):ImageGalleryItem[]{
+
+
+return Array.isArray(article.imageGallery)
+
+?
+
+article.imageGallery
+
+:
+
+[];
+
+
+}
+
+
+
+
+
 
 
 
@@ -107,6 +215,7 @@ export async function generateMetadata({
 params,
 
 }:Props):Promise<Metadata>{
+
 
 
 const {
@@ -133,6 +242,7 @@ slug:categorySlug
 
 
 
+
 if(!category){
 
 return {
@@ -142,6 +252,7 @@ title:"Nation Path India"
 };
 
 }
+
 
 
 
@@ -164,7 +275,9 @@ status:"approved",
 
 isDeleted:false,
 
+
 isAstrology:false,
+
 
 ...isPublishedFilter()
 
@@ -173,6 +286,7 @@ isAstrology:false,
 
 
 });
+
 
 
 
@@ -187,6 +301,15 @@ title:"Nation Path India"
 };
 
 }
+
+
+
+
+
+const primaryImage =
+
+getPrimaryImage(article);
+
 
 
 
@@ -226,16 +349,6 @@ article.excerpt ||
 
 
 
-const image =
-
-article.images?.[0] || null;
-
-
-
-
-
-
-
 return {
 
 
@@ -256,13 +369,9 @@ article.title,
 
 "India News",
 
-"Breaking News",
-
-"Latest Updates"
+"Breaking News"
 
 ],
-
-
 
 
 
@@ -275,7 +384,6 @@ canonical
 
 
 
-
 robots:{
 
 index:true,
@@ -283,8 +391,6 @@ index:true,
 follow:true
 
 },
-
-
 
 
 
@@ -307,7 +413,6 @@ url:canonical,
 siteName:"Nation Path India",
 
 
-
 locale:"en_IN",
 
 
@@ -318,13 +423,18 @@ article.publishedAt?.toISOString(),
 
 
 
+
 modifiedTime:
 
 article.updatedAt?.toISOString(),
 
 
 
-images:image
+
+
+images:
+
+primaryImage
 
 ?
 
@@ -332,7 +442,7 @@ images:image
 
 {
 
-url:image,
+url:primaryImage,
 
 width:1200,
 
@@ -355,8 +465,6 @@ alt:article.title
 
 
 
-
-
 twitter:{
 
 
@@ -370,16 +478,17 @@ description,
 
 
 
-images:image
+images:
+
+primaryImage
 
 ?
 
-[image]
+[primaryImage]
 
 :
 
 []
-
 
 
 }
@@ -390,6 +499,20 @@ images:image
 
 
 }
+
+
+
+
+
+
+
+/*
+=====================================================
+ PAGE
+=====================================================
+*/
+
+
 export default async function ArticlePage({
 
 params,
@@ -429,6 +552,7 @@ slug:categorySlug
 
 
 
+
 if(!category){
 
 return notFound();
@@ -440,10 +564,9 @@ return notFound();
 
 
 
-
 /*
 =====================================================
- ARTICLE
+ ARTICLE FETCH
 =====================================================
 */
 
@@ -489,6 +612,7 @@ category:true
 
 
 
+
 if(!article){
 
 return notFound();
@@ -511,6 +635,25 @@ article.publishedAt > new Date()
 return notFound();
 
 }
+
+
+
+/*
+=====================================================
+ IMAGE DATA
+=====================================================
+*/
+
+
+const gallery =
+
+getGallery(article);
+
+
+
+const primaryImage =
+
+getPrimaryImage(article);
 
 
 
@@ -590,6 +733,7 @@ error
 
 
 }
+
 
 
 
@@ -691,7 +835,6 @@ category:true
 
 
 });
-
 
 
 
@@ -857,24 +1000,6 @@ category:true
 */
 
 
-function cleanText(html:string){
-
-
-return html
-
-.replace(/<\/?[^>]+(>|$)/g,"")
-
-.replace(/\s+/g," ")
-
-.trim();
-
-
-}
-
-
-
-
-
 
 const wordCount =
 
@@ -885,7 +1010,6 @@ cleanText(article.content || "")
 .filter(Boolean)
 
 .length;
-
 
 
 
@@ -905,6 +1029,7 @@ Math.ceil(wordCount / 200)
 
 
 
+
 /*
 =====================================================
  ARTICLE URL
@@ -915,7 +1040,6 @@ Math.ceil(wordCount / 200)
 const articleUrl =
 
 `${SITE_URL}/${category.slug}/${article.slug}`;
-
 
 
 
@@ -944,9 +1068,18 @@ article.excerpt || "",
 
 
 ];
+
+
+
+
+
+
+
+
+
 /*
 =====================================================
- SCHEMA DATA
+ NEWS SCHEMA
 =====================================================
 */
 
@@ -972,6 +1105,7 @@ article.title,
 
 
 
+
 description:
 
 article.metaDescription ||
@@ -979,6 +1113,7 @@ article.metaDescription ||
 article.excerpt ||
 
 "",
+
 
 
 
@@ -992,7 +1127,7 @@ keywords,
 
 image:
 
-article.images?.[0]
+primaryImage
 
 ?
 
@@ -1002,7 +1137,7 @@ article.images?.[0]
 
 "@type":"ImageObject",
 
-url:article.images[0],
+url:primaryImage,
 
 width:1200,
 
@@ -1066,6 +1201,7 @@ category.name,
 
 
 
+
 inLanguage:
 
 "en-IN",
@@ -1087,6 +1223,7 @@ wordCount,
 timeRequired:
 
 `PT${readingTime}M`,
+
 
 
 
@@ -1156,33 +1293,10 @@ url:`${SITE_URL}/logo.png`
 }
 
 
-},
-
-
-
-
-
-
-
-speakable:{
-
-
-"@type":"SpeakableSpecification",
-
-
-cssSelector:[
-
-
-"h1",
-
-
-".article-body"
-
-
-]
-
-
 }
+
+
+
 
 
 
@@ -1238,6 +1352,7 @@ item:SITE_URL
 
 
 
+
 {
 
 
@@ -1254,6 +1369,7 @@ item:`${SITE_URL}/${category.slug}`
 
 
 },
+
 
 
 
@@ -1299,6 +1415,7 @@ item:articleUrl
 
 const faqSchema =
 
+
 Array.isArray(article.faqItems)
 
 &&
@@ -1320,6 +1437,7 @@ article.faqItems.length > 0
 
 
 mainEntity:
+
 
 article.faqItems
 
@@ -1358,6 +1476,7 @@ text:item.answer.replace(/<[^>]+>/g,"")
 }
 
 
+
 }
 
 
@@ -1373,6 +1492,9 @@ text:item.answer.replace(/<[^>]+>/g,"")
 :
 
 null;
+
+
+
 return (
 
 <div
@@ -1380,15 +1502,11 @@ return (
 className="
 mx-auto
 max-w-7xl
-
 px-4
 py-8
-
 sm:px-6
 sm:py-12
-
 lg:px-8
-
 "
 
 >
@@ -1439,6 +1557,7 @@ JSON.stringify(breadcrumbSchema)
 
 
 
+
 {
 
 faqSchema &&
@@ -1470,22 +1589,14 @@ JSON.stringify(faqSchema)
 
 
 
-
 <div
 
 className="
-
 grid
-
 grid-cols-1
-
 gap-10
-
-
 lg:grid-cols-[minmax(0,1fr)_360px]
-
 lg:gap-14
-
 "
 
 >
@@ -1523,17 +1634,11 @@ lg:gap-14
 <nav
 
 className="
-
 mb-6
-
 text-xs
-
 uppercase
-
 tracking-wide
-
 text-gray-500
-
 "
 
 >
@@ -1580,11 +1685,14 @@ className="transition hover:text-[#163C80]"
 
 
 
+
+
 <span className="mx-2">
 
 /
 
 </span>
+
 
 
 
@@ -1610,6 +1718,8 @@ className="transition hover:text-[#163C80]"
 
 
 
+
+
 {/* ================= TOP AD ================= */}
 
 
@@ -1617,13 +1727,9 @@ className="transition hover:text-[#163C80]"
 <div
 
 className="
-
 my-8
-
 flex
-
 justify-center
-
 "
 
 >
@@ -1637,6 +1743,9 @@ placement="article_top"
 
 
 </div>
+
+
+
 
 
 
@@ -1667,10 +1776,14 @@ readingTime={readingTime}
 
 
 
+
+
+
 {/* ================= HERO ================= */}
 
-
 <ArticleHero
+
+imageGallery={gallery}
 
 images={article.images}
 
@@ -1679,11 +1792,6 @@ title={article.title}
 shareUrl={articleUrl}
 
 />
-
-
-
-
-
 
 
 
@@ -1706,30 +1814,74 @@ summary={article.aiSummary as any}
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+{/* ================= SHORT BRIEF ================= */}
+
+
+
 <ArticleShortBrief
 
-  shortBrief={article.shortBrief || ""}
+shortBrief={article.shortBrief || ""}
 
 />
+
+
+
+
+
+
+
+
+
+
+
+
+{/* ================= ARTICLE INTELLIGENCE ================= */}
+
 
 
 <ArticleIntelligence
 
-  background={article.background}
 
-  timeline={article.timeline}
+background={article.background}
 
-  expertOpinion={article.expertOpinion}
 
-  factCheck={article.factCheck}
+timeline={article.timeline}
 
-  keyTakeaways={article.keyTakeaways}
 
-  sourceDesk={
-  typeof article.sourceDesk === "string"
-    ? article.sourceDesk
-    : null
+expertOpinion={article.expertOpinion}
+
+
+factCheck={article.factCheck}
+
+
+keyTakeaways={article.keyTakeaways}
+
+
+sourceDesk={
+
+typeof article.sourceDesk === "string"
+
+?
+
+article.sourceDesk
+
+:
+
+null
+
 }
+
 
 />
 
@@ -1737,7 +1889,16 @@ summary={article.aiSummary as any}
 
 
 
-{/* ================= BODY ================= */}
+
+
+
+
+
+
+
+
+{/* ================= ARTICLE BODY ================= */}
+
 
 
 <ArticleBody
@@ -1759,11 +1920,29 @@ whyItMatters={article.whyItMatters}
 
 
 
+
+
+
+
+
+
+{/* ================= WHAT'S NEXT ================= */}
+
+
+
 <ArticleWhatsNext
 
-  whatsNext={article.whatsNext || ""}
+whatsNext={article.whatsNext || ""}
 
 />
+
+
+
+
+
+
+
+
 
 
 
@@ -1802,6 +1981,9 @@ faqItems={article.faqItems as any}
 
 
 
+
+
+
 {/* ================= BOTTOM AD ================= */}
 
 
@@ -1809,13 +1991,9 @@ faqItems={article.faqItems as any}
 <div
 
 className="
-
 my-14
-
 flex
-
 justify-center
-
 "
 
 >
@@ -1838,6 +2016,9 @@ placement="article_bottom"
 
 
 
+
+
+
 {/* ================= NEXT STORY ================= */}
 
 
@@ -1847,6 +2028,9 @@ placement="article_bottom"
 article={nextArticle}
 
 />
+
+
+
 
 
 
@@ -1879,6 +2063,9 @@ categorySlug={category.slug}
 
 
 
+
+
+
 {/* ================= RELATED ================= */}
 
 
@@ -1895,7 +2082,12 @@ articles={related}
 
 
 
+
+
 </main>
+
+
+
 
 
 
@@ -1929,9 +2121,13 @@ mostRead={mostRead}
 
 
 
+
+
 </div>
+
 
 );
 
 
-} 
+
+}

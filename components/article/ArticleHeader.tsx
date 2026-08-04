@@ -23,27 +23,26 @@ export default function ArticleHeader({
 
 }:ArticleHeaderProps){
 
+const publishedDate = new Date(
+  article.publishedAt || article.createdAt
+).toLocaleDateString(
+  "en-IN",
+  {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }
+);
 
 
-  const publishedDate = new Date(
 
-    article.createdAt
+  const author =
 
-  ).toLocaleDateString(
+    article.authorName ||
 
-    "en-IN",
+    article.sourceDesk ||
 
-    {
-
-      day:"numeric",
-
-      month:"long",
-
-      year:"numeric",
-
-    }
-
-  );
+    "Nation Path News Desk";
 
 
 
@@ -62,8 +61,6 @@ export default function ArticleHeader({
 
 
 
-
-
       {/* ================= CATEGORY ================= */}
 
 
@@ -73,27 +70,16 @@ export default function ArticleHeader({
 
         className="
         group
-
         inline-flex
-
         items-center
-
         gap-3
-
         text-[11px]
-
         font-bold
-
         uppercase
-
         tracking-[0.28em]
-
         text-[#163C80]
-
         transition
-
         hover:text-[#EA661B]
-
         "
 
       >
@@ -104,13 +90,9 @@ export default function ArticleHeader({
 
           className="
           h-7
-
           w-1
-
           rounded-full
-
           bg-[#EA661B]
-
           "
 
         />
@@ -131,10 +113,6 @@ export default function ArticleHeader({
 
 
 
-
-
-
-
       {/* ================= TITLE ================= */}
 
 
@@ -142,26 +120,17 @@ export default function ArticleHeader({
 
         className="
         mt-6
-
         max-w-4xl
-
         font-serif
-
         font-bold
-
         text-3xl
-
         leading-[1.16]
-
         tracking-[-0.025em]
-
         text-[#111]
-
 
         sm:text-4xl
 
         sm:leading-[1.12]
-
 
         lg:text-[2.8rem]
 
@@ -174,10 +143,6 @@ export default function ArticleHeader({
         {article.title}
 
       </h1>
-
-
-
-
 
 
 
@@ -201,13 +166,11 @@ export default function ArticleHeader({
 
         gap-y-3
 
-
         border-y
 
         border-black/10
 
         py-4
-
 
         text-xs
 
@@ -221,20 +184,16 @@ export default function ArticleHeader({
 
 
 
-
-
         <span
 
           className="
           font-semibold
-
           text-[#111]
-
           "
 
         >
 
-          Nation Path News Desk
+          {author}
 
         </span>
 
@@ -242,24 +201,11 @@ export default function ArticleHeader({
 
 
 
-
-
-
-        <span
-
-          className="
-          text-gray-300
-
-          "
-
-        >
+        <span className="text-gray-300">
 
           |
 
         </span>
-
-
-
 
 
 
@@ -275,24 +221,11 @@ export default function ArticleHeader({
 
 
 
-
-
-
-        <span
-
-          className="
-          text-gray-300
-
-          "
-
-        >
+        <span className="text-gray-300">
 
           |
 
         </span>
-
-
-
 
 
 
@@ -308,30 +241,19 @@ export default function ArticleHeader({
 
 
 
-
-
         {
 
-          article.views > 0 && (
+          article.views > 0 &&
 
+          (
 
             <>
 
-              <span
-
-                className="
-                text-gray-300
-
-                "
-
-              >
+              <span className="text-gray-300">
 
                 |
 
               </span>
-
-
-
 
 
               <span>
@@ -343,20 +265,13 @@ export default function ArticleHeader({
 
             </>
 
-
           )
 
         }
 
 
 
-
-
-
-
       </div>
-
-
 
 
 

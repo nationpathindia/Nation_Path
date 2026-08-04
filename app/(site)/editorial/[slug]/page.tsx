@@ -5,22 +5,30 @@ import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRenderer";
 
+
+// ============================================
+// COMMON ARTICLE UTILITIES
+// ============================================
+
 import ArticleReadingProgress from "@/components/article/ArticleReadingProgress";
-import ArticleHeader from "@/components/article/ArticleHeader";
-import ArticleHero from "@/components/article/ArticleHero";
 import ArticleAISummary from "@/components/article/ArticleAISummary";
-import ArticleBody from "@/components/article/ArticleBody";
 import ArticleFAQ from "@/components/article/ArticleFAQ";
-import ArticleIntelligence from "@/components/article/ArticleIntelligence";
-import ArticleShortBrief from "@/components/article/ArticleShortBrief";
-import ArticleWhatsNext from "@/components/article/ArticleWhatsNext";
-import ArticleRelated from "@/components/article/ArticleRelated";
-import ArticleNextStory from "@/components/article/ArticleNextStory";
 import ArticleSidebar from "@/components/article/ArticleSidebar";
-import ArticleAstroBanner from "@/components/article/ArticleAstroBanner";
+
+
+// ============================================
+// NATIONPATH INSIGHT COMPONENTS
+// ============================================
+
+import EditorialBrandHeader from "@/components/editorial/EditorialBrandHeader";
+import EditorialHero from "@/components/editorial/EditorialHero";
+import EditorialBody from "@/components/editorial/EditorialBody";
+import EditorialIntelligence from "@/components/editorial/EditorialIntelligence";
+import EditorialGrid from "@/components/editorial/EditorialGrid";
 
 
 export const dynamic = "force-dynamic";
+
 export const revalidate = 0;
 
 
@@ -37,7 +45,6 @@ type Props = {
 
 
 
-
 const SITE_URL =
 process.env.NEXT_PUBLIC_SITE_URL ||
 "https://nationpathindia.com";
@@ -47,16 +54,15 @@ process.env.NEXT_PUBLIC_SITE_URL ||
 
 
 
-
 function cleanText(html:string){
 
-return html
+  return html
 
-.replace(/<\/?[^>]+(>|$)/g,"")
+    .replace(/<\/?[^>]+(>|$)/g,"")
 
-.replace(/\s+/g," ")
+    .replace(/\s+/g," ")
 
-.trim();
+    .trim();
 
 }
 
@@ -68,27 +74,29 @@ return html
 
 function isPublishedFilter(){
 
-return {
+  return {
 
-OR:[
+    OR:[
 
-{
-publishedAt:{
-equals:null
+      {
+        publishedAt:{
+          equals:null
+        }
+      },
+
+      {
+        publishedAt:{
+          lte:new Date()
+        }
+      }
+
+    ]
+
+  };
+
 }
-},
 
-{
-publishedAt:{
-lte:new Date()
-}
-}
 
-]
-
-};
-
-}
 
 
 
@@ -113,24 +121,35 @@ const {slug}=await params;
 
 
 
+
 const article =
+
 await prisma.article.findFirst({
 
 where:{
 
+
 slug,
+
 
 status:"approved",
 
+
 isDeleted:false,
+
 
 isEditorial:true,
 
+
 ...isPublishedFilter()
+
 
 }
 
+
 });
+
+
 
 
 
@@ -138,11 +157,12 @@ if(!article){
 
 return {
 
-title:"Editorial | Nation Path India"
+title:"NationPath Insight | Nation Path India"
 
 };
 
 }
+
 
 
 
@@ -155,13 +175,18 @@ article.title;
 
 
 
+
+
+
 const description =
 
 article.metaDescription ||
 
 article.excerpt ||
 
-"Editorial analysis from Nation Path India";
+"NationPath Insight provides deep analysis, context and perspectives on important stories.";
+
+
 
 
 
@@ -169,6 +194,7 @@ article.excerpt ||
 const canonical =
 
 `${SITE_URL}/editorial/${article.slug}`;
+
 
 
 
@@ -205,17 +231,20 @@ follow:true
 
 keywords:[
 
+"NationPath Insight",
+
 "Editorial",
 
-"Opinion",
-
 "Analysis",
+
+"Opinion",
 
 "Nation Path India",
 
 article.title
 
 ],
+
 
 
 
@@ -233,6 +262,7 @@ url:canonical,
 
 
 siteName:"Nation Path India",
+
 
 
 
@@ -279,6 +309,7 @@ title,
 description,
 
 
+
 images:
 
 article.images?.[0]
@@ -304,7 +335,6 @@ export default async function EditorialArticle({
 params
 
 }:Props){
-
 
 
 const {slug}=await params;
@@ -362,6 +392,32 @@ return notFound();
 
 
 
+console.log(
+
+"EDITORIAL DATA CHECK",
+
+{
+
+keyHighlights: article.keyHighlights,
+
+shortBrief: article.shortBrief,
+
+timeline: article.timeline,
+
+factCheck: article.factCheck,
+
+sourceDesk: article.sourceDesk
+
+}
+
+);
+
+
+
+
+
+
+
 
 /*
 =====================================================
@@ -374,7 +430,6 @@ try{
 
 
 await prisma.article.update({
-
 
 where:{
 
@@ -390,7 +445,6 @@ data:{
 
 views:{
 
-
 increment:1
 
 },
@@ -403,9 +457,7 @@ lastViewAt:new Date(),
 
 trendingScore:{
 
-
 increment:1
-
 
 }
 
@@ -441,6 +493,7 @@ error
 
 
 
+
 /*
 =====================================================
  READING TIME
@@ -462,6 +515,7 @@ cleanText(article.content || "")
 
 
 
+
 const readingTime = Math.max(
 
 1,
@@ -476,9 +530,12 @@ Math.ceil(wordCount / 200)
 
 
 
+
+
+
 /*
 =====================================================
- EDITORIAL URL
+ URL
 =====================================================
 */
 
@@ -494,9 +551,10 @@ const editorialUrl =
 
 
 
+
 /*
 =====================================================
- RELATED EDITORIALS
+ RELATED INSIGHTS
 =====================================================
 */
 
@@ -553,9 +611,11 @@ take:6
 
 
 
+
+
 /*
 =====================================================
- NEXT EDITORIAL
+ NEXT INSIGHT
 =====================================================
 */
 
@@ -607,6 +667,8 @@ createdAt:"desc"
 
 
 
+
+
 /*
 =====================================================
  SCHEMA
@@ -639,6 +701,7 @@ article.metaDescription ||
 article.excerpt ||
 
 "",
+
 
 
 
@@ -677,6 +740,8 @@ caption:article.title
 
 
 
+
+
 datePublished:
 
 (
@@ -686,6 +751,7 @@ article.publishedAt ||
 article.createdAt
 
 ).toISOString(),
+
 
 
 
@@ -705,7 +771,8 @@ article.createdAt
 
 
 
-articleSection:"Editorial",
+
+articleSection:"NationPath Insight",
 
 
 
@@ -716,7 +783,11 @@ inLanguage:"en-IN",
 
 
 
+
+
 wordCount,
+
+
 
 
 
@@ -746,6 +817,7 @@ mainEntityOfPage:{
 
 
 
+
 author:{
 
 
@@ -759,6 +831,8 @@ url:SITE_URL
 
 
 },
+
+
 
 
 
@@ -813,6 +887,8 @@ lg:px-8
 
 
 
+
+
 {/* ================= SCHEMA ================= */}
 
 
@@ -837,6 +913,7 @@ JSON.stringify(editorialSchema)
 
 
 
+
 <div
 
 className="
@@ -851,13 +928,19 @@ lg:gap-14
 
 
 
+
+
+
+
 <main>
 
 
 
 
 
-{/* READING PROGRESS */}
+
+{/* ================= READING PROGRESS ================= */}
+
 
 <ArticleReadingProgress />
 
@@ -912,6 +995,7 @@ Home
 
 
 
+
 <Link
 
 href="/editorial"
@@ -920,7 +1004,7 @@ className="hover:text-[#163C80]"
 
 >
 
-Editorial
+NationPath Insight
 
 </Link>
 
@@ -940,6 +1024,7 @@ Editorial
 
 
 
+
 <span>
 
 {article.title}
@@ -948,7 +1033,22 @@ Editorial
 
 
 
+
+
 </nav>
+
+
+
+
+
+
+
+
+
+{/* ================= BRAND ================= */}
+
+
+<EditorialBrandHeader />
 
 
 
@@ -989,42 +1089,12 @@ placement="article_top"
 
 
 
-{/* ================= HEADER ================= */}
+{/* ================= EDITORIAL HERO ================= */}
 
 
-<ArticleHeader
+<EditorialHero
 
 article={article}
-
-category={{
-
-name:"Editorial",
-
-slug:"editorial"
-
-}}
-
-readingTime={readingTime}
-
-/>
-
-
-
-
-
-
-
-
-
-{/* ================= HERO ================= */}
-
-
-
-<ArticleHero
-
-images={article.images}
-
-title={article.title}
 
 shareUrl={editorialUrl}
 
@@ -1038,9 +1108,8 @@ shareUrl={editorialUrl}
 
 
 
-
-
 {/* ================= AI SUMMARY ================= */}
+
 
 
 {
@@ -1049,7 +1118,7 @@ article.aiSummary &&
 
 <ArticleAISummary
 
-categoryName="Editorial"
+categoryName="NationPath Insight"
 
 summary={article.aiSummary as any}
 
@@ -1065,17 +1134,13 @@ summary={article.aiSummary as any}
 
 
 
-{/* ================= SHORT BRIEF ================= */}
+{/* ================= EDITORIAL INTELLIGENCE ================= */}
 
 
 
-<ArticleShortBrief
+<EditorialIntelligence
 
-shortBrief={
-
-article.shortBrief || ""
-
-}
+article={article}
 
 />
 
@@ -1087,84 +1152,13 @@ article.shortBrief || ""
 
 
 
-{/* ================= INTELLIGENCE ================= */}
+{/* ================= EDITORIAL BODY ================= */}
 
 
 
-<ArticleIntelligence
-
-
-background={article.background}
-
-
-timeline={article.timeline}
-
-
-
-expertOpinion={article.expertOpinion}
-
-
-
-factCheck={article.factCheck}
-
-
-
-keyTakeaways={article.keyTakeaways}
-
-
-
-sourceDesk={
-  typeof article.sourceDesk === "string"
-    ? article.sourceDesk
-    : null
-}
-
-
-/>
-
-
-
-
-
-
-
-
-
-{/* ================= BODY ================= */}
-
-
-
-<ArticleBody
-
+<EditorialBody
 
 content={article.content}
-
-
-keyHighlights={article.keyHighlights}
-
-
-whyItMatters={article.whyItMatters}
-
-
-/>
-
-
-
-
-
-
-
-
-
-{/* ================= WHAT NEXT ================= */}
-
-
-
-<ArticleWhatsNext
-
-
-whatsNext={article.whatsNext || ""}
-
 
 />
 
@@ -1242,29 +1236,11 @@ placement="article_bottom"
 
 
 
-{/* ================= NEXT STORY ================= */}
+{/* ================= RELATED INSIGHTS ================= */}
 
 
 
-<ArticleNextStory
-
-article={nextEditorial}
-
-/>
-
-
-
-
-
-
-
-
-
-{/* ================= RELATED ================= */}
-
-
-
-<ArticleRelated
+<EditorialGrid
 
 articles={related}
 
@@ -1278,37 +1254,7 @@ articles={related}
 
 
 
-{/* ================= ASTRO CROSS PRODUCT ================= */}
-
-
-
-<ArticleAstroBanner
-
-
-categoryName="Editorial"
-
-
-categorySlug="editorial"
-
-
-/>
-
-
-
-
-
-
-
-
 </main>
-
-
-
-
-
-
-
-
 {/* ================= SIDEBAR ================= */}
 
 
@@ -1321,7 +1267,6 @@ lg:block
 "
 
 >
-
 
 
 <div
@@ -1346,6 +1291,8 @@ mostRead={related}
 
 
 
+
+
 <AdRenderer
 
 placement="sidebar"
@@ -1356,8 +1303,9 @@ placement="sidebar"
 
 
 
-</div>
 
+
+</div>
 
 
 </aside>

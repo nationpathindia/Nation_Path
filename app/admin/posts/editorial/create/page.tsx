@@ -1,81 +1,145 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Editor from "@/components/Editor";
 import ArticleIntelligenceForm from "@/components/admin/article/ArticleIntelligenceForm";
 
+
 export const dynamic = "force-dynamic";
 
 
-/* =====================================================
-   HELPERS
-===================================================== */
 
-function generateSlug(title: string) {
+type ImageGalleryItem = {
+
+  url:string;
+
+  alt:string;
+
+  caption:string;
+
+  isPrimary:boolean;
+
+};
+
+
+
+type FAQItem = {
+
+  question:string;
+
+  answer:string;
+
+};
+
+
+
+type ExpertOpinion = {
+
+  name:string;
+
+  role:string;
+
+  quote:string;
+
+  opinion?:string;
+
+};
+
+
+
+type FactCheck = {
+
+  claim:string;
+
+  status:string;
+
+  explanation:string;
+
+  sources?:string;
+
+};
+
+
+
+
+
+function generateSlug(title:string){
+
   return title
+
     .toLowerCase()
+
     .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+
+    .replace(/[^a-z0-9\s-]/g,"")
+
+    .replace(/\s+/g,"-")
+
+    .replace(/-+/g,"-");
+
 }
 
 
-function stripHtml(html: string) {
-  return html.replace(/<[^>]*>?/gm, "");
+
+
+
+function stripHtml(html:string){
+
+  return html.replace(/<[^>]*>?/gm,"");
+
 }
 
 
-function convertHighlights(value: string) {
-  return value
-    .split("\n")
-    .map(item => item.trim())
-    .filter(Boolean);
-}
 
 
-function createEmptyFAQ() {
+
+function createEmptyFAQ():FAQItem{
+
   return {
-    question: "",
-    answer: "",
+
+    question:"",
+
+    answer:""
+
   };
+
 }
 
 
 
-/* =====================================================
-   CREATE EDITORIAL
-===================================================== */
 
-export default function CreateEditorial() {
+
+
+
+export default function CreateEditorial(){
 
 
 const router = useRouter();
 
 
-/* =====================================================
-   STATES
-===================================================== */
 
 
 const [loading,setLoading] = useState(false);
 
+
 const [uploading,setUploading] = useState(false);
+
 
 const [message,setMessage] = useState("");
 
+
 const [error,setError] = useState("");
+
+
 
 const [slugLocked,setSlugLocked] = useState(true);
 
 
 
 
-/* =====================================================
-   FORM
-===================================================== */
+
 
 
 const [form,setForm] = useState({
@@ -88,8 +152,8 @@ slug:"",
 content:"",
 
 
-postType:"editorial",
 
+postType:"editorial",
 
 isEditorial:true,
 
@@ -98,7 +162,18 @@ category:"Editorial",
 
 
 
-images:[] as string[],
+
+imageGallery:
+
+[] as ImageGalleryItem[],
+
+
+
+images:
+
+[] as string[],
+
+
 
 
 
@@ -108,10 +183,10 @@ videoPosition:"top",
 
 
 
+
 breaking:false,
 
 featured:false,
-
 
 
 breakingPriority:0,
@@ -125,14 +200,14 @@ featuredDuration:"24",
 
 
 
-/* =========================
-   ARTICLE INTELLIGENCE
-========================= */
 
 
-keyHighlights:"",
+keyHighlights: [] as string[],
 
 whyItMatters:"",
+
+
+
 
 
 shortBrief:"",
@@ -143,41 +218,52 @@ timeline:"",
 
 
 
-expertOpinion:{
-  name:"",
-  role:"",
-  quote:""
-},
+
+expertOpinion:
+
+[] as ExpertOpinion[],
 
 
 
-factCheck:{
-  claim:"",
-  status:"",
-  explanation:"",
-  sources:""
-},
+
+
+factCheck:
+
+[] as FactCheck[],
+
+
 
 
 
 whatsNext:"",
 
-keyTakeaways:"",
+
+
+
+
+keyTakeaways:
+
+[] as string[],
+
+
+
+
 
 sourceDesk:"",
 
 
 
 
-faqItems:[] as {
-question:string;
-answer:string;
-}[],
+
+faqItems:
+
+[] as FAQItem[],
+
+
 
 
 
 publishedAt:"",
-
 
 
 
@@ -189,25 +275,32 @@ metaKeywords:"",
 
 
 
+
+
 status:"pending",
 
-
 live:true
+
 
 
 });
 
 
 
-/* =====================================================
-   UPDATE FIELD
-===================================================== */
+
+
+
+
 
 
 function updateField(
+
 key:string,
+
 value:any
+
 ){
+
 
 setForm(prev=>({
 
@@ -215,127 +308,66 @@ setForm(prev=>({
 
 [key]:value
 
-}));
-
-}
-/* =====================================================
-   FAQ HANDLERS
-===================================================== */
-
-
-function addFAQ(){
-
-setForm(prev=>({
-
-...prev,
-
-faqItems:[
-
-...prev.faqItems,
-
-createEmptyFAQ()
-
-]
 
 }));
 
-}
 
-
-
-function updateFAQ(
-index:number,
-key:"question"|"answer",
-value:string
-){
-
-setForm(prev=>({
-
-...prev,
-
-faqItems:
-
-prev.faqItems.map(
-(item,i)=>
-
-i===index
-
-?
-
-{
-
-...item,
-
-[key]:value
-
-}
-
-:
-
-item
-
-)
-
-}));
 
 }
 
 
 
 
-function removeFAQ(index:number){
-
-setForm(prev=>({
-
-...prev,
-
-faqItems:
-
-prev.faqItems.filter(
-(_,i)=>i!==index
-)
-
-}));
-
-}
 
 
 
-
-/* =====================================================
-   AUTO SLUG
-===================================================== */
 
 
 useEffect(()=>{
 
 
 if(
+
 form.title &&
+
 slugLocked
+
 ){
+
+
 
 setForm(prev=>({
 
+
 ...prev,
 
+
 slug:
+
 generateSlug(prev.title),
 
 
+
 metaTitle:
-prev.metaTitle ||
-prev.title
+
+prev.metaTitle || prev.title
+
 
 
 }));
 
+
+
 }
 
 
+
 },[
+
 form.title,
+
 slugLocked
+
 ]);
 
 
@@ -343,40 +375,53 @@ slugLocked
 
 
 
-/* =====================================================
-   AUTO META DESCRIPTION
-===================================================== */
+
 
 
 useEffect(()=>{
 
 
 if(
+
 form.content &&
+
 !form.metaDescription
+
 ){
 
 
-const clean =
-stripHtml(form.content);
+
+const clean = stripHtml(
+
+form.content
+
+);
 
 
 
 setForm(prev=>({
 
+
 ...prev,
 
+
 metaDescription:
+
 clean.substring(0,160)
 
+
 }));
+
 
 
 }
 
 
+
 },[
+
 form.content
+
 ]);
 
 
@@ -384,24 +429,209 @@ form.content
 
 
 
-/* =====================================================
-   IMAGE REMOVE
-===================================================== */
+
+
+
+function syncPrimaryImages(
+
+gallery:ImageGalleryItem[]
+
+){
+
+
+const primary =
+
+
+gallery.find(
+
+img=>img.isPrimary
+
+)
+
+||
+
+gallery[0];
+
+
+
+
+return {
+
+
+
+imageGallery:
+
+
+
+gallery.map(
+
+(img,index)=>(
+
+
+{
+
+...img,
+
+
+isPrimary:
+
+primary
+
+?
+
+img.url===primary.url
+
+:
+
+index===0
+
+
+
+}
+
+
+
+)
+
+),
+
+
+
+
+images:
+
+
+
+primary
+
+?
+
+[primary.url]
+
+:
+
+[]
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function setPrimaryImage(index:number){
+
+
+
+setForm(prev=>{
+
+
+
+const updated =
+
+
+prev.imageGallery.map(
+
+(img,i)=>(
+
+
+{
+
+...img,
+
+
+isPrimary:
+
+i===index
+
+
+
+}
+
+
+
+)
+
+);
+
+
+
+
+
+return {
+
+
+...prev,
+
+
+...syncPrimaryImages(updated)
+
+
+
+};
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
 
 
 function removeImage(index:number){
 
-setForm(prev=>({
+
+
+setForm(prev=>{
+
+
+
+const filtered =
+
+
+prev.imageGallery.filter(
+
+(_,i)=>i!==index
+
+);
+
+
+
+
+return {
+
 
 ...prev,
 
-images:
 
-prev.images.filter(
-(_,i)=>i!==index
-)
+...syncPrimaryImages(filtered)
 
-}));
+
+
+};
+
+
+
+});
+
+
 
 }
 
@@ -409,28 +639,37 @@ prev.images.filter(
 
 
 
-
-/* =====================================================
-   IMAGE UPLOAD
-===================================================== */
 
 
 async function handleImageUpload(
+
 files:FileList
+
 ){
+
 
 
 if(
-files.length + form.images.length > 5
+
+files.length + form.imageGallery.length > 5
+
 ){
 
+
 setError(
+
 "Maximum 5 images allowed"
+
 );
+
 
 return;
 
+
 }
+
+
+
 
 
 setUploading(true);
@@ -442,49 +681,70 @@ setError("");
 try{
 
 
-const uploaded:string[]=[];
+
+const uploaded:ImageGalleryItem[]=[];
 
 
 
 for(
+
 const file of Array.from(files)
+
 ){
+
 
 
 if(
-file.size > 2*1024*1024
+
+file.size > 2 * 1024 * 1024
+
 ){
 
+
 throw new Error(
+
 "Image size must be under 2MB"
+
 );
+
 
 }
 
 
 
-const fd =
-new FormData();
+
+const fd = new FormData();
+
 
 
 fd.append(
+
 "file",
+
 file
+
 );
+
+
 
 
 
 fd.append(
+
 "upload_preset",
+
 process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+
 );
 
 
 
 
 
-const response =
-await fetch(
+
+
+const response = await fetch(
+
 
 `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
 
@@ -496,56 +756,129 @@ body:fd
 
 }
 
+
 );
 
 
 
-const data =
-await response.json();
+
+
+const data = await response.json();
+
+
 
 
 
 if(data.secure_url){
 
-uploaded.push(
-data.secure_url
-);
+
+
+uploaded.push({
+
+
+url:data.secure_url,
+
+
+
+alt:
+
+form.title
+
+?
+
+`${form.title} - NationPath Editorial Image`
+
+:
+
+"NationPath Editorial Image",
+
+
+
+
+caption:
+
+form.title ||
+
+"NationPath Editorial",
+
+
+
+
+isPrimary:false
+
+
+
+});
+
+
 
 }
 
 
+
 }
 
 
 
 
-setForm(prev=>({
 
-...prev,
 
-images:[
+setForm(prev=>{
 
-...prev.images,
+
+
+const merged=[
+
+
+...prev.imageGallery,
+
 
 ...uploaded
 
-]
 
-}));
+
+];
+
+
+
+
+return {
+
+
+
+...prev,
+
+
+...syncPrimaryImages(merged)
+
+
+
+};
+
+
+
+});
+
+
 
 
 
 }
+
 catch(err:any){
 
 
+
 setError(
-err.message ||
-"Upload failed"
+
+err.message || "Upload failed"
+
 );
 
 
+
 }
+
 finally{
 
 
@@ -555,14 +888,8 @@ setUploading(false);
 }
 
 
+
 }
-
-
-
-
-
-
-
 /* =====================================================
    SUBMIT
 ===================================================== */
@@ -572,9 +899,7 @@ async function handleSubmit(
 e:React.FormEvent
 ){
 
-
 e.preventDefault();
-
 
 
 setLoading(true);
@@ -586,7 +911,8 @@ setMessage("");
 
 
 if(
-!form.title.trim() ||
+!form.title.trim()
+||
 !form.content.trim()
 ){
 
@@ -597,6 +923,7 @@ setError(
 
 setLoading(false);
 
+
 return;
 
 }
@@ -604,36 +931,152 @@ return;
 
 
 
+
 try{
 
 
-const payload={
+const primaryImage =
+
+
+form.imageGallery.find(
+
+img=>img.isPrimary
+
+)
+
+||
+
+form.imageGallery[0];
+
+
+
+
+const payload = {
 
 
 ...form,
 
-
 keyHighlights:
 
-convertHighlights(
+Array.isArray(form.keyHighlights)
+
+?
+
 form.keyHighlights
-),
+.filter(
+(item:string)=>item.trim()
+)
+
+:
+
+[],
+
+
+images:
+
+primaryImage
+
+?
+
+[primaryImage.url]
+
+:
+
+[],
+
 
 
 
 publishedAt:
+
 
 form.publishedAt
 
 ?
 
 new Date(
+
 form.publishedAt
+
 ).toISOString()
 
 :
 
-null
+null,
+
+
+
+
+
+
+expertOpinion:
+
+
+Array.isArray(form.expertOpinion)
+
+?
+
+form.expertOpinion
+
+:
+
+[],
+
+
+
+
+
+
+factCheck:
+
+
+Array.isArray(form.factCheck)
+
+?
+
+form.factCheck
+
+:
+
+[],
+
+
+
+
+
+
+
+keyTakeaways:
+
+
+Array.isArray(form.keyTakeaways)
+
+?
+
+form.keyTakeaways
+
+:
+
+[],
+
+
+
+
+
+
+
+faqItems:
+
+
+Array.isArray(form.faqItems)
+
+?
+
+form.faqItems
+
+:
+
+[]
 
 
 
@@ -643,23 +1086,41 @@ null
 
 
 
-const res =
-await fetch(
+
+
+console.log(
+"EDITORIAL PAYLOAD",
+payload
+);
+
+
+
+
+
+
+const res = await fetch(
+
 "/api/articles",
+
 {
 
 method:"POST",
 
 headers:{
 
+
 "Content-Type":
+
 "application/json"
 
+
 },
+
 
 body:
 
 JSON.stringify(payload)
+
 
 }
 
@@ -669,8 +1130,10 @@ JSON.stringify(payload)
 
 
 
-const data =
-await res.json();
+
+const data = await res.json();
+
+
 
 
 
@@ -678,10 +1141,15 @@ await res.json();
 
 if(!res.ok){
 
+
 throw new Error(
+
 data.error ||
-"Create failed"
+
+"Editorial create failed"
+
 );
+
 
 }
 
@@ -690,9 +1158,10 @@ data.error ||
 
 
 setMessage(
-"Editorial created successfully 🚀"
-);
 
+"Editorial created successfully 🚀"
+
+);
 
 
 
@@ -702,7 +1171,9 @@ setTimeout(()=>{
 
 
 router.push(
+
 "/admin/posts"
+
 );
 
 
@@ -711,24 +1182,25 @@ router.push(
 
 
 
+
 }
+
 catch(err:any){
-
-
-console.error(
-"EDITORIAL CREATE ERROR",
-err
-);
 
 
 
 setError(
+
 err.message ||
+
 "Failed"
+
 );
 
 
+
 }
+
 finally{
 
 
@@ -738,8 +1210,25 @@ setLoading(false);
 }
 
 
+
 }
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   RETURN
+===================================================== */
+
+
+
 return (
+
 
 <div
 
@@ -754,13 +1243,18 @@ md:p-8
 >
 
 
+
+
+
 <div className="mb-8">
+
 
 <h1 className="text-3xl font-bold">
 
 Create Editorial
 
 </h1>
+
 
 
 <p className="text-orange-400 mt-2">
@@ -770,7 +1264,11 @@ NationPath Editorial CMS
 </p>
 
 
+
 </div>
+
+
+
 
 
 
@@ -779,6 +1277,7 @@ NationPath Editorial CMS
 
 {
 message &&
+
 
 <div
 
@@ -794,9 +1293,12 @@ text-green-300
 
 >
 
+
 {message}
 
+
 </div>
+
 
 }
 
@@ -804,8 +1306,13 @@ text-green-300
 
 
 
+
+
+
+
 {
 error &&
+
 
 <div
 
@@ -821,9 +1328,12 @@ text-red-300
 
 >
 
+
 {error}
 
+
 </div>
+
 
 }
 
@@ -832,9 +1342,14 @@ text-red-300
 
 
 
+
+
+
 <form
 
+
 onSubmit={handleSubmit}
+
 
 className="
 grid
@@ -843,12 +1358,18 @@ xl:grid-cols-3
 gap-8
 "
 
+
 >
 
 
 
 
-{/* ================= LEFT COLUMN ================= */}
+
+
+
+
+
+{/* LEFT COLUMN */}
 
 
 <div
@@ -863,6 +1384,17 @@ space-y-6
 
 
 
+
+
+
+
+
+
+
+{/* HEADLINE */}
+
+
+
 <div
 
 className="
@@ -876,14 +1408,17 @@ p-6
 >
 
 
-<label className="text-gray-400 text-sm">
+<label>
 
 Headline
 
 </label>
 
 
+
+
 <input
+
 
 className="
 w-full
@@ -895,24 +1430,35 @@ border
 border-white/10
 "
 
+
 placeholder="Enter editorial headline"
+
 
 
 value={form.title}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "title",
+
 e.target.value
+
 )
+
 
 }
 
 
+
+
 />
+
 
 
 </div>
@@ -921,6 +1467,15 @@ e.target.value
 
 
 
+
+
+
+
+
+
+
+
+{/* SLUG */}
 
 
 
@@ -937,10 +1492,12 @@ p-6
 >
 
 
+
 <div className="flex justify-between mb-3">
 
 
-<label className="text-gray-400">
+
+<label>
 
 URL Slug
 
@@ -948,32 +1505,49 @@ URL Slug
 
 
 
+
+
 <button
+
 
 type="button"
 
+
 onClick={()=>setSlugLocked(!slugLocked)}
+
+
 
 className="
 bg-orange-600
 px-4
 py-2
 rounded-lg
-text-xs
+text-sm
 "
 
 >
 
+
 {
+
+
 slugLocked
+
 ?
+
 "Auto"
+
 :
+
 "Manual"
+
+
 }
 
 
+
 </button>
+
 
 
 </div>
@@ -982,7 +1556,12 @@ slugLocked
 
 
 
+
+
+
+
 <input
+
 
 className="
 w-full
@@ -1002,14 +1581,23 @@ value={form.slug}
 
 
 
+
+
 onChange={(e)=>
 
+
 updateField(
+
 "slug",
+
 e.target.value
+
 )
 
+
 }
+
+
 
 
 />
@@ -1026,7 +1614,17 @@ e.target.value
 
 
 
+
+
+
+
+
+{/* EDITOR */}
+
+
+
 <div
+
 
 className="
 bg-white
@@ -1038,7 +1636,9 @@ text-black
 >
 
 
+
 <Editor
+
 
 value={form.content}
 
@@ -1046,15 +1646,22 @@ value={form.content}
 
 onChange={(v:string)=>
 
+
 updateField(
+
 "content",
+
 v
+
 )
+
 
 }
 
 
+
 />
+
 
 
 </div>
@@ -1066,11 +1673,24 @@ v
 
 
 
+
+
+
+
+
+
+{/* ARTICLE INTELLIGENCE */}
+
+
+
 <ArticleIntelligenceForm
+
 
 form={form}
 
+
 updateField={updateField}
+
 
 />
 
@@ -1078,6 +1698,7 @@ updateField={updateField}
 
 
 
+{/* FAQ SECTION */}
 
 
 
@@ -1094,7 +1715,10 @@ p-6
 >
 
 
-<h2 className="font-semibold mb-4">
+<div className="flex justify-between mb-5">
+
+
+<h2 className="font-semibold">
 
 FAQ Section ⭐
 
@@ -1103,26 +1727,60 @@ FAQ Section ⭐
 
 
 
-
 <button
+
 
 type="button"
 
-onClick={addFAQ}
+
+onClick={()=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:[
+
+
+...prev.faqItems,
+
+
+createEmptyFAQ()
+
+
+]
+
+
+
+}))
+
+
+}
+
+
 
 className="
 bg-blue-600
 px-4
 py-2
 rounded-lg
-mb-5
 "
 
 >
 
+
 + Add FAQ
 
+
 </button>
+
+
+
+</div>
+
 
 
 
@@ -1131,7 +1789,10 @@ mb-5
 
 
 {
+
+
 form.faqItems.map(
+
 (item,index)=>(
 
 
@@ -1142,49 +1803,15 @@ key={index}
 className="
 mb-5
 p-4
-rounded-xl
 bg-black/20
-border
-border-white/10
+rounded-xl
 "
 
 >
 
 
-
-<div className="flex justify-between mb-3">
-
-
-<span className="text-orange-400">
-
-FAQ {index+1}
-
-</span>
-
-
-
-<button
-
-type="button"
-
-onClick={()=>removeFAQ(index)}
-
-className="text-red-400"
-
->
-
-Remove
-
-</button>
-
-
-</div>
-
-
-
-
-
 <input
+
 
 className="
 w-full
@@ -1192,30 +1819,65 @@ mb-3
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
 
-
 placeholder="Question"
+
 
 
 value={item.question}
 
 
 
+
 onChange={(e)=>
 
-updateFAQ(
-index,
-"question",
-e.target.value
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+
+prev.faqItems.map(
+
+(f,i)=>
+
+i===index
+
+?
+
+{
+
+...f,
+
+question:e.target.value
+
+}
+
+:
+
+f
+
 )
+
+
+}))
+
+
 
 }
 
 
+
 />
+
+
+
+
 
 
 
@@ -1223,54 +1885,165 @@ e.target.value
 
 <textarea
 
+
 className="
 w-full
 h-28
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
 
+
 placeholder="Answer"
+
 
 
 value={item.answer}
 
 
 
+
+
 onChange={(e)=>
 
-updateFAQ(
-index,
-"answer",
-e.target.value
-)
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+
+prev.faqItems.map(
+
+(f,i)=>
+
+i===index
+
+?
+
+{
+
+...f,
+
+answer:e.target.value
 
 }
+
+:
+
+f
+
+)
+
+
+}))
+
+
+
+}
+
+
 
 
 />
 
 
-</div>
 
+
+
+
+
+<button
+
+
+type="button"
+
+
+
+onClick={()=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+faqItems:
+
+
+prev.faqItems.filter(
+
+(_,i)=>i!==index
 
 )
 
-)
+
+
+}))
+
+
 
 }
 
 
 
+className="
+text-red-400
+mt-3
+"
+
+>
+
+
+Remove
+
+
+</button>
+
+
+
+
+
+
+</div>
+
+
+)
+
+
+)
+
+
+}
+
+
+
+
+
+
+
 </div>
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+{/* VIDEO */}
 
 
 
@@ -1287,6 +2060,7 @@ p-6
 >
 
 
+
 <h2 className="font-semibold mb-4">
 
 Video
@@ -1295,7 +2069,11 @@ Video
 
 
 
+
+
+
 <input
+
 
 className="
 w-full
@@ -1306,28 +2084,46 @@ border
 border-white/10
 "
 
+
+
 placeholder="YouTube URL"
+
 
 
 value={form.videoUrl}
 
 
 
+
+
 onChange={(e)=>
 
+
 updateField(
+
 "videoUrl",
+
 e.target.value
+
 )
 
+
 }
+
+
+
 
 
 />
 
 
 
+
+
+
+
 <select
+
 
 className="
 w-full
@@ -1344,14 +2140,21 @@ value={form.videoPosition}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "videoPosition",
+
 e.target.value
+
 )
 
+
 }
+
 
 
 >
@@ -1378,7 +2181,11 @@ Bottom
 </option>
 
 
+
 </select>
+
+
+
 
 
 
@@ -1390,7 +2197,18 @@ Bottom
 
 
 
+
+
+
+
+
+
+{/* MEDIA GALLERY */}
+
+
+
 <div
+
 
 className="
 bg-[#0e1726]
@@ -1399,6 +2217,7 @@ border-white/10
 rounded-2xl
 p-6
 "
+
 
 >
 
@@ -1412,21 +2231,34 @@ Media Gallery
 
 
 
+
+
 <input
+
 
 type="file"
 
+
 multiple
+
 
 accept="image/*"
 
 
+
+
 onChange={(e)=>
 
+
 e.target.files &&
+
 handleImageUpload(
+
 e.target.files
+
 )
+
+
 
 }
 
@@ -1436,8 +2268,14 @@ e.target.files
 
 
 
+
+
+
 {
+
+
 uploading &&
+
 
 <p className="text-orange-400 mt-3">
 
@@ -1445,79 +2283,323 @@ Uploading...
 
 </p>
 
+
+
 }
 
 
 
 
-<div className="flex gap-4 flex-wrap mt-5">
+
+
+
+
+
+<div className="space-y-6 mt-6">
+
+
+
+
 
 
 {
 
-form.images.map(
+
+form.imageGallery.map(
+
 (img,index)=>(
+
 
 
 <div
 
+
 key={index}
 
-className="relative"
+
+
+className="
+bg-black/20
+rounded-xl
+p-4
+"
+
 
 >
 
 
+
+
+
+
+
 <img
 
-src={img}
+
+src={img.url}
+
+
+alt={img.alt}
+
+
 
 className="
-w-32
-h-24
+w-full
+h-48
 object-cover
 rounded-xl
+mb-4
 "
+
 
 />
 
 
 
-<button
 
-type="button"
 
-onClick={()=>removeImage(index)}
+
+
+
+
+
+<input
+
 
 className="
-absolute
--top-2
--right-2
-bg-red-600
-rounded-full
-w-6
-h-6
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
 "
 
->
 
-×
-
-</button>
+placeholder="Alt text"
 
 
-</div>
+
+value={img.alt}
+
+
+
+
+onChange={(e)=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+imageGallery:
+
+
+prev.imageGallery.map(
+
+(item,i)=>
+
+
+i===index
+
+?
+
+{
+
+...item,
+
+alt:e.target.value
+
+}
+
+:
+
+item
 
 
 )
 
-)
+
+
+}))
+
+
 
 }
 
 
 
-</div>
+/>
+
+
+
+
+
+
+
+
+
+<input
+
+
+className="
+w-full
+mb-3
+p-3
+rounded-xl
+bg-black/30
+"
+
+
+
+placeholder="Caption"
+
+
+
+value={img.caption}
+
+
+
+
+onChange={(e)=>
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+imageGallery:
+
+
+prev.imageGallery.map(
+
+(item,i)=>
+
+
+i===index
+
+?
+
+{
+
+...item,
+
+caption:e.target.value
+
+}
+
+:
+
+item
+
+
+)
+
+
+
+}))
+
+
+
+}
+
+
+
+/>
+
+
+
+
+
+
+
+
+
+<div className="flex gap-3">
+
+
+
+
+
+<button
+
+
+type="button"
+
+
+onClick={()=>setPrimaryImage(index)}
+
+
+
+className="
+bg-orange-600
+px-4
+py-2
+rounded-lg
+"
+
+>
+
+
+{
+
+
+img.isPrimary
+
+?
+
+"⭐ Primary"
+
+:
+
+"Set Primary"
+
+
+
+}
+
+
+
+</button>
+
+
+
+
+
+
+
+
+<button
+
+
+type="button"
+
+
+
+onClick={()=>removeImage(index)}
+
+
+
+className="
+bg-red-600
+px-4
+py-2
+rounded-lg
+"
+
+>
+
+
+Remove
+
+
+</button>
+
+
+
 
 
 
@@ -1532,21 +2614,63 @@ h-6
 
 
 
+)
+
+
+
+)
+
+
+
+}
 
 
 
 
 
 
-{/* ================= RIGHT COLUMN ================= */}
-
-
-
-<div className="space-y-6">
+</div>
 
 
 
 
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+{/* RIGHT COLUMN */}
+
+
+
+<div
+
+className="
+space-y-6
+"
+
+>
+
+
+
+
+
+
+
+
+
+{/* PUBLISHING */}
 
 
 
@@ -1561,6 +2685,7 @@ p-6
 "
 
 >
+
 
 
 <h2 className="font-semibold mb-4">
@@ -1579,8 +2704,6 @@ className="
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
 
 >
@@ -1593,11 +2716,15 @@ Editorial
 
 
 
+
+
 <p className="text-xs text-gray-400 mt-3">
 
 Editorial category locked
 
 </p>
+
+
 
 
 
@@ -1608,6 +2735,16 @@ Editorial category locked
 
 
 
+
+
+
+
+
+
+
+
+
+{/* SCHEDULE */}
 
 
 
@@ -1633,7 +2770,9 @@ Schedule Publish
 
 
 
+
 <input
+
 
 type="datetime-local"
 
@@ -1643,35 +2782,34 @@ w-full
 p-3
 rounded-xl
 bg-black/30
-border
-border-white/10
 "
+
+
 
 
 value={form.publishedAt}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "publishedAt",
+
 e.target.value
+
 )
+
 
 }
 
 
+
 />
 
-
-
-
-<p className="text-xs text-gray-400 mt-3">
-
-Leave empty for immediate publishing.
-
-</p>
 
 
 </div>
@@ -1681,6 +2819,15 @@ Leave empty for immediate publishing.
 
 
 
+
+
+
+
+
+
+
+
+{/* STATUS */}
 
 
 
@@ -1706,7 +2853,10 @@ Status
 
 
 
+
+
 <select
+
 
 className="
 w-full
@@ -1715,21 +2865,33 @@ rounded-xl
 bg-black/30
 "
 
+
+
+
 value={form.status}
+
+
 
 
 
 onChange={(e)=>
 
+
 updateField(
+
 "status",
+
 e.target.value
+
 )
+
 
 }
 
->
 
+
+
+>
 
 
 <option value="pending">
@@ -1760,6 +2922,8 @@ Draft
 
 
 
+
+
 </div>
 
 
@@ -1767,6 +2931,16 @@ Draft
 
 
 
+
+
+
+
+
+
+
+
+
+{/* CONTROLS */}
 
 
 
@@ -1784,11 +2958,16 @@ space-y-5
 >
 
 
+
 <h2 className="font-semibold">
 
 Editorial Controls
 
 </h2>
+
+
+
+
 
 
 
@@ -1799,29 +2978,44 @@ Editorial Controls
 Featured
 
 
+
+
 <input
 
+
 type="checkbox"
+
 
 
 checked={form.featured}
 
 
 
+
+
 onChange={(e)=>
 
+
 updateField(
+
 "featured",
+
 e.target.checked
+
 )
 
+
 }
+
 
 
 />
 
 
+
 </label>
+
+
 
 
 
@@ -1835,26 +3029,39 @@ e.target.checked
 Breaking
 
 
+
+
 <input
 
+
 type="checkbox"
+
 
 
 checked={form.breaking}
 
 
 
+
+
 onChange={(e)=>
 
+
 updateField(
+
 "breaking",
+
 e.target.checked
+
 )
+
 
 }
 
 
+
 />
+
 
 
 </label>
@@ -1863,11 +3070,20 @@ e.target.checked
 
 
 
+
+
+
+
 {
+
 form.breaking &&
 
 
+
+
+
 <select
+
 
 className="
 w-full
@@ -1877,18 +3093,29 @@ bg-black/30
 "
 
 
+
+
 value={form.breakingDuration}
+
+
 
 
 
 onChange={(e)=>
 
+
 updateField(
+
 "breakingDuration",
+
 e.target.value
+
 )
 
+
 }
+
+
 
 
 >
@@ -1915,13 +3142,6 @@ e.target.value
 </option>
 
 
-<option value="360">
-
-6 Hours
-
-</option>
-
-
 <option value="1440">
 
 24 Hours
@@ -1929,10 +3149,14 @@ e.target.value
 </option>
 
 
+
 </select>
 
 
+
+
 }
+
 
 
 
@@ -1944,6 +3168,16 @@ e.target.value
 
 
 
+
+
+
+
+
+
+
+
+
+{/* SEO */}
 
 
 
@@ -1961,6 +3195,7 @@ space-y-4
 >
 
 
+
 <h2 className="font-semibold">
 
 SEO
@@ -1970,7 +3205,11 @@ SEO
 
 
 
+
+
+
 <input
+
 
 className="
 w-full
@@ -1980,21 +3219,33 @@ bg-black/30
 "
 
 
+
+
 placeholder="Meta Title"
+
+
 
 
 value={form.metaTitle}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "metaTitle",
+
 e.target.value
+
 )
 
+
 }
+
+
 
 
 />
@@ -2005,7 +3256,10 @@ e.target.value
 
 
 
+
+
 <textarea
+
 
 className="
 w-full
@@ -2016,7 +3270,10 @@ bg-black/30
 "
 
 
+
+
 placeholder="Meta Description"
+
 
 
 
@@ -2024,17 +3281,28 @@ value={form.metaDescription}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "metaDescription",
+
 e.target.value
+
 )
+
 
 }
 
 
+
+
+
 />
+
+
 
 
 
@@ -2044,6 +3312,7 @@ e.target.value
 
 <input
 
+
 className="
 w-full
 p-3
@@ -2052,7 +3321,10 @@ bg-black/30
 "
 
 
+
+
 placeholder="Meta Keywords"
+
 
 
 
@@ -2060,17 +3332,27 @@ value={form.metaKeywords}
 
 
 
+
 onChange={(e)=>
 
+
 updateField(
+
 "metaKeywords",
+
 e.target.value
+
 )
+
 
 }
 
 
+
+
 />
+
+
 
 
 
@@ -2084,9 +3366,22 @@ e.target.value
 
 
 
+
+
+
+
+
+
+{/* SUBMIT */}
+
+
+
 <button
 
+
 type="submit"
+
+
 
 disabled={loading}
 
@@ -2104,6 +3399,8 @@ font-semibold
 
 
 {
+
+
 loading
 
 ?
@@ -2114,7 +3411,10 @@ loading
 
 "Create Editorial"
 
+
+
 }
+
 
 
 </button>
@@ -2131,13 +3431,19 @@ loading
 
 
 
+
+
+
 </form>
 
 
 
 
 
+
 </div>
+
+
 
 );
 

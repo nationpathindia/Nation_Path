@@ -1,18 +1,30 @@
 interface ArticleShortBriefProps {
-  shortBrief: string;
+
+  shortBrief:string;
+
 }
+
 
 
 export default function ArticleShortBrief({
+
   shortBrief,
-}: ArticleShortBriefProps) {
+
+}:ArticleShortBriefProps){
 
 
-if(!shortBrief){
 
-return null;
+if(
+  !shortBrief ||
+  !shortBrief.trim()
+){
+
+  return null;
 
 }
+
+
+
 
 
 return (
@@ -21,15 +33,23 @@ return (
 
 className="
 
-my-8
+my-10
 
-rounded-2xl
+relative
+
+overflow-hidden
+
+rounded-3xl
 
 border
 
-border-[#163C80]/10
+border-gray-200
 
-bg-[#163C80]/5
+bg-gradient-to-br
+
+from-gray-50
+
+to-white
 
 p-6
 
@@ -40,11 +60,58 @@ sm:p-8
 >
 
 
+
+
+
+{/* ACCENT */}
+
 <div
 
 className="
 
-mb-4
+absolute
+
+left-0
+
+top-0
+
+h-full
+
+w-1.5
+
+bg-[#EA661B]
+
+"
+
+/>
+
+
+
+
+
+
+
+<div
+
+className="
+
+relative
+
+"
+
+>
+
+
+
+
+
+{/* HEADER */}
+
+<div
+
+className="
+
+mb-5
 
 flex
 
@@ -57,21 +124,39 @@ gap-3
 >
 
 
-<div
+<span
 
 className="
 
+flex
+
 h-8
 
-w-1
+w-8
+
+items-center
+
+justify-center
 
 rounded-full
 
 bg-[#163C80]
 
+text-sm
+
+font-bold
+
+text-white
+
 "
 
-/>
+>
+
+N
+
+</span>
+
+
 
 
 
@@ -81,11 +166,11 @@ className="
 
 text-xs
 
-font-semibold
+font-bold
 
 uppercase
 
-tracking-[0.2em]
+tracking-[0.22em]
 
 text-[#163C80]
 
@@ -93,7 +178,7 @@ text-[#163C80]
 
 >
 
-Intelligence Brief
+NationPath Brief
 
 </p>
 
@@ -105,9 +190,16 @@ Intelligence Brief
 
 
 
+
+
+
+{/* CONTENT */}
+
 <p
 
 className="
+
+max-w-3xl
 
 text-base
 
@@ -128,7 +220,75 @@ sm:text-lg
 
 
 
+
+
+
+{/* FOOTER */}
+
+<div
+
+className="
+
+mt-6
+
+flex
+
+items-center
+
+gap-2
+
+text-xs
+
+font-medium
+
+uppercase
+
+tracking-wider
+
+text-gray-400
+
+"
+
+>
+
+
+<span
+
+className="
+
+h-1.5
+
+w-1.5
+
+rounded-full
+
+bg-[#EA661B]
+
+"
+
+/>
+
+
+
+Editorial Snapshot
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
 </section>
+
 
 );
 

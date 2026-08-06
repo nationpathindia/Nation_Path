@@ -7,12 +7,15 @@ interface LeadStoryProps {
 }
 
 
+
 export default function LeadStory({
   article,
 }: LeadStoryProps) {
 
 
-  if (!article) return null;
+  if (!article)
+    return null;
+
 
 
 
@@ -25,36 +28,111 @@ export default function LeadStory({
 
 
 
-  const cleanText = (html: string) => {
 
-    if (!html) return "";
+
+  /*
+  ================================================
+  HERO IMAGE INTELLIGENCE
+  ================================================
+  */
+
+
+  const primaryImage =
+    article?.imageGallery?.find(
+      (image:any)=>
+        image?.isPrimary
+    )
+    ?.url
+    ||
+    article?.imageGallery?.[0]?.url
+    ||
+    article?.images?.[0]
+    ||
+    null;
+
+
+
+  const imageAlt =
+    article?.imageGallery?.find(
+      (image:any)=>
+        image?.isPrimary
+    )
+    ?.alt
+    ||
+    `${article.title} - Nation Path India`;
+
+
+
+
+
+
+
+
+  /*
+  ================================================
+  SUMMARY INTELLIGENCE
+  ================================================
+  */
+
+
+  const cleanText = (
+    html:string
+  ) => {
+
+
+    if(!html)
+      return "";
+
 
     return html
-      .replace(/<\/?[^>]+(>|$)/g, "")
-      .replace(/\s+/g, " ")
+      .replace(/<\/?[^>]+(>|$)/g,"")
+      .replace(/\s+/g," ")
       .trim();
+
 
   };
 
 
 
 
+  const summarySource =
+    article?.excerpt
+    ||
+    article?.shortBrief
+    ||
+    article?.content
+    ||
+    "";
 
-  const summary = cleanText(article.content);
+
+
+  const summary =
+    cleanText(
+      summarySource
+    );
+
 
 
   const shortSummary =
     summary.length > 300
-      ? summary.slice(0, 300)
+      ? summary.slice(0,300)
       : summary;
 
 
 
 
 
-  const publishedDate = article.createdAt
-    ? new Date(article.createdAt).toISOString()
-    : undefined;
+
+
+  const publishedDate =
+    article?.createdAt
+      ? new Date(
+          article.createdAt
+        ).toISOString()
+      : undefined;
+
+
+
 
 
 
@@ -72,22 +150,32 @@ export default function LeadStory({
       "
 
       itemScope
-      itemType="https://schema.org/NewsArticle"
+
+      itemType="
+        https://schema.org/NewsArticle
+      "
 
     >
 
 
 
+
+
+
       <Link
 
-        href={articleUrl}
+        href={
+          articleUrl
+        }
 
         className="
           group
           block
         "
 
-        aria-label={`Read full article: ${article.title}`}
+        aria-label={
+          `Read full article: ${article.title}`
+        }
 
       >
 
@@ -96,10 +184,9 @@ export default function LeadStory({
 
 
 
-        {/* HERO IMAGE */}
-
         {
-          article?.images?.[0] && (
+          primaryImage && (
+
 
             <div
 
@@ -116,20 +203,30 @@ export default function LeadStory({
             >
 
 
+
               <Image
 
-                src={article.images[0]}
+                src={
+                  primaryImage
+                }
 
-                alt={`${article.title} - Nation Path India`}
+                alt={
+                  imageAlt
+                }
+
 
                 fill
 
+
                 priority
+
 
                 sizes="
                   (max-width:768px) 100vw,
-                  1200px
+                  (max-width:1280px) 70vw,
+                  900px
                 "
+
 
                 className="
                   object-cover
@@ -139,12 +236,15 @@ export default function LeadStory({
                   group-hover:scale-[1.035]
                 "
 
+
                 itemProp="image"
 
               />
 
 
+
             </div>
+
 
           )
         }
@@ -156,11 +256,9 @@ export default function LeadStory({
 
 
 
-
-        {/* CATEGORY */}
-
         {
           article?.category?.name && (
+
 
             <div
 
@@ -171,6 +269,7 @@ export default function LeadStory({
 
             >
 
+
               <span
                 className="category-line"
               />
@@ -180,12 +279,15 @@ export default function LeadStory({
                 itemProp="articleSection"
               >
 
-                {article.category.name}
+                {
+                  article.category.name
+                }
 
               </span>
 
 
             </div>
+
 
           )
         }
@@ -195,10 +297,6 @@ export default function LeadStory({
 
 
 
-
-
-
-        {/* HEADLINE FINAL LOCK */}
 
 
         <h1
@@ -222,7 +320,9 @@ export default function LeadStory({
 
         >
 
-          {article.title}
+          {
+            article.title
+          }
 
         </h1>
 
@@ -234,11 +334,9 @@ export default function LeadStory({
 
 
 
-        {/* SUMMARY */}
-
-
         {
           shortSummary && (
+
 
             <p
 
@@ -255,14 +353,18 @@ export default function LeadStory({
 
             >
 
-              {shortSummary}
+              {
+                shortSummary
+              }
 
               {
-                summary.length > 300 && "..."
+                summary.length > 300 &&
+                "..."
               }
 
 
             </p>
+
 
           )
         }
@@ -273,9 +375,6 @@ export default function LeadStory({
 
 
 
-
-
-        {/* META */}
 
 
         <div
@@ -293,6 +392,7 @@ export default function LeadStory({
           "
 
         >
+
 
 
           <span
@@ -314,41 +414,54 @@ export default function LeadStory({
 
 
 
+
+
           {
-            article.createdAt && (
+            article?.createdAt && (
+
 
               <>
+
 
                 <span>
                   •
                 </span>
 
 
+
                 <time
 
-                  dateTime={publishedDate}
+                  dateTime={
+                    publishedDate
+                  }
 
-                  itemProp="datePublished"
+                  itemProp="
+                    datePublished
+                  "
 
                 >
 
                   {
-                    new Date(article.createdAt)
-                      .toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        }
-                      )
+                    new Date(
+                      article.createdAt
+                    )
+                    .toLocaleDateString(
+                      "en-IN",
+                      {
+                        day:"numeric",
+                        month:"short",
+                        year:"numeric",
+                      }
+                    )
                   }
 
 
                 </time>
 
 
+
               </>
+
 
             )
           }
@@ -363,9 +476,6 @@ export default function LeadStory({
 
 
 
-
-
-        {/* READ STORY */}
 
 
         <div
@@ -397,7 +507,9 @@ export default function LeadStory({
 
             Read Full Story
 
+
           </span>
+
 
 
 
@@ -414,6 +526,7 @@ export default function LeadStory({
             →
 
           </span>
+
 
 
         </div>
@@ -434,14 +547,13 @@ export default function LeadStory({
 
 
 
-      {/* STRUCTURED DATA */}
-
-
       <meta
 
         itemProp="publisher"
 
-        content="Nation Path India"
+        content="
+          Nation Path India
+        "
 
       />
 
@@ -451,7 +563,9 @@ export default function LeadStory({
 
         itemProp="mainEntityOfPage"
 
-        content={`https://nationpathindia.com${articleUrl}`}
+        content={
+          `https://nationpathindia.com${articleUrl}`
+        }
 
       />
 

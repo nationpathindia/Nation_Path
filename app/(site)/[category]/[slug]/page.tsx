@@ -1900,18 +1900,38 @@ null
 {/* ================= ARTICLE BODY ================= */}
 
 
-
 <ArticleBody
-
 
 content={article.content}
 
-
 keyHighlights={article.keyHighlights}
-
 
 whyItMatters={article.whyItMatters}
 
+
+video={
+
+article.videoUrl
+
+?
+
+{
+
+url: article.videoUrl,
+
+title: article.videoTitle,
+
+position:
+article.videoPosition as
+"top" | "middle" | "bottom"
+
+}
+
+:
+
+null
+
+}
 
 />
 

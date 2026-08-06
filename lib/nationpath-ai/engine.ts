@@ -23,11 +23,33 @@
 // NationPath AI Core v1
 //////////////////////////////////////////////////////////////
 
+
 import type {
   NationPathAIRequest,
 } from "./client";
 
+
 import AI_CONFIG from "./constants";
+
+
+
+//////////////////////////////////////////////////////////////
+// NEWS PIPELINE
+//////////////////////////////////////////////////////////////
+
+import {
+  generateNewsArticle
+} from "./adapters/newsAdapter";
+
+
+import type {
+  NewsGenerationRequest
+} from "./types";
+
+
+
+
+
 
 
 
@@ -37,27 +59,44 @@ import AI_CONFIG from "./constants";
 
 interface EngineContext {
 
+
   module:string;
+
 
   systemPrompt:string;
 
+
   userPrompt:string;
+
 
   context:Record<string,any>;
 
+
 }
+
+
 
 
 
 interface IntelligencePayload {
 
+
   module:string;
+
 
   intelligence:string;
 
-  context:Record<string,any>;
+
+  context:any;
+
+
+  generated?:boolean;
+
 
 }
+
+
+
 
 
 
@@ -68,18 +107,35 @@ interface IntelligencePayload {
 //////////////////////////////////////////////////////////////
 
 function normalizeText(
+
  text?:string
+
 ){
 
+
  if(!text)
-   return "";
+
+  return "";
+
 
 
  return text
+
   .trim()
-  .replace(/\s+/g," ");
+
+  .replace(
+
+    /\s+/g,
+
+    " "
+
+  );
+
 
 }
+
+
+
 
 
 
@@ -90,44 +146,64 @@ function normalizeText(
 //////////////////////////////////////////////////////////////
 
 function qualityFilter(
+
  value:any
+
 ){
+
+
 
  if(typeof value === "string"){
 
-   return normalizeText(value);
+
+   return normalizeText(
+     value
+   );
+
 
  }
 
 
+
  return value;
 
+
 }
+
 
 
 
 
 
 function applyQualityLayer(
+
  response:any
+
 ){
 
+
+
  return {
+
 
   ...response,
 
 
+
   output:
 
-   qualityFilter(
-     response.output
-   ),
+    qualityFilter(
+
+      response.output
+
+    )
 
 
  };
 
 
 }
+
 
 
 
@@ -141,40 +217,53 @@ function applyQualityLayer(
 //////////////////////////////////////////////////////////////
 
 function resolveModule(
+
  module?:string
+
 ){
+
+
 
  switch(module){
 
 
+
   case "astro":
 
-   return "ASTRO_INTELLIGENCE";
+    return "ASTRO_INTELLIGENCE";
+
 
 
   case "news":
 
-   return "NEWS_INTELLIGENCE";
+    return "NEWS_INTELLIGENCE";
+
 
 
   case "kids":
 
-   return "KIDS_INTELLIGENCE";
+    return "KIDS_INTELLIGENCE";
+
 
 
   case "content":
 
-   return "CONTENT_INTELLIGENCE";
+    return "CONTENT_INTELLIGENCE";
+
 
 
   default:
 
-   return "GENERAL_INTELLIGENCE";
+    return "GENERAL_INTELLIGENCE";
 
 
  }
 
+
+
 }
+
+
 
 
 
@@ -187,8 +276,11 @@ function resolveModule(
 //////////////////////////////////////////////////////////////
 
 function buildContext(
+
  request:NationPathAIRequest
+
 ):EngineContext {
+
 
 
  return {
@@ -196,36 +288,44 @@ function buildContext(
 
   module:
 
-   resolveModule(
-    request.module
-   ),
+    resolveModule(
+
+      request.module
+
+    ),
 
 
 
   systemPrompt:
 
-   normalizeText(
-    request.systemPrompt
-   ),
+    normalizeText(
+
+      request.systemPrompt
+
+    ),
 
 
 
   userPrompt:
 
-   normalizeText(
-    request.userPrompt
-   ),
+    normalizeText(
+
+      request.userPrompt
+
+    ),
 
 
 
   context:
 
-   request.context
-   ||
-   {},
+    request.context
+    ||
+    {},
+
 
 
  };
+
 
 
 }
@@ -236,32 +336,43 @@ function buildContext(
 
 
 
+
+
 //////////////////////////////////////////////////////////////
-// MODULE INTELLIGENCE
+// ASTRO INTELLIGENCE
 //////////////////////////////////////////////////////////////
 
 function processAstro(
+
  context:EngineContext
+
 ):IntelligencePayload {
+
 
 
  return {
 
 
   module:
-   context.module,
+
+    context.module,
+
 
 
   intelligence:
 
-   "ASTRO_EDITORIAL_ENHANCEMENT",
+    "ASTRO_EDITORIAL_ENHANCEMENT",
+
 
 
   context:
-   context.context,
+
+    context.context,
+
 
 
  };
+
 
 
 }
@@ -272,28 +383,205 @@ function processAstro(
 
 
 
-function processNews(
- context:EngineContext
-):IntelligencePayload {
 
 
- return {
+//////////////////////////////////////////////////////////////
+// NEWS INTELLIGENCE
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+// NEWS INTELLIGENCE
+//////////////////////////////////////////////////////////////
+
+async function processNews(
+
+  context:EngineContext
+
+):Promise<IntelligencePayload>{
 
 
-  module:
-   context.module,
+
+  const newsContext =
+
+    context.context
+    ||
+    {};
 
 
-  intelligence:
-
-   "NEWS_EDITORIAL_ENHANCEMENT",
 
 
-  context:
-   context.context,
+
+  const request:NewsGenerationRequest = {
 
 
- };
+
+    rawNews:
+
+      context.userPrompt,
+
+
+
+
+
+    category:
+
+      newsContext.category
+      ||
+      "general",
+
+
+
+
+
+    articleType:
+
+      newsContext.articleType
+      ||
+      "news",
+
+
+
+
+
+    keywords:
+
+      Array.isArray(
+        newsContext.keywords
+      )
+
+      ?
+
+      newsContext.keywords
+
+      :
+
+      [],
+
+
+
+
+
+    location:
+
+      newsContext.location
+      ||
+      "",
+
+
+
+
+
+    source:
+
+      newsContext.source
+      ||
+      "",
+
+
+
+
+
+  };
+
+
+
+
+
+
+
+  const article =
+
+    await generateNewsArticle(
+
+      request
+
+    );
+
+
+
+
+
+
+
+
+  return {
+
+
+
+    module:
+
+      context.module,
+
+
+
+
+
+    intelligence:
+
+      "NEWS_ARTICLE_GENERATION",
+
+
+
+
+
+    generated:
+
+      true,
+
+
+
+
+
+    context:
+
+
+
+      {
+
+
+
+        ...newsContext,
+
+
+
+        article,
+
+
+
+        newsroom:
+
+          {
+
+
+            reviewed:
+
+              false,
+
+
+
+            published:
+
+              false,
+
+
+
+            requiresHumanApproval:
+
+              true
+
+
+
+          }
+
+
+
+      }
+
+
+
+
+
+  };
+
 
 
 }
@@ -303,26 +591,37 @@ function processNews(
 
 
 
+//////////////////////////////////////////////////////////////
+// KIDS INTELLIGENCE
+//////////////////////////////////////////////////////////////
 
 function processKids(
+
  context:EngineContext
+
 ):IntelligencePayload {
+
 
 
  return {
 
 
   module:
-   context.module,
+
+    context.module,
+
 
 
   intelligence:
 
-   "KIDS_CONTENT_INTELLIGENCE",
+    "KIDS_CONTENT_INTELLIGENCE",
+
 
 
   context:
-   context.context,
+
+    context.context,
+
 
 
  };
@@ -335,26 +634,40 @@ function processKids(
 
 
 
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTENT INTELLIGENCE
+//////////////////////////////////////////////////////////////
 
 function processContent(
+
  context:EngineContext
+
 ):IntelligencePayload {
+
 
 
  return {
 
 
   module:
-   context.module,
+
+    context.module,
+
 
 
   intelligence:
 
-   "CONTENT_LANGUAGE_INTELLIGENCE",
+    "CONTENT_LANGUAGE_INTELLIGENCE",
+
 
 
   context:
-   context.context,
+
+    context.context,
+
 
 
  };
@@ -367,32 +680,48 @@ function processContent(
 
 
 
+
+
+
+//////////////////////////////////////////////////////////////
+// GENERAL INTELLIGENCE
+//////////////////////////////////////////////////////////////
 
 function processGeneral(
+
  context:EngineContext
+
 ):IntelligencePayload {
+
 
 
  return {
 
 
   module:
-   context.module,
+
+    context.module,
+
 
 
   intelligence:
 
-   "GENERAL_LANGUAGE_INTELLIGENCE",
+    "GENERAL_LANGUAGE_INTELLIGENCE",
+
 
 
   context:
-   context.context,
+
+    context.context,
+
 
 
  };
 
 
 }
+
+
 
 
 
@@ -405,57 +734,87 @@ function processGeneral(
 //////////////////////////////////////////////////////////////
 
 async function processIntelligence(
+
  context:EngineContext
+
 )
 :Promise<IntelligencePayload>{
+
 
 
  switch(context.module){
 
 
+
   case "ASTRO_INTELLIGENCE":
 
+
     return processAstro(
+
       context
+
     );
+
+
 
 
 
   case "NEWS_INTELLIGENCE":
 
+
     return processNews(
+
       context
+
     );
+
+
 
 
 
   case "KIDS_INTELLIGENCE":
 
+
     return processKids(
+
       context
+
     );
+
+
 
 
 
   case "CONTENT_INTELLIGENCE":
 
+
     return processContent(
+
       context
+
     );
+
+
 
 
 
   default:
 
+
     return processGeneral(
+
       context
+
     );
+
 
 
  }
 
 
+
 }
+
 
 
 
@@ -475,20 +834,33 @@ export async function executeNationPathAI(
 ){
 
 
+
  const context =
 
-  buildContext(
-    request
-  );
+
+   buildContext(
+
+     request
+
+   );
+
+
+
 
 
 
 
  const intelligence =
 
-  await processIntelligence(
-    context
-  );
+
+   await processIntelligence(
+
+     context
+
+   );
+
+
+
 
 
 
@@ -497,10 +869,16 @@ export async function executeNationPathAI(
  const response = {
 
 
-  success:true,
+
+  success:
+
+
+    true,
+
 
 
   engine:
+
 
     AI_CONFIG.ENGINE,
 
@@ -508,11 +886,13 @@ export async function executeNationPathAI(
 
   version:
 
+
     AI_CONFIG.VERSION,
 
 
 
   module:
+
 
     intelligence.module,
 
@@ -520,11 +900,13 @@ export async function executeNationPathAI(
 
   intelligence:
 
+
     intelligence.intelligence,
 
 
 
   system:
+
 
     context.systemPrompt,
 
@@ -532,11 +914,13 @@ export async function executeNationPathAI(
 
   input:
 
+
     context.userPrompt,
 
 
 
   context:
+
 
     intelligence.context,
 
@@ -544,14 +928,20 @@ export async function executeNationPathAI(
 
   generated:
 
+
+    intelligence.generated
+    ||
     false,
 
 
 
   timestamp:
 
+
     new Date()
-    .toISOString(),
+
+    .toISOString()
+
 
 
  };
@@ -559,28 +949,57 @@ export async function executeNationPathAI(
 
 
 
+
+
+
  return applyQualityLayer(
 
+
    {
+
 
     ...response,
 
 
+
     output:
 
+
+      intelligence.generated
+
+
+      ?
+
+
+      intelligence.context.article
+
+
+
+      :
+
+
       JSON.stringify(
+
         response,
+
         null,
+
         2
-      ),
+
+      )
+
 
 
    }
 
+
+
  );
 
 
+
 }
+
 
 
 

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH AI TYPES
 //
-// Internal AI Runtime Types
+// Internal Intelligence Runtime
 //
 // NO OPENAI
 // NO EXTERNAL PROVIDER
@@ -25,7 +25,7 @@ export type AstroLanguage =
 
 
 //////////////////////////////////////////////////////////////
-// AI PROVIDER
+// PROVIDER
 //////////////////////////////////////////////////////////////
 
 export type AIProvider =
@@ -34,28 +34,36 @@ export type AIProvider =
 
 
 //////////////////////////////////////////////////////////////
-// AI MODEL
+// MODEL
 //////////////////////////////////////////////////////////////
 
 export type AIModel =
   | "nationpath-core-v1";
 
 
+
+
 //////////////////////////////////////////////////////////////
-// AI CONTENT TYPE
+// CONTENT MODULES
 //////////////////////////////////////////////////////////////
 
 export type AIContentType =
+
   | "news"
   | "breaking-news"
   | "editorial"
+  | "analysis"
   | "horoscope"
   | "astro-enhancement"
   | "seo"
   | "social"
   | "rewrite"
   | "translate"
-  | "summary";
+  | "summary"
+  | "image"
+  | "kids";
+
+
 
 
 //////////////////////////////////////////////////////////////
@@ -65,28 +73,32 @@ export type AIContentType =
 export interface AIRequest {
 
 
-  provider?:
-    AIProvider;
+ provider?:
+  AIProvider;
 
 
-  model?:
-    AIModel;
+ model?:
+  AIModel;
 
 
-  language?:
-    AstroLanguage;
+ language?:
+  AstroLanguage;
 
 
-  temperature?:
-    number;
+ temperature?:
+  number;
 
 
-  topP?:
-    number;
+ topP?:
+  number;
 
 
-  maxOutputTokens?:
-    number;
+ maxOutputTokens?:
+  number;
+
+
+ module?:
+  AIContentType;
 
 
 }
@@ -96,55 +108,54 @@ export interface AIRequest {
 
 
 //////////////////////////////////////////////////////////////
-// AI RESPONSE
+// GENERIC RESPONSE
 //////////////////////////////////////////////////////////////
-export interface AIResponse<T> {
+
+export interface AIResponse<T>{
 
 
-  success:
-    boolean;
+ success:
+  boolean;
 
 
-  data?:
-    T;
+ data?:
+  T;
 
 
-  error?:
-    string;
+ error?:
+  string;
 
 
 
-  meta?: {
+ meta?: {
 
 
-    engine:
-      string;
+  engine:
+   string;
 
 
-    version:
-      string;
+  version:
+   string;
 
 
-    module?:
-      string;
+  module?:
+   string;
 
 
-    provider?:
-      AIProvider;
+  durationMs?:
+   number;
 
 
-    model?:
-      AIModel;
+  requiresHumanReview?:
+   boolean;
 
 
-    durationMs?:
-      number;
-
-
-  };
+ };
 
 
 }
+
+
 
 
 
@@ -153,28 +164,109 @@ export interface AIResponse<T> {
 // NEWS REQUEST
 //////////////////////////////////////////////////////////////
 
-export interface NewsRequest
-extends AIRequest {
+export interface NewsGenerationRequest
+extends AIRequest{
 
 
-  title:
-    string;
+ rawNews:
+  string;
 
 
-  category:
-    string;
+ category?:
+  string;
 
 
-  keywords?:
-    string[];
+ articleType?:
+ | "news"
+ | "breaking-news"
+ | "editorial"
+ | "analysis";
 
 
-  location?:
-    string;
+
+ keywords?:
+  string[];
 
 
-  source?:
-    string;
+
+ location?:
+  string;
+
+
+
+ source?:
+  string;
+
+
+
+ context?:
+  Record<string,any>;
+
+}
+
+
+
+
+//////////////////////////////////////////////////////////////
+// NEWS ANALYSIS
+//////////////////////////////////////////////////////////////
+
+export interface NewsAnalysis{
+
+
+ topic:
+  string;
+
+
+ category:
+  string;
+
+
+ articleType:
+  string;
+
+
+
+ importance:
+ | "low"
+ | "medium"
+ | "high"
+ | "breaking";
+
+
+
+ entities:
+  string[];
+
+
+ locations:
+  string[];
+
+
+ people:
+  string[];
+
+
+ organizations:
+  string[];
+
+
+
+ keywords:
+  string[];
+
+
+
+ sentiment?:
+ | "positive"
+ | "negative"
+ | "neutral";
+
+
+
+ summary:
+  string;
+
 
 
 }
@@ -184,15 +276,18 @@ extends AIRequest {
 
 
 //////////////////////////////////////////////////////////////
-// EDITORIAL REQUEST
+// TIMELINE
 //////////////////////////////////////////////////////////////
 
-export interface EditorialRequest
-extends AIRequest {
+export interface NewsTimelineItem{
 
 
-  topic:
-    string;
+ date:
+  string;
+
+
+ event:
+  string;
 
 
 }
@@ -202,15 +297,22 @@ extends AIRequest {
 
 
 //////////////////////////////////////////////////////////////
-// REWRITE REQUEST
+// EXPERT OPINION
 //////////////////////////////////////////////////////////////
 
-export interface RewriteRequest
-extends AIRequest {
+export interface NewsExpertOpinion{
 
 
-  content:
-    string;
+ expert:
+  string;
+
+
+ designation?:
+  string;
+
+
+ opinion:
+  string;
 
 
 }
@@ -218,114 +320,28 @@ extends AIRequest {
 
 
 
-
 //////////////////////////////////////////////////////////////
-// SEO REQUEST
-//////////////////////////////////////////////////////////////
-
-export interface SEORequest
-extends AIRequest {
-
-
-  title:
-    string;
-
-
-  content:
-    string;
-
-
-}
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SOCIAL REQUEST
+// FACT CHECK
 //////////////////////////////////////////////////////////////
 
-export interface SocialRequest
-extends AIRequest {
+export interface NewsFactCheck{
 
 
-  title:
-    string;
-
-
-  content:
-    string;
-
-
-}
+ claim:
+  string;
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-// HOROSCOPE REQUEST
-//////////////////////////////////////////////////////////////
-
-export interface HoroscopeRequest
-extends AIRequest {
-
-
-  zodiacSign:
-    string;
-
-
-  horoscopeDate:
-    string | Date;
-
-
-}
+ status:
+ | "verified"
+ | "partially-verified"
+ | "unverified"
+ | "false";
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-// ARTICLE OUTPUT
-//////////////////////////////////////////////////////////////
-
-export interface GeneratedArticle {
-
-
-  title:
-    string;
-
-
-  slug:
-    string;
-
-
-  excerpt:
-    string;
-
-
-  content:
-    string;
-
-
-  tags:
-    string[];
-
-
-  metaTitle:
-    string;
-
-
-  metaDescription:
-    string;
-
-
-  metaKeywords:
-    string[];
-
-
-  readingTime:
-    number;
+ explanation:
+  string;
 
 
 }
@@ -338,27 +354,26 @@ export interface GeneratedArticle {
 // SEO OUTPUT
 //////////////////////////////////////////////////////////////
 
-export interface GeneratedSEO {
+export interface GeneratedSEO{
 
 
-  metaTitle:
-    string;
+ metaTitle:
+  string;
 
 
-  metaDescription:
-    string;
+ metaDescription:
+  string;
 
 
-  metaKeywords:
-    string[];
+ metaKeywords:
+  string[];
 
 
-  slug:
-    string;
+ slug:
+  string;
 
 
 }
-
 
 
 
@@ -367,35 +382,35 @@ export interface GeneratedSEO {
 // SOCIAL OUTPUT
 //////////////////////////////////////////////////////////////
 
-export interface GeneratedSocial {
+export interface GeneratedSocial{
 
 
-  facebook:
-    string;
+ facebook:
+  string;
 
 
-  instagram:
-    string;
+ instagram:
+  string;
 
 
-  twitter:
-    string;
+ twitter:
+  string;
 
 
-  linkedin:
-    string;
+ linkedin:
+  string;
 
 
-  whatsapp:
-    string;
+ whatsapp:
+  string;
 
 
-  telegram:
-    string;
+ telegram:
+  string;
 
 
-  hashtags:
-    string[];
+ hashtags:
+  string[];
 
 
 }
@@ -405,30 +420,182 @@ export interface GeneratedSocial {
 
 
 //////////////////////////////////////////////////////////////
-// IMAGE OUTPUT
+// IMAGE INTELLIGENCE
 //////////////////////////////////////////////////////////////
 
-export interface ImagePrompt {
+export interface ImagePrompt{
 
 
-  title:
-    string;
+ title:
+  string;
 
 
-  prompt:
-    string;
+ prompt:
+  string;
 
 
-  negativePrompt?:
-    string;
+ negativePrompt?:
+  string;
 
 
-  width?:
-    number;
+ width?:
+  number;
 
 
-  height?:
-    number;
+ height?:
+  number;
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// GENERATED NEWS ARTICLE
+//////////////////////////////////////////////////////////////
+
+export interface GeneratedNewsArticle{
+
+
+ title:
+  string;
+
+
+ slug:
+  string;
+
+
+
+ content:
+  string;
+
+
+
+
+ shortBrief:
+  string;
+
+
+
+ background:
+  string;
+
+
+
+ timeline:
+  NewsTimelineItem[];
+
+
+
+
+ expertOpinion:
+  NewsExpertOpinion[];
+
+
+
+
+ factCheck:
+  NewsFactCheck[];
+
+
+
+
+ whatsNext:
+  string;
+
+
+
+
+ keyTakeaways:
+  string[];
+
+
+
+
+ sourceDesk:
+  string;
+
+
+
+
+
+ metaTitle:
+  string;
+
+
+
+ metaDescription:
+  string;
+
+
+
+ metaKeywords:
+  string[];
+
+
+
+ tags?:
+  string[];
+
+
+
+ readingTime?:
+  number;
+
+
+
+ social?:
+  GeneratedSocial;
+
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// NEWS AI OUTPUT
+//////////////////////////////////////////////////////////////
+
+export interface NewsAIOutput{
+
+
+ analysis:
+  NewsAnalysis;
+
+
+
+ article:
+  GeneratedNewsArticle;
+
+
+
+ meta?:
+
+
+ {
+
+  engine:
+   string;
+
+
+  version:
+   string;
+
+
+  durationMs?:
+   number;
+
+
+  requiresHumanReview:
+   boolean;
+
+
+ };
 
 
 }
@@ -441,243 +608,277 @@ export interface ImagePrompt {
 // HOROSCOPE OUTPUT
 //////////////////////////////////////////////////////////////
 
-export interface HoroscopeOutput {
+export interface HoroscopeOutput{
 
 
-  zodiacSign:
-    string;
+ zodiacSign:
+ string;
 
 
-  horoscopeDate:
-    string;
+ horoscopeDate:
+ string;
 
 
-  zodiacDateRange:
-    string;
+ zodiacDateRange:
+ string;
 
 
+ lovePrediction:
+ string;
 
-  lovePrediction:
-    string;
 
+ careerPrediction:
+ string;
 
-  careerPrediction:
-    string;
 
+ financePrediction:
+ string;
 
-  financePrediction:
-    string;
 
+ healthPrediction:
+ string;
 
-  healthPrediction:
-    string;
 
+ travelPrediction:
+ string;
 
-  travelPrediction:
-    string;
 
+ moodPrediction:
+ string;
 
-  moodPrediction:
-    string;
 
+ luckyColor:
+ string;
 
 
-  luckyColor:
-    string;
+ luckyNumber:
+ string;
 
 
-  luckyNumber:
-    string;
+ luckyTime:
+ string;
 
 
-  luckyTime:
-    string;
+ luckyDirection:
+ string;
 
 
-  luckyDirection:
-    string;
+ luckyGemstone:
+ string;
 
 
-  luckyGemstone:
-    string;
+ luckyFlower:
+ string;
 
 
-  luckyFlower:
-    string;
+ luckyPlant:
+ string;
 
 
-  luckyPlant:
-    string;
+ luckyFood:
+ string;
 
 
-  luckyFood:
-    string;
+ luckyMetal:
+ string;
 
 
-  luckyMetal:
-    string;
+ luckyMantra:
+ string;
 
 
-  luckyMantra:
-    string;
+ moonSign:
+ string;
 
 
+ sunSign:
+ string;
 
-  moonSign:
-    string;
 
+ moonPhase:
+ string;
 
-  sunSign:
-    string;
 
+ planetInfluence:
+ string;
 
-  moonPhase:
-    string;
 
+ currentTransit:
+ string;
 
-  planetInfluence:
-    string;
 
+ tithi:
+ string;
 
-  currentTransit:
-    string;
 
+ nakshatra:
+ string;
 
 
-  tithi:
-    string;
+ yoga:
+ string;
 
 
-  nakshatra:
-    string;
+ karana:
+ string;
 
 
-  yoga:
-    string;
+ sunrise:
+ string;
 
 
-  karana:
-    string;
+ sunset:
+ string;
 
 
-  sunrise:
-    string;
+ moonrise:
+ string;
 
 
-  sunset:
-    string;
+ moonset:
+ string;
 
 
-  moonrise:
-    string;
+ rahuKaal:
+ string;
 
 
-  moonset:
-    string;
+ abhijitMuhurat:
+ string;
 
 
-  rahuKaal:
-    string;
+ amritKaal:
+ string;
 
 
-  abhijitMuhurat:
-    string;
+ compatibleSigns:
+ string[];
 
 
-  amritKaal:
-    string;
+ avoidSigns:
+ string[];
 
 
+ todayRemedy:
+ string;
 
-  compatibleSigns:
-    string[];
 
+ chantMantra:
+ string;
 
-  avoidSigns:
-    string[];
 
+ donation:
+ string;
 
 
-  todayRemedy:
-    string;
+ auspiciousWork:
+ string;
 
 
-  chantMantra:
-    string;
+ avoidToday:
+ string;
 
 
-  donation:
-    string;
+ loveScore:
+ number;
 
 
-  auspiciousWork:
-    string;
+ careerScore:
+ number;
 
 
-  avoidToday:
-    string;
+ financeScore:
+ number;
 
 
+ healthScore:
+ number;
 
-  loveScore:
-    number;
 
+ overallLuck:
+ number;
 
-  careerScore:
-    number;
 
+ astroTitle:
+ string;
 
-  financeScore:
-    number;
 
+ astroDescription:
+ string;
 
-  healthScore:
-    number;
 
+ shareTitle:
+ string;
 
-  loveCompatibility:
-    number;
 
+ shareDescription:
+ string;
 
-  careerGrowth:
-    number;
 
+}
 
-  wealthEnergy:
-    number;
 
 
-  mentalPeace:
-    number;
 
 
-  familyHarmony:
-    number;
+//////////////////////////////////////////////////////////////
+// NEWSROOM MEMORY
+//////////////////////////////////////////////////////////////
 
+export interface NewsroomMemory{
 
-  travelLuck:
-    number;
 
+ articleId?:
+ string;
 
-  overallLuck:
-    number;
 
+ category:
+ string;
 
 
-  astroTitle:
-    string;
+ headlinePattern?:
+ string;
 
 
-  astroDescription:
-    string;
+ editorChanges?:
+ string[];
 
 
-  shareTitle:
-    string;
+ performanceScore?:
+ number;
 
 
-  shareDescription:
-    string;
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// AI AUDIT LOG
+//////////////////////////////////////////////////////////////
+
+export interface AIAuditRecord{
+
+
+ requestId:
+ string;
+
+
+ module:
+ string;
+
+
+ createdAt:
+ Date;
+
+
+ humanReviewed:
+ boolean;
+
+
+ published:
+ boolean;
 
 
 }
@@ -690,15 +891,193 @@ export interface HoroscopeOutput {
 // VALIDATION
 //////////////////////////////////////////////////////////////
 
-export interface ValidationResult {
+export interface ValidationResult{
 
 
-  valid:
-    boolean;
+ valid:
+ boolean;
 
 
-  errors:
-    string[];
+ errors:
+ string[];
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// NEWS AI CONFIG
+//////////////////////////////////////////////////////////////
+
+export interface NewsAIConfig{
+
+
+ generateHeadline:
+ boolean;
+
+
+ generateArticle:
+ boolean;
+
+
+ generateTimeline:
+ boolean;
+
+
+ generateFactCheck:
+ boolean;
+
+
+ generateSEO:
+ boolean;
+
+
+ generateSocial:
+ boolean;
+
+
+ generateImagePrompt:
+ boolean;
+
+
+}
+
+//////////////////////////////////////////////////////////////
+// LEGACY NEWS REQUEST
+//
+// Validator compatibility layer
+//////////////////////////////////////////////////////////////
+
+export interface NewsRequest
+extends AIRequest {
+
+
+ title:
+  string;
+
+
+ category:
+  string;
+
+
+ keywords?:
+  string[];
+
+
+ location?:
+  string;
+
+
+ source?:
+  string;
+
+
+}
+
+//////////////////////////////////////////////////////////////
+// EDITORIAL REQUEST
+//
+// Backward compatibility
+//////////////////////////////////////////////////////////////
+
+export interface EditorialRequest
+extends AIRequest {
+
+
+ topic:
+  string;
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// REWRITE REQUEST
+//
+// Backward compatibility
+//////////////////////////////////////////////////////////////
+
+export interface RewriteRequest
+extends AIRequest {
+
+
+ content:
+  string;
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SEO REQUEST
+//
+// Backward compatibility
+//////////////////////////////////////////////////////////////
+
+export interface SEORequest
+extends AIRequest {
+
+
+ title:
+  string;
+
+
+ content:
+  string;
+
+
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// SOCIAL REQUEST
+//
+// Backward compatibility
+//////////////////////////////////////////////////////////////
+
+export interface SocialRequest
+extends AIRequest {
+
+
+ title:
+  string;
+
+
+ content:
+  string;
+
+
+}
+//////////////////////////////////////////////////////////////
+// HOROSCOPE REQUEST
+//
+// Astro AI Compatibility Layer
+//////////////////////////////////////////////////////////////
+
+export interface HoroscopeRequest
+extends AIRequest {
+
+
+ zodiacSign:
+  string;
+
+
+
+ horoscopeDate:
+  string | Date;
+
 
 
 }

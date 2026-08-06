@@ -244,7 +244,7 @@ Status
 </option>
 
 <option value="approved">
-Published
+Approved
 </option>
 
 <option value="pending">

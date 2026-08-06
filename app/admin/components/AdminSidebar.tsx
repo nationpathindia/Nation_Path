@@ -130,6 +130,20 @@ roles:[
 
 
 {
+name:"AI Newsroom",
+href:"/admin/ai-news",
+icon:Sparkles,
+roles:[
+"superadmin",
+"admin",
+"editor",
+"reporter"
+]
+},
+
+
+
+{
 name:"Categories",
 href:"/admin/categories",
 icon:Folder,

@@ -501,7 +501,7 @@ articles.slice(1,5);
 
 
 const featureGrid =
-articles.slice(5,9);
+articles.slice(5,10);
 
 
 
@@ -1050,11 +1050,9 @@ articles={categoryArticles}
 
 
 <section
-
 className="
-mt-4
+mt-0
 "
-
 >
 
 <PollOfDay />
@@ -1074,7 +1072,8 @@ mt-4
 className="
 flex
 justify-center
-py-8
+py-3
+sm:py-4
 "
 
 >
@@ -1084,7 +1083,6 @@ py-8
 placement="homepage_mid"
 
 />
-
 
 </div>
 
@@ -1308,17 +1306,16 @@ mt-16
 ================================================== */}
 
 
-
 <div
 
 className="
 flex
 justify-center
-my-12
+my-4
+sm:my-6
 "
 
 >
-
 
 <AdRenderer
 
@@ -1326,10 +1323,7 @@ placement="homepage_bottom"
 
 />
 
-
-
 </div>
-
 
 
 

@@ -5,152 +5,317 @@ import { PostStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 
+
 export async function GET() {
 
   try {
 
 
+    const now = new Date();
+
+
+
     const newsFilter = {
 
-      isDeleted: false,
+      isDeleted:false,
 
-      isAstrology: false,
+      isAstrology:false,
 
     };
 
 
 
+
+
     const [
+
       totalArticles,
+
       pendingArticles,
+
       approvedArticles,
+
+      scheduledArticles,
+
       rejectedArticles,
+
       draftArticles,
+
       featuredArticles,
+
       breakingArticles,
+
       editorialArticles,
+
       liveArticles,
+
       totalViews
+
     ] = await Promise.all([
 
 
+
+
       // TOTAL NEWS
+
       prisma.article.count({
-        where: newsFilter
+
+        where:newsFilter
+
       }),
+
+
+
+
 
 
 
       // PENDING
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           status:PostStatus.pending
+
         }
 
       }),
 
 
 
-      // APPROVED
+
+
+
+
+
+      // LIVE / PUBLISHED
+
+      // Approved articles whose publish date has arrived
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
-          status:PostStatus.approved
+
+          status:PostStatus.approved,
+
+
+          OR:[
+
+            {
+
+              publishedAt:null
+
+            },
+
+            {
+
+              publishedAt:{
+
+                lte:now
+
+              }
+
+            }
+
+          ]
+
         }
 
       }),
+
+
+
+
+
+
+
+
+      // SCHEDULED
+
+      // Approved articles with future publish date
+
+      prisma.article.count({
+
+        where:{
+
+          ...newsFilter,
+
+          status:PostStatus.approved,
+
+
+          publishedAt:{
+
+            gt:now
+
+          }
+
+        }
+
+      }),
+
+
+
+
+
 
 
 
       // REJECTED
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           status:PostStatus.rejected
+
         }
 
       }),
+
+
+
+
+
 
 
 
       // DRAFT
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           status:PostStatus.draft
+
         }
 
       }),
+
+
+
+
+
 
 
 
       // FEATURED
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           featured:true
+
         }
 
       }),
+
+
+
+
+
 
 
 
       // BREAKING
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           breaking:true
+
         }
 
       }),
+
+
+
+
+
 
 
 
       // EDITORIAL
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           isEditorial:true
+
         }
 
       }),
 
 
 
-      // LIVE NEWS
+
+
+
+
+
+      // LIVE FLAG
+
       prisma.article.count({
 
         where:{
+
           ...newsFilter,
+
           isLive:true
+
         }
 
       }),
+
+
+
+
+
 
 
 
       // TOTAL VIEWS
+
       prisma.article.aggregate({
 
         where:newsFilter,
 
+
         _sum:{
+
           views:true
+
         }
 
       })
 
 
 
+
+
     ]);
+
+
+
+
+
 
 
 
@@ -163,7 +328,9 @@ export async function GET() {
       stats:{
 
 
+
         // MAIN
+
 
         totalArticles,
 
@@ -174,6 +341,9 @@ export async function GET() {
         approvedArticles,
 
 
+        scheduledArticles,
+
+
         rejectedArticles,
 
 
@@ -181,7 +351,10 @@ export async function GET() {
 
 
 
+
+
         // CONTENT TYPES
+
 
         editorialArticles,
 
@@ -196,10 +369,15 @@ export async function GET() {
 
 
 
+
+
         // ANALYTICS
 
+
         totalViews:
-          totalViews._sum.views ?? 0,
+
+          totalViews._sum.views ?? 0
+
 
 
       }
@@ -209,13 +387,20 @@ export async function GET() {
 
 
 
-  } catch(error){
+
+  }
+
+  catch(error:any){
 
 
     console.error(
+
       "ARTICLE STATS ERROR:",
+
       error
+
     );
+
 
 
     return NextResponse.json(
@@ -224,12 +409,18 @@ export async function GET() {
 
         success:false,
 
-        error:"Failed to fetch article stats",
+        error:
+
+          error?.message ||
+
+          "Failed to fetch article stats"
 
       },
 
       {
+
         status:500
+
       }
 
     );

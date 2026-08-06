@@ -1,16 +1,50 @@
 import ArticleKeyHighlights from "@/components/article/ArticleKeyHighlights";
 import ArticleWhyItMatters from "@/components/article/ArticleWhyItMatters";
+import ArticleVideo from "@/components/article/ArticleVideo";
+
+
 
 
 interface ArticleBodyProps {
 
+
   content:string;
+
 
   keyHighlights?:string[];
 
+
   whyItMatters?:string | null;
 
+
+
+  video?:
+  {
+
+    url:string;
+
+    title?:string | null;
+
+    position?:
+    "top"
+    |
+    "middle"
+    |
+    "bottom";
+
+
+  }
+  |
+  null;
+
+
 }
+
+
+
+
+
+
 
 
 
@@ -22,7 +56,11 @@ keyHighlights = [],
 
 whyItMatters,
 
+video
+
 }:ArticleBodyProps){
+
+
 
 
 
@@ -35,7 +73,12 @@ return null;
 
 
 
+
+
+
+
 function cleanHTML(html:string){
+
 
 return html
 
@@ -47,20 +90,32 @@ return html
 
 .trim();
 
+
 }
 
 
 
 
 
-const cleanContent = cleanHTML(content);
+
+
+
+
+const cleanContent =
+
+cleanHTML(content);
 
 
 
 
 
 
-const paragraphs = cleanContent
+
+
+
+const paragraphs =
+
+cleanContent
 
 .split(/(<p[\s\S]*?<\/p>)/gi)
 
@@ -77,11 +132,27 @@ item.trim().length > 0
 
 
 
-const firstPart = paragraphs.slice(0,2);
 
-const secondPart = paragraphs.slice(2,5);
 
-const remainingPart = paragraphs.slice(5);
+
+const firstPart =
+
+paragraphs.slice(0,2);
+
+
+
+const secondPart =
+
+paragraphs.slice(2,5);
+
+
+
+const remainingPart =
+
+paragraphs.slice(5);
+
+
+
 
 
 
@@ -112,8 +183,6 @@ prose-headings:tracking-tight
 
 
 
-
-
 prose-h2:text-3xl
 
 prose-h2:mt-14
@@ -122,16 +191,11 @@ prose-h2:mb-6
 
 
 
-
-
 prose-h3:text-2xl
 
 prose-h3:mt-10
 
 prose-h3:mb-5
-
-
-
 
 
 
@@ -145,21 +209,15 @@ prose-p:text-justify
 
 
 
-
-
 prose-strong:text-[#111827]
 
 prose-strong:font-bold
 
 
 
-
-
 prose-a:text-[#163C80]
 
 prose-a:font-semibold
-
-
 
 
 
@@ -171,8 +229,6 @@ prose-ul:pl-8
 
 
 
-
-
 prose-ol:my-8
 
 prose-ol:list-decimal
@@ -181,16 +237,11 @@ prose-ol:pl-8
 
 
 
-
-
 prose-li:text-[#374151]
 
 prose-li:leading-[1.8]
 
 prose-li:my-2
-
-
-
 
 
 
@@ -210,15 +261,11 @@ prose-blockquote:not-italic
 
 
 
-
-
 prose-img:rounded-3xl
 
 prose-img:my-12
 
 prose-img:shadow-lg
-
-
 
 
 
@@ -236,9 +283,13 @@ prose-table:overflow-hidden
 
 
 
+
+
+
+
 function RenderContent({
 
-items,
+items
 
 }:{
 
@@ -263,7 +314,9 @@ className={proseClass}
 
 dangerouslySetInnerHTML={{
 
-__html:items.join("")
+__html:
+
+items.join("")
 
 }}
 
@@ -273,6 +326,42 @@ __html:items.join("")
 
 
 }
+
+
+
+
+
+
+
+
+
+function RenderVideo(){
+
+
+if(!video?.url){
+
+return null;
+
+}
+
+
+
+return (
+
+<ArticleVideo
+
+url={video.url}
+
+title={video.title || undefined}
+
+/>
+
+);
+
+
+}
+
+
 
 
 
@@ -303,7 +392,33 @@ px-1
 
 
 
-{/* OPENING REPORT */}
+
+
+
+
+{/* ================= VIDEO TOP ================= */}
+
+
+{
+
+video?.position === "top"
+
+&&
+
+RenderVideo()
+
+}
+
+
+
+
+
+
+
+
+
+{/* ================= OPENING REPORT ================= */}
+
 
 <RenderContent
 
@@ -317,7 +432,10 @@ items={firstPart}
 
 
 
-{/* EDITORIAL HIGHLIGHTS */}
+
+
+{/* ================= EDITORIAL HIGHLIGHTS ================= */}
+
 
 <ArticleKeyHighlights
 
@@ -331,7 +449,10 @@ highlights={keyHighlights}
 
 
 
-{/* MAIN STORY */}
+
+
+{/* ================= MAIN STORY ================= */}
+
 
 <RenderContent
 
@@ -345,7 +466,31 @@ items={secondPart}
 
 
 
-{/* WHY IT MATTERS */}
+
+
+{/* ================= VIDEO MIDDLE ================= */}
+
+
+{
+
+video?.position === "middle"
+
+&&
+
+RenderVideo()
+
+}
+
+
+
+
+
+
+
+
+
+{/* ================= WHY IT MATTERS ================= */}
+
 
 <ArticleWhyItMatters
 
@@ -359,7 +504,10 @@ whyItMatters={whyItMatters}
 
 
 
-{/* REMAINING REPORT */}
+
+
+{/* ================= REMAINING REPORT ================= */}
+
 
 <RenderContent
 
@@ -371,7 +519,31 @@ items={remainingPart}
 
 
 
+
+
+
+
+{/* ================= VIDEO BOTTOM ================= */}
+
+
+{
+
+video?.position === "bottom"
+
+&&
+
+RenderVideo()
+
+}
+
+
+
+
+
+
+
 </article>
+
 
 
 );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import SectionHeader from "@/components/common/SectionHeader";
 
 
+
 interface CategoryBlockProps {
 
   title:string;
@@ -14,6 +15,7 @@ interface CategoryBlockProps {
   articles:any[];
 
 }
+
 
 
 
@@ -32,94 +34,81 @@ export default function CategoryBlock({
 
 
 
-if(!articles?.length)
-return null;
+  if(!articles?.length)
+    return null;
 
 
 
-const main = articles[0];
-
-const side = articles.slice(1,4);
-
+  const main =
+    articles[0];
 
 
-
-
-const cleanText = (
-html:string
-)=>{
-
-
-if(!html)
-return "";
-
-
-return html
-
-.replace(/<\/?[^>]+(>|$)/g,"")
-
-.replace(/\s+/g," ")
-
-.trim();
-
-
-};
+  const side =
+    articles.slice(1,4);
 
 
 
 
 
 
-
-const getSummary = (
-
-content:string,
-
-limit:number = 230
-
-)=>{
+  /*
+  ================================================
+  IMAGE INTELLIGENCE
+  ================================================
+  */
 
 
-const text =
-cleanText(content);
+  function getPrimaryImage(
+    article:any
+  ){
 
 
+    return (
 
-return text.length > limit
+      article?.imageGallery?.find(
+        (image:any)=>
+          image?.isPrimary
+      )?.url
 
-?
-`${text.slice(0,limit)}...`
+      ||
 
-:
-text;
+      article?.imageGallery?.[0]?.url
 
+      ||
 
-};
+      article?.images?.[0]
 
+      ||
 
+      null
 
+    );
 
-
-
-
-const articleUrl = (
-article:any
-)=>{
-
-
-if(
-!article?.category?.slug ||
-!article?.slug
-)
-
-return "#";
+  }
 
 
 
-return `/${article.category.slug}/${article.slug}`;
 
 
-};
+  function getImageAlt(
+    article:any
+  ){
+
+
+    return (
+
+      article?.imageGallery?.find(
+        (image:any)=>
+          image?.isPrimary
+      )?.alt
+
+      ||
+
+      `${article.title} - Nation Path India`
+
+    );
+
+  }
 
 
 
@@ -129,7 +118,119 @@ return `/${article.category.slug}/${article.slug}`;
 
 
 
-return (
+  /*
+  ================================================
+  SUMMARY INTELLIGENCE
+  ================================================
+  */
+
+
+  function cleanText(
+    html:string
+  ){
+
+
+    if(!html)
+      return "";
+
+
+
+    return html
+
+      .replace(/<\/?[^>]+(>|$)/g,"")
+
+      .replace(/\s+/g," ")
+
+      .trim();
+
+
+  }
+
+
+
+
+
+
+  function getSummary(
+    article:any,
+    limit:number = 230
+  ){
+
+
+
+    const source =
+
+      article?.excerpt
+
+      ||
+
+      article?.shortBrief
+
+      ||
+
+      article?.content
+
+      ||
+
+      "";
+
+
+
+    const text =
+      cleanText(source);
+
+
+
+    return text.length > limit
+
+      ?
+
+      `${text.slice(0,limit)}...`
+
+      :
+
+      text;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  const articleUrl = (
+    article:any
+  )=>{
+
+
+    if(
+      !article?.category?.slug ||
+      !article?.slug
+    )
+
+      return "#";
+
+
+
+    return `/${article.category.slug}/${article.slug}`;
+
+
+  };
+
+
+
+
+
+
+
+
+
+  return (
+
 
 
 <section
@@ -152,11 +253,6 @@ aria-labelledby={`${slug}-section-heading`}
 
 
 
-
-{/* HEADER */}
-
-
-
 <div
 
 className="
@@ -170,6 +266,7 @@ mb-8
 "
 
 >
+
 
 
 <div>
@@ -188,6 +285,7 @@ title={title}
 />
 
 </div>
+
 
 
 
@@ -253,8 +351,6 @@ View All →
 
 
 
-
-
 </div>
 
 
@@ -262,10 +358,6 @@ View All →
 
 
 
-
-
-
-{/* CONTENT */}
 
 
 
@@ -289,9 +381,7 @@ lg:gap-10
 
 
 
-
 {/* FEATURE STORY */}
-
 
 
 
@@ -308,6 +398,7 @@ itemType="https://schema.org/NewsArticle"
 >
 
 
+
 <Link
 
 href={articleUrl(main)}
@@ -318,7 +409,6 @@ block
 "
 
 >
-
 
 
 
@@ -340,23 +430,31 @@ mb-6
 
 
 
+
 {
 
-main?.images?.[0] ? (
+getPrimaryImage(main)
 
+?
 
 <Image
 
-src={main.images[0]}
+src={
+getPrimaryImage(main)
+}
 
-alt={`${main.title} - Nation Path India`}
+alt={
+getImageAlt(main)
+}
 
 fill
 
 sizes="
 (max-width:768px) 100vw,
-700px
+720px
 "
+
+loading="lazy"
 
 className="
 object-cover
@@ -370,8 +468,6 @@ itemProp="image"
 
 />
 
-
-)
 
 :
 
@@ -397,12 +493,9 @@ NationPath India
 
 </div>
 
-
 )
 
 }
-
-
 
 
 
@@ -428,10 +521,6 @@ via-transparent
 
 
 
-
-
-
-{/* FEATURE HEADLINE */}
 
 
 
@@ -480,7 +569,9 @@ itemProp="description"
 
 >
 
-{getSummary(main.content)}
+{
+getSummary(main)
+}
 
 </p>
 
@@ -516,6 +607,7 @@ NationPath Editorial Desk
 
 
 
+
 {
 
 main.createdAt && (
@@ -527,7 +619,16 @@ main.createdAt && (
 </span>
 
 
-<time>
+<time
+
+dateTime={
+new Date(main.createdAt)
+.toISOString()
+}
+
+itemProp="datePublished"
+
+>
 
 {
 
@@ -554,6 +655,7 @@ year:"numeric"
 }
 
 
+
 </div>
 
 
@@ -561,8 +663,8 @@ year:"numeric"
 
 
 
-
 </Link>
+
 
 
 </article>
@@ -590,6 +692,7 @@ divide-[var(--news-border)]
 "
 
 >
+
 
 
 {
@@ -626,8 +729,6 @@ block
 
 
 
-
-
 <h3
 
 className="
@@ -654,8 +755,6 @@ group-hover:text-[var(--news-editorial-gold)]
 
 
 
-
-
 <p
 
 className="
@@ -668,11 +767,11 @@ line-clamp-2
 
 >
 
-{getSummary(article.content,120)}
+{
+getSummary(article,120)
+}
 
 </p>
-
-
 
 
 
@@ -701,6 +800,7 @@ text-[var(--news-light-text)]
 NationPath Editorial Desk
 
 </span>
+
 
 
 
@@ -761,19 +861,16 @@ month:"short"
 }
 
 
-</div>
-
-
-
-
-
-
-
-
 
 </div>
 
 
+
+
+
+
+
+</div>
 
 
 

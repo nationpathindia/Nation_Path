@@ -3,20 +3,23 @@ import Link from "next/link";
 import SectionHeader from "@/components/common/SectionHeader";
 
 
+
 interface LatestNewsProps {
-  articles: any[];
+  articles:any[];
 }
+
+
 
 
 
 
 export default function LatestNews({
   articles,
-}: LatestNewsProps) {
+}:LatestNewsProps){
 
 
 
-  if (!articles?.length)
+  if(!articles?.length)
     return null;
 
 
@@ -24,41 +27,149 @@ export default function LatestNews({
 
 
 
-  const cleanText = (html:string) => {
 
 
-    if (!html)
+  /*
+  ================================================
+  IMAGE INTELLIGENCE
+  ================================================
+  */
+
+
+  function getPrimaryImage(
+    article:any
+  ){
+
+
+    return (
+
+      article?.imageGallery?.find(
+        (image:any)=>
+          image?.isPrimary
+      )?.url
+
+      ||
+
+      article?.imageGallery?.[0]?.url
+
+      ||
+
+      article?.images?.[0]
+
+      ||
+
+      null
+
+    );
+
+  }
+
+
+
+
+
+
+  function getImageAlt(
+    article:any
+  ){
+
+
+    return (
+
+      article?.imageGallery?.find(
+        (image:any)=>
+          image?.isPrimary
+      )?.alt
+
+      ||
+
+      `${article.title} - Nation Path India`
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  /*
+  ================================================
+  SUMMARY INTELLIGENCE
+  ================================================
+  */
+
+
+  function cleanText(
+    html:string
+  ){
+
+
+    if(!html)
       return "";
 
 
     return html
+
       .replace(/<\/?[^>]+(>|$)/g,"")
+
       .replace(/\s+/g," ")
+
       .trim();
 
 
-  };
+  }
 
 
 
 
 
-
-  const getSummary = (
-    content:string,
+  function getSummary(
+    article:any,
     limit:number = 220
-  ) => {
+  ){
 
 
-    const text = cleanText(content);
+    const source =
+
+      article?.excerpt
+
+      ||
+
+      article?.shortBrief
+
+      ||
+
+      article?.content
+
+      ||
+
+      "";
+
+
+
+    const text =
+      cleanText(source);
+
 
 
     return text.length > limit
-      ? `${text.slice(0, limit)}...`
-      : text;
+
+      ?
+
+      `${text.slice(0,limit)}...`
+
+      :
+
+      text;
 
 
-  };
+  }
 
 
 
@@ -66,7 +177,11 @@ export default function LatestNews({
 
 
 
-  const articleUrl = (article:any) =>
+
+  const articleUrl = (
+    article:any
+  ) =>
+
 
     article?.category?.slug
 
@@ -86,28 +201,28 @@ export default function LatestNews({
 
 
 
-    <section
+<section
 
 
-      className="
+className="
 
-        border-t
+border-t
 
-        border-[var(--news-border)]
+border-[var(--news-border)]
 
-        pt-10
+pt-10
 
-        sm:pt-14
+sm:pt-14
 
-        pb-8
+pb-8
 
-      "
+"
 
 
-      aria-labelledby="latest-news-heading"
+aria-labelledby="latest-news-heading"
 
 
-    >
+>
 
 
 
@@ -115,365 +230,361 @@ export default function LatestNews({
 
 
 
-      <div id="latest-news-heading">
 
 
-        <SectionHeader title="Latest News"/>
+<div id="latest-news-heading">
 
 
-      </div>
+<SectionHeader
 
+title="Latest News"
 
+/>
 
 
+</div>
 
 
 
 
 
-      <div
 
 
-        className="
 
-          divide-y
 
-          divide-[var(--news-border)]
+<div
 
-          mt-8
 
-        "
+className="
 
+divide-y
 
-      >
+divide-[var(--news-border)]
 
+mt-8
 
+"
 
 
+>
 
 
 
 
-        {
 
 
-          articles.map((article:any)=>(
 
 
+{
 
-            <article
+articles.map((article:any)=>(
 
 
-              key={article.id}
 
+<article
 
-              className="
 
-                group
+key={article.id}
 
-                grid
 
-                grid-cols-1
+className="
 
-                sm:grid-cols-12
+group
 
-                gap-6
+grid
 
-                sm:gap-8
+grid-cols-1
 
-                py-8
+sm:grid-cols-12
 
-                sm:py-10
+gap-6
 
-              "
+sm:gap-8
 
+py-8
 
-              itemScope
+sm:py-10
 
-              itemType="https://schema.org/NewsArticle"
+"
 
 
-            >
+itemScope
 
+itemType="https://schema.org/NewsArticle"
 
 
+>
 
 
 
 
-              {/* IMAGE */}
 
 
 
-              <div
 
 
-                className="
+{/* IMAGE */}
 
-                  sm:col-span-4
 
-                "
 
 
-              >
+<div
 
 
+className="
 
-                <Link
+sm:col-span-4
 
+"
 
-                  href={articleUrl(article)}
 
+>
 
-                  className="block"
 
 
-                  aria-label={`Read ${article.title}`}
+<Link
 
 
-                >
+href={articleUrl(article)}
 
 
+className="block"
 
-                  {
 
+aria-label={
+`Read ${article.title}`
+}
 
-                    article?.images?.[0] && (
 
+>
 
 
-                      <div
 
 
-                        className="
 
-                          relative
 
-                          aspect-[16/10]
 
-                          overflow-hidden
+{
 
-                          rounded-xl
+getPrimaryImage(article)
 
-                          bg-[var(--news-soft)]
+&&
 
-                        "
+(
 
 
-                      >
 
+<div
 
 
-                        <Image
+className="
 
+relative
 
-                          src={article.images[0]}
+aspect-[16/10]
 
+overflow-hidden
 
-                          alt={`${article.title} - Nation Path India`}
+rounded-xl
 
+bg-[var(--news-soft)]
 
-                          fill
+"
 
 
-                          sizes="
+>
 
-                            (max-width:768px) 100vw,
 
-                            400px
 
-                          "
+<Image
 
 
-                          className="
+src={
+getPrimaryImage(article)
+}
 
-                            object-cover
 
-                            transition-transform
+alt={
+getImageAlt(article)
+}
 
-                            duration-700
 
-                            ease-out
+fill
 
-                            group-hover:scale-[1.04]
 
-                          "
+sizes="
 
+(max-width:768px) 100vw,
 
-                          itemProp="image"
+420px
 
+"
 
-                        />
 
+loading="lazy"
 
 
-                      </div>
+className="
 
+object-cover
 
+transition-transform
 
-                    )
+duration-700
 
-                  }
+ease-out
 
+group-hover:scale-[1.04]
 
+"
 
-                </Link>
 
+itemProp="image"
 
-              </div>
 
+/>
 
 
 
 
 
 
+</div>
 
 
-              {/* CONTENT */}
 
+)
 
+}
 
-              <div
 
 
-                className="
 
-                  sm:col-span-8
 
-                  flex
+</Link>
 
-                  flex-col
 
-                  justify-center
+</div>
 
-                "
 
 
-              >
 
 
 
-                <Link
 
 
-                  href={articleUrl(article)}
 
 
-                  className="block"
 
 
-                >
 
 
+{/* CONTENT */}
 
 
 
 
+<div
 
-                  {/* CATEGORY */}
 
+className="
 
+sm:col-span-8
 
-                  {
+flex
 
+flex-col
 
-                    article?.category?.name && (
+justify-center
 
+"
 
 
-                      <div
+>
 
 
-                        className="
 
-                          category-badge
 
-                          mb-3
 
-                        "
 
+<Link
 
-                      >
 
+href={articleUrl(article)}
 
 
-                        <span
+className="block"
 
-                          className="category-line"
 
-                        />
+>
 
 
 
-                        <span
 
-                          itemProp="articleSection"
 
-                        >
 
 
-                          {article.category.name}
 
 
-                        </span>
+{
 
+article?.category?.name
 
+&&
 
-                      </div>
+(
 
 
 
-                    )
+<div
 
-                  }
 
+className="
 
+category-badge
 
+mb-3
 
+"
 
 
+>
 
 
 
-                  {/* TITLE */}
+<span
 
+className="category-line"
 
+/>
 
-                  <h3
 
 
-                    className="
 
-                      news-headline
 
-                      text-xl
+<span
 
-                      sm:text-2xl
+itemProp="articleSection"
 
-                      lg:text-[32px]
+>
 
-                      leading-[1.15]
 
-                      transition-colors
+{article.category.name}
 
-                      duration-300
 
-                      group-hover:text-[var(--news-editorial-gold)]
+</span>
 
-                    "
 
 
-                    itemProp="headline"
 
+</div>
 
-                  >
 
 
-                    {article.title}
+)
 
+}
 
-                  </h3>
 
 
 
@@ -482,238 +593,322 @@ export default function LatestNews({
 
 
 
+<h3
 
-                  {/* DESCRIPTION */}
 
+className="
 
+news-headline
 
-                  {
+text-xl
 
+sm:text-2xl
 
-                    article.content && (
+lg:text-[32px]
 
+leading-[1.15]
 
+transition-colors
 
-                      <p
+duration-300
 
+group-hover:text-[var(--news-editorial-gold)]
 
-                        className="
+"
 
-                          news-body
 
-                          mt-4
+itemProp="headline"
 
-                          max-w-3xl
 
-                          text-sm
+>
 
-                          sm:text-base
 
-                          line-clamp-3
+{article.title}
 
-                        "
 
+</h3>
 
-                        itemProp="description"
 
 
-                      >
 
 
-                        {getSummary(article.content)}
 
 
-                      </p>
 
 
 
-                    )
 
-                  }
 
+{
 
+getSummary(article)
 
+&&
 
+(
 
 
 
+<p
 
 
-                  {/* META */}
+className="
 
+news-body
 
+mt-4
 
-                  <div
+max-w-3xl
 
+text-sm
 
-                    className="
+sm:text-base
 
-                      mt-5
+line-clamp-3
 
-                      flex
+"
 
-                      flex-wrap
 
-                      items-center
+itemProp="description"
 
-                      gap-2
 
-                      text-[10px]
+>
 
-                      uppercase
 
-                      tracking-[0.18em]
+{
+getSummary(article)
+}
 
-                      text-[var(--news-light-text)]
 
-                    "
 
+</p>
 
-                  >
 
 
+)
 
-                    <span
+}
 
 
-                      itemProp="author"
 
 
-                      className="font-medium"
 
 
-                    >
 
 
-                      NationPath Editorial Desk
 
 
-                    </span>
 
 
+<div
 
 
+className="
 
+mt-5
 
-                    {
+flex
 
+flex-wrap
 
-                      article.createdAt && (
+items-center
 
+gap-2
 
+text-[10px]
 
-                        <>
+uppercase
 
+tracking-[0.18em]
 
-                          <span>
-                            •
-                          </span>
+text-[var(--news-light-text)]
 
+"
 
 
-                          <time
+>
 
 
-                            itemProp="datePublished"
 
+<span
 
-                            dateTime={
 
-                              new Date(article.createdAt)
-                              .toISOString()
+itemProp="author"
 
-                            }
 
+className="font-medium"
 
-                          >
 
+>
 
-                            {
 
+NationPath Editorial Desk
 
-                              new Date(article.createdAt)
 
-                              .toLocaleDateString(
+</span>
 
-                                "en-IN",
 
-                                {
 
-                                  day:"numeric",
 
-                                  month:"short",
 
-                                  year:"numeric"
 
-                                }
 
-                              )
 
-                            }
 
+{
 
-                          </time>
+article.createdAt
 
+&&
 
+(
 
-                        </>
 
 
+<>
 
-                      )
 
-                    }
+<span>
+•
+</span>
 
 
 
-                  </div>
 
 
+<time
 
 
+itemProp="datePublished"
 
 
-                </Link>
+dateTime={
 
+new Date(
+article.createdAt
+)
 
+.toISOString()
 
-              </div>
+}
 
 
+>
 
 
 
+{
 
+new Date(
+article.createdAt
+)
 
+.toLocaleDateString(
 
+"en-IN",
 
-            </article>
+{
 
+day:"numeric",
 
+month:"short",
 
-          ))
+year:"numeric"
 
+}
 
-        }
+)
 
+}
 
 
 
+</time>
 
 
-      </div>
 
+</>
 
 
 
+)
 
+}
 
 
-    </section>
 
 
+</div>
 
-  );
+
+
+
+
+
+
+
+</Link>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<meta
+
+itemProp="publisher"
+
+content="Nation Path India"
+
+/>
+
+
+
+
+
+
+
+
+</article>
+
+
+
+))
+
+
+}
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+</section>
+
+
+
+);
 
 
 }

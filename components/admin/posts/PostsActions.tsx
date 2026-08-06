@@ -15,6 +15,7 @@ return(
 
 className="
 flex
+flex-wrap
 justify-end
 gap-3
 mb-6
@@ -52,6 +53,7 @@ transition
 
 
 
+
 <Link
 
 href="/admin/posts/editorial/create"
@@ -74,6 +76,40 @@ transition
 + Editorial
 
 </Link>
+
+
+
+
+
+
+
+<Link
+
+href="/admin/ai-news"
+
+className="
+bg-orange-600
+hover:bg-orange-700
+px-4
+py-2
+rounded-lg
+text-sm
+font-semibold
+border
+border-orange-400/30
+transition
+flex
+items-center
+gap-2
+"
+
+>
+
+🤖 AI Newsroom
+
+</Link>
+
+
 
 
 

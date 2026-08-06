@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 
 import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
-import TeamChat from "./components/TeamChat";
 
 
 
@@ -50,6 +49,7 @@ const adminRoles = [
 
 
 
+
 if(!adminRoles.includes(role)){
 
 redirect("/dashboard");
@@ -83,7 +83,9 @@ relative
 >
 
 
+
 {/* BACKGROUND GLOW */}
+
 
 <div
 
@@ -151,7 +153,6 @@ rounded-full
 />
 
 
-
 </div>
 
 
@@ -193,7 +194,6 @@ z-10
 "
 
 >
-
 
 
 {/* HEADER */}
@@ -269,17 +269,8 @@ md:p-6
 
 
 
+
 </div>
-
-
-
-
-
-
-
-{/* FLOATING CHAT */}
-
-<TeamChat />
 
 
 

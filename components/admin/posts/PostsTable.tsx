@@ -1,8 +1,6 @@
 "use client";
 
-
 import Link from "next/link";
-
 
 
 interface Props {
@@ -16,7 +14,6 @@ interface Props {
   deletePost:(id:string)=>void;
 
 }
-
 
 
 
@@ -38,23 +35,98 @@ export default function PostsTable({
 
 
 
+function getDisplayStatus(post:any){
+
+  if(
+    post.status==="approved" &&
+    post.publishedAt
+  ){
+
+    const publishDate =
+    new Date(post.publishedAt);
+
+
+    if(
+      publishDate > new Date()
+    ){
+
+      return "scheduled";
+
+    }
+
+  }
+
+
+  if(
+    post.status==="approved"
+  ){
+
+    return "published";
+
+  }
+
+
+  return post.status || "draft";
+
+}
+
+
+
+
+
+
+
+
 function statusStyle(value:string){
 
 
-if(value==="approved")
+if(
+value==="scheduled"
+)
+
+return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+
+
+
+if(
+value==="published" ||
+value==="approved"
+)
+
 return "bg-green-500/20 text-green-400 border-green-500/30";
 
 
-if(value==="pending")
+
+if(
+value==="pending"
+)
+
 return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
 
 
-if(value==="draft")
+
+if(
+value==="draft"
+)
+
 return "bg-slate-500/20 text-slate-300 border-slate-500/30";
 
 
-if(value==="rejected")
+
+if(
+value==="rejected"
+)
+
 return "bg-red-500/20 text-red-400 border-red-500/30";
+
+
+
+if(
+value==="archived"
+)
+
+return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+
 
 
 return "bg-white/10 text-gray-300 border-white/10";
@@ -66,24 +138,37 @@ return "bg-white/10 text-gray-300 border-white/10";
 
 
 
+
+
+
+
 function intelligenceScore(post:any){
 
 
 let count=0;
 
 
+
 const fields=[
 
 "shortBrief",
+
 "background",
+
 "timeline",
+
 "expertOpinion",
+
 "factCheck",
+
 "whatsNext",
+
 "keyTakeaways",
+
 "sourceDesk"
 
 ];
+
 
 
 
@@ -92,7 +177,9 @@ fields.forEach((field)=>{
 
 if(
 
-post[field] &&
+post[field]
+
+&&
 
 (
 
@@ -128,29 +215,22 @@ return count;
 
 
 
+
+
 return(
 
 
 <div
 
 className="
-
 hidden
-
 md:block
-
 bg-black/30
-
 backdrop-blur-xl
-
 border
-
 border-white/10
-
 rounded-xl
-
 overflow-hidden
-
 "
 
 >
@@ -159,13 +239,9 @@ overflow-hidden
 <table
 
 className="
-
 w-full
-
 table-fixed
-
 text-xs
-
 "
 
 >
@@ -174,17 +250,11 @@ text-xs
 <thead
 
 className="
-
 bg-white/5
-
 text-gray-400
-
 uppercase
-
 tracking-wider
-
 text-[10px]
-
 "
 
 >
@@ -193,15 +263,11 @@ text-[10px]
 <tr>
 
 
-<th
-
-className="
+<th className="
 p-3
 text-left
 w-[32%]
-"
-
->
+">
 
 Article
 
@@ -209,13 +275,9 @@ Article
 
 
 
-<th
-
-className="
+<th className="
 w-[12%]
-"
-
->
+">
 
 Type
 
@@ -223,13 +285,10 @@ Type
 
 
 
-<th
 
-className="
+<th className="
 w-[14%]
-"
-
->
+">
 
 Status
 
@@ -237,13 +296,10 @@ Status
 
 
 
-<th
 
-className="
+<th className="
 w-[10%]
-"
-
->
+">
 
 Intel
 
@@ -251,13 +307,10 @@ Intel
 
 
 
-<th
 
-className="
+<th className="
 w-[16%]
-"
-
->
+">
 
 Flags
 
@@ -265,25 +318,20 @@ Flags
 
 
 
-<th
 
-className="
+<th className="
 w-[16%]
-"
-
->
+">
 
 Actions
 
 </th>
 
 
-
 </tr>
 
 
 </thead>
-
 
 
 
@@ -324,6 +372,8 @@ Loading newsroom data...
 :
 
 
+
+
 posts.length===0 ?
 
 
@@ -354,33 +404,29 @@ No articles found
 :
 
 
-posts.map((post)=>(
+posts.map((post)=>{
 
 
+const displayStatus =
+getDisplayStatus(post);
+
+
+
+return (
 
 <tr
 
 key={post.id}
 
 className="
-
 border-t
-
 border-white/10
-
 hover:bg-white/5
-
 transition
-
 "
 
 >
-
-
-
-
-
-<td
+  <td
 
 className="
 p-3
@@ -409,7 +455,6 @@ truncate
 
 
 
-
 <div
 
 className="
@@ -421,6 +466,7 @@ text-gray-500
 "
 
 >
+
 
 <span>
 
@@ -457,10 +503,7 @@ new Date(post.createdAt)
 </div>
 
 
-
 </td>
-
-
 
 
 
@@ -521,7 +564,6 @@ News
 </span>
 
 
-
 }
 
 
@@ -541,10 +583,35 @@ News
 <select
 
 
-value={post.status}
+value={
+
+displayStatus==="published"
+
+?
+
+"approved"
+
+:
+
+displayStatus
+
+}
 
 
-onChange={(e)=>
+
+
+onChange={(e)=>{
+
+
+if(
+e.target.value==="scheduled"
+){
+
+return;
+
+}
+
+
 
 updateStatus(
 
@@ -552,9 +619,13 @@ post.id,
 
 e.target.value
 
-)
+);
 
-}
+
+
+}}
+
+
 
 
 className={`
@@ -571,9 +642,9 @@ border
 
 outline-none
 
-max-w-[90px]
+max-w-[100px]
 
-${statusStyle(post.status)}
+${statusStyle(displayStatus)}
 
 `}
 
@@ -581,32 +652,66 @@ ${statusStyle(post.status)}
 >
 
 
+
 <option value="pending">
+
 Pending
+
 </option>
+
 
 
 <option value="approved">
-Published
+
+Approved
+
 </option>
+
 
 
 <option value="draft">
+
 Draft
+
 </option>
+
 
 
 <option value="rejected">
+
 Rejected
+
 </option>
+
 
 
 <option value="archived">
+
 Archived
+
 </option>
 
 
+
+
+{
+
+displayStatus==="scheduled" &&
+
+
+<option value="scheduled">
+
+Scheduled
+
+</option>
+
+
+}
+
+
+
 </select>
+
 
 
 </td>
@@ -641,6 +746,7 @@ intelligenceScore(post)
 </span>
 
 
+
 <span
 
 className="
@@ -652,6 +758,7 @@ text-gray-500
 /8
 
 </span>
+
 
 
 </td>
@@ -682,6 +789,7 @@ flex-wrap
 
 post.breaking &&
 
+
 <span
 
 className="
@@ -699,6 +807,7 @@ text-orange-300
 
 </span>
 
+
 }
 
 
@@ -708,6 +817,7 @@ text-orange-300
 {
 
 post.featured &&
+
 
 <span
 
@@ -726,6 +836,7 @@ text-yellow-300
 
 </span>
 
+
 }
 
 
@@ -735,6 +846,7 @@ text-yellow-300
 {
 
 post.flash &&
+
 
 <span
 
@@ -752,6 +864,7 @@ text-blue-300
 ⚡ Flash
 
 </span>
+
 
 }
 
@@ -807,6 +920,8 @@ Edit
 
 
 
+
+
 <Link
 
 href={`/article/${post.slug}`}
@@ -832,6 +947,8 @@ View
 
 
 
+
+
 <button
 
 onClick={()=>deletePost(post.id)}
@@ -852,6 +969,7 @@ Delete
 </button>
 
 
+
 </div>
 
 
@@ -865,11 +983,13 @@ Delete
 </tr>
 
 
-))
+);
+
+
+})
 
 
 }
-
 
 
 </tbody>

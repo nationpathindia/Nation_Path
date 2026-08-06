@@ -14,6 +14,7 @@ interface NewsCardProps {
 
 
 
+
 export default function NewsCard({
 
   article,
@@ -24,182 +25,211 @@ export default function NewsCard({
 
 
 
-if(!article)
-return null;
+  if(!article)
+    return null;
 
 
 
 
 
-const articleUrl =
 
-article?.category?.slug
+  const articleUrl =
+    article?.category?.slug
+      ? `/${article.category.slug}/${article.slug}`
+      : "#";
 
-?
 
-`/${article.category.slug}/${article.slug}`
 
-:
 
-"#";
 
 
 
 
+  /*
+  ================================================
+  IMAGE INTELLIGENCE
+  ================================================
+  */
 
 
+  const primaryImage =
 
-const cleanText=(html:string)=>{
+    article?.imageGallery?.find(
+      (image:any)=>
+        image?.isPrimary
+    )
+    ?.url
 
+    ||
 
-if(!html)
-return "";
+    article?.imageGallery?.[0]?.url
 
+    ||
 
+    article?.images?.[0]
 
-return html
+    ||
 
-.replace(/<\/?[^>]+(>|$)/g,"")
+    null;
 
-.replace(/\s+/g," ")
 
-.trim();
 
 
-};
 
+  const imageAlt =
 
+    article?.imageGallery?.find(
+      (image:any)=>
+        image?.isPrimary
+    )
+    ?.alt
 
+    ||
 
+    `${article.title} - Nation Path India`;
 
 
 
 
 
-const styles = {
 
 
-large:{
 
 
-image:
-"aspect-[16/9]",
+  /*
+  ================================================
+  SUMMARY INTELLIGENCE
+  ================================================
+  */
 
 
-title:
-"text-3xl sm:text-4xl lg:text-[44px]",
+  function cleanText(
+    html:string
+  ){
 
 
-excerpt:true,
+    if(!html)
+      return "";
 
 
-spacing:
-"mb-6"
 
+    return html
 
-},
+      .replace(/<\/?[^>]+(>|$)/g,"")
 
+      .replace(/\s+/g," ")
 
+      .trim();
 
 
+  }
 
-default:{
 
 
-image:
-"aspect-[16/9]",
 
 
-title:
-"text-xl sm:text-2xl lg:text-[28px]",
+  const summarySource =
 
+    article?.excerpt
 
-excerpt:true,
+    ||
 
+    article?.shortBrief
 
-spacing:
-"mb-5"
+    ||
 
+    article?.content
 
-},
+    ||
 
+    "";
 
 
 
 
-compact:{
 
+  const summary =
 
-image:
-"aspect-[16/10]",
+    cleanText(
+      summarySource
+    );
 
 
-title:
-"text-lg sm:text-xl",
 
 
-excerpt:false,
 
 
-spacing:
-"mb-4"
 
+  const styles = {
 
-}
 
+    large:{
 
 
-};
+      image:
+        "aspect-[16/9]",
 
 
+      title:
+        "text-3xl sm:text-4xl lg:text-[44px]",
 
 
+      excerpt:true,
 
 
-const style =
-styles[size];
+      spacing:
+        "mb-6"
 
+    },
 
 
 
 
 
+    default:{
 
 
+      image:
+        "aspect-[16/9]",
 
-return (
 
+      title:
+        "text-xl sm:text-2xl lg:text-[28px]",
 
-<article
 
+      excerpt:true,
 
-className="group"
 
+      spacing:
+        "mb-5"
 
-itemScope
+    },
 
 
-itemType="https://schema.org/NewsArticle"
 
 
->
 
+    compact:{
 
 
-<Link
+      image:
+        "aspect-[16/10]",
 
 
-href={articleUrl}
+      title:
+        "text-lg sm:text-xl",
 
 
-className="block"
+      excerpt:false,
 
 
-aria-label={`Read article: ${article.title}`}
+      spacing:
+        "mb-4"
 
+    }
 
->
 
+  };
 
 
 
@@ -207,304 +237,302 @@ aria-label={`Read article: ${article.title}`}
 
 
 
-{/* IMAGE */}
+  const style =
+    styles[size];
 
 
 
-{
 
-article?.images?.[0]
 
-&&
 
-(
 
 
-<div
+  return (
 
 
-className={`
 
-relative
+    <article
 
-overflow-hidden
 
-rounded-xl
+      className="group"
 
-bg-[var(--news-soft)]
 
-${style.image}
+      itemScope
 
-${style.spacing}
 
-`}
+      itemType="
+        https://schema.org/NewsArticle
+      "
 
 
->
+    >
 
 
-<Image
 
 
-src={article.images[0]}
 
 
-alt={`${article.title} - Nation Path India`}
 
 
-fill
+      <Link
 
 
-sizes="
+        href={
+          articleUrl
+        }
 
-(max-width:768px) 100vw,
 
-600px
+        className="block"
 
-"
 
+        aria-label={
+          `Read article: ${article.title}`
+        }
 
-priority={size==="large"}
 
+      >
 
-className="
 
-object-cover
 
-transition-transform
 
-duration-700
 
-ease-out
 
-group-hover:scale-[1.035]
 
-"
+        {
+          primaryImage && (
 
 
-itemProp="image"
 
+            <div
 
-/>
 
+              className={`
 
+                relative
 
+                overflow-hidden
 
+                rounded-xl
 
+                bg-[var(--news-soft)]
 
+                ${style.image}
 
-{/* Premium image depth */}
+                ${style.spacing}
 
+              `}
 
-<div
 
+            >
 
-className="
 
-absolute
 
-inset-0
 
-bg-gradient-to-t
 
-from-black/20
+              <Image
 
-via-transparent
 
-to-transparent
+                src={
+                  primaryImage
+                }
 
-opacity-80
 
-"
+                alt={
+                  imageAlt
+                }
 
 
-/>
 
+                fill
 
 
 
 
-</div>
+                sizes={
 
+                  size === "large"
 
-)
+                  ?
 
+                  "(max-width:768px) 100vw, 750px"
 
-}
+                  :
 
+                  "(max-width:768px) 100vw, 450px"
 
+                }
 
 
 
+                loading="lazy"
 
 
 
 
-{/* CATEGORY */}
+                className="
 
+                  object-cover
 
+                  transition-transform
 
-{
+                  duration-700
 
-article?.category?.name
+                  ease-out
 
-&&
+                  group-hover:scale-[1.035]
 
-(
+                "
 
 
-<div
 
 
-className="
+                itemProp="image"
 
-category-badge
 
-mb-3
+              />
 
-"
 
 
->
 
 
-<span
 
-className="category-line"
 
-/>
+              <div
 
 
+                className="
 
-<span
+                  absolute
 
-itemProp="articleSection"
+                  inset-0
 
->
+                  bg-gradient-to-t
 
+                  from-black/20
 
-{article.category.name}
+                  via-transparent
 
+                  to-transparent
 
-</span>
+                  opacity-80
 
+                "
 
 
-</div>
+              />
 
 
-)
 
 
-}
+            </div>
 
 
 
+          )
+        }
 
 
 
 
 
 
-{/* TITLE */}
 
 
 
-<h2
+        {
+          article?.category?.name && (
 
 
-className={`
 
-news-headline
+            <div
 
-${style.title}
 
-transition-colors
+              className="
 
-duration-300
+                category-badge
 
-group-hover:text-[var(--news-editorial-gold)]
+                mb-3
 
-`}
+              "
 
 
-itemProp="headline"
 
+            >
 
->
 
 
-{article.title}
+              <span
 
+                className="category-line"
 
-</h2>
+              />
 
 
 
 
+              <span
 
+                itemProp="articleSection"
 
+              >
 
+                {
+                  article.category.name
+                }
 
+              </span>
 
-{/* DESCRIPTION */}
 
 
+            </div>
 
-{
 
-style.excerpt
 
-&&
+          )
+        }
 
-(
 
 
-<p
 
 
-className="
 
-news-body
 
-mt-4
 
-text-sm
 
-sm:text-base
 
-leading-relaxed
 
-line-clamp-3
 
-"
+        <h2
 
 
-itemProp="description"
+          className={`
 
+            news-headline
 
->
+            ${style.title}
 
+            transition-colors
 
-{
+            duration-300
 
-cleanText(article.content)
+            group-hover:text-[var(--news-editorial-gold)]
 
-.slice(0,180)
+          `}
 
-}
 
-...
 
+          itemProp="headline"
 
-</p>
 
+        >
 
-)
 
+          {
+            article.title
+          }
 
-}
 
+        </h2>
 
 
 
@@ -513,164 +541,224 @@ cleanText(article.content)
 
 
 
-{/* META */}
 
 
 
-<div
 
+        {
+          style.excerpt && summary && (
 
-className="
 
-mt-5
 
-flex
+            <p
 
-flex-wrap
 
-items-center
+              className="
 
-gap-2
+                news-body
 
-text-[10px]
+                mt-4
 
-uppercase
+                text-sm
 
-tracking-[0.16em]
+                sm:text-base
 
-text-[var(--news-light-text)]
+                leading-relaxed
 
-"
+                line-clamp-3
 
+              "
 
->
 
 
-<span
+              itemProp="description"
 
 
-itemProp="author"
+            >
 
 
-className="font-semibold"
 
->
+              {
+                summary.length > 180
+                ?
+                `${summary.slice(0,180)}...`
+                :
+                summary
+              }
 
 
-NationPath Editorial Desk
 
+            </p>
 
-</span>
 
 
+          )
+        }
 
 
 
-<span>
 
-•
 
-</span>
 
 
 
 
+        <div
 
 
+          className="
 
-{
+            mt-5
 
-article.createdAt
+            flex
 
-&&
+            flex-wrap
 
-(
+            items-center
 
+            gap-2
 
-<time
+            text-[10px]
 
+            uppercase
 
-dateTime={
+            tracking-[0.16em]
 
-new Date(article.createdAt)
+            text-[var(--news-light-text)]
 
-.toISOString()
+          "
 
-}
 
 
-itemProp="datePublished"
+        >
 
 
->
 
 
-{
+          <span
 
-new Date(article.createdAt)
 
-.toLocaleDateString(
+            itemProp="author"
 
-"en-IN",
 
-{
+            className="font-semibold"
 
-day:"numeric",
 
-month:"short",
+          >
 
-year:"numeric"
+            NationPath Editorial Desk
 
-}
 
-)
+          </span>
 
-}
 
 
-</time>
 
 
-)
 
+          {
+            article.createdAt && (
 
-}
 
+              <>
 
 
-</div>
+                <span>
+                  •
+                </span>
 
 
 
 
 
+                <time
 
 
-</Link>
+                  dateTime={
 
+                    new Date(
+                      article.createdAt
+                    )
+                    .toISOString()
 
+                  }
 
 
+                  itemProp="datePublished"
 
 
+                >
 
-<meta
 
+                  {
+                    new Date(
+                      article.createdAt
+                    )
+                    .toLocaleDateString(
 
-itemProp="publisher"
+                      "en-IN",
 
+                      {
 
-content="Nation Path India"
+                        day:"numeric",
 
+                        month:"short",
 
-/>
+                        year:"numeric"
 
+                      }
 
+                    )
+                  }
 
-</article>
 
+                </time>
 
-);
+
+
+              </>
+
+
+            )
+          }
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+      </Link>
+
+
+
+
+
+
+
+
+
+      <meta
+
+        itemProp="publisher"
+
+        content="Nation Path India"
+
+      />
+
+
+
+
+
+    </article>
+
+
+  );
 
 
 }

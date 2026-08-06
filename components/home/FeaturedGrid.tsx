@@ -12,13 +12,22 @@ export default function FeaturedGrid({
 }: FeaturedGridProps) {
 
 
-  if (!articles?.length) return null;
+  if (!articles?.length)
+    return null;
 
 
 
-  const main = articles[0];
+  const main =
+    articles[0];
 
-  const side = articles.slice(1, 4);
+
+  const supporting =
+    articles[4];
+
+
+  const side =
+    articles.slice(1,4);
+
 
 
 
@@ -27,9 +36,7 @@ export default function FeaturedGrid({
 
   return (
 
-
     <section
-
 
       className="
         border-b
@@ -38,9 +45,7 @@ export default function FeaturedGrid({
         sm:py-14
       "
 
-
       aria-labelledby="featured-stories-heading"
-
 
     >
 
@@ -52,9 +57,7 @@ export default function FeaturedGrid({
 
       {/* SECTION HEADER */}
 
-
       <div
-
 
         className="
           flex
@@ -63,22 +66,17 @@ export default function FeaturedGrid({
           mb-8
         "
 
-
       >
-
 
 
         <h2
 
-
           id="featured-stories-heading"
-
 
           className="
             news-section-title
             whitespace-nowrap
           "
-
 
         >
 
@@ -89,10 +87,7 @@ export default function FeaturedGrid({
 
 
 
-
-
         <div
-
 
           className="
             h-px
@@ -100,12 +95,11 @@ export default function FeaturedGrid({
             bg-[var(--news-border)]
           "
 
-
         />
 
 
-
       </div>
+
 
 
 
@@ -120,7 +114,6 @@ export default function FeaturedGrid({
 
       <div
 
-
         className="
           grid
           grid-cols-1
@@ -128,7 +121,6 @@ export default function FeaturedGrid({
           gap-8
           lg:gap-10
         "
-
 
       >
 
@@ -138,22 +130,20 @@ export default function FeaturedGrid({
 
 
 
-        {/* MAIN FEATURE */}
+        {/* LEFT FEATURE AREA */}
 
 
         <div
-
 
           className="
             lg:col-span-7
           "
 
-
         >
 
 
-          <div
 
+          <div
 
             className="
               lg:border-r
@@ -161,23 +151,58 @@ export default function FeaturedGrid({
               lg:pr-8
             "
 
-
           >
+
 
 
             <NewsCard
 
-
-              article={main}
-
+              article={
+                main
+              }
 
               size="large"
-
 
             />
 
 
+
+
+
+            {
+              supporting && (
+
+                <div
+
+                  className="
+                    mt-8
+                    pt-8
+                    border-t
+                    border-[var(--news-border)]
+                  "
+
+                >
+
+                  <NewsCard
+
+                    article={
+                      supporting
+                    }
+
+                    size="compact"
+
+                  />
+
+
+                </div>
+
+              )
+            }
+
+
+
           </div>
+
 
 
         </div>
@@ -190,11 +215,11 @@ export default function FeaturedGrid({
 
 
 
-        {/* SECONDARY STORIES */}
+
+        {/* RIGHT STORIES */}
 
 
         <div
-
 
           className="
             lg:col-span-5
@@ -202,58 +227,52 @@ export default function FeaturedGrid({
             divide-[var(--news-border)]
           "
 
-
         >
 
 
 
+
           {
+            side.map(
+              (article:any)=>(
 
 
-            side.map((article:any) => (
+                <article
+
+                  key={
+                    article.id
+                  }
+
+                  className="
+                    py-6
+                    first:pt-0
+                    last:pb-0
+                  "
+
+                >
 
 
-              <article
+                  <NewsCard
+
+                    article={
+                      article
+                    }
+
+                    size="compact"
+
+                  />
 
 
-                key={article.id}
+                </article>
 
 
-                className="
-                  py-6
-                  first:pt-0
-                  last:pb-0
-                "
-
-
-              >
-
-
-                <NewsCard
-
-
-                  article={article}
-
-
-                  size="compact"
-
-
-                />
-
-
-              </article>
-
-
-            ))
-
-
+              )
+            )
           }
 
 
 
         </div>
-
-
 
 
 
@@ -269,8 +288,6 @@ export default function FeaturedGrid({
 
     </section>
 
-
   );
-
 
 }

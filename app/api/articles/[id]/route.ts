@@ -94,6 +94,7 @@ function generateExcerpt(content:string){
 
 
 
+
 async function generateUniqueSlug(
   title:string,
   currentId:string
@@ -121,17 +122,24 @@ async function generateUniqueSlug(
     const existing =
       await prisma.article.findFirst({
 
+
         where:{
+
 
           slug,
 
+
           NOT:{
+
 
             id:currentId
 
+
           }
 
+
         }
+
 
       });
 
@@ -156,6 +164,9 @@ async function generateUniqueSlug(
   return slug;
 
 }
+
+
+
 
 
 
@@ -191,7 +202,9 @@ try{
 
       where:{
 
+
         id:params.id
+
 
       },
 
@@ -201,7 +214,9 @@ try{
 
         category:true,
 
+
         author:true,
+
 
         comments:true
 
@@ -214,6 +229,7 @@ try{
 
 
 
+
   if(!article){
 
 
@@ -221,17 +237,24 @@ try{
 
       {
 
+
         success:false,
+
 
         error:"Article not found"
 
+
       },
+
 
       {
 
+
         status:404
 
+
       }
+
 
     );
 
@@ -243,13 +266,18 @@ try{
 
 
 
+
   return NextResponse.json({
+
 
     success:true,
 
+
     article
 
+
   });
+
 
 
 
@@ -259,29 +287,41 @@ catch(error:any){
 
   console.error(
 
+
     "GET ARTICLE ERROR",
+
 
     error
 
+
   );
+
 
 
 
   return NextResponse.json(
 
+
     {
+
 
       success:false,
 
+
       error:error.message
+
 
     },
 
+
     {
+
 
       status:500
 
+
     }
+
 
   );
 
@@ -290,6 +330,9 @@ catch(error:any){
 
 
 }
+
+
+
 
 
 
@@ -328,12 +371,16 @@ try{
 
   const updated =
 
+
     await prisma.article.update({
+
 
 
       where:{
 
+
         id:params.id
+
 
       },
 
@@ -342,7 +389,9 @@ try{
       data:{
 
 
+
         status:
+
 
 
         Object.values(PostStatus)
@@ -350,13 +399,17 @@ try{
         .includes(body.status)
 
 
+
         ?
+
 
 
         body.status
 
 
+
         :
+
 
 
         undefined
@@ -374,13 +427,18 @@ try{
 
 
 
+
   return NextResponse.json({
+
 
     success:true,
 
+
     article:updated
 
+
   });
+
 
 
 
@@ -391,19 +449,26 @@ catch(error:any){
 
   console.error(
 
+
     "PATCH ARTICLE ERROR",
 
+
     error
+
 
   );
 
 
 
+
   return NextResponse.json({
+
 
     success:false,
 
+
     error:error.message
+
 
   },{
 
@@ -419,7 +484,14 @@ catch(error:any){
 
 
 }
- 
+
+
+
+
+
+
+
+
 /* =====================================================
    PUT UPDATE ARTICLE
 ===================================================== */
@@ -450,14 +522,17 @@ try{
   const existing =
     await prisma.article.findUnique({
 
+
       where:{
+
 
         id:params.id
 
+
       }
 
-    });
 
+    });
 
 
 
@@ -468,20 +543,24 @@ try{
 
     return NextResponse.json({
 
+
       success:false,
+
 
       error:"Article not found"
 
 
+
     },{
 
+
       status:404
+
 
     });
 
 
   }
-
 
 
 
@@ -515,28 +594,37 @@ existing.content;
 const slug =
 
 
+
 body.title &&
 
+
+
 body.title !== existing.title
+
 
 
 ?
 
 
+
 await generateUniqueSlug(
+
 
   body.title,
 
+
   params.id
 
+
 )
+
 
 
 :
 
 
-existing.slug;
 
+existing.slug;
 
 
 
@@ -553,23 +641,32 @@ existing.slug;
 const cleanImages =
 
 
+
 Array.isArray(body.images)
+
 
 
 ?
 
 
+
 body.images.filter(
+
 
 (img:any)=>
 
+
 typeof img === "string"
+
 
 &&
 
+
 img.trim()
 
+
 )
+
 
 
 :
@@ -586,25 +683,35 @@ existing.images;
 const cleanImageGallery =
 
 
+
 Array.isArray(body.imageGallery)
+
 
 
 ?
 
 
+
 body.imageGallery.filter(
+
 
 (item:any)=>
 
+
 item &&
+
 
 typeof item.url === "string"
 
+
 &&
+
 
 item.url.trim()
 
+
 )
+
 
 
 :
@@ -615,6 +722,68 @@ existing.imageGallery;
 
 
 
+
+
+
+
+/* =====================================================
+   VIDEO NORMALIZATION
+===================================================== */
+
+
+const videoUrl =
+
+body.videoUrl !== undefined
+
+?
+
+body.videoUrl
+
+:
+
+existing.videoUrl;
+
+
+
+const videoEmbed =
+
+body.videoEmbed !== undefined
+
+?
+
+body.videoEmbed
+
+:
+
+existing.videoEmbed;
+
+
+
+const videoThumbnail =
+
+body.videoThumbnail !== undefined
+
+?
+
+body.videoThumbnail
+
+:
+
+existing.videoThumbnail;
+
+
+
+const videoTitle =
+
+body.videoTitle !== undefined
+
+?
+
+body.videoTitle
+
+:
+
+existing.videoTitle;
 
 
 
@@ -683,10 +852,13 @@ if(body.breaking === false){
 
 breakingStart = null;
 
+
 breakingEnd = null;
 
 
 }
+
+
 
 
 
@@ -703,12 +875,17 @@ breakingEnd = null;
 
 
 
-const normalizeArray = (value:any, fallback:any)=>{
+const normalizeArray = (
+  value:any,
+  fallback:any
+)=>{
 
 
 if(Array.isArray(value)){
 
+
 return value;
+
 
 }
 
@@ -773,7 +950,6 @@ existing.keyTakeaways
 
 
 
-
 const timeline =
 
 
@@ -790,8 +966,6 @@ body.timeline
 
 
 existing.timeline;
-
-
 
 
 
@@ -845,8 +1019,6 @@ existing.factCheck;
 
 
 
-
-
 const faqItems =
 
 
@@ -858,13 +1030,18 @@ Array.isArray(body.faqItems)
 
 body.faqItems.filter(
 
+
 (item:any)=>
+
 
 item.question?.trim()
 
+
 &&
 
+
 item.answer?.trim()
+
 
 )
 
@@ -876,15 +1053,79 @@ existing.faqItems;
 
 
 
- 
+
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   SCHEDULE NORMALIZATION
+===================================================== */
+
+
+const scheduledAt =
+
+
+body.scheduledAt !== undefined
+
+
+?
+
+
+(
+
+
+body.scheduledAt
+
+
+?
+
+
+new Date(body.scheduledAt)
+
+
+:
+
+
+null
+
+
+)
+
+
+:
+
+
+existing.scheduledAt;
+
+
+
+
+
+
+
+
+
+
+
+
+
 const updated =
 
 await prisma.article.update({
 
 
+
 where:{
 
+
 id:params.id
+
 
 },
 
@@ -905,16 +1146,23 @@ data:{
 
 title:
 
+
 body.title
 
+
 ??
+
 
 existing.title,
 
 
 
 
+
+
 slug,
+
+
 
 
 
@@ -926,17 +1174,23 @@ content,
 
 
 
+
 excerpt:
+
 
 body.excerpt
 
+
 ??
 
+
 existing.excerpt
+
 
 ??
 
 generateExcerpt(content),
+
 
 
 
@@ -950,25 +1204,45 @@ generateExcerpt(content),
 
 images:
 
+
 cleanImages,
+
+
 
 
 
 
 imageGallery:
 
+
 cleanImageGallery,
 
 
 
 
-videoUrl:
 
-body.videoUrl
 
-??
 
-existing.videoUrl,
+videoUrl,
+
+
+
+
+
+videoEmbed,
+
+
+
+
+
+videoThumbnail,
+
+
+
+
+
+videoTitle,
+
 
 
 
@@ -976,11 +1250,16 @@ existing.videoUrl,
 
 videoPosition:
 
+
 body.videoPosition
+
 
 ??
 
+
 existing.videoPosition,
+
+
 
 
 
@@ -999,11 +1278,17 @@ existing.videoPosition,
 
 breaking:
 
+
 body.breaking
+
 
 ??
 
+
 existing.breaking,
+
+
+
 
 
 
@@ -1013,16 +1298,24 @@ breakingStart,
 
 
 
+
+
 breakingEnd,
+
+
+
 
 
 
 
 breakingPriority:
 
+
 body.breakingPriority
 
+
 ??
+
 
 existing.breakingPriority,
 
@@ -1030,11 +1323,16 @@ existing.breakingPriority,
 
 
 
+
+
 featured:
+
 
 body.featured
 
+
 ??
+
 
 existing.featured,
 
@@ -1042,13 +1340,21 @@ existing.featured,
 
 
 
+
+
 homepagePriority:
+
 
 body.homepagePriority
 
+
 ??
 
+
 existing.homepagePriority,
+
+
+
 
 
 
@@ -1065,9 +1371,12 @@ existing.homepagePriority,
 
 shortBrief:
 
+
 body.shortBrief
 
+
 ??
+
 
 existing.shortBrief,
 
@@ -1076,13 +1385,18 @@ existing.shortBrief,
 
 
 
+
 background:
+
 
 body.background
 
+
 ??
 
+
 existing.background,
+
 
 
 
@@ -1096,7 +1410,9 @@ timeline,
 
 
 
+
 expertOpinion,
+
 
 
 
@@ -1113,9 +1429,12 @@ factCheck,
 
 whatsNext:
 
+
 body.whatsNext
 
+
 ??
+
 
 existing.whatsNext,
 
@@ -1143,9 +1462,12 @@ keyTakeaways,
 
 whyItMatters:
 
+
 body.whyItMatters
 
+
 ??
+
 
 existing.whyItMatters,
 
@@ -1155,14 +1477,18 @@ existing.whyItMatters,
 
 
 
-
 sourceDesk:
+
 
 body.sourceDesk
 
+
 ??
 
+
 existing.sourceDesk,
+
+
 
 
 
@@ -1191,12 +1517,15 @@ faqItems,
 
 
 
+
+
 /* =====================================================
    SEO
 ===================================================== */
 
 
 readingTime:
+
 
 body.readingTime !== undefined
 
@@ -1212,7 +1541,9 @@ Number(body.readingTime)
 
 existing.readingTime
 
+
 ??
+
 
 calculateReadingTime(content),
 
@@ -1222,15 +1553,23 @@ calculateReadingTime(content),
 
 
 
+
+
+
 metaTitle:
+
 
 body.metaTitle
 
+
 ??
+
 
 existing.metaTitle
 
+
 ??
+
 
 body.title,
 
@@ -1241,15 +1580,21 @@ body.title,
 
 
 
+
 metaDescription:
+
 
 body.metaDescription
 
+
 ??
+
 
 existing.metaDescription
 
+
 ??
+
 
 generateExcerpt(content),
 
@@ -1260,13 +1605,20 @@ generateExcerpt(content),
 
 
 
+
+
 metaKeywords:
+
 
 body.metaKeywords
 
+
 ??
 
+
 existing.metaKeywords,
+
+
 
 
 
@@ -1286,6 +1638,7 @@ existing.metaKeywords,
 
 publishedAt:
 
+
 body.publishedAt !== undefined
 
 
@@ -1294,15 +1647,21 @@ body.publishedAt !== undefined
 
 (
 
+
 body.publishedAt
+
 
 ?
 
+
 new Date(body.publishedAt)
+
 
 :
 
+
 null
+
 
 )
 
@@ -1318,14 +1677,27 @@ existing.publishedAt,
 
 
 
+scheduledAt,
+
+
+
+
+
+
 
 status:
 
+
 body.status
+
 
 ??
 
+
 existing.status,
+
+
+
 
 
 
@@ -1341,6 +1713,7 @@ existing.status,
 
 
 categoryId:
+
 
 body.categoryId !== undefined
 
@@ -1363,7 +1736,9 @@ existing.categoryId
 }
 
 
+
 });
+
 
 
 
@@ -1386,38 +1761,50 @@ article:updated
 
 
 
- 
+
 }
 catch(error:any){
 
 
 console.error(
 
+
 "UPDATE ARTICLE ERROR",
 
+
 error
+
 
 );
 
 
 
 
+
 return NextResponse.json({
+
 
 success:false,
 
+
 error:
+
 
 error.message
 
+
 ||
+
 
 "Update failed"
 
 
+
 },{
 
+
 status:500
+
 
 });
 
@@ -1427,6 +1814,9 @@ status:500
 
 
 }
+
+
+
 
 
 
@@ -1488,17 +1878,23 @@ try{
 
 
 
+
 }
 catch(error:any){
 
 
 console.error(
 
+
 "DELETE ARTICLE ERROR",
+
 
 error
 
+
 );
+
+
 
 
 
@@ -1512,15 +1908,19 @@ success:false,
 
 error:
 
+
 error.message
 
+
 ||
+
 
 "Delete failed"
 
 
 
 },{
+
 
 status:500
 

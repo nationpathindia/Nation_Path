@@ -154,9 +154,11 @@ model Article {
   images   String[]
   imageGallery Json?
   imageMeta Json?
-  videoUrl String?
+ videoUrl String?
+videoTitle String?
 videoPosition String?
-
+videoEmbed String?
+videoThumbnail String?
 
 
   //////////////////////////////////////////////////////
@@ -361,7 +363,8 @@ warning String?
   //////////////////////////////////////////////////////
 
   status      PostStatus @default(pending)
-  publishedAt DateTime?
+publishedAt DateTime?
+scheduledAt DateTime?
 
   //////////////////////////////////////////////////////
   // ENGAGEMENT

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 
 
+
 /* =====================================================
    UTILITIES
 ===================================================== */
@@ -68,6 +69,7 @@ function generateExcerpt(content:string){
 
 
 
+
 function calculateReadingTime(content:string){
 
 
@@ -79,10 +81,12 @@ function calculateReadingTime(content:string){
 
 
 
+
   const words =
     clean
       ? clean.split(" ").length
       : 0;
+
 
 
 
@@ -115,6 +119,7 @@ async function generateUniqueSlug(
       .trim()
       .replace(/\s+/g,"-")
       .replace(/[^\w-]+/g,"");
+
 
 
 
@@ -171,11 +176,13 @@ async function generateUniqueSlug(
 
 
 
+
     slug =
       `${baseSlug}-${counter++}`;
 
 
   }
+
 
 
 
@@ -237,6 +244,7 @@ images:any
 
 
 
+
   const gallery =
 
     images
@@ -245,7 +253,6 @@ images:any
       (img:any)=>
 
         img
-
         &&
         typeof img.url==="string"
 
@@ -265,6 +272,7 @@ images:any
 
 
 
+
         alt:
 
         img.alt?.trim()
@@ -272,6 +280,7 @@ images:any
         ||
 
         "NationPath Editorial Image",
+
 
 
 
@@ -298,7 +307,6 @@ images:any
       })
 
     );
-
 
 
 
@@ -367,6 +375,7 @@ images:any
 
 
 
+
   return gallery;
 
 
@@ -394,6 +403,7 @@ try{
 const {searchParams} =
 
 new URL(req.url);
+
 
 
 
@@ -426,9 +436,13 @@ searchParams.get("status");
 
 
 
+
+
 const search =
 
 searchParams.get("search") || "";
+
+
 
 
 
@@ -438,15 +452,21 @@ searchParams.get("editorial");
 
 
 
+
+
 const type =
 
 searchParams.get("type");
 
 
 
+
+
 const category =
 
 searchParams.get("category");
+
+
 
 
 
@@ -496,7 +516,6 @@ where.status=value;
 
 
 
-
 if(search){
 
 
@@ -539,6 +558,8 @@ mode:"insensitive"
 
 
 
+
+
 if(editorial==="true"){
 
 where.isEditorial=true;
@@ -551,6 +572,8 @@ if(editorial==="false"){
 where.isEditorial=false;
 
 }
+
+
 
 
 
@@ -574,6 +597,9 @@ where.isAstrology=false;
 
 
 
+
+
+
 if(category){
 
 
@@ -591,6 +617,7 @@ mode:"insensitive"
 
 
 }
+
 
 
 
@@ -640,6 +667,7 @@ author:true
 
 
 
+
 prisma.article.count({
 
 where
@@ -656,11 +684,67 @@ where
 
 
 
+
+/* =====================================================
+   DISPLAY STATUS INTELLIGENCE
+   Database status remains unchanged
+===================================================== */
+
+
+const formattedArticles = articles.map((article:any)=>{
+
+
+  let displayStatus = article.status;
+
+
+
+  if(
+
+    article.status === PostStatus.approved
+
+    &&
+
+    article.publishedAt
+
+    &&
+
+    new Date(article.publishedAt) > new Date()
+
+  ){
+
+    displayStatus = "scheduled";
+
+  }
+
+
+
+
+
+
+  return {
+
+    ...article,
+
+    displayStatus
+
+  };
+
+
+});
+
+
+
+
+
+
+
+
+
 return NextResponse.json({
 
 success:true,
 
-articles,
+articles:formattedArticles,
 
 pagination:{
 
@@ -680,6 +764,7 @@ Math.ceil(total/limit)
 
 
 });
+
 
 
 
@@ -710,6 +795,12 @@ status:500
 
 
 }
+
+
+
+
+
+
 
 
 
@@ -788,9 +879,13 @@ status:400
 
 
 if(
+
 !isEditorial
+
 &&
+
 !body.categoryId
+
 ){
 
 
@@ -813,11 +908,14 @@ status:400
 
 
 
-
 if(
+
 body.categoryId
+
 &&
+
 !isEditorial
+
 ){
 
 
@@ -862,8 +960,6 @@ status:400
 
 
 
-
-
 const slug =
 
 await generateUniqueSlug(
@@ -898,7 +994,6 @@ body.imageGallery
 
 
 
-
 const primaryImage =
 
 imageGallery.find(
@@ -918,20 +1013,6 @@ imageGallery[0];
 
 
 
-
-
-/*
-
-Backward compatibility
-
-Old images:String[]
-
-continues.
-
-Primary image gets priority.
-
-*/
-
 const images =
 
 primaryImage
@@ -939,7 +1020,9 @@ primaryImage
 ?
 
 [
+
 primaryImage.url
+
 ]
 
 :
@@ -985,7 +1068,6 @@ img.trim()
 
 
 
-
 /* =====================================================
    BREAKING
 ===================================================== */
@@ -999,6 +1081,7 @@ let breakingEnd:null|Date=null;
 
 
 
+
 if(body.breaking){
 
 
@@ -1007,14 +1090,19 @@ const duration =
 Number(
 body.breakingDuration
 )
+
 ||
+
 60;
+
+
 
 
 
 breakingStart =
 
 new Date();
+
 
 
 
@@ -1067,9 +1155,13 @@ body.publishedAt
 
 
 if(
+
 !isNaN(
+
 date.getTime()
+
 )
+
 ){
 
 
@@ -1081,6 +1173,7 @@ publishedAt=date;
 
 
 }
+
 
 
 
@@ -1139,9 +1232,6 @@ value as PostStatus;
 
 
 }
-
-
-
 
 
 
@@ -1230,13 +1320,21 @@ undefined,
 
 
 
+
 /* VIDEO */
 
+/* VIDEO */
 
 videoUrl:
-
 body.videoUrl || null,
 
+
+videoTitle:
+body.videoTitle || null,
+
+
+videoPosition:
+body.videoPosition || "middle",
 
 
 
@@ -1251,7 +1349,9 @@ body.videoUrl || null,
 breaking:
 
 Boolean(
+
 body.breaking
+
 ),
 
 
@@ -1267,7 +1367,9 @@ breakingEnd,
 flash:
 
 Boolean(
+
 body.flash
+
 ),
 
 
@@ -1275,7 +1377,9 @@ body.flash
 featured:
 
 Boolean(
+
 body.featured
+
 ),
 
 
@@ -1287,7 +1391,9 @@ isEditorial,
 isAstrology:
 
 Boolean(
+
 body.isAstrology
+
 ),
 
 
@@ -1298,9 +1404,13 @@ body.isAstrology
 breakingPriority:
 
 Number(
+
 body.breakingPriority
+
 )
+
 ||
+
 0,
 
 
@@ -1308,9 +1418,13 @@ body.breakingPriority
 flashPriority:
 
 Number(
+
 body.flashPriority
+
 )
+
 ||
+
 0,
 
 
@@ -1318,10 +1432,18 @@ body.flashPriority
 homepagePriority:
 
 Number(
+
 body.homepagePriority
+
 )
+
 ||
+
 0,
+
+
+
+
 
 
 
@@ -1335,7 +1457,9 @@ body.homepagePriority
 keyHighlights:
 
 Array.isArray(
+
 body.keyHighlights
+
 )
 
 ?
@@ -1411,7 +1535,9 @@ body.whatsNext || null,
 keyTakeaways:
 
 Array.isArray(
+
 body.keyTakeaways
+
 )
 
 ?
@@ -1450,13 +1576,17 @@ body.sourceDesk || null,
 
 
 
+
+
 /* FAQ */
 
 
 faqItems:
 
 Array.isArray(
+
 body.faqItems
+
 )
 
 ?
@@ -1505,6 +1635,7 @@ item.answer.trim()
 
 
 
+
 /* SEO */
 
 
@@ -1515,7 +1646,9 @@ body.readingTime
 ?
 
 Number(
+
 body.readingTime
+
 )
 
 :
@@ -1531,6 +1664,7 @@ body.content
 
 
 
+
 metaTitle:
 
 body.metaTitle
@@ -1538,6 +1672,7 @@ body.metaTitle
 ||
 
 body.title,
+
 
 
 
@@ -1561,6 +1696,7 @@ body.content
 
 
 
+
 metaKeywords:
 
 body.metaKeywords
@@ -1576,6 +1712,9 @@ body.title
 .slice(0,10)
 
 .join(","),
+
+
+
 
 
 
@@ -1629,6 +1768,9 @@ author:true
 
 });
 
+
+
+
 return NextResponse.json({
 
 success:true,
@@ -1644,8 +1786,11 @@ catch(error:any){
 
 
 console.error(
+
 "CREATE ARTICLE ERROR",
+
 error
+
 );
 
 
@@ -1655,11 +1800,14 @@ return NextResponse.json({
 success:false,
 
 error:
+
 error?.message || "Server error"
 
 
 },{
+
 status:500
+
 });
 
 
@@ -1667,6 +1815,9 @@ status:500
 
 
 }
+
+
+
 
 
 
@@ -1705,7 +1856,9 @@ success:false,
 error:"ID required"
 
 },{
+
 status:400
+
 });
 
 
@@ -1721,23 +1874,49 @@ status:400
 const updateData:any = {};
 
 
-
-
-
-
-
-
-
-
 /* =====================================================
-   IMAGE INTELLIGENCE UPDATE
+   VIDEO UPDATE
 ===================================================== */
 
 
+if("videoUrl" in body){
+
+updateData.videoUrl =
+body.videoUrl || null;
+
+}
+
+
+
+if("videoTitle" in body){
+
+updateData.videoTitle =
+body.videoTitle || null;
+
+}
+
+
+
+if("videoPosition" in body){
+
+updateData.videoPosition =
+body.videoPosition || "middle";
+
+}
+
+
+
+
+
+
 if(
+
 Array.isArray(
+
 body.imageGallery
+
 )
+
 ){
 
 
@@ -1748,6 +1927,7 @@ normalizeImageGallery(
 body.imageGallery
 
 );
+
 
 
 
@@ -1793,7 +1973,9 @@ primaryImage
 ?
 
 [
+
 primaryImage.url
+
 ]
 
 :
@@ -1809,9 +1991,6 @@ primaryImage.url
 
 
 
-
-
-/* STATUS */
 
 
 if(body.status){
@@ -1857,11 +2036,10 @@ value;
 
 
 
-/* FLAGS */
-
-
 if(
+
 typeof body.featured === "boolean"
+
 ){
 
 
@@ -1877,8 +2055,11 @@ body.featured;
 
 
 
+
 if(
+
 typeof body.breaking === "boolean"
+
 ){
 
 
@@ -1894,8 +2075,11 @@ body.breaking;
 
 
 
+
 if(
+
 typeof body.flash === "boolean"
+
 ){
 
 
@@ -1914,11 +2098,10 @@ body.flash;
 
 
 
-/* EDITORIAL */
-
-
 if(
+
 typeof body.isEditorial === "boolean"
+
 ){
 
 
@@ -1937,25 +2120,29 @@ body.isEditorial;
 
 
 
-/* SCHEDULE */
-
-
 if(body.publishedAt){
 
 
 const date =
 
 new Date(
+
 body.publishedAt
+
 );
 
 
 
 
+
 if(
+
 !isNaN(
+
 date.getTime()
+
 )
+
 ){
 
 
@@ -1968,8 +2155,6 @@ date;
 
 
 }
-
-
 
 
 
@@ -2013,6 +2198,7 @@ author:true
 
 
 
+
 return NextResponse.json({
 
 success:true,
@@ -2021,6 +2207,7 @@ article
 
 
 });
+
 
 
 
@@ -2050,7 +2237,9 @@ error?.message || "Update failed"
 
 
 },{
+
 status:500
+
 });
 
 
@@ -2058,6 +2247,9 @@ status:500
 
 
 }
+
+
+
 
 
 
@@ -2097,11 +2289,14 @@ error:"ID required"
 
 
 },{
+
 status:400
+
 });
 
 
 }
+
 
 
 
@@ -2125,6 +2320,7 @@ data:{
 isDeleted:true,
 
 
+
 status:
 
 PostStatus.archived
@@ -2142,11 +2338,13 @@ PostStatus.archived
 
 
 
+
 return NextResponse.json({
 
 success:true
 
 });
+
 
 
 
@@ -2180,7 +2378,9 @@ error?.message || "Delete failed"
 
 
 },{
+
 status:500
+
 });
 
 

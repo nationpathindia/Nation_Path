@@ -1,3 +1,6 @@
+import Image from "next/image";
+
+
 interface ArticleShortBriefProps {
 
   shortBrief:string;
@@ -15,8 +18,13 @@ export default function ArticleShortBrief({
 
 
 if(
-  !shortBrief ||
+
+  !shortBrief
+
+  ||
+
   !shortBrief.trim()
+
 ){
 
   return null;
@@ -27,60 +35,90 @@ if(
 
 
 
+const paragraphs = shortBrief
+
+.split(/\n+/)
+
+.map((text)=>text.trim())
+
+.filter(Boolean);
+
+
+
+
+
 return (
 
 <section
 
 className="
-
-my-10
-
 relative
-
 overflow-hidden
-
-rounded-3xl
-
+rounded-xl
 border
-
-border-gray-200
-
+border-[#D9E5FF]
 bg-gradient-to-br
-
-from-gray-50
-
+from-[#F3F7FF]
+via-white
 to-white
-
-p-6
-
-sm:p-8
-
+pl-7
+pr-4
+py-4
+sm:pl-8
+sm:pr-5
+sm:py-5
+shadow-sm
+transition-all
+duration-300
+hover:shadow-md
 "
 
 >
 
 
 
+{/* LEFT THREE SHADE ACCENT */}
 
-
-{/* ACCENT */}
 
 <div
 
 className="
-
 absolute
-
 left-0
-
 top-0
-
 h-full
+w-[2px]
+bg-[#163C80]
+"
 
-w-1.5
+/>
 
-bg-[#EA661B]
 
+
+<div
+
+className="
+absolute
+left-2
+top-0
+h-full
+w-[1px]
+bg-[#234E9A]
+"
+
+/>
+
+
+
+<div
+
+className="
+absolute
+left-4
+top-0
+h-full
+w-[1px]
+bg-[#D9E5FF]
 "
 
 />
@@ -91,96 +129,34 @@ bg-[#EA661B]
 
 
 
-<div
+{/* TOP GLASS LINE */}
 
-className="
-
-relative
-
-"
-
->
-
-
-
-
-
-{/* HEADER */}
 
 <div
 
 className="
-
-mb-5
-
-flex
-
-items-center
-
-gap-3
-
+absolute
+left-0
+top-0
+h-[2px]
+w-full
 "
 
 >
 
 
-<span
+<div
 
 className="
-
-flex
-
-h-8
-
-w-8
-
-items-center
-
-justify-center
-
-rounded-full
-
-bg-[#163C80]
-
-text-sm
-
-font-bold
-
-text-white
-
+h-full
+w-full
+bg-gradient-to-r
+from-[#163C80]
+via-[#234E9A]
+to-[#D9E5FF]
 "
 
->
-
-N
-
-</span>
-
-
-
-
-
-<p
-
-className="
-
-text-xs
-
-font-bold
-
-uppercase
-
-tracking-[0.22em]
-
-text-[#163C80]
-
-"
-
->
-
-NationPath Brief
-
-</p>
+/>
 
 
 
@@ -192,30 +168,314 @@ NationPath Brief
 
 
 
+{/* HEADER */}
 
-{/* CONTENT */}
 
-<p
+<div
 
 className="
-
-max-w-3xl
-
-text-base
-
-leading-8
-
-text-gray-800
-
-sm:text-lg
-
+flex
+flex-col
+gap-3
+border-b
+border-gray-200
+pb-3
+sm:flex-row
+sm:items-center
+sm:justify-between
 "
 
 >
 
-{shortBrief}
+
+
+<div
+
+className="
+flex
+items-center
+gap-3
+"
+
+>
+
+
+<div
+
+className="
+flex
+h-9
+w-9
+items-center
+justify-center
+overflow-hidden
+rounded-lg
+border
+border-gray-200
+bg-white
+shadow-sm
+"
+
+>
+
+
+<Image
+
+src="/idlogo.png"
+
+alt="NationPath India"
+
+width={28}
+
+height={28}
+
+priority
+
+/>
+
+
+</div>
+
+
+
+
+
+<div>
+
+
+<h2
+
+className="
+text-xl
+font-black
+tracking-tight
+text-[#163C80]
+"
+
+>
+
+NationPath Brief
+
+</h2>
+
+
+
+<p
+
+className="
+mt-0.5
+text-[11px]
+font-medium
+text-gray-500
+"
+
+>
+
+Essential context before you continue reading
 
 </p>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+<span
+
+className="
+rounded-full
+border
+border-[#163C80]/20
+bg-[#163C80]/5
+px-3
+py-1
+text-[10px]
+font-bold
+uppercase
+tracking-wider
+text-[#163C80]
+"
+
+>
+
+30 sec overview
+
+</span>
+
+
+
+</div>
+
+
+
+
+
+
+
+{/* THREE EDITORIAL GLASS MARKS */}
+
+
+<div
+
+className="
+my-3
+flex
+items-center
+gap-2
+"
+
+>
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#163C80]
+"
+
+/>
+
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#234E9A]
+"
+
+/>
+
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#D9E5FF]
+"
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+{/* BODY */}
+
+
+<div
+
+className="
+mx-auto
+max-w-4xl
+"
+
+>
+
+
+
+<div
+
+className="
+flex
+items-start
+gap-3
+"
+
+>
+
+
+<span
+
+className="
+select-none
+text-4xl
+font-bold
+leading-none
+text-[#EA661B]/30
+"
+
+>
+
+“
+
+</span>
+
+
+
+
+
+<div
+
+className="
+flex-1
+space-y-3
+text-[15px]
+leading-7
+text-gray-700
+sm:text-[16px]
+"
+
+>
+
+
+{
+
+paragraphs.map(
+
+(paragraph,index)=>(
+
+
+<p
+
+key={index}
+
+>
+
+{paragraph}
+
+</p>
+
+
+)
+
+)
+
+}
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
 
 
 
@@ -225,28 +485,18 @@ sm:text-lg
 
 {/* FOOTER */}
 
+
 <div
 
 className="
-
-mt-6
-
+mt-3
 flex
-
 items-center
-
 gap-2
-
-text-xs
-
-font-medium
-
-uppercase
-
-tracking-wider
-
-text-gray-400
-
+border-t
+border-gray-200
+pt-2
+text-[11px]
 "
 
 >
@@ -255,29 +505,42 @@ text-gray-400
 <span
 
 className="
-
-h-1.5
-
-w-1.5
-
+h-2
+w-2
 rounded-full
-
 bg-[#EA661B]
-
 "
 
 />
 
 
 
-Editorial Snapshot
+<span
+
+className="
+font-semibold
+text-[#163C80]
+"
+
+>
+
+Editorial Brief
+
+</span>
 
 
 
-</div>
+<span
 
+className="
+text-gray-400
+"
 
+>
 
+• Quick summary curated for readers
+
+</span>
 
 
 
@@ -288,7 +551,6 @@ Editorial Snapshot
 
 
 </section>
-
 
 );
 

@@ -1,5 +1,6 @@
 import ArticleIntelligenceSection from "./intelligence/ArticleIntelligenceSection";
 
+import ArticleBackground from "./intelligence/ArticleBackground";
 import ArticleTimeline from "./intelligence/ArticleTimeline";
 import ArticleExpertOpinion from "./intelligence/ArticleExpertOpinion";
 import ArticleFactCheck from "./intelligence/ArticleFactCheck";
@@ -46,8 +47,6 @@ export default function ArticleIntelligence({
 
 
 
-
-
 const hasTimeline =
 
 timeline &&
@@ -61,10 +60,6 @@ timeline &&
 (typeof timeline === "string" && timeline.trim().length > 0)
 
 );
-
-
-
-
 
 
 
@@ -84,10 +79,6 @@ expertOpinion &&
 
 
 
-
-
-
-
 const hasFactCheck =
 
 factCheck &&
@@ -104,10 +95,6 @@ factCheck &&
 
 
 
-
-
-
-
 const hasTakeaways =
 
 Array.isArray(keyTakeaways)
@@ -118,10 +105,6 @@ keyTakeaways.length > 0;
 
 
 
-
-
-
-
 const hasSourceDesk =
 
 typeof sourceDesk === "string"
@@ -129,10 +112,6 @@ typeof sourceDesk === "string"
 &&
 
 sourceDesk.trim().length > 0;
-
-
-
-
 
 
 
@@ -162,13 +141,9 @@ hasSourceDesk;
 
 
 
-
-
-
-
 if(!hasContent){
 
-  return null;
+return null;
 
 }
 
@@ -176,61 +151,41 @@ if(!hasContent){
 
 
 
-
-
-
 return (
 
-<section
+<div
 
 className="
-
-my-14
-
+my-10
 "
 
 >
-
-
 
 
 
 {/* ================= HEADER ================= */}
 
 
-
 <header
 
 className="
-
-mb-12
-
+mb-10
 border-b
-
 border-gray-200
-
-pb-6
-
+pb-5
 "
 
 >
 
 
-
 <p
 
 className="
-
 text-xs
-
 font-bold
-
 uppercase
-
 tracking-[0.25em]
-
 text-[#EA661B]
-
 "
 
 >
@@ -241,25 +196,15 @@ NationPath Intelligence
 
 
 
-
-
-
 <h2
 
 className="
-
 mt-3
-
 font-serif
-
 text-3xl
-
 font-bold
-
 tracking-tight
-
 text-gray-900
-
 "
 
 >
@@ -270,24 +215,14 @@ The Story Behind The News
 
 
 
-
-
-
-
 <p
 
 className="
-
 mt-3
-
 max-w-2xl
-
 text-sm
-
 leading-7
-
 text-gray-500
-
 "
 
 >
@@ -304,35 +239,36 @@ Context, analysis and verified insights that explain the story beyond the headli
 
 
 
-
-
-
-
 {/* ================= BACKGROUND ================= */}
-
 
 
 {
 
 background &&
 
+
 <ArticleIntelligenceSection
 
 title="Background"
 
+description="Context and information behind the story"
+
+theme="background"
+
 >
 
-<p>
 
-{background}
+<ArticleBackground
 
-</p>
+background={background}
+
+/>
+
 
 </ArticleIntelligenceSection>
 
+
 }
-
-
 
 
 
@@ -343,17 +279,20 @@ title="Background"
 {/* ================= TIMELINE ================= */}
 
 
-
 {
 
 hasTimeline &&
+
 
 <ArticleIntelligenceSection
 
 title="Timeline"
 
->
+description="Key moments that shaped this story"
 
+theme="timeline"
+
+>
 
 
 {
@@ -370,23 +309,15 @@ timeline={timeline}
 
 :
 
-<p>
-
-{timeline}
-
-</p>
+timeline
 
 }
-
 
 
 </ArticleIntelligenceSection>
 
+
 }
-
-
-
-
 
 
 
@@ -397,17 +328,20 @@ timeline={timeline}
 {/* ================= EXPERT OPINION ================= */}
 
 
-
 {
 
 hasExpertOpinion &&
+
 
 <ArticleIntelligenceSection
 
 title="Expert Opinion"
 
->
+description="Perspectives from voices that understand the issue"
 
+theme="opinion"
+
+>
 
 
 {
@@ -424,21 +358,15 @@ expertOpinion={expertOpinion}
 
 :
 
-<p>
-
-{expertOpinion}
-
-</p>
+expertOpinion
 
 }
-
 
 
 </ArticleIntelligenceSection>
 
+
 }
-
-
 
 
 
@@ -449,17 +377,20 @@ expertOpinion={expertOpinion}
 {/* ================= FACT CHECK ================= */}
 
 
-
 {
 
 hasFactCheck &&
+
 
 <ArticleIntelligenceSection
 
 title="Fact Check"
 
->
+description="Separating verified information from claims"
 
+theme="fact"
+
+>
 
 
 {
@@ -476,21 +407,15 @@ factCheck={factCheck}
 
 :
 
-<p>
-
-{factCheck}
-
-</p>
+factCheck
 
 }
-
 
 
 </ArticleIntelligenceSection>
 
+
 }
-
-
 
 
 
@@ -501,17 +426,20 @@ factCheck={factCheck}
 {/* ================= KEY TAKEAWAYS ================= */}
 
 
-
 {
 
 hasTakeaways &&
+
 
 <ArticleIntelligenceSection
 
 title="Key Takeaways"
 
->
+description="Important points readers should remember"
 
+theme="takeaway"
+
+>
 
 
 <ArticleKeyTakeaways
@@ -521,12 +449,10 @@ keyTakeaways={keyTakeaways}
 />
 
 
-
 </ArticleIntelligenceSection>
 
+
 }
-
-
 
 
 
@@ -537,17 +463,20 @@ keyTakeaways={keyTakeaways}
 {/* ================= SOURCE DESK ================= */}
 
 
-
 {
 
 hasSourceDesk &&
+
 
 <ArticleIntelligenceSection
 
 title="Source Desk"
 
->
+description="Editorial transparency and reporting source"
 
+theme="source"
+
+>
 
 
 <ArticleSourceDesk
@@ -557,15 +486,16 @@ sourceDesk={sourceDesk}
 />
 
 
-
 </ArticleIntelligenceSection>
+
 
 }
 
 
 
-</section>
+</div>
 
 );
+
 
 }

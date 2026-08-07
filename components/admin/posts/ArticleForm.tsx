@@ -345,32 +345,17 @@ postType
 
 
 
-
-
-
 function updateField(
-
-key:keyof PostFormData,
-
-value:any
-
+  key: keyof PostFormData,
+  value: any
 ){
 
-
-
-setForm(prev=>({
-
-...prev,
-
-[key]:value
-
-
-}));
-
-
+  setForm(prev=>({
+    ...prev,
+    [key]: value,
+  }));
 
 }
-
 
 
 

@@ -18,8 +18,13 @@ export default function ArticleWhyItMatters({
 
 
 if(
-  !whyItMatters ||
+
+  !whyItMatters
+
+  ||
+
   !whyItMatters.trim()
+
 ){
 
   return null;
@@ -32,54 +37,83 @@ if(
 
 return (
 
+<div
+
+className="
+mx-auto
+my-10
+w-full
+md:w-[85%]
+"
+
+>
+
+
 <section
 
 className="
-
-my-12
-
 relative
-
 overflow-hidden
-
-rounded-2xl
-
+rounded-xl
 border
-
-border-gray-200
-
-bg-white
-
-p-6
-
-sm:p-8
-
+border-orange-200
+bg-gradient-to-br
+from-[#FFF8F0]
+via-white
+to-white
+p-5
+shadow-sm
+transition-all
+duration-300
+hover:shadow-md
 "
 
 >
 
 
 
+{/* LEFT THREE SHADE LINES */}
 
-
-{/* ACCENT */}
 
 <div
 
 className="
-
 absolute
-
 left-0
-
 top-0
-
 h-full
-
-w-1
-
+w-[2px]
 bg-[#EA661B]
+"
 
+/>
+
+
+
+<div
+
+className="
+absolute
+left-2
+top-0
+h-full
+w-[1px]
+bg-[#F6B37A]
+"
+
+/>
+
+
+
+<div
+
+className="
+absolute
+left-4
+top-0
+h-full
+w-[1px]
+bg-[#FDE8D3]
 "
 
 />
@@ -90,83 +124,36 @@ bg-[#EA661B]
 
 
 
-
-{/* HEADER */}
-
-<header
+<div
 
 className="
-
-mb-6
-
-flex
-
-items-start
-
-gap-4
-
+pl-7
 "
 
 >
 
 
+
+{/* HEADER */}
 
 
 <div
 
 className="
-
-flex
-
-h-10
-
-w-10
-
-shrink-0
-
-items-center
-
-justify-center
-
-rounded-xl
-
-bg-[#EA661B]
-
-text-white
-
-text-lg
-
+mb-5
 "
 
 >
-
-💡
-
-</div>
-
-
-
-
-
-
-
-<div>
 
 
 <p
 
 className="
-
-text-[10px]
-
+text-[11px]
 font-bold
-
 uppercase
-
-tracking-[0.25em]
-
+tracking-[0.22em]
 text-[#EA661B]
-
 "
 
 >
@@ -177,24 +164,14 @@ Editorial Analysis
 
 
 
-
-
 <h2
 
 className="
-
 mt-1
-
-font-serif
-
 text-2xl
-
-font-bold
-
+font-black
 tracking-tight
-
 text-gray-900
-
 "
 
 >
@@ -206,14 +183,67 @@ Why This Matters
 
 
 
+
+
+{/* THREE HORIZONTAL SHADE LINES */}
+
+
+<div
+
+className="
+mt-4
+flex
+items-center
+gap-2
+"
+
+>
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#EA661B]
+"
+
+/>
+
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#F6B37A]
+"
+
+/>
+
+
+
+<div
+
+className="
+h-[2px]
+w-10
+rounded-full
+bg-[#FDE8D3]
+"
+
+/>
+
+
+
 </div>
 
 
 
-
-</header>
-
-
+</div>
 
 
 
@@ -224,21 +254,15 @@ Why This Matters
 {/* CONTENT */}
 
 
-
 <div
 
 className="
-
-rounded-xl
-
-bg-[#FFF9F4]
-
+rounded-lg
+border
+border-orange-100
+bg-white/70
 px-5
-
-py-5
-
-sm:px-6
-
+py-4
 "
 
 >
@@ -247,15 +271,10 @@ sm:px-6
 <p
 
 className="
-
 text-[15px]
-
 leading-8
-
 text-gray-700
-
 sm:text-base
-
 "
 
 >
@@ -271,10 +290,15 @@ sm:text-base
 
 
 
+</div>
+
 
 
 </section>
 
+
+
+</div>
 
 );
 

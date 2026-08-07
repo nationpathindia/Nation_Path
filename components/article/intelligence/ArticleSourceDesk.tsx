@@ -13,9 +13,15 @@ export default function ArticleSourceDesk({
 }:ArticleSourceDeskProps){
 
 
+
 if(
-  !sourceDesk ||
+
+  !sourceDesk
+
+  ||
+
   !sourceDesk.trim()
+
 ){
 
   return null;
@@ -24,41 +30,92 @@ if(
 
 
 
+
+
 return (
+
+<div
+
+className="
+mx-auto
+w-full
+md:w-[85%]
+"
+
+>
+
 
 <div
 
 className="
 relative
 overflow-hidden
-rounded-2xl
+rounded-xl
 border
-border-gray-200
+border-slate-200
 bg-gradient-to-br
-from-gray-50
+from-[#F8FAFC]
+via-white
 to-white
-p-6
+px-5
+py-4
+shadow-sm
+transition-all
+duration-300
+hover:shadow-md
 "
 
 >
+
+
+
+{/* SOURCE TRUST ACCENT SYSTEM */}
+
+<div
+
+className="
+absolute
+left-0
+top-0
+h-full
+w-[2px]
+bg-[#334155]
+"
+
+/>
+
 
 
 <div
 
 className="
 absolute
-right-5
-top-4
-text-5xl
-font-serif
-text-gray-100
+left-2
+top-0
+h-full
+w-[1px]
+bg-[#334155]/40
 "
 
->
+/>
 
+
+
+<div
+
+className="
+absolute
+left-4
+top-0
+h-full
+w-[1px]
+bg-[#334155]/20
 "
 
-</div>
+/>
+
+
+
 
 
 
@@ -66,20 +123,30 @@ text-gray-100
 <div
 
 className="
-relative
+pl-6
+flex
+items-center
+justify-between
+gap-5
 "
 
 >
 
 
+
+{/* SOURCE INFO */}
+
+<div>
+
+
 <p
 
 className="
-text-xs
+text-[11px]
 font-bold
 uppercase
-tracking-[0.18em]
-text-[#EA661B]
+tracking-[0.2em]
+text-[#334155]
 "
 
 >
@@ -90,13 +157,12 @@ Editorial Source
 
 
 
-
 <h4
 
 className="
-mt-3
-text-lg
-font-bold
+mt-2
+text-base
+font-semibold
 text-gray-900
 "
 
@@ -108,16 +174,32 @@ text-gray-900
 
 
 
+</div>
+
+
+
+
+
+
+
+{/* VERIFIED */}
 
 <div
 
 className="
-mt-4
 flex
+shrink-0
 items-center
 gap-2
-text-sm
-text-gray-500
+rounded-full
+border
+border-green-200
+bg-green-50
+px-3
+py-1.5
+text-xs
+font-semibold
+text-green-700
 "
 
 >
@@ -132,10 +214,15 @@ rounded-full
 bg-green-500
 "
 
-/>
+></span>
 
 
-Verified Editorial Desk
+Verified Desk
+
+
+</div>
+
+
 
 
 
@@ -148,7 +235,6 @@ Verified Editorial Desk
 
 
 </div>
-
 
 );
 

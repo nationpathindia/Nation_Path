@@ -18,7 +18,9 @@ export default function ArticleKeyHighlights({
 
 
 if(
+
   !highlights.length
+
 ){
 
   return null;
@@ -31,54 +33,82 @@ if(
 
 return (
 
+<div
+
+className="
+mx-auto
+my-10
+w-full
+md:w-[85%]
+"
+
+>
+
+
 <section
 
 className="
-
-my-12
-
 relative
-
 overflow-hidden
-
-rounded-2xl
-
+rounded-xl
 border
-
-border-gray-200
-
-bg-white
-
-p-6
-
-sm:p-8
-
+border-[#D9E5FF]
+bg-gradient-to-br
+from-[#F3F7FF]
+via-white
+to-white
+p-5
+shadow-sm
+transition-all
+duration-300
+hover:shadow-md
 "
 
 >
 
 
 
-
-
-{/* LEFT ACCENT */}
+{/* THREE SHADE ACCENT */}
 
 <div
 
 className="
-
 absolute
-
 left-0
-
 top-0
-
 h-full
+w-[2px]
+bg-[#163C80]
+"
 
-w-1
+/>
 
-bg-[#EA661B]
 
+
+<div
+
+className="
+absolute
+left-2
+top-0
+h-full
+w-[1px]
+bg-[#234E9A]/50
+"
+
+/>
+
+
+
+<div
+
+className="
+absolute
+left-4
+top-0
+h-full
+w-[1px]
+bg-[#D9E5FF]
 "
 
 />
@@ -89,78 +119,35 @@ bg-[#EA661B]
 
 
 
-{/* HEADER */}
-
-<header
+<div
 
 className="
-
-mb-7
-
-flex
-
-items-start
-
-gap-4
-
+pl-6
 "
 
 >
 
+
+
+{/* HEADER */}
 
 <div
 
 className="
-
-flex
-
-h-10
-
-w-10
-
-shrink-0
-
-items-center
-
-justify-center
-
-rounded-xl
-
-bg-[#163C80]
-
-text-white
-
-text-lg
-
+mb-5
 "
 
 >
 
-★
-
-</div>
-
-
-
-
-
-
-<div>
 
 <p
 
 className="
-
-text-[10px]
-
+text-[11px]
 font-bold
-
 uppercase
-
-tracking-[0.25em]
-
+tracking-[0.22em]
 text-[#EA661B]
-
 "
 
 >
@@ -171,24 +158,14 @@ Editorial Insight
 
 
 
-
-
 <h2
 
 className="
-
 mt-1
-
-font-serif
-
 text-2xl
-
-font-bold
-
+font-black
 tracking-tight
-
-text-gray-900
-
+text-[#163C80]
 "
 
 >
@@ -199,29 +176,37 @@ Key Highlights
 
 
 
+<p
+
+className="
+mt-1
+text-sm
+leading-6
+text-gray-500
+"
+
+>
+
+Important points readers should notice.
+
+</p>
+
+
+
 </div>
 
 
 
 
-</header>
 
 
 
-
-
-
-
-
-
-{/* HIGHLIGHTS */}
+{/* CONTENT */}
 
 <div
 
 className="
-
-space-y-3
-
+space-y-2
 "
 
 >
@@ -233,7 +218,9 @@ highlights
 
 .slice(0,6)
 
-.map((item,index)=>(
+.map(
+
+(item,index)=>(
 
 
 <div
@@ -241,25 +228,18 @@ highlights
 key={`${item}-${index}`}
 
 className="
-
 flex
-
 items-start
-
-gap-4
-
-rounded-xl
-
-bg-gray-50
-
+gap-3
+rounded-lg
+border
+border-gray-100
+bg-white/70
 px-4
-
-py-4
-
-transition
-
+py-3
+transition-all
+duration-300
 hover:bg-[#FAFCFF]
-
 "
 
 >
@@ -268,53 +248,24 @@ hover:bg-[#FAFCFF]
 <span
 
 className="
-
-mt-0.5
-
-flex
-
-h-7
-
-w-7
-
+mt-2
+h-2
+w-2
 shrink-0
-
-items-center
-
-justify-center
-
 rounded-full
-
-bg-[#163C80]
-
-text-xs
-
-font-bold
-
-text-white
-
+bg-[#EA661B]
 "
 
->
-
-{index+1}
-
-</span>
-
-
+/>
 
 
 
 <p
 
 className="
-
 text-[15px]
-
 leading-7
-
 text-gray-700
-
 "
 
 >
@@ -328,21 +279,29 @@ text-gray-700
 </div>
 
 
-))
+)
+
+)
+
 
 
 }
+
 
 
 </div>
 
 
 
+</div>
 
 
 
 </section>
 
+
+
+</div>
 
 );
 

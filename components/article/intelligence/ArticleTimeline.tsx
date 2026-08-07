@@ -1,12 +1,26 @@
+"use client";
+
+import {
+  useState
+} from "react";
+
+
 interface TimelineItem {
+
   date?: string;
-  title: string;
-  description?: string;
+
+  title:string;
+
+  description?:string;
+
 }
 
 
+
 interface ArticleTimelineProps {
-  timeline: TimelineItem[];
+
+  timeline:TimelineItem[];
+
 }
 
 
@@ -15,12 +29,22 @@ export default function ArticleTimeline({
 
   timeline,
 
-}: ArticleTimelineProps) {
+}:ArticleTimelineProps){
+
+
+
+const [expanded,setExpanded] = useState(false);
+
 
 
 if(
-  !Array.isArray(timeline) ||
-  timeline.length === 0
+
+  !Array.isArray(timeline)
+
+  ||
+
+  timeline.length===0
+
 ){
 
   return null;
@@ -29,32 +53,78 @@ if(
 
 
 
+const visibleTimeline = expanded
+
+?
+
+timeline
+
+:
+
+timeline.slice(0,3);
+
+
+
+
+
 return (
 
 <div
 
 className="
+mx-auto
+w-full
+md:w-[85%]
 relative
-space-y-8
 "
 
 >
 
 
-{/* TIMELINE LINE */}
+
+
+
+{/* TIMELINE RAIL */}
 
 <div
 
 className="
 absolute
-left-[11px]
-top-5
-bottom-5
+left-0
+top-2
+bottom-8
 w-[2px]
-bg-gradient-to-b
-from-[#EA661B]/40
-via-[#163C80]/30
-to-transparent
+bg-[#163C80]
+"
+
+/>
+
+
+
+<div
+
+className="
+absolute
+left-2
+top-2
+bottom-8
+w-[1px]
+bg-[#163C80]/40
+"
+
+/>
+
+
+
+<div
+
+className="
+absolute
+left-4
+top-2
+bottom-8
+w-[1px]
+bg-[#163C80]/20
 "
 
 />
@@ -63,12 +133,23 @@ to-transparent
 
 
 
+{/* EVENTS */}
+
+<div
+
+className="
+space-y-5
+pl-8
+"
+
+>
 
 
 {
 
-timeline.map((item,index)=>(
+visibleTimeline.map(
 
+(item,index)=>(
 
 <div
 
@@ -76,89 +157,63 @@ key={`${item.title}-${index}`}
 
 className="
 relative
-pl-10
-group
-"
-
->
-
-
-
-{/* TIMELINE POINT */}
-
-<div
-
-className="
-absolute
-left-0
-top-5
-h-6
-w-6
-rounded-full
-bg-white
-border-4
-border-[#163C80]
-shadow-md
-z-10
-transition
-group-hover:scale-110
-"
-
-/>
-
-
-
-
-
-
-
-
-{/* CARD */}
-
-
-<div
-
-className="
-rounded-2xl
+rounded-xl
 border
-border-gray-100
-bg-gradient-to-br
-from-white
-to-[#FAFAF8]
-p-5
+border-gray-200
+bg-white
+px-5
+py-4
 shadow-sm
 transition-all
 duration-300
-
-hover:-translate-y-1
 hover:shadow-md
 "
 
 >
 
 
+{/* EVENT DOT */}
+
+<div
+
+className="
+absolute
+-left-[40px]
+top-5
+h-3
+w-3
+rounded-full
+bg-[#163C80]
+ring-4
+ring-white
+"
+
+></div>
+
+
+
 
 
 {
-
 
 item.date &&
 
 <div
 
 className="
-mb-3
+mb-2
 inline-flex
-items-center
 rounded-full
-bg-[#FFF3EA]
+border
+border-[#163C80]/20
+bg-[#F3F7FF]
 px-3
 py-1
 text-[11px]
 font-bold
 uppercase
-tracking-[0.18em]
-text-[#EA661B]
+tracking-wide
+text-[#163C80]
 "
 
 >
@@ -173,22 +228,20 @@ text-[#EA661B]
 
 
 
-<h4
+<h3
 
 className="
 text-lg
-font-semibold
-tracking-tight
-text-[#111827]
+font-bold
+leading-7
+text-gray-900
 "
 
 >
 
 {item.title}
 
-</h4>
-
-
+</h3>
 
 
 
@@ -201,7 +254,7 @@ item.description &&
 <p
 
 className="
-mt-3
+mt-2
 text-sm
 leading-7
 text-gray-600
@@ -213,7 +266,6 @@ text-gray-600
 
 </p>
 
-
 }
 
 
@@ -222,15 +274,9 @@ text-gray-600
 
 </div>
 
+)
 
-
-
-
-</div>
-
-
-))
-
+)
 
 }
 
@@ -238,6 +284,74 @@ text-gray-600
 
 </div>
 
+
+
+
+
+
+
+{
+
+timeline.length > 3 &&
+
+<div
+
+className="
+mt-8
+flex
+justify-center
+"
+
+>
+
+<button
+
+type="button"
+
+onClick={()=>setExpanded(!expanded)}
+
+className="
+rounded-xl
+bg-[#163C80]
+px-5
+py-2.5
+text-sm
+font-semibold
+text-white
+shadow-sm
+transition-all
+duration-300
+hover:-translate-y-0.5
+hover:bg-[#102e63]
+"
+
+>
+
+{
+
+expanded
+
+?
+
+"Show Less Timeline ↑"
+
+:
+
+`View Full Timeline (${timeline.length} Events) →`
+
+}
+
+</button>
+
+</div>
+
+}
+
+
+
+
+
+</div>
 
 );
 

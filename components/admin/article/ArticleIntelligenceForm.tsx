@@ -73,7 +73,17 @@ form.keyTakeaways
 
 [];
 
+const timeline =
 
+Array.isArray(form.timeline)
+
+?
+
+form.timeline
+
+:
+
+[];
 
 
 
@@ -184,7 +194,64 @@ i!==index
 
 }
 
+/* =====================================================
+   TIMELINE HANDLERS
+===================================================== */
 
+function addTimeline(){
+
+updateField(
+"timeline",
+[
+...timeline,
+{
+date:"",
+title:"",
+description:""
+}
+]
+);
+
+}
+
+
+function updateTimeline(
+index:number,
+key:string,
+value:string
+){
+
+updateField(
+"timeline",
+timeline.map(
+(item:any,i:number)=>
+
+i===index
+?
+{
+...item,
+[key]:value
+}
+:
+item
+
+)
+);
+
+}
+
+
+function removeTimeline(index:number){
+
+updateField(
+"timeline",
+timeline.filter(
+(_:any,i:number)=>
+i!==index
+)
+);
+
+}
 
 
 
@@ -824,55 +891,132 @@ p-6
 
 >
 
-
 <h2 className="font-semibold mb-4">
-
 Timeline
-
 </h2>
 
 
+<div className="space-y-4">
 
-<textarea
+{
+timeline.map(
+(item:any,index:number)=>(
 
+<div
+key={index}
+className="
+rounded-xl
+border
+border-white/10
+bg-black/20
+p-4
+"
+>
+
+<input
 className="
 w-full
-h-40
-p-4
-rounded-xl
+mb-3
+p-3
+rounded-lg
 bg-black/30
 border
 border-white/10
 "
-
-placeholder="
-1999 - Event Name
-
-Description
-
-2005 - Event Name
-
-Description
-"
-
-
-value={form.timeline || ""}
-
-
+placeholder="Year / Period"
+value={item.date || ""}
 onChange={(e)=>
-
-updateField(
-
-"timeline",
-
+updateTimeline(
+index,
+"date",
 e.target.value
+)
+}
+/>
+
+
+<input
+className="
+w-full
+mb-3
+p-3
+rounded-lg
+bg-black/30
+border
+border-white/10
+"
+placeholder="Event Title"
+value={item.title || ""}
+onChange={(e)=>
+updateTimeline(
+index,
+"title",
+e.target.value
+)
+}
+/>
+
+
+<textarea
+className="
+w-full
+p-3
+rounded-lg
+bg-black/30
+border
+border-white/10
+"
+placeholder="Description"
+value={item.description || ""}
+onChange={(e)=>
+updateTimeline(
+index,
+"description",
+e.target.value
+)
+}
+/>
+
+
+<button
+type="button"
+onClick={()=>
+removeTimeline(index)
+}
+className="
+mt-3
+text-sm
+text-red-400
+"
+>
+Remove
+</button>
+
+
+</div>
 
 )
 
+)
 }
 
-/>
 
+<button
+type="button"
+onClick={addTimeline}
+className="
+rounded-xl
+bg-[#EA661B]
+px-4
+py-2
+font-semibold
+"
+>
++ Add Timeline Event
+</button>
+
+
+</div>
 
 </div>
 

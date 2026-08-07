@@ -1,102 +1,206 @@
 interface ArticleWhatsNextProps {
-  whatsNext: string;
+
+  whatsNext:string;
+
 }
+
 
 
 export default function ArticleWhatsNext({
+
   whatsNext,
-}: ArticleWhatsNextProps) {
+
+}:ArticleWhatsNextProps){
 
 
-if(!whatsNext){
 
-return null;
+if(
+
+  !whatsNext
+
+  ||
+
+  !whatsNext.trim()
+
+){
+
+  return null;
 
 }
+
+
 
 
 
 return (
 
+<div
+
+className="
+mx-auto
+my-10
+w-full
+md:w-[85%]
+"
+
+>
+
+
 <section
 
 className="
-
-my-12
-
-rounded-2xl
-
+relative
+overflow-hidden
+rounded-xl
 border
-
 border-orange-200
-
-bg-orange-50
-
-p-6
-
-sm:p-8
-
+bg-gradient-to-br
+from-orange-50
+via-white
+to-white
+p-5
+shadow-sm
+transition-all
+duration-300
+hover:shadow-md
 "
 
 >
 
 
-<div
 
-className="
-
-mb-4
-
-flex
-
-items-center
-
-gap-3
-
-"
-
->
-
+{/* ORANGE ACCENT */}
 
 <div
 
 className="
-
-h-8
-
-w-1
-
-rounded-full
-
+absolute
+left-0
+top-0
+h-full
+w-[2px]
 bg-[#EA661B]
-
 "
 
 />
 
 
 
+
+
+<div
+
+className="
+pl-5
+"
+
+>
+
+
+
+{/* HEADER */}
+
+<div
+
+className="
+mb-4
+"
+
+>
+
+
 <p
 
 className="
-
-text-xs
-
-font-semibold
-
+text-[11px]
+font-bold
 uppercase
-
-tracking-[0.2em]
-
+tracking-[0.22em]
 text-[#EA661B]
+"
 
+>
+
+Future Outlook
+
+</p>
+
+
+
+<h2
+
+className="
+mt-1
+text-2xl
+font-black
+tracking-tight
+text-[#EA661B]
 "
 
 >
 
 What's Next
 
-</p>
+</h2>
+
+
+
+
+
+{/* THREE SHADE MARK */}
+
+<div
+
+className="
+mt-4
+flex
+items-center
+gap-2
+"
+
+>
+
+
+<div
+
+className="
+h-1
+w-10
+rounded-full
+bg-[#EA661B]
+"
+
+/>
+
+
+
+<div
+
+className="
+h-1
+w-10
+rounded-full
+bg-orange-300
+"
+
+/>
+
+
+
+<div
+
+className="
+h-1
+w-10
+rounded-full
+bg-orange-100
+"
+
+/>
+
+
+
+</div>
 
 
 
@@ -106,18 +210,17 @@ What's Next
 
 
 
+
+
+{/* CONTENT */}
+
 <p
 
 className="
-
-text-base
-
+text-[15px]
 leading-8
-
-text-gray-800
-
-sm:text-lg
-
+text-gray-700
+sm:text-[16px]
 "
 
 >
@@ -128,8 +231,15 @@ sm:text-lg
 
 
 
+</div>
+
+
 
 </section>
+
+
+
+</div>
 
 );
 

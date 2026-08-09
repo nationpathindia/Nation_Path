@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-
+import Script from "next/script";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -423,7 +423,19 @@ export default function RootLayout({
 
     >
 
+<head>
+  <meta
+    name="google-adsense-account"
+    content="ca-pub-3337012180933768"
+  />
 
+  <Script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3337012180933768"
+    crossOrigin="anonymous"
+    strategy="afterInteractive"
+  />
+</head>
 
 
       <body

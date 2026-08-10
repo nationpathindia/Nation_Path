@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { createSlug } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 
 
@@ -239,47 +239,28 @@ take:50
 
 
 
-
-
-return NextResponse.json({
-
+return NextResponse.json(
+{
 success:true,
 
-
-
-/*
- Homepage compatibility
-*/
-
 poll:
-
 activePoll
-
 ?
-
 formatPoll(activePoll)
-
 :
-
 null,
 
-
-
-
-/*
- Poll archive
-*/
-
 archive:
+archivedPolls.map(formatPoll)
 
-archivedPolls.map(
-formatPoll
-)
-
-
-
-});
-
+},
+{
+headers:{
+"Cache-Control":
+"public, s-maxage=300, stale-while-revalidate=600"
+}
+}
+);
 
 
 

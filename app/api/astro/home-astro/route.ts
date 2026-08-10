@@ -36,17 +36,11 @@ import {
 //
 // HOMEPAGE ASTRO INTELLIGENCE API
 //
-// PURPOSE:
+// OPTIMIZED:
 //
-// Single homepage request:
-//
-// Panchang Intelligence
-// +
-// Muhurta Intelligence
-//
-// OPTIMIZATION:
-//
-// Server cached calculation layer
+// Shared homepage cache
+// Fixed default location
+// CDN response cache
 //
 // LOCKED:
 //
@@ -78,6 +72,7 @@ const DEFAULT_LOCATION = {
 
 
 
+
 //////////////////////////////////////////////////////////////
 //
 // INDIA DATE
@@ -88,199 +83,27 @@ const DEFAULT_LOCATION = {
 function getIndiaDate(){
 
 
-return new Intl.DateTimeFormat(
+  return new Intl.DateTimeFormat(
 
-"en-CA",
+    "en-CA",
 
-{
+    {
 
-timeZone:"Asia/Kolkata",
+      timeZone:"Asia/Kolkata",
 
-year:"numeric",
+      year:"numeric",
 
-month:"2-digit",
+      month:"2-digit",
 
-day:"2-digit",
+      day:"2-digit",
 
-}
+    }
 
-).format(
+  ).format(
 
-new Date()
+    new Date()
 
-);
-
-
-}
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-//
-// LOCATION RESOLVER
-//
-//////////////////////////////////////////////////////////////
-
-
-function resolveLocation(
-
-request:NextRequest
-
-){
-
-
-const {
-
-searchParams
-
-}
-
-=
-
-new URL(request.url);
-
-
-
-
-
-const latitude =
-
-searchParams.get("latitude");
-
-
-
-const longitude =
-
-searchParams.get("longitude");
-
-
-
-
-
-if(
-
-latitude && longitude
-
-){
-
-
-return {
-
-
-city:"Custom",
-
-country:"",
-
-latitude:Number(latitude),
-
-longitude:Number(longitude),
-
-altitude:Number(
-
-searchParams.get("altitude") || 0
-
-),
-
-
-};
-
-
-}
-
-
-
-
-
-const ipLatitude =
-
-request.headers.get(
-
-"x-vercel-ip-latitude"
-
-);
-
-
-
-const ipLongitude =
-
-request.headers.get(
-
-"x-vercel-ip-longitude"
-
-);
-
-
-
-const ipCity =
-
-request.headers.get(
-
-"x-vercel-ip-city"
-
-);
-
-
-
-const ipCountry =
-
-request.headers.get(
-
-"x-vercel-ip-country"
-
-);
-
-
-
-
-
-if(
-
-ipLatitude && ipLongitude
-
-){
-
-
-return {
-
-
-city:
-
-ipCity || "Unknown",
-
-
-country:
-
-ipCountry || "India",
-
-
-latitude:
-
-Number(ipLatitude),
-
-
-longitude:
-
-Number(ipLongitude),
-
-
-altitude:0,
-
-
-};
-
-
-}
-
-
-
-
-
-return DEFAULT_LOCATION;
+  );
 
 
 }
@@ -297,10 +120,6 @@ return DEFAULT_LOCATION;
 //
 // CACHED ASTRO CALCULATION LAYER
 //
-// Only aggregation layer cached
-//
-// Engines remain untouched
-//
 //////////////////////////////////////////////////////////////
 
 
@@ -311,23 +130,31 @@ unstable_cache(
 
 async (
 
-date:Date,
+  date:Date,
 
-latitude:number,
+  latitude:number,
 
-longitude:number,
+  longitude:number,
 
-altitude:number
+  altitude:number
 
 )=>{
 
+
 console.log(
-"🔥 CALCULATING HOME ASTRO",
-{
- date,
- latitude,
- longitude
-}
+
+  "🔥 CALCULATING HOME ASTRO",
+
+  {
+
+    date,
+
+    latitude,
+
+    longitude
+
+  }
+
 );
 
 
@@ -336,23 +163,19 @@ const panchang =
 
 getPanchang(
 
+  date,
 
-date,
+  {
 
+    latitude,
 
-{
+    longitude,
 
-latitude,
+    timezone:"Asia/Kolkata",
 
-longitude,
-
-timezone:"Asia/Kolkata",
-
-}
-
+  }
 
 );
-
 
 
 
@@ -362,16 +185,13 @@ timezone:"Asia/Kolkata",
 const riseSetRequest: RiseSetRequest = {
 
 
-date,
+  date,
 
+  latitude,
 
-latitude,
+  longitude,
 
-
-longitude,
-
-
-altitude,
+  altitude,
 
 
 };
@@ -385,7 +205,7 @@ const muhurta =
 
 calculateAllMuhurtas(
 
-riseSetRequest
+  riseSetRequest
 
 );
 
@@ -396,10 +216,10 @@ riseSetRequest
 return {
 
 
-panchang,
+  panchang,
 
 
-muhurta,
+  muhurta,
 
 
 };
@@ -411,7 +231,7 @@ muhurta,
 
 [
 
-"nationpath-home-astro"
+  "nationpath-home-astro-v1"
 
 ],
 
@@ -419,12 +239,14 @@ muhurta,
 
 {
 
-revalidate:3600
+  revalidate:3600
 
 }
 
 
+
 );
+
 
 
 
@@ -449,6 +271,7 @@ request:NextRequest
 ){
 
 
+
 try{
 
 
@@ -468,9 +291,11 @@ new URL(request.url);
 
 
 
+
 const dateParam =
 
 searchParams.get("date");
+
 
 
 
@@ -482,6 +307,7 @@ const requestedDate =
 dateParam ||
 
 getIndiaDate();
+
 
 
 
@@ -500,20 +326,17 @@ requestedDate
 
 
 
+
 if(!date){
 
 
 return astroError(
 
+  ASTRO_API_ERRORS.INVALID_DATE.code,
 
-ASTRO_API_ERRORS.INVALID_DATE.code,
+  ASTRO_API_ERRORS.INVALID_DATE.message,
 
-
-ASTRO_API_ERRORS.INVALID_DATE.message,
-
-
-400
-
+  400
 
 );
 
@@ -526,13 +349,8 @@ ASTRO_API_ERRORS.INVALID_DATE.message,
 
 
 
-const location =
 
-resolveLocation(
-
-request
-
-);
+const location = DEFAULT_LOCATION;
 
 
 
@@ -555,16 +373,21 @@ muhurta
 await getCachedHomeAstro(
 
 
+
 date,
+
 
 
 location.latitude,
 
 
+
 location.longitude,
 
 
+
 location.altitude
+
 
 
 );
@@ -577,60 +400,50 @@ location.altitude
 
 
 
-return astroSuccess(
+const response =
 
+astroSuccess(
 
 
 {
 
-
-panchang,
-
-
-muhurta:{
+  panchang,
 
 
-location,
+  muhurta:{
 
 
-data:muhurta
+    location,
 
 
-}
+    data:muhurta
+
+
+  }
 
 
 },
 
 
 
-
-
 {
 
 
-requestedDate,
+  requestedDate,
 
 
-timezone:"Asia/Kolkata",
+  timezone:"Asia/Kolkata",
 
 
-engine:
+  engine:
 
-"NationPath Astro Homepage Intelligence",
+  "NationPath Astro Homepage Intelligence",
 
 
 
-source:
+  source:
 
-location.city === "Custom"
-
-?
-
-"query"
-
-:
-
-"ip-or-default"
+  "default"
 
 
 
@@ -642,7 +455,33 @@ location.city === "Custom"
 
 
 
+
+
+
+
+response.headers.set(
+
+  "Cache-Control",
+
+  "public, s-maxage=3600, stale-while-revalidate=7200"
+
+);
+
+
+
+
+
+
+
+return response;
+
+
+
+
+
+
 }
+
 
 catch(error){
 
@@ -650,7 +489,9 @@ catch(error){
 
 console.error(
 
+
 "Homepage Astro API Error:",
+
 
 
 error instanceof Error
@@ -664,7 +505,9 @@ error.message
 error
 
 
+
 );
+
 
 
 
@@ -673,16 +516,21 @@ error
 return astroError(
 
 
+
 ASTRO_API_ERRORS.INTERNAL_ERROR.code,
+
 
 
 ASTRO_API_ERRORS.INTERNAL_ERROR.message,
 
 
+
 500
 
 
+
 );
+
 
 
 }

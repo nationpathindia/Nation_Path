@@ -5,18 +5,24 @@ import fs from "fs/promises";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-
   try {
-
     /* ================= READ FORM DATA ================= */
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const formData =
+      (await req.formData()) as unknown as globalThis.FormData;
+
+    const file =
+      formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json(
-        { success: false, message: "No file uploaded" },
-        { status: 400 }
+        {
+          success: false,
+          message: "No file uploaded",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -26,13 +32,18 @@ export async function POST(req: Request) {
       "image/jpeg",
       "image/png",
       "image/webp",
-      "image/jpg"
+      "image/jpg",
     ];
 
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { success: false, message: "Invalid file type" },
-        { status: 400 }
+        {
+          success: false,
+          message: "Invalid file type",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -42,8 +53,13 @@ export async function POST(req: Request) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { success: false, message: "File too large (max 5MB)" },
-        { status: 400 }
+        {
+          success: false,
+          message: "File too large (max 5MB)",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -54,43 +70,61 @@ export async function POST(req: Request) {
 
     /* ================= CREATE UPLOAD DIR ================= */
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(
+      process.cwd(),
+      "public/uploads"
+    );
 
-    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.mkdir(uploadDir, {
+      recursive: true,
+    });
 
     /* ================= SAFE FILE NAME ================= */
 
-    const ext = file.name.split(".").pop();
+    const ext =
+      file.name
+        .split(".")
+        .pop()
+        ?.toLowerCase() || "jpg";
+
     const filename =
       `${Date.now()}-${Math.random()
         .toString(36)
         .substring(2)}.${ext}`;
 
-    const filePath = path.join(uploadDir, filename);
+    const filePath = path.join(
+      uploadDir,
+      filename
+    );
 
     /* ================= SAVE FILE ================= */
 
-    await fs.writeFile(filePath, buffer);
+    await fs.writeFile(
+      filePath,
+      buffer
+    );
 
     /* ================= RESPONSE ================= */
 
     return NextResponse.json({
       success: true,
-      url: `/uploads/${filename}`
+      url: `/uploads/${filename}`,
     });
-
   } catch (error) {
-
-    console.error("UPLOAD ERROR:", error);
+    console.error(
+      "UPLOAD ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        message: "Upload failed"
+        message: "Upload failed",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
-
   }
-
 }
+

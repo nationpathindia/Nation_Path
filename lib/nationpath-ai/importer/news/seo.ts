@@ -1,107 +1,403 @@
 // ============================================
 // NationPath AI News Importer
-// SEO Parser
+// SEO Parser v4 FINAL LOCK
+//
+// Supports:
+// - SEO Preview section
+// - Markdown SEO fields
+// - Title extraction
+// - Description extraction
+// - Keyword extraction
+// - Slug generation
+// - Multiline recovery
+// - N/A cleanup
+// - Structured SEO parsing
 // ============================================
 
-import type { SEOData } from "./types";
+import type {
+  SEOData
+} from "./types";
 
 
 
-/**
- * Clean SEO text
- */
+// ============================================
+// CLEAN SEO TEXT
+// ============================================
+
 function cleanSEOText(
   text?: string
 ): string | undefined {
 
-  if (!text) {
+  if(
+    !text
+  ){
+
     return undefined;
+
   }
 
 
-  return text
-    .trim()
-    .replace(/\s+/g, " ");
+  const clean =
+
+    text
+
+      .replace(
+        /\*\*/g,
+        ""
+      )
+
+      .replace(
+        /^#+\s*/,
+        ""
+      )
+
+      .replace(
+        /^[-*]\s*/,
+        ""
+      )
+
+      .replace(
+        /\s+/g,
+        " "
+      )
+
+      .trim();
+
+
+
+  if(
+    !clean ||
+    clean.toLowerCase() === "n/a"
+  ){
+
+    return undefined;
+
+  }
+
+
+  return clean;
 
 }
 
 
 
-/**
- * Create slug from title
- */
+// ============================================
+// KEYWORD PARSER
+// ============================================
+
+function parseKeywordList(
+  text?: string
+): string[] {
+
+
+  if(
+    !text
+  ){
+
+    return [];
+
+  }
+
+
+
+  return text
+
+    .replace(
+      /\*\*/g,
+      ""
+    )
+
+    .replace(
+      /^keywords?\s*:/i,
+      ""
+    )
+
+    .split(
+      ","
+    )
+
+    .map(
+      item =>
+        item
+          .trim()
+          .toLowerCase()
+    )
+
+    .filter(
+      Boolean
+    );
+
+}
+
+
+
+// ============================================
+// SLUG GENERATOR
+// ============================================
+
 export function generateSlug(
   text:string
 ):string {
 
 
   return text
+
     .toLowerCase()
+
     .trim()
-    .replace(/[^\w\s-]/g,"")
-    .replace(/\s+/g,"-")
-    .replace(/-+/g,"-");
+
+    .replace(
+      /[^\w\s-]/g,
+      ""
+    )
+
+    .replace(
+      /\s+/g,
+      "-"
+    )
+
+    .replace(
+      /-+/g,
+      "-"
+    );
 
 }
 
 
 
-/**
- * Normalize existing slug
- */
+// ============================================
+// NORMALIZE SLUG
+// ============================================
+
 function normalizeSlug(
   slug:string
 ):string {
 
-
-  return generateSlug(slug);
+  return generateSlug(
+    slug
+  );
 
 }
 
 
 
-/**
- * Extract SEO data
- */
+// ============================================
+// EXTRACT SEO FIELD
+// ============================================
+
+function extractSEOField(
+  text:string,
+  label:string
+):string | undefined {
+
+
+  const regex =
+
+    new RegExp(
+      `(?:\\*\\*)?${label}(?:\\*\\*)?\\s*:\\s*([\\s\\S]*?)(?=\\n(?:\\*\\*)?[A-Za-z ]+(?:\\*\\*)?\\s*:|$)`,
+      "i"
+    );
+
+
+
+  const match =
+    text.match(
+      regex
+    );
+
+
+
+  return match
+
+    ?
+
+    cleanSEOText(
+      match[1]
+    )
+
+    :
+
+    undefined;
+
+}
+
+
+
+// ============================================
+// EXTRACT KEYWORDS
+// ============================================
+
+function extractKeywords(
+  text:string
+):string[] {
+
+
+  const match =
+
+    text.match(
+      /(?:\*\*)?keywords(?:\*\*)?\s*:\s*(.+)/i
+    );
+
+
+
+  if(
+    !match
+  ){
+
+    return [];
+
+  }
+
+
+
+  return parseKeywordList(
+    match[1]
+  );
+
+}
+
+
+
+// ============================================
+// PARSE SEO
+// ============================================
+
 export function parseSEO(
   sections:Record<string,string>
 ):SEOData {
 
 
-  const metaTitle =
+  const seoBlock =
+
+    sections.seoPreview
+
+    ||
+
+    sections.seoTitle
+
+    ||
+
+    sections.metaDescription
+
+    ||
+
+    "";
+
+
+
+  const title =
+
+
+    extractSEOField(
+      seoBlock,
+      "title"
+    )
+
+    ||
+
     cleanSEOText(
-      sections.seoTitle ||
+      sections.seoTitle
+    )
+
+    ||
+
+    cleanSEOText(
       sections.headline
     );
 
 
-  const metaDescription =
+
+
+  const description =
+
+
+    extractSEOField(
+      seoBlock,
+      "description"
+    )
+
+    ||
+
     cleanSEOText(
-      sections.metaDescription ||
+      sections.metaDescription
+    )
+
+    ||
+
+    cleanSEOText(
       sections.brief
     );
 
 
+
+
+  const keywords =
+
+    extractKeywords(
+      seoBlock
+    );
+
+
+
+  const finalKeywords =
+
+    keywords.length
+
+    ?
+
+    keywords
+
+    :
+
+    parseKeywordList(
+      sections.metaKeywords
+    );
+
+
+
+
   const slug =
+
+
     sections.slug
-      ? normalizeSlug(
-          sections.slug
-        )
-      : metaTitle
-        ? generateSlug(
-            metaTitle
-          )
-        : undefined;
+
+    ?
+
+    normalizeSlug(
+      sections.slug
+    )
+
+    :
+
+    title
+
+    ?
+
+    generateSlug(
+      title
+    )
+
+    :
+
+    undefined;
 
 
 
   return {
 
-    metaTitle,
+    metaTitle:
+      title,
 
-    metaDescription,
 
-    slug
+    metaDescription:
+      description,
+
+
+    slug,
+
+
+    keywords:
+      finalKeywords
 
   };
 

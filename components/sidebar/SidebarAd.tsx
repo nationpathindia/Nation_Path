@@ -1,4 +1,4 @@
-import AdRenderer from "@/components/ads/AdRenderer";
+import AdRenderer from "@/components/ads/AdRendererClient";
 
 
 interface SidebarAdProps {

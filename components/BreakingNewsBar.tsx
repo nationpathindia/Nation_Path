@@ -1,524 +1,190 @@
 "use client";
 
-import {
-  useEffect,
-  useState
-} from "react";
-
+import { useEffect, useMemo, useState } from "react";
 
 type BreakingArticle = {
-
-  id:string;
-
-  title:string;
-
-  slug:string;
-
+  id: string;
+  title: string;
+  slug: string;
 };
 
-
-
-
-
-export default function BreakingNewsBar(){
-
-
-const [
-breaking,
-setBreaking
-] = useState<BreakingArticle[]>([]);
-
-
-
-const [
-loading,
-setLoading
-] = useState(true);
-
-
-
-
-
-
-async function loadBreaking(){
-
-
-try{
-
-
-const res =
-await fetch(
-"/api/push-breaking",
-{
-cache:"no-store"
-}
-);
-
-
-
-const data =
-await res.json();
-
-
-
-
-if(data.success){
-
-setBreaking(
-data.breaking || []
-);
-
-}
-
-
-}
-
-catch(error){
-
-
-console.error(
-"BREAKING BAR ERROR:",
-error
-);
-
-
-}
-
-finally{
-
-
-setLoading(false);
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-useEffect(()=>{
-
-
-loadBreaking();
-
-
-
-const interval =
-setInterval(
-loadBreaking,
-60000
-);
-
-
-
-return ()=>{
-
-clearInterval(interval);
-
-};
-
-
-},[]);
-
-
-
-
-
-
-
-
-
-const headlines =
-
-loading
-
-?
-
-[
-"Loading breaking news..."
-]
-
-:
-
-breaking.length
-
-?
-
-breaking.map(
-(item)=>item.title
-)
-
-:
-
-[
-"Latest news updates from NationPath India"
-];
-
-
-
-
-
-
-
-const ticker = [
-
-...headlines,
-
-...headlines
-
-];
-
-
-
-
-
-
-
-return (
-
-
-<div
-
-
-className="
-
-relative
-
-news-breaking
-
-overflow-hidden
-
-group
-
-"
-
-
->
-
-
-
-
-
-
-
-<div
-
-
-className="
-
-news-container
-
-flex
-
-items-center
-
-h-9
-
-md:h-10
-
-relative
-
-z-10
-
-"
-
-
->
-
-
-
-
-
-
-
-
-
-
-{/* BREAKING LABEL */}
-
-
-<div
-
-
-className="
-
-flex
-
-items-center
-
-gap-2
-
-bg-[var(--news-breaking-badge)]
-
-px-2.5
-
-py-1
-
-rounded-sm
-
-shrink-0
-
-"
-
-
->
-
-
-<span
-
-
-className="
-
-w-1.5
-
-h-1.5
-
-rounded-full
-
-bg-white
-
-animate-pulse
-
-"
-
-
-/>
-
-
-
-
-
-<span
-
-
-className="
-
-text-[10px]
-
-font-bold
-
-uppercase
-
-tracking-[0.18em]
-
-text-white
-
-"
-
-
->
-
-Breaking
-
-</span>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-{/* TICKER */}
-
-
-<div
-
-
-className="
-
-overflow-hidden
-
-ml-3
-
-flex-1
-
-"
-
-
->
-
-
-
-<div
-
-
-className="
-
-flex
-
-whitespace-nowrap
-
-animate-marquee
-
-group-hover:[animation-play-state:paused]
-
-"
-
-
->
-
-
-{
-
-
-ticker.map(
-
-(item,index)=>(
-
-
-<span
-
-
-key={index}
-
-
-className="
-
-text-xs
-
-md:text-sm
-
-font-medium
-
-text-[var(--news-breaking-text)]
-
-mx-4
-
-"
-
-
->
-
-
-{item}
-
-
-
-
-
-<span
-
-
-className="
-
-ml-4
-
-text-[var(--news-breaking-dot)]
-
-"
-
-
->
-
-•
-
-</span>
-
-
-
-
-</span>
-
-
-)
-
-
-)
-
-
+const FALLBACK_HEADLINE =
+  "Latest news updates from NationPath India";
+
+export default function BreakingNewsBar() {
+  const [breaking, setBreaking] = useState<BreakingArticle[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadBreaking = async () => {
+      try {
+        const res = await fetch("/api/push-breaking", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          console.error(
+            "BREAKING API STATUS:",
+            res.status
+          );
+          return;
+        }
+
+        const data = await res.json();
+
+        console.log(
+          "BREAKING API DATA:",
+          data
+        );
+
+        if (
+          mounted &&
+          data?.success &&
+          Array.isArray(data.breaking)
+        ) {
+          setBreaking(data.breaking);
+        }
+      } catch (error) {
+        console.error(
+          "BREAKING BAR ERROR:",
+          error
+        );
+      }
+    };
+
+    // Initial background load
+    loadBreaking();
+
+    // Refresh every 60 seconds
+    const interval = setInterval(
+      loadBreaking,
+      60000
+    );
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const headlines = useMemo(() => {
+    if (breaking.length > 0) {
+      return breaking
+        .map((item) => item.title)
+        .filter(Boolean);
+    }
+
+    return [FALLBACK_HEADLINE];
+  }, [breaking]);
+
+  const ticker = useMemo(
+    () => [...headlines, ...headlines],
+    [headlines]
+  );
+
+  return (
+    <div
+      className="
+        relative
+        news-breaking
+        overflow-hidden
+        group
+      "
+    >
+      <div
+        className="
+          news-container
+          flex
+          items-center
+          h-9
+          md:h-10
+          relative
+          z-10
+        "
+      >
+        {/* BREAKING LABEL */}
+
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            bg-[var(--news-breaking-badge)]
+            px-2.5
+            py-1
+            rounded-sm
+            shrink-0
+          "
+        >
+          <span
+            className="
+              w-1.5
+              h-1.5
+              rounded-full
+              bg-white
+              animate-pulse
+            "
+          />
+
+          <span
+            className="
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-[0.18em]
+              text-white
+            "
+          >
+            Breaking
+          </span>
+        </div>
+
+        {/* TICKER */}
+
+        <div
+          className="
+            overflow-hidden
+            ml-3
+            flex-1
+          "
+        >
+          <div
+            className="
+              flex
+              whitespace-nowrap
+              animate-marquee
+              group-hover:[animation-play-state:paused]
+            "
+          >
+            {ticker.map((item, index) => (
+              <span
+                key={`${item}-${index}`}
+                className="
+                  text-xs
+                  md:text-sm
+                  font-medium
+                  text-[var(--news-breaking-text)]
+                  mx-4
+                "
+              >
+                {item}
+
+                <span
+                  className="
+                    ml-4
+                    text-[var(--news-breaking-dot)]
+                  "
+                >
+                  •
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-<style jsx>{`
-
-.animate-marquee {
-
-display:inline-flex;
-
-width:max-content;
-
-animation:
-
-marquee 35s linear infinite;
-
-}
-
-
-
-@keyframes marquee {
-
-
-from {
-
-transform:
-
-translateX(0);
-
-}
-
-
-
-to {
-
-transform:
-
-translateX(-50%);
-
-}
-
-
-}
-
-
-
-`}</style>
-
-
-
-
-
-
-</div>
-
-
-);
-
-
-}

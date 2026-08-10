@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import AdRenderer from "@/components/ads/AdRenderer";
+import AdRenderer from "@/components/ads/AdRendererClient";
 
 import CategoryHeader from "@/components/category/CategoryHeader";
 import CategoryHero from "@/components/category/CategoryHero";
@@ -574,11 +574,6 @@ export default async function CategoryPage({
  "
 
  >
-
-
-
-
-
 
  <CategoryHeader
 

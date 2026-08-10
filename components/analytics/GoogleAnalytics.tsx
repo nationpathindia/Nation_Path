@@ -3,24 +3,31 @@
 import Script from "next/script";
 
 export default function GoogleAnalytics() {
+
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
   if (!GA_ID) return null;
 
+
   return (
     <>
       <Script
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
       />
 
+
       <Script
         id="google-analytics"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       >
         {`
           window.dataLayer = window.dataLayer || [];
-          function gtag(){window.dataLayer.push(arguments);}
+
+          function gtag(){
+            window.dataLayer.push(arguments);
+          }
+
           gtag('js', new Date());
 
           gtag('config', '${GA_ID}', {

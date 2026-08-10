@@ -8,8 +8,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const query = searchParams.get("q")?.trim() || "";
-    const category = searchParams.get("category");
-    const page = Number(searchParams.get("page") || 1);
+    const category = searchParams.get("category")?.trim() || "";
+
+    const requestedPage = Number(searchParams.get("page") || "1");
+
+    const page =
+      Number.isFinite(requestedPage) && requestedPage > 0
+        ? Math.floor(requestedPage)
+        : 1;
 
     const limit = 10;
     const skip = (page - 1) * limit;
@@ -19,7 +25,7 @@ export async function GET(req: Request) {
         success: true,
         articles: [],
         pagination: {
-          page,
+          page: 1,
           limit,
           total: 0,
           totalPages: 0,
@@ -27,33 +33,46 @@ export async function GET(req: Request) {
       });
     }
 
+    const now = new Date();
+
     const where: any = {
       status: "approved",
       isDeleted: false,
+      isAstrology: false,
 
       OR: [
         {
-          title: {
-            contains: query,
-            mode: "insensitive",
-          },
+          publishedAt: null,
         },
         {
-          excerpt: {
-            contains: query,
-            mode: "insensitive",
+          publishedAt: {
+            lte: now,
           },
         },
+      ],
+
+      AND: [
         {
-          content: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          tags: {
-            has: query,
-          },
+          OR: [
+            {
+              title: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              excerpt: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              content: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+          ],
         },
       ],
     };
@@ -62,10 +81,7 @@ export async function GET(req: Request) {
       where.categoryId = category;
     }
 
-    const [
-      articles,
-      total,
-    ] = await Promise.all([
+    const [articles, total] = await Promise.all([
       prisma.article.findMany({
         where,
 
@@ -75,6 +91,7 @@ export async function GET(req: Request) {
           slug: true,
           excerpt: true,
           images: true,
+          imageGallery: true,
           publishedAt: true,
           views: true,
           trendingScore: true,
@@ -100,6 +117,9 @@ export async function GET(req: Request) {
           {
             publishedAt: "desc",
           },
+          {
+            createdAt: "desc",
+          },
         ],
 
         skip,
@@ -113,9 +133,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       success: true,
-
       articles,
-
       pagination: {
         page,
         limit,
@@ -123,16 +141,19 @@ export async function GET(req: Request) {
         totalPages: Math.ceil(total / limit),
       },
     });
-
   } catch (error) {
-    console.error(
-      "Search API Error:",
-      error
-    );
+    console.error("Search API Error:", error);
 
     return NextResponse.json(
       {
         success: false,
+        articles: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
         message: "Unable to search articles",
       },
       {

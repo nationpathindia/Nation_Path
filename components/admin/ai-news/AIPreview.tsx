@@ -1,58 +1,56 @@
 "use client";
 
+import {
+useState
+} from "react";
 
 import AIArticleEditor from "./AIArticleEditor";
-
+import AIEditorialPreview from "./AIEditorialPreview";
 
 
 interface Props {
 
-  article:any;
+article:any;
 
-  onUpdate?:
-  (article:any)=>void;
+onUpdate?:
+(article:any)=>void;
 
+onSaveDraft?:
+()=>void;
 
-  onSaveDraft?:
-  ()=>void;
+onSendToCMS?:
+()=>void;
 
+onRegenerate?:
+()=>void;
 
-  onSendToCMS?:
-  ()=>void;
-
-
-  onRegenerate?:
-  ()=>void;
-
-
-  onClear?:
-  ()=>void;
+onClear?:
+()=>void;
 
 }
 
 
 
-
-
-
 export default function AIPreview({
 
-  article,
+article,
 
-  onUpdate,
+onUpdate,
 
-  onSaveDraft,
+onSaveDraft,
 
-  onSendToCMS,
+onSendToCMS,
 
-  onRegenerate,
+onRegenerate,
 
-  onClear
+onClear
 
 }:Props){
 
 
 
+const [showPreview,setShowPreview] =
+useState(false);
 
 
 
@@ -81,17 +79,9 @@ article?.imageGallery || [];
 
 
 
-
-
-
-
-
-
 return (
 
-
 <div
-
 className="
 bg-[#0e1726]
 border
@@ -100,66 +90,37 @@ rounded-2xl
 p-6
 space-y-6
 "
-
 >
 
 
-
-
-
-
-<div className="
-flex
-items-center
-justify-between
-gap-4
+<h2
+className="
+text-2xl
+font-bold
 "
-
 >
-
-
-<div>
-
-
-<h2 className="text-xl font-bold">
-
 AI Article Preview
-
 </h2>
 
 
-
-<p className="
-text-sm
+<p
+className="
 text-gray-400
-mt-1
 "
-
 >
-
 Human editorial review before CMS transfer
-
 </p>
 
 
-</div>
 
-
-
-
-
-<div className="
-px-3
-py-1
-rounded-full
-bg-orange-600/20
+<div
+className="
+bg-orange-500/10
 border
-border-orange-500/30
-text-orange-400
-text-xs
-font-semibold
+border-orange-500/20
+rounded-xl
+p-4
 "
-
 >
 
 AI DRAFT
@@ -168,133 +129,81 @@ AI DRAFT
 
 
 
-</div>
 
-
-
-
-
-
-
-
-
-<div className="
+<div
+className="
 grid
 md:grid-cols-3
 gap-4
 "
-
 >
 
-
-
-
-
-<div className="
+<div
+className="
+bg-white/5
 rounded-xl
-bg-black/20
-border
-border-white/10
 p-4
 "
-
 >
-
-<p className="text-gray-400 text-sm">
 
 AI Confidence
 
-</p>
+<br/>
 
-
-<p className="text-lg font-bold">
-
+<b>
 {
-
 quality.confidence ||
-
 "N/A"
-
 }
-
-</p>
-
+</b>
 
 </div>
 
 
 
-
-
-
-
-
-<div className="
+<div
+className="
+bg-white/5
 rounded-xl
-bg-black/20
-border
-border-white/10
 p-4
 "
-
 >
-
-<p className="text-gray-400 text-sm">
 
 Fact Check
 
-</p>
+<br/>
 
-
-<p className="text-lg font-bold">
-
+<b>
 {
-
 quality.factCheckStatus ||
-
 "Pending"
-
 }
-
-</p>
-
+</b>
 
 </div>
 
 
 
-
-
-
-
-<div className="
+<div
+className="
+bg-white/5
 rounded-xl
-bg-black/20
-border
-border-white/10
 p-4
 "
-
 >
-
-<p className="text-gray-400 text-sm">
 
 Editorial Status
 
-</p>
+<br/>
 
-
-<p className="text-lg font-bold">
-
+<b>
 {
-
 quality.editorialReviewStatus ||
-
 "Review Required"
-
 }
+</b>
 
-</p>
+</div>
 
 
 </div>
@@ -302,50 +211,31 @@ quality.editorialReviewStatus ||
 
 
 
-</div>
 
+<div>
 
-
-
-
-
-
-
-
-<div className="
-rounded-xl
-border
-border-white/10
-bg-black/20
-p-5
+<h3
+className="
+font-semibold
+text-orange-400
+mb-2
 "
-
 >
-
-
-<h3 className="font-semibold mb-3">
-
 AI Summary
-
 </h3>
 
 
-
-<p className="text-gray-300 text-sm leading-relaxed">
-
+<p
+className="
+text-gray-200
+"
+>
 {
-
 article?.shortBrief ||
-
 article?.summary ||
-
 "No AI summary available"
-
 }
-
-
 </p>
-
 
 </div>
 
@@ -353,92 +243,47 @@ article?.summary ||
 
 
 
+<div>
 
-
-
-
-<div className="
-grid
-md:grid-cols-2
-gap-4
+<h3
+className="
+font-semibold
+text-orange-400
+mb-2
 "
-
 >
-
-
-
-
-
-<div className="
-rounded-xl
-border
-border-white/10
-p-4
-"
-
->
-
-
-<h3 className="font-semibold mb-3">
-
 Source Intelligence
-
 </h3>
 
 
-
-<p className="text-sm text-gray-300">
-
+<p>
 Primary Source:
-
 {" "}
-
 {
-
 sourceDesk.primarySource ||
-
 "N/A"
-
 }
-
 </p>
 
 
-
-<p className="text-sm text-gray-300 mt-1">
-
+<p>
 Agency:
-
 {" "}
-
 {
-
 sourceDesk.agency ||
-
 "N/A"
-
 }
-
 </p>
 
 
-
-<p className="text-sm text-gray-300 mt-1">
-
+<p>
 Verification:
-
 {" "}
-
 {
-
 sourceDesk.verificationStatus ||
-
 "Pending"
-
 }
-
 </p>
-
 
 
 </div>
@@ -447,51 +292,32 @@ sourceDesk.verificationStatus ||
 
 
 
+<div>
 
-
-
-<div className="
-rounded-xl
-border
-border-white/10
-p-4
+<h3
+className="
+font-semibold
+text-orange-400
+mb-2
 "
-
 >
-
-
-<h3 className="font-semibold mb-3">
-
 SEO Summary
-
 </h3>
 
 
-
-<p className="text-sm text-gray-300">
-
+<p>
 Title:
-
 {" "}
-
 {
-
 seo.title ||
-
 "N/A"
-
 }
-
 </p>
 
 
-
-<p className="text-sm text-gray-300 mt-1">
-
+<p>
 Keywords:
-
 {" "}
-
 {
 
 Array.isArray(seo.keywords)
@@ -509,17 +335,7 @@ seo.keywords.join(", ")
 </p>
 
 
-
 </div>
-
-
-
-
-</div>
-
-
-
-
 
 
 
@@ -527,36 +343,28 @@ seo.keywords.join(", ")
 
 {
 
-imageGallery.length > 0 &&
+imageGallery.length>0 &&
 
+<div>
 
-<div className="
-rounded-xl
-border
-border-white/10
-p-4
+<h3
+className="
+font-semibold
+text-orange-400
+mb-3
 "
-
 >
-
-
-<h3 className="font-semibold mb-4">
-
 Image Intelligence
-
 </h3>
 
 
-
-
-<div className="
+<div
+className="
 grid
 md:grid-cols-3
 gap-4
 "
-
 >
-
 
 {
 
@@ -564,11 +372,8 @@ imageGallery.map(
 
 (image:any,index:number)=>(
 
-
 <div
-
 key={index}
-
 className="
 rounded-xl
 overflow-hidden
@@ -576,16 +381,17 @@ border
 border-white/10
 bg-black/20
 "
-
 >
-
 
 
 <img
 
 src={image.url}
 
-alt={image.alt || "AI generated image"}
+alt={
+image.alt ||
+"AI generated image"
+}
 
 className="
 w-full
@@ -596,175 +402,51 @@ object-cover
 />
 
 
-
-<div className="
+<div
+className="
 p-3
-text-xs
-text-gray-300
 "
-
 >
 
-<p>
-
-{image.caption}
-
-</p>
-
+{
+image.caption
+}
 
 
 {
 
 image.isPrimary &&
 
-<span className="
-inline-block
-mt-2
+<div
+className="
 text-orange-400
-"
-
->
-
-Primary Image
-
-</span>
-
-}
-
-
-</div>
-
-
-
-</div>
-
-
-)
-
-
-)
-
-}
-
-
-
-</div>
-
-
-</div>
-
-
-}
-
-
-
-
-
-
-
-
-
-{
-
-validation &&
-
-
-<div className="
-rounded-xl
-border
-border-yellow-500/30
-bg-yellow-500/10
-p-4
-"
-
->
-
-
-<h3 className="
-font-semibold
-text-yellow-300
-mb-2
-"
-
->
-
-Validation Summary
-
-</h3>
-
-
-
-<pre className="
-text-xs
-whitespace-pre-wrap
-text-gray-300
-"
-
->
-
-{
-
-JSON.stringify(
-
-validation,
-
-null,
-
-2
-
-)
-
-}
-
-</pre>
-
-
-
-</div>
-
-
-}
-
-
-
-
-
-
-
-
-
-<div className="
-rounded-xl
-border
-border-blue-500/30
-bg-blue-500/10
-p-4
+mt-2
 text-sm
-text-blue-200
 "
-
 >
+Primary Image
+</div>
 
-
-<p className="font-semibold">
-
-Human Editorial Review Required
-
-</p>
-
-
-
-<p className="mt-1">
-
-AI generated content must be verified by editors before transferring into the existing CMS workflow.
-
-</p>
-
+}
 
 
 </div>
 
 
+</div>
+
+)
+
+)
+
+}
+
+</div>
+
+
+</div>
+
+}
 
 
 
@@ -772,13 +454,32 @@ AI generated content must be verified by editors before transferring into the ex
 
 
 
-<div className="
+<div
+className="
 flex
 flex-wrap
 gap-3
 "
+>
+
+
+<button
+
+onClick={()=>setShowPreview(true)}
+
+className="
+px-5
+py-3
+rounded-xl
+bg-green-600
+font-semibold
+"
 
 >
+
+Preview Article
+
+</button>
 
 
 
@@ -811,11 +512,6 @@ Regenerate
 
 
 
-
-
-
-
-
 {
 
 onClear &&
@@ -840,10 +536,6 @@ Clear
 </button>
 
 }
-
-
-
-
 
 
 
@@ -875,10 +567,6 @@ Save AI Draft
 
 
 
-
-
-
-
 {
 
 onSendToCMS &&
@@ -904,26 +592,10 @@ Send To CMS
 }
 
 
-
-
-
 </div>
 
 
 
-
-
-
-
-
-
-<div className="
-pt-4
-border-t
-border-white/10
-"
-
->
 
 
 <AIArticleEditor
@@ -935,17 +607,29 @@ onUpdate={onUpdate}
 />
 
 
+
+
+
+{
+
+showPreview &&
+
+<AIEditorialPreview
+
+article={article}
+
+onClose={()=>
+setShowPreview(false)
+}
+
+/>
+
+}
+
+
+
 </div>
-
-
-
-
-
-
-</div>
-
 
 );
-
 
 }

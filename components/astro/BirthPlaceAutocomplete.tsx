@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export interface BirthLocation {
   displayName: string;
   city: string | null;
-  district: string |null;
+  district: string | null;
   state: string | null;
   country: string | null;
   postalCode: string | null;
@@ -30,8 +30,8 @@ export default function BirthPlaceAutocomplete({
     value ?? null
   );
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setQuery(value?.displayName ?? "");
@@ -57,6 +57,7 @@ export default function BirthPlaceAutocomplete({
   useEffect(() => {
     if (query.trim().length < 2) {
       setResults([]);
+      setOpen(false);
       return;
     }
 
@@ -77,7 +78,9 @@ export default function BirthPlaceAutocomplete({
         setResults(Array.isArray(data) ? data : []);
         setOpen(true);
       } catch (error) {
-        console.error(error);
+        console.error("Location search error:", error);
+        setResults([]);
+        setOpen(true);
       } finally {
         setLoading(false);
       }
@@ -92,13 +95,9 @@ export default function BirthPlaceAutocomplete({
 
   function handleSelect(location: BirthLocation) {
     setSelected(location);
-
     setQuery(location.displayName);
-
     setResults([]);
-
     setOpen(false);
-
     onSelect(location);
   }
 
@@ -106,17 +105,17 @@ export default function BirthPlaceAutocomplete({
     setSelected(null);
     setQuery("");
     setResults([]);
+    setOpen(false);
     onSelect(null);
   }
 
   return (
-    <div
-      ref={wrapperRef}
-      className="relative w-full"
-    >
-      <label className="mb-2 block text-sm font-medium text-white">
-        Birth Place
-      </label>
+    <div ref={wrapperRef} className="relative">
+      <div className="mb-2">
+        <label className="text-sm font-medium text-white">
+          Birth Place
+        </label>
+      </div>
 
       <div className="relative">
         <input
@@ -194,3 +193,4 @@ export default function BirthPlaceAutocomplete({
     </div>
   );
 }
+

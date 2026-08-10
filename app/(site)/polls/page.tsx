@@ -12,7 +12,7 @@ from "@/components/polls/PollArchive";
 
 
 import AdRenderer 
-from "@/components/ads/AdRenderer";
+from "@/components/ads/AdRendererClient";
 
 
 import TrendingTopics 

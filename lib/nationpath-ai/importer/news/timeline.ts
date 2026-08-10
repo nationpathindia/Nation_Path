@@ -1,249 +1,323 @@
 // ============================================
 // NationPath AI News Importer
-// Timeline Parser (Final Locked)
+// Timeline Parser v7 FINAL LOCK
+//
+// Supports:
+// - JSON timeline arrays
+// - Individual JSON objects
+// - Escaped / nested JSON
+// - Markdown timeline lines
+// - Bullet timelines
+// - Date extraction
+// - Multiline descriptions
+// - Production-safe malformed recovery
+//
+// Public export preserved:
+// parseTimeline()
 // ============================================
 
-import type { TimelineItem } from "./types";
+import type {
+  TimelineItem,
+} from "./types";
 
 
 
 // ============================================
-// Clean Text
+// CLEAN TEXT
 // ============================================
 
 function cleanText(
-  text:string
-):string {
+  text?: string
+): string {
+
+  if (!text) {
+    return "";
+  }
 
   return text
-    .trim()
-    .replace(/\s+/g," ");
-
+    .replace(/\\"/g, '"')
+    .replace(/\\n/g, " ")
+    .replace(/\\r/g, " ")
+    .replace(/\*\*/g, "")
+    .replace(/^["']+|["']+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 
 
 // ============================================
-// Extract Date
-//
-// Priority:
-// 15 March 2025
-// March 2025
-// Jan 2026
-// Q1 2026
-// 15/03/2025
-// 2025
+// SAFE JSON PARSE
 // ============================================
 
-function extractDate(
-  text:string
-):string | undefined {
+function safeParseJSON(
+  value: string
+): unknown {
+
+  const text =
+    value.trim();
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Try escaped JSON recovery.
+  }
+
+  try {
+
+    const repaired =
+      text
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, " ")
+        .replace(/\\r/g, " ");
+
+    return JSON.parse(repaired);
+
+  } catch {
+    return null;
+  }
+}
 
 
-  const patterns = [
 
+// ============================================
+// EXTRACT BALANCED JSON BLOCKS
+// ============================================
+//
+// Handles:
+//
+// {"date":"2026","title":"..."}
+//
+// [
+//   {...},
+//   {...}
+// ]
+//
+// Unlike a simple regex, this respects
+// nested braces and quoted strings.
+// ============================================
 
-    // 15 March 2025
-    /\b\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i,
+function extractJSONBlocks(
+  text: string
+): string[] {
 
+  const results: string[] = [];
 
-    // March 2025
-    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i,
+  let start = -1;
+  let depth = 0;
 
+  let inString = false;
+  let escaped = false;
 
-    // Jan 2026
-    /\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\b/i,
+  for (
+    let index = 0;
+    index < text.length;
+    index++
+  ) {
 
+    const char =
+      text[index];
 
-    // Q1 2026
-    /\bQ[1-4]\s?\d{4}\b/i,
+    if (inString) {
 
+      if (escaped) {
 
-    // 15/03/2025
-    /\b\d{1,2}\/\d{1,2}\/\d{4}\b/,
+        escaped = false;
+        continue;
 
+      }
 
-    // Year only
-    /\b\d{4}\b/
+      if (char === "\\") {
 
-  ];
+        escaped = true;
+        continue;
 
+      }
 
+      if (char === '"') {
 
-  for(
-    const pattern of patterns
-  ){
+        inString = false;
 
+      }
 
-    const match =
-      text.match(
-        pattern
-      );
+      continue;
+    }
 
+    if (char === '"') {
 
-    if(
-      match
-    ){
+      inString = true;
+      continue;
 
-      return match[0];
+    }
+
+    if (
+      char === "{" ||
+      char === "["
+    ) {
+
+      if (depth === 0) {
+        start = index;
+      }
+
+      depth++;
+      continue;
+
+    }
+
+    if (
+      char === "}" ||
+      char === "]"
+    ) {
+
+      if (depth > 0) {
+        depth--;
+      }
+
+      if (
+        depth === 0 &&
+        start !== -1
+      ) {
+
+        results.push(
+          text.slice(
+            start,
+            index + 1
+          )
+        );
+
+        start = -1;
+
+      }
 
     }
 
   }
 
+  return results;
+}
 
+
+
+// ============================================
+// EXTRACT DATE
+// ============================================
+
+function extractDate(
+  text: string
+): string | undefined {
+
+  const patterns = [
+
+    /\b\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i,
+
+    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i,
+
+    /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{4}\b/i,
+
+    /\bQ[1-4]\s?\d{4}\b/i,
+
+    /\b\d{1,2}\/\d{1,2}\/\d{4}\b/,
+
+    /\b\d{4}\b/
+
+  ];
+
+  for (
+    const pattern of patterns
+  ) {
+
+    const match =
+      text.match(pattern);
+
+    if (match) {
+      return match[0];
+    }
+
+  }
 
   return undefined;
-
 }
 
 
 
 // ============================================
-// Remove Date From Title
+// NORMALIZE TIMELINE ITEM
 // ============================================
 
-function removeDate(
-  text:string,
-  date?:string
-):string {
+function normalizeTimelineItem(
+  item: unknown
+): TimelineItem | null {
 
-
-  if(
-    !date
-  ){
-
-    return cleanText(text);
-
-  }
-
-
-
-  return cleanText(
-    text.replace(
-      date,
-      ""
-    )
-  );
-
-}
-
-
-
-// ============================================
-// Parse Single Timeline Line
-// ============================================
-
-function parseLine(
-  line:string
-):TimelineItem | null {
-
-
-  let clean =
-    line
-      .replace(
-        /^[-•*]\s*/,
-        ""
-      )
-      .replace(
-        /^\d+[\.\)]\s*/,
-        ""
-      )
-      .trim();
-
-
-
-  if(
-    !clean
-  ){
+  if (
+    !item ||
+    typeof item !== "object"
+  ) {
 
     return null;
-
   }
 
+  const source =
+    item as Record<string, unknown>;
 
-
-  const parts =
-    clean.split(
-      /\s[-–—:]\s/
+  const date =
+    cleanText(
+      String(
+        source.date ??
+        source.year ??
+        ""
+      )
     );
 
+  const title =
+    cleanText(
+      String(
+        source.title ??
+        source.event ??
+        ""
+      )
+    );
 
+  const description =
+    cleanText(
+      String(
+        source.description ??
+        source.details ??
+        source.summary ??
+        ""
+      )
+    );
 
-  let date:string | undefined;
+  // If title is missing but description exists,
+  // use description as the timeline title.
+  const finalTitle =
+    title ||
+    description;
 
-  let title:string;
-
-
-
-  if(
-    parts.length >= 2
-  ){
-
-
-    const first =
-      parts.shift() || "";
-
-
-
-    const remaining =
-      parts.join(
-        " - "
-      );
-
-
-
-    date =
-      extractDate(
-        first
-      );
-
-
-
-    title =
-      cleanText(
-        remaining
-      );
-
-
+  if (!finalTitle) {
+    return null;
   }
-  else {
-
-
-    date =
-      extractDate(
-        clean
-      );
-
-
-    title =
-      removeDate(
-        clean,
-        date
-      );
-
-  }
-
-
-
-  if(
-    !title
-  ){
-
-    title =
-      cleanText(
-        clean
-      );
-
-  }
-
-
 
   return {
 
-    date,
+    ...(date
+      ? {
+          date,
+        }
+      : {}),
 
-    title
+    title:
+      finalTitle,
+
+    ...(description &&
+      description !== finalTitle
+      ? {
+          description,
+        }
+      : {}),
 
   };
 
@@ -252,42 +326,305 @@ function parseLine(
 
 
 // ============================================
-// Main Timeline Parser
+// RECURSIVE JSON NORMALIZER
 // ============================================
 
-export function parseTimeline(
-  rawTimeline?:string
-):TimelineItem[] {
+function collectTimelineItems(
+  value: unknown
+): TimelineItem[] {
 
+  if (!value) {
+    return [];
+  }
 
-  if(
-    !rawTimeline
-  ){
+  // String may itself contain JSON.
+  if (
+    typeof value === "string"
+  ) {
+
+    const text =
+      value.trim();
+
+    if (!text) {
+      return [];
+    }
+
+    const parsed =
+      safeParseJSON(text);
+
+    if (parsed) {
+      return collectTimelineItems(
+        parsed
+      );
+    }
 
     return [];
+  }
+
+  // Array of timeline objects.
+  if (Array.isArray(value)) {
+
+    const items:
+      TimelineItem[] = [];
+
+    for (
+      const entry of value
+    ) {
+
+      items.push(
+        ...collectTimelineItems(
+          entry
+        )
+      );
+
+    }
+
+    return items;
+  }
+
+  if (
+    typeof value === "object"
+  ) {
+
+    const source =
+      value as Record<string, unknown>;
+
+    // Common nested AI structures.
+    const nested =
+      source.timeline ??
+      source.items ??
+      source.events ??
+      source.data;
+
+    if (
+      Array.isArray(nested) ||
+      typeof nested === "string"
+    ) {
+
+      const nestedItems =
+        collectTimelineItems(
+          nested
+        );
+
+      if (
+        nestedItems.length
+      ) {
+
+        return nestedItems;
+      }
+
+    }
+
+    const item =
+      normalizeTimelineItem(
+        source
+      );
+
+    return item
+      ? [item]
+      : [];
+  }
+
+  return [];
+}
+
+
+
+// ============================================
+// PARSE JSON TIMELINE
+// ============================================
+
+function parseJSONTimeline(
+  text: string
+): TimelineItem[] {
+
+  const items:
+    TimelineItem[] = [];
+
+  // First attempt: entire block.
+  const parsed =
+    safeParseJSON(
+      text
+    );
+
+  if (parsed) {
+
+    items.push(
+      ...collectTimelineItems(
+        parsed
+      )
+    );
 
   }
 
+  // Recovery: locate balanced JSON blocks
+  // when the section contains surrounding text.
+  if (!items.length) {
 
+    const blocks =
+      extractJSONBlocks(
+        text
+      );
 
-  const text =
-    rawTimeline.trim();
+    for (
+      const block of blocks
+    ) {
 
+      const blockParsed =
+        safeParseJSON(
+          block
+        );
 
+      if (!blockParsed) {
+        continue;
+      }
 
-  if(
-    !text
-  ){
+      items.push(
+        ...collectTimelineItems(
+          blockParsed
+        )
+      );
 
-    return [];
+    }
 
   }
 
+  return deduplicateTimeline(
+    items
+  );
+}
 
 
-  const items:TimelineItem[] = [];
+
+// ============================================
+// PARSE DATE + TITLE FROM LINE
+// ============================================
+
+function parseLine(
+  line: string
+): TimelineItem | null {
+
+  let clean =
+    line
+      .replace(
+        /^\s*[-•*]\s*/,
+        ""
+      )
+      .replace(
+        /^\s*\d+[.)]\s*/,
+        ""
+      )
+      .trim();
+
+  if (!clean) {
+    return null;
+  }
+
+  // Markdown bold cleanup.
+  clean =
+    clean.replace(
+      /\*\*/g,
+      ""
+    );
+
+  // Common formats:
+  //
+  // 2026 - RBI maintained...
+  // 2026: RBI maintained...
+  // 2026 — RBI maintained...
+  // January 2026 - RBI...
+  //
+  const separatorMatch =
+    clean.match(
+      /^(.{1,40}?)\s*[-–—:]\s+(.+)$/
+    );
+
+  if (separatorMatch) {
+
+    const possibleDate =
+      extractDate(
+        separatorMatch[1]
+      );
+
+    if (possibleDate) {
+
+      const title =
+        cleanText(
+          separatorMatch[2]
+        );
+
+      if (!title) {
+        return null;
+      }
+
+      return {
+
+        date:
+          possibleDate,
+
+        title,
+
+      };
+
+    }
+
+  }
+
+  const date =
+    extractDate(
+      clean
+    );
+
+  let title =
+    clean;
+
+  if (date) {
+
+    title =
+      cleanText(
+        clean
+          .replace(
+            date,
+            ""
+          )
+          .replace(
+            /^[-–—:|]+\s*/,
+            ""
+          )
+      );
+
+  }
+
+  if (!title) {
+    title = clean;
+  }
+
+  return {
+
+    ...(date
+      ? {
+          date,
+        }
+      : {}),
+
+    title:
+      cleanText(
+        title
+      ),
+
+  };
+
+}
 
 
+
+// ============================================
+// MULTILINE MARKDOWN RECOVERY
+// ============================================
+
+function parseMarkdownTimeline(
+  text: string
+): TimelineItem[] {
 
   const lines =
     text
@@ -296,37 +633,188 @@ export function parseTimeline(
         line =>
           line.trim()
       )
-      .filter(
-        Boolean
-      );
+      .filter(Boolean);
 
+  const items:
+    TimelineItem[] = [];
 
+  let current:
+    TimelineItem | null = null;
 
-  for(
+  for (
     const line of lines
-  ){
+  ) {
 
+    // Skip markdown headings.
+    if (
+      /^#{1,6}\s+/.test(
+        line
+      )
+    ) {
+      continue;
+    }
 
-    const item =
+    // Structured bullet/date line.
+    const parsed =
       parseLine(
         line
       );
 
+    if (!parsed) {
+      continue;
+    }
 
-    if(
-      item
-    ){
+    // If the line contains a clear date,
+    // start a new timeline item.
+    if (parsed.date) {
+
+      if (current) {
+        items.push(
+          current
+        );
+      }
+
+      current =
+        parsed;
+
+      continue;
+    }
+
+    // A line without a date can be a continuation
+    // of the previous timeline event.
+    if (current) {
+
+      current = {
+
+        ...current,
+
+        description:
+          cleanText(
+            [
+              current.description,
+              parsed.title,
+            ]
+              .filter(Boolean)
+              .join(" ")
+          ),
+
+      };
+
+    } else {
 
       items.push(
-        item
+        parsed
       );
 
     }
 
   }
 
+  if (current) {
+    items.push(
+      current
+    );
+  }
 
-
-  return items;
-
+  return deduplicateTimeline(
+    items
+  );
 }
+
+
+
+// ============================================
+// DEDUPLICATE
+// ============================================
+
+function deduplicateTimeline(
+  items: TimelineItem[]
+): TimelineItem[] {
+
+  const seen =
+    new Set<string>();
+
+  const output:
+    TimelineItem[] = [];
+
+  for (
+    const item of items
+  ) {
+
+    const key =
+      [
+        item.date || "",
+        item.title || "",
+        item.description || "",
+      ]
+        .join("|")
+        .toLowerCase()
+        .trim();
+
+    if (!key) {
+      continue;
+    }
+
+    if (
+      seen.has(key)
+    ) {
+      continue;
+    }
+
+    seen.add(key);
+
+    output.push(
+      item
+    );
+
+  }
+
+  return output;
+}
+
+
+
+// ============================================
+// MAIN EXPORT
+// ============================================
+
+export function parseTimeline(
+  rawTimeline?: string
+): TimelineItem[] {
+
+  if (!rawTimeline) {
+    return [];
+  }
+
+  const text =
+    rawTimeline.trim();
+
+  if (!text) {
+    return [];
+  }
+
+  // 1. JSON first.
+  const jsonItems =
+    parseJSONTimeline(
+      text
+    );
+
+  if (
+    jsonItems.length
+  ) {
+
+    return jsonItems;
+  }
+
+  // 2. Markdown / bullet fallback.
+  return parseMarkdownTimeline(
+    text
+  );
+}
+
+
+
+// ============================================
+// END OF FILE
+// ============================================
+

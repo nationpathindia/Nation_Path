@@ -1,16 +1,19 @@
 // ============================================
 // NationPath AI News Importer
-// Article Validator v5 FINAL LOCK
+// Article Validator v6.1 ENHANCED LOCK
 //
 // Validates:
-// - Core Article
-// - Editorial Intelligence
-// - SEO
-// - AI Quality
-// - Media Intelligence
+// - Core Article (blocking)
+// - Editorial Intelligence (warning)
+// - SEO Intelligence (warning)
+// - AI Intelligence (warning)
+// - Media Intelligence (warning)
 //
-// No auto publish.
+// Optional intelligence fields
+// will never block import.
+//
 // Human review required.
+// No auto publish.
 // ============================================
 
 
@@ -18,72 +21,59 @@ import type {
 
   ParsedArticle,
 
-  ValidationResult
+  ValidationResult,
+
+  FAQItem,
+
+  TimelineItem,
+
+  FactCheckItem
 
 } from "./types";
 
 
 
 
-
 // ============================================
-// Slug Validation
+// Helpers
 // ============================================
 
-function isValidSlug(
+function uniqueMessages(
+  items:string[]
+):string[] {
 
-  slug?:string
+  return [
+    ...new Set(items)
+  ];
 
+}
+
+
+
+function hasText(
+  value?:string
 ):boolean {
 
-
-  if(!slug){
-
-    return false;
-
-  }
-
-
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-    slug
+  return Boolean(
+    value &&
+    value.trim().length > 0
   );
 
-
 }
 
 
-
-
-
-
-
-// ============================================
-// Text Length Helper
-// ============================================
 
 function hasMinimumLength(
-
   text:string | undefined,
-
   length:number
-
 ):boolean {
 
-
-  if(!text){
-
-    return false;
-
-  }
-
-
-  return text.trim().length >= length;
-
+  return Boolean(
+    text &&
+    text.trim().length >= length
+  );
 
 }
-
-
-
 
 
 
@@ -93,17 +83,13 @@ function hasMinimumLength(
 // ============================================
 
 function validateFAQ(
-
-  faq?:ParsedArticle["faq"]
-
+  faq?:FAQItem[]
 ):string[] {
-
 
   const errors:string[] = [];
 
 
-
-  if(!faq){
+  if(!Array.isArray(faq)){
 
     return errors;
 
@@ -111,18 +97,13 @@ function validateFAQ(
 
 
 
-
-  for(
-    const item of faq
-  ){
+  for(const item of faq){
 
 
     if(
-
-      !item.question ||
-
-      !item.answer
-
+      !hasText(item.question)
+      ||
+      !hasText(item.answer)
     ){
 
       errors.push(
@@ -132,34 +113,12 @@ function validateFAQ(
     }
 
 
-
-    if(
-
-      item.question &&
-
-      item.question.length > 200
-
-    ){
-
-      errors.push(
-        "FAQ question too long"
-      );
-
-    }
-
-
   }
-
-
 
 
   return errors;
 
-
 }
-
-
-
 
 
 
@@ -169,17 +128,14 @@ function validateFAQ(
 // ============================================
 
 function validateTimeline(
-
-  timeline?:ParsedArticle["timeline"]
-
+  timeline?:TimelineItem[]
 ):string[] {
 
 
   const errors:string[] = [];
 
 
-
-  if(!timeline){
+  if(!Array.isArray(timeline)){
 
     return errors;
 
@@ -187,14 +143,11 @@ function validateTimeline(
 
 
 
-
-  for(
-    const item of timeline
-  ){
+  for(const item of timeline){
 
 
     if(
-      !item.title
+      !hasText(item.title)
     ){
 
       errors.push(
@@ -207,70 +160,9 @@ function validateTimeline(
   }
 
 
-
   return errors;
 
-
 }
-
-
-
-
-
-
-
-// ============================================
-// Expert Opinion Validation
-// ============================================
-
-function validateExpertOpinion(
-
-  article:ParsedArticle
-
-):string[] {
-
-
-  const errors:string[] = [];
-
-
-
-  if(
-    !article.expertOpinion
-  ){
-
-    return errors;
-
-  }
-
-
-
-  for(
-    const item of article.expertOpinion
-  ){
-
-
-    if(
-      !item.opinion
-    ){
-
-      errors.push(
-        "Invalid expert opinion item found"
-      );
-
-    }
-
-
-  }
-
-
-
-  return errors;
-
-
-}
-
-
-
 
 
 
@@ -280,19 +172,14 @@ function validateExpertOpinion(
 // ============================================
 
 function validateFactCheck(
-
-  article:ParsedArticle
-
+  factCheck?:FactCheckItem[]
 ):string[] {
 
 
   const errors:string[] = [];
 
 
-
-  if(
-    !article.factCheck
-  ){
+  if(!Array.isArray(factCheck)){
 
     return errors;
 
@@ -300,13 +187,11 @@ function validateFactCheck(
 
 
 
-  for(
-    const item of article.factCheck
-  ){
+  for(const item of factCheck){
 
 
     if(
-      !item.claim
+      !hasText(item.claim)
     ){
 
       errors.push(
@@ -319,45 +204,16 @@ function validateFactCheck(
   }
 
 
-
   return errors;
 
-
 }
 
 
 
 
 
-
-
 // ============================================
-// Duplicate Protection
-// ============================================
-
-function uniqueMessages(
-
-  items:string[]
-
-):string[] {
-
-
-  return [
-
-    ...new Set(items)
-
-  ];
-
-}
-
-
-
-
-
-
-
-// ============================================
-// Main Validator
+// MAIN VALIDATOR
 // ============================================
 
 export function validateArticle(
@@ -367,24 +223,27 @@ export function validateArticle(
 ):ValidationResult {
 
 
-  let errors:string[] = [];
+  const errors:string[] = [];
 
-  let warnings:string[] = [];
+  const warnings:string[] = [];
 
 
 
 
 
   // ==================================
-  // Core Article
+  // CORE ARTICLE
+  // Blocking
   // ==================================
 
 
   if(
 
-    !article.headline &&
+    !hasText(article.headline)
 
-    !article.seoTitle
+    &&
+
+    !hasText(article.seoTitle)
 
   ){
 
@@ -396,11 +255,8 @@ export function validateArticle(
 
 
 
-
-
-
   if(
-    !article.body
+    !hasText(article.body)
   ){
 
     errors.push(
@@ -409,53 +265,21 @@ export function validateArticle(
 
   }
 
+
   else if(
 
     !hasMinimumLength(
-
       article.body,
-
-      50
-
+      100
     )
 
   ){
 
     warnings.push(
-      "Article body is very short"
+      "Article body is short"
     );
 
   }
-
-
-
-
-
-
-
-  // ==================================
-  // Slug
-  // ==================================
-
-
-  if(
-
-    article.slug &&
-
-    !isValidSlug(
-
-      article.slug
-
-    )
-
-  ){
-
-    errors.push(
-      "Invalid slug format"
-    );
-
-  }
-
 
 
 
@@ -465,12 +289,27 @@ export function validateArticle(
 
   // ==================================
   // SEO
+  // Warning Only
   // ==================================
 
 
   if(
+    !hasText(article.seoTitle)
+  ){
 
-    article.seoTitle &&
+    warnings.push(
+      "SEO title missing"
+    );
+
+  }
+
+
+
+  if(
+
+    article.seoTitle
+
+    &&
 
     article.seoTitle.length > 70
 
@@ -484,29 +323,25 @@ export function validateArticle(
 
 
 
-
   if(
-
-    article.metaDescription &&
-
-    article.metaDescription.length > 170
-
+    !hasText(article.metaDescription)
   ){
 
     warnings.push(
-      "Meta description length exceeds recommended limit"
+      "Meta description missing"
     );
 
   }
 
 
 
-
   if(
 
-    !article.metaKeywords ||
+    !article.metaKeywords
 
-    article.metaKeywords.length === 0
+    ||
+
+    article.metaKeywords.length===0
 
   ){
 
@@ -522,31 +357,14 @@ export function validateArticle(
 
 
 
-
   // ==================================
   // Editorial Intelligence
+  // Warning Only
   // ==================================
 
 
   if(
-
-    !article.keyHighlights &&
-
-    !article.keyTakeaways
-
-  ){
-
-    warnings.push(
-      "Article takeaways missing"
-    );
-
-  }
-
-
-
-
-  if(
-    !article.background
+    !hasText(article.background)
   ){
 
     warnings.push(
@@ -557,13 +375,18 @@ export function validateArticle(
 
 
 
-
   if(
-    !article.sourceDesk
+
+    !article.keyHighlights
+
+    ||
+
+    article.keyHighlights.length===0
+
   ){
 
     warnings.push(
-      "Source desk information missing"
+      "Key highlights missing"
     );
 
   }
@@ -574,16 +397,14 @@ export function validateArticle(
 
 
 
-
   // ==================================
   // AI Intelligence
+  // Warning Only
   // ==================================
 
 
   if(
-
     !article.quality
-
   ){
 
     warnings.push(
@@ -595,9 +416,7 @@ export function validateArticle(
 
 
   if(
-
     !article.headlineIntelligence
-
   ){
 
     warnings.push(
@@ -612,17 +431,19 @@ export function validateArticle(
 
 
 
-
   // ==================================
   // Media Intelligence
+  // Warning Only
   // ==================================
 
 
   if(
 
-    !article.imageGallery ||
+    !article.imageGallery
 
-    article.imageGallery.length === 0
+    ||
+
+    article.imageGallery.length===0
 
   ){
 
@@ -638,75 +459,34 @@ export function validateArticle(
 
 
 
-
   // ==================================
   // Structured Validation
   // ==================================
 
 
   errors.push(
-
     ...validateFAQ(
-
       article.faq
-
     )
-
   );
 
 
 
   errors.push(
-
     ...validateTimeline(
-
       article.timeline
-
     )
-
   );
 
 
 
   errors.push(
-
-    ...validateExpertOpinion(
-
-      article
-
-    )
-
-  );
-
-
-
-  errors.push(
-
     ...validateFactCheck(
-
-      article
-
+      article.factCheck
     )
-
   );
 
 
-
-
-
-
-
-
-  errors =
-    uniqueMessages(
-      errors
-    );
-
-
-  warnings =
-    uniqueMessages(
-      warnings
-    );
 
 
 
@@ -717,20 +497,20 @@ export function validateArticle(
 
     valid:
 
-      errors.length === 0,
+      uniqueMessages(errors).length===0,
 
 
+    errors:
 
-    errors,
+      uniqueMessages(errors),
 
 
+    warnings:
 
-    warnings
-
+      uniqueMessages(warnings)
 
 
   };
 
 
 }
-

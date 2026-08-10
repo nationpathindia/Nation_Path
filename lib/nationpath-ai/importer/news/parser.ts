@@ -1,104 +1,79 @@
 // ============================================
 // NationPath AI News Importer
-// Main Parser Engine v5 LOCK VERSION
+// Main Parser Engine v6.3 FINAL LOCK
 //
 // Raw News
 // ↓
 // Section Extraction
 // ↓
-// ParsedArticle Intelligence
+// Intelligence Parsers
+// ↓
+// ParsedArticle
 // ↓
 // Validation
 // ↓
 // CMS Mapper
 // ============================================
 
-
 import type {
-
   ImporterInput,
-
   ParsedArticle,
-
   ImporterResponse
-
 } from "./types";
 
 
-
 import {
-
   normalizeImporterInput
-
 } from "./normalizer";
 
 
-
 import {
-
   extractSections,
-
   sectionsToMap
-
 } from "./sections";
 
 
-
 import {
-
   parseFAQ
-
 } from "./faq";
 
 
-
 import {
-
   parseTimeline
-
 } from "./timeline";
 
 
-
 import {
-
   parseSEO
-
 } from "./seo";
 
 
-
 import {
-
   parseKeywords
-
 } from "./keywords";
 
 
+import {
+  parseFactCheck
+} from "./factCheck";
+
 
 import {
-
   validateArticle
-
 } from "./validator";
 
 
-
 import {
-
   mapToCMS
-
 } from "./mapper";
 
 
-
-
-
-
-
+import {
+  parseExpertOpinion
+} from "./expertOpinion";
 
 // ============================================
-// Markdown Cleaner
+// CLEAN TEXT
 // ============================================
 
 function cleanText(
@@ -113,6 +88,7 @@ function cleanText(
   }
 
 
+
   return text
 
     .replace(
@@ -121,12 +97,12 @@ function cleanText(
     )
 
     .replace(
-      /^---$/gm,
+      /^#+\s*/gm,
       ""
     )
 
     .replace(
-      /^#+\s*/gm,
+      /^---$/gm,
       ""
     )
 
@@ -136,12 +112,8 @@ function cleanText(
 
 
 
-
-
-
-
 // ============================================
-// Text Array Parser
+// LIST PARSER
 // ============================================
 
 function parseList(
@@ -156,41 +128,34 @@ function parseList(
   }
 
 
-  return cleanText(text)
 
-    .split("\n")
+  return cleanText(
+    text
+  )
 
-    .map(item =>
+  .split("\n")
+
+  .map(
+    item =>
 
       item
+        .replace(
+          /^[•*-]\s*/,
+          ""
+        )
+        .trim()
 
-      .replace(
-        /^[•*-]\s*/,
-        ""
-      )
+  )
 
-      .trim()
-
-    )
-
-    .filter(
-
-      item =>
-        item.length > 2
-
-    );
+  .filter(
+    item =>
+      item.length > 2
+  );
 
 }
 
-
-
-
-
-
-
-
 // ============================================
-// Headline Extractor
+// HEADLINE
 // ============================================
 
 function extractHeadline(
@@ -198,22 +163,21 @@ function extractHeadline(
 ):string {
 
 
-  const markdownTitle =
+  const title =
 
     raw.match(
-      /^#\s+\*{0,2}(.+?)\*{0,2}$/m
+      /^#\s*(.+)$/m
     );
 
 
 
-  if(markdownTitle){
+  if(title){
 
     return cleanText(
-      markdownTitle[1]
+      title[1]
     );
 
   }
-
 
 
 
@@ -222,14 +186,12 @@ function extractHeadline(
     cleanText(
 
       raw
-
-      .split("\n")
-
-      .map(
-        x=>x.trim()
-      )
-
-      .find(Boolean)
+        .split("\n")
+        .map(
+          x =>
+            x.trim()
+        )
+        .find(Boolean)
 
     )
 
@@ -243,13 +205,8 @@ function extractHeadline(
 
 
 
-
-
-
-
-
 // ============================================
-// Fallback Section Creator
+// FALLBACK MAP
 // ============================================
 
 function createFallbackSectionMap(
@@ -264,21 +221,6 @@ function createFallbackSectionMap(
 
 
 
-  const lines =
-
-    clean
-
-    .split("\n")
-
-    .map(
-      x=>x.trim()
-    )
-
-    .filter(Boolean);
-
-
-
-
   const headline =
     extractHeadline(
       rawText
@@ -288,17 +230,20 @@ function createFallbackSectionMap(
 
   const body =
 
-    lines
+    clean
 
-    .filter(
+      .split("\n")
 
-      line =>
-        line !== headline
+      .filter(
+        line =>
+          line !== headline
+      )
 
-    )
+      .join("\n\n")
 
-    .join("\n\n");
+      ||
 
+      clean;
 
 
 
@@ -312,75 +257,106 @@ function createFallbackSectionMap(
 
       body.substring(
         0,
-        300
+        350
       ),
+
 
 
     body,
 
 
-    background:"",
+
+    introduction:
+      body,
 
 
-    expertOpinion:"",
+
+    articleStory:
+      body,
 
 
-    factCheck:"",
+
+    content:
+      body,
 
 
-    sourceDesk:"",
+
+    background:
+      "",
 
 
-    whyItMatters:"",
+
+    whyItMatters:
+      "",
 
 
-    whatsNext:"",
+
+    whatsNext:
+      "",
 
 
-    keyHighlights:"",
+
+    keyHighlights:
+      "",
 
 
-    keyTakeaways:"",
+
+    keyTakeaways:
+      "",
 
 
-    faq:"",
+
+    timeline:
+      "",
 
 
-    timeline:"",
+
+    expertOpinion:
+      "",
 
 
-    imageGallery:"",
+
+    factCheck:
+      "",
 
 
-    quality:"",
+
+    sourceDesk:
+      "",
 
 
-    headlineIntelligence:"",
+
+    faq:
+      "",
 
 
-    imageCaption:"",
+
+    imageGallery:
+      "",
 
 
-    imageAlt:"",
+
+    imageCaption:
+      "",
 
 
-    metaKeywords:""
 
+    imageAlt:
+      "",
+
+
+
+    metaKeywords:
+      ""
 
   };
-
 
 }
 
 
 
-
-
-
-
-
 // ============================================
-// Normalize Sections
+// NORMALIZE SECTION MAP
 // ============================================
 
 function normalizeSectionMap(
@@ -389,7 +365,7 @@ function normalizeSectionMap(
 
   raw:string
 
-):Record<string,string>{
+){
 
 
   const result = {
@@ -400,15 +376,39 @@ function normalizeSectionMap(
 
 
 
-
-  if(!result.headline){
-
+  if(
+    !result.headline
+  ){
 
     result.headline =
-
       extractHeadline(
         raw
       );
+
+  }
+
+
+
+  if(
+    !result.body
+  ){
+
+
+    result.body =
+
+      result.introduction
+
+      ||
+
+      result.articleStory
+
+      ||
+
+      result.content
+
+      ||
+
+      raw;
 
 
   }
@@ -419,38 +419,28 @@ function normalizeSectionMap(
 
 }
 
-
-
-
-
-
-
-
 // ============================================
-// Build Parsed Article
+// BUILD ARTICLE
 // ============================================
 
 function buildParsedArticle(
-
   sectionMap:Record<string,string>
-
 ):ParsedArticle {
 
 
-
   const seo =
-
     parseSEO(
       sectionMap
     );
 
 
 
-
-
   return {
 
 
+    // =========================
+    // SEO
+    // =========================
 
     seoTitle:
 
@@ -461,8 +451,6 @@ function buildParsedArticle(
       ||
 
       seo.metaTitle,
-
-
 
 
 
@@ -478,8 +466,6 @@ function buildParsedArticle(
 
 
 
-
-
     metaDescription:
 
       cleanText(
@@ -492,19 +478,14 @@ function buildParsedArticle(
 
 
 
-
-
-    metaKeywords:
-
-      parseKeywords(
-        cleanText(
-          sectionMap.metaKeywords
-        )
-      ),
+   metaKeywords:
+  seo.keywords || [],
 
 
 
-
+    // =========================
+    // CORE
+    // =========================
 
     headline:
 
@@ -518,15 +499,21 @@ function buildParsedArticle(
 
 
 
-
-
     brief:
 
       cleanText(
         sectionMap.brief
+      )
+
+      ||
+
+      cleanText(
+        sectionMap.body
+      )
+      .substring(
+        0,
+        350
       ),
-
-
 
 
 
@@ -534,19 +521,31 @@ function buildParsedArticle(
 
       cleanText(
         sectionMap.body
+      )
+
+      ||
+
+      cleanText(
+        sectionMap.introduction
+      )
+
+      ||
+
+      cleanText(
+        sectionMap.articleStory
       ),
 
 
 
-
+    // =========================
+    // EDITORIAL INTELLIGENCE
+    // =========================
 
     background:
 
       cleanText(
         sectionMap.background
       ),
-
-
 
 
 
@@ -558,15 +557,11 @@ function buildParsedArticle(
 
 
 
-
-
     whatsNext:
 
       cleanText(
         sectionMap.whatsNext
       ),
-
-
 
 
 
@@ -578,8 +573,6 @@ function buildParsedArticle(
 
 
 
-
-
     keyTakeaways:
 
       parseList(
@@ -588,58 +581,36 @@ function buildParsedArticle(
 
 
 
-
-
     timeline:
 
       parseTimeline(
-        cleanText(
-          sectionMap.timeline
-        )
+        sectionMap.timeline
       ),
 
 
 
+    // =========================
+    // EXPERT OPINION
+    // Temporary safe mapper
+    // Parser upgrade later
+    // =========================
+expertOpinion:
+
+  parseExpertOpinion(
+    sectionMap.expertOpinion
+  ),
 
 
-    expertOpinion:
-
-      parseList(
-        sectionMap.expertOpinion
-      )
-      .map(
-        item => ({
-
-          name:"",
-
-          opinion:item
-
-        })
-
-      ),
-
-
-
-
+    // =========================
+    // FACT CHECK
+    // New Dedicated Parser
+    // =========================
 
     factCheck:
 
-      parseList(
+      parseFactCheck(
         sectionMap.factCheck
-      )
-      .map(
-        item => ({
-
-          claim:item,
-
-          status:
-            "pending"
-
-        })
-
       ),
-
-
 
 
 
@@ -651,20 +622,17 @@ function buildParsedArticle(
 
 
 
-
-
     faq:
 
       parseFAQ(
-        cleanText(
-          sectionMap.faq
-        )
+        sectionMap.faq
       ),
 
 
 
-
-
+    // =========================
+    // AI INTELLIGENCE
+    // =========================
 
     headlineIntelligence:{
 
@@ -678,33 +646,29 @@ function buildParsedArticle(
 
 
 
-
-
     quality:{
 
       factCheckStatus:
-
         "pending",
 
 
       editorialReviewStatus:
-
         "pending"
 
     },
 
 
 
+    // =========================
+    // MEDIA
+    // =========================
 
-
-    imageGallery:[],
-
-
+    imageGallery:
+      [],
 
 
 
     image:{
-
 
       caption:
 
@@ -713,32 +677,23 @@ function buildParsedArticle(
         ),
 
 
-
       altText:
 
         cleanText(
           sectionMap.imageAlt
         )
 
-
     }
 
 
-
   };
-
 
 }
 
 
 
-
-
-
-
-
 // ============================================
-// Main Import Parser
+// MAIN IMPORT
 // ============================================
 
 export function parseNewsImport(
@@ -748,9 +703,7 @@ export function parseNewsImport(
 ):ImporterResponse {
 
 
-
-  try {
-
+  try{
 
 
     const normalized =
@@ -761,13 +714,11 @@ export function parseNewsImport(
 
 
 
-
-    const sections =
+    let sections =
 
       extractSections(
         normalized.rawText
       );
-
 
 
 
@@ -779,11 +730,11 @@ export function parseNewsImport(
 
 
 
-
-
     if(
 
-      Object.keys(sectionMap).length === 0
+      Object.keys(
+        sectionMap
+      ).length === 0
 
       &&
 
@@ -791,18 +742,13 @@ export function parseNewsImport(
 
     ){
 
-
       sectionMap =
 
         createFallbackSectionMap(
           normalized.rawText
         );
 
-
     }
-
-
-
 
 
 
@@ -818,44 +764,6 @@ export function parseNewsImport(
 
 
 
-
-
-
-    if(
-
-      sectionMap.introduction
-
-      &&
-
-      sectionMap.body
-
-    ){
-
-
-      sectionMap.body =
-
-        cleanText(
-          sectionMap.introduction
-        )
-
-        +
-
-        "\n\n"
-
-        +
-
-        cleanText(
-          sectionMap.body
-        );
-
-
-    }
-
-
-
-
-
-
     const parsedArticle =
 
       buildParsedArticle(
@@ -864,6 +772,40 @@ export function parseNewsImport(
 
 
 
+    console.log(
+      "PARSED ARTICLE DEBUG",
+
+      JSON.stringify(
+
+        {
+
+          headline:
+            parsedArticle.headline,
+
+
+          bodyLength:
+            parsedArticle.body?.length,
+
+
+          bodyPreview:
+            parsedArticle.body?.substring(
+              0,
+              150
+            ),
+
+
+          factCheckCount:
+            parsedArticle.factCheck?.length
+
+        },
+
+        null,
+
+        2
+
+      )
+
+    );
 
 
 
@@ -875,10 +817,9 @@ export function parseNewsImport(
 
 
 
-
-
-    if(!validation.valid){
-
+    if(
+      !validation.valid
+    ){
 
       return {
 
@@ -891,11 +832,7 @@ export function parseNewsImport(
 
       };
 
-
     }
-
-
-
 
 
 
@@ -904,8 +841,6 @@ export function parseNewsImport(
       mapToCMS(
         parsedArticle
       );
-
-
 
 
 
@@ -920,17 +855,12 @@ export function parseNewsImport(
 
       validation
 
-
     };
-
-
-
 
 
   }
 
   catch(error){
-
 
 
     return {
@@ -957,6 +887,4 @@ export function parseNewsImport(
 
   }
 
-
 }
-

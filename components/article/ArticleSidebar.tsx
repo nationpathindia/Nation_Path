@@ -383,12 +383,9 @@ export default function ArticleSidebar({
 
       >
 
-
-        <AdRenderer
-
-          placement="article_sidebar"
-
-        />
+<AdRenderer
+  placement="category_sidebar"
+/>
 
 
       </div>

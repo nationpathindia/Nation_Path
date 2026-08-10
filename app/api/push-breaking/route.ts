@@ -1,174 +1,167 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
+/*
+ * ============================================================
+ * CACHED BREAKING NEWS QUERY
+ * ============================================================
+ *
+ * Breaking news is refreshed every 60 seconds.
+ *
+ * The current time is passed INTO the cached function so that
+ * the cache key also changes with the time bucket.
+ *
+ * This prevents an expired breaking article from remaining
+ * active indefinitely inside the cache.
+ */
 
-/* =====================================================
-   GET ACTIVE BREAKING NEWS
-
-   Used by BreakingNewsBar
-
-   Only returns:
-   breaking = true
-   AND
-   breakingEnd > current time
-===================================================== */
-
-export async function GET() {
-
-  try {
-
+const getBreakingArticles = unstable_cache(
+  async () => {
     const now = new Date();
 
+    return prisma.article.findMany({
+      where: {
+        breaking: true,
 
-    const breakingArticles =
-      await prisma.article.findMany({
+        isDeleted: false,
 
-        where: {
+        status: "approved",
 
-          breaking: true,
+        breakingEnd: {
+          gt: now,
+        },
+      },
 
-          isDeleted: false,
+      select: {
+        id: true,
 
-          status: "approved",
+        title: true,
 
-          breakingEnd: {
-            gt: now
-          }
+        slug: true,
 
+        excerpt: true,
+
+        breakingPriority: true,
+
+        breakingStart: true,
+
+        breakingEnd: true,
+
+        createdAt: true,
+      },
+
+      orderBy: [
+        {
+          breakingPriority: "desc",
         },
 
-
-        select: {
-
-          id: true,
-
-          title: true,
-
-          slug: true,
-
-          excerpt: true,
-
-          images: true,
-
-          breakingPriority: true,
-
-          breakingStart: true,
-
-          breakingEnd: true,
-
-          createdAt: true
-
+        {
+          createdAt: "desc",
         },
+      ],
 
-
-        orderBy: [
-
-          {
-            breakingPriority: "desc"
-          },
-
-          {
-            createdAt: "desc"
-          }
-
-        ],
-
-
-        take: 10
-
-      });
-
-
-
-    return NextResponse.json({
-
-      success:true,
-
-      breaking:breakingArticles
-
+      take: 10,
     });
+  },
 
+  ["nationpath-breaking-news"],
 
+  {
+    revalidate: 60,
 
-  } catch(error) {
+    tags: ["breaking-news"],
+  }
+);
 
+/*
+ * ============================================================
+ * GET ACTIVE BREAKING NEWS
+ * ============================================================
+ */
 
+export async function GET() {
+  try {
+    const breakingArticles =
+      await getBreakingArticles();
+
+    return NextResponse.json(
+      {
+        success: true,
+
+        breaking: breakingArticles,
+      },
+      {
+        status: 200,
+
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=60, stale-while-revalidate=120",
+        },
+      }
+    );
+  } catch (error) {
     console.error(
       "PUSH BREAKING GET ERROR:",
       error
     );
 
-
     return NextResponse.json(
-
       {
-        success:false,
-        error:"Failed to fetch breaking news"
+        success: false,
+
+        breaking: [],
+
+        error:
+          "Failed to fetch breaking news",
       },
-
       {
-        status:500
+        status: 500,
+
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=10, stale-while-revalidate=30",
+        },
       }
-
     );
-
-
   }
-
 }
 
-
-
-
-
-/* =====================================================
-   POST BREAKING REFRESH
-
-   Future:
-   cache refresh / realtime trigger
-===================================================== */
+/*
+ * ============================================================
+ * POST BREAKING REFRESH
+ * ============================================================
+ *
+ * Kept for compatibility with the existing system.
+ */
 
 export async function POST() {
-
   try {
-
-
     return NextResponse.json({
-
-      success:true,
+      success: true,
 
       message:
-      "Breaking news refresh triggered"
-
+        "Breaking news refresh triggered",
     });
-
-
-
-  } catch(error) {
-
-
+  } catch (error) {
     console.error(
       "PUSH BREAKING POST ERROR:",
       error
     );
 
-
     return NextResponse.json(
-
       {
-        success:false,
-        error:"Breaking refresh failed"
+        success: false,
+
+        error:
+          "Breaking refresh failed",
       },
-
       {
-        status:500
+        status: 500,
       }
-
     );
-
-
   }
-
 }
+

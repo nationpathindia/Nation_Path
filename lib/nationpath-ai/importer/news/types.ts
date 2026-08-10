@@ -1,13 +1,28 @@
 // ============================================
 // NationPath AI News Importer
 // Core Type Definitions
-// Intelligence Upgrade Version
+// COMPATIBLE LOCK v6.2
+//
+// Flow:
+// Raw Text
+// ↓
+// Parser
+// ↓
+// ParsedArticle
+// ↓
+// Validator
+// ↓
+// CMS Mapper
+// ↓
+// Existing Article CMS
 // ============================================
 
 
-/**
- * Raw importer input
- */
+
+// ============================================
+// RAW INPUT
+// ============================================
+
 export interface ImporterInput {
 
   rawText:string;
@@ -16,9 +31,10 @@ export interface ImporterInput {
 
 
 
-/**
- * Generic extracted section
- */
+// ============================================
+// PARSED SECTION
+// ============================================
+
 export interface ParsedSection {
 
   heading:string;
@@ -29,9 +45,10 @@ export interface ParsedSection {
 
 
 
-/**
- * FAQ structure
- */
+// ============================================
+// FAQ
+// ============================================
+
 export interface FAQItem {
 
   question:string;
@@ -42,9 +59,10 @@ export interface FAQItem {
 
 
 
-/**
- * Timeline item
- */
+// ============================================
+// TIMELINE
+// ============================================
+
 export interface TimelineItem {
 
   date?:string;
@@ -57,12 +75,13 @@ export interface TimelineItem {
 
 
 
-/**
- * Expert Opinion
- */
+// ============================================
+// EXPERT OPINION
+// ============================================
+
 export interface ExpertOpinionItem {
 
-  name:string;
+  name?:string;
 
   designation?:string;
 
@@ -74,29 +93,34 @@ export interface ExpertOpinionItem {
 
 
 
-/**
- * Fact Check
- */
+// ============================================
+// FACT CHECK
+// ============================================
+
 export interface FactCheckItem {
 
   claim:string;
 
-  status:
-    | "verified"
-    | "partially_verified"
-    | "unverified"
-    | "false"
-    | "pending";
+  status?:
+  | "verified"
+  | "partially_verified"
+  | "unverified"
+  | "false"
+  | "pending";
+
 
   explanation?:string;
+
+  sources?:string;
 
 }
 
 
 
-/**
- * SEO Data
- */
+// ============================================
+// SEO
+// ============================================
+
 export interface SEOData {
 
   metaTitle?:string;
@@ -111,11 +135,10 @@ export interface SEOData {
 
 
 
-/**
- * Image Metadata
- *
- * Legacy compatibility
- */
+// ============================================
+// IMAGE
+// ============================================
+
 export interface ImageMetadata {
 
   caption?:string;
@@ -126,28 +149,24 @@ export interface ImageMetadata {
 
 
 
-/**
- * Image Intelligence
- *
- * Compatible with CMS imageGallery
- */
 export interface ImageGalleryItem {
 
   url:string;
 
-  alt:string;
+  alt?:string;
 
-  caption:string;
+  caption?:string;
 
-  isPrimary:boolean;
+  isPrimary?:boolean;
 
 }
 
 
 
-/**
- * Headline Intelligence
- */
+// ============================================
+// HEADLINE INTELLIGENCE
+// ============================================
+
 export interface HeadlineIntelligence {
 
   score?:number;
@@ -160,55 +179,60 @@ export interface HeadlineIntelligence {
 
 
 
-/**
- * AI Quality Panel
- */
+// ============================================
+// AI QUALITY
+// ============================================
+
 export interface AIQualityPanel {
+
 
   confidence?:number;
 
+
   factCheckStatus?:
-    | "pending"
-    | "verified"
-    | "needs_review";
+  | "pending"
+  | "verified"
+  | "needs_review";
+
 
   articleTone?:
-    | "neutral"
-    | "analytical"
-    | "opinion"
-    | "breaking"
-    | "investigative"
-    | "explainer";
+  | "neutral"
+  | "analytical"
+  | "opinion"
+  | "breaking"
+  | "investigative"
+  | "explainer";
+
 
   articleType?:
-    | "breaking"
-    | "news"
-    | "analysis"
-    | "feature"
-    | "report"
-    | "opinion";
+  | "breaking"
+  | "news"
+  | "analysis"
+  | "feature"
+  | "report"
+  | "opinion";
+
 
   editorialReviewStatus?:
-    | "pending"
-    | "reviewed"
-    | "approved";
+  | "pending"
+  | "reviewed"
+  | "approved";
+
 
 }
 
 
 
-/**
- * Parsed article output
- *
- * AI Processing Layer
- * Before CMS mapping
- */
+// ============================================
+// PARSED ARTICLE
+// AI Parser Output
+// ============================================
+
 export interface ParsedArticle {
 
 
-  // ==============================
+
   // SEO
-  // ==============================
 
   seoTitle?:string;
 
@@ -220,9 +244,8 @@ export interface ParsedArticle {
 
 
 
-  // ==============================
-  // Core Article
-  // ==============================
+
+  // CORE
 
   headline?:string;
 
@@ -232,202 +255,174 @@ export interface ParsedArticle {
 
 
 
-  // ==============================
-  // Headline Intelligence
-  // ==============================
+
+  // HEADLINE AI
 
   headlineIntelligence?:HeadlineIntelligence;
 
 
 
-  // ==============================
-  // Editorial Intelligence
-  // ==============================
+
+  // EDITORIAL INTELLIGENCE
 
   background?:string;
 
-
   whyItMatters?:string;
-
 
   whatsNext?:string;
 
 
-
   keyHighlights?:string[];
-
 
   keyTakeaways?:string[];
 
-
-
   timeline?:TimelineItem[];
-
-
 
   expertOpinion?:ExpertOpinionItem[];
 
-
-
   factCheck?:FactCheckItem[];
 
-
-
   sourceDesk?:string;
-
 
 
   faq?:FAQItem[];
 
 
 
-  // ==============================
-  // Image Intelligence
-  // ==============================
+
+  // MEDIA
 
   image?:ImageMetadata;
-
 
   imageGallery?:ImageGalleryItem[];
 
 
 
-  // ==============================
-  // AI Intelligence
-  // ==============================
+
+  // AI
 
   quality?:AIQualityPanel;
 
 
 
+  // RAW
+
   sections?:ParsedSection[];
 
 
-
 }
 
 
 
-/**
- * Validation result
- */
+// ============================================
+// VALIDATION RESULT
+// ============================================
+
 export interface ValidationResult {
+
 
   valid:boolean;
 
+
   errors:string[];
 
-  warnings?:string[];
+
+  warnings:string[];
+
 
 }
 
 
 
-/**
- * Final CMS Article Payload
- *
- * Maps into NationPath CMS
- */
+// ============================================
+// CMS PAYLOAD
+// Existing Article CMS Compatible
+// ============================================
+
 export interface CMSArticlePayload {
 
 
-  // ==============================
-  // Core Article
-  // ==============================
+  // BASIC
 
   title:string;
 
-  slug?:string;
+  slug:string;
 
-
-  shortBrief?:string;
-
+  shortBrief:string;
 
   content:string;
 
 
 
-  // ==============================
-  // Editorial Intelligence
-  // ==============================
+
+  // INTELLIGENCE
 
   background?:string;
 
-
   whyItMatters?:string;
-
 
   whatsNext?:string;
 
 
-  keyHighlights?:string[];
+  keyHighlights:string[];
+
+  keyTakeaways:string[];
 
 
-  keyTakeaways?:string[];
+  timeline:TimelineItem[];
 
 
-  timeline?:TimelineItem[];
+  expertOpinion:ExpertOpinionItem[];
 
 
-  expertOpinion?:ExpertOpinionItem[];
-
-
-  factCheck?:FactCheckItem[];
+  factCheck:FactCheckItem[];
 
 
   sourceDesk?:string;
 
 
-  faq?:FAQItem[];
+  faq:FAQItem[];
 
 
 
-  // ==============================
-  // Image Intelligence
-  // ==============================
+
+  // MEDIA
 
   imageAlt?:string;
 
-
   imageCaption?:string;
 
-
-  imageGallery?:ImageGalleryItem[];
-
+  imageGallery:ImageGalleryItem[];
 
 
-  // ==============================
+
+
   // SEO
-  // ==============================
 
   metaTitle?:string;
 
-
   metaDescription?:string;
 
-
-  metaKeywords?:string[];
-
+  metaKeywords:string[];
 
 
-  // ==============================
-  // AI Intelligence
-  // ==============================
+
+
+  // AI
 
   headlineIntelligence?:HeadlineIntelligence;
 
-
   quality?:AIQualityPanel;
-
 
 
 }
 
 
 
-/**
- * Complete Import Engine Response
- */
+// ============================================
+// IMPORTER RESPONSE
+// ============================================
+
 export interface ImporterResponse {
 
 
@@ -444,4 +439,3 @@ export interface ImporterResponse {
 
 
 }
-

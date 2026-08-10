@@ -1,6 +1,7 @@
 // ============================================
 // NationPath AI News Importer
-// Section Extraction Engine v5 LOCKED
+// Section Extraction Engine v6.1 FINAL LOCK
+//
 // Markdown + AI Structured Output Parser
 //
 // Supports:
@@ -9,8 +10,18 @@
 // - AI Quality Intelligence
 // - Source Intelligence
 // - Image Intelligence
+//
+// Improvements:
+// - SEO Preview support
+// - Expert Opinion support
+// - Markdown heading detection
+// - Bold field detection
+// - Heading aliases
+// - Fuzzy matching
+// - JSON preservation
+// - Body isolation
+// - Multiline preservation
 // ============================================
-
 
 import type {
   ParsedSection
@@ -18,332 +29,278 @@ import type {
 
 
 
-
 // ============================================
-// Section Aliases
+// SECTION ALIASES
 // ============================================
 
 const SECTION_ALIASES: Record<string,string[]> = {
 
-
-  seoTitle:[
-    "seo title",
-    "seo headline",
-    "meta title",
-    "seo heading"
-  ],
-
-
-  slug:[
-    "slug",
-    "url slug",
-    "article slug"
-  ],
-
-
-  metaDescription:[
-    "meta description",
-    "seo description",
-    "meta desc",
-    "seo summary"
-  ],
-
-
-
-  brief:[
-    "brief",
-    "short description",
-    "short summary",
-    "short brief",
-    "summary",
-    "overview"
-  ],
-
-
-
-  headline:[
-    "headline",
-    "title",
-    "article title",
-    "news title",
-    "article headline"
-  ],
-
-
-
-  headlineIntelligence:[
-    "headline intelligence",
-    "headline analysis",
-    "headline score",
-    "headline review"
-  ],
-
-
-
-  body:[
-    "body",
-    "article body",
-    "article content",
-    "content",
-    "main story",
-    "main content",
-    "story",
-    "full article"
-  ],
-
-
-
-
-  background:[
-    "background",
-    "context",
-    "history",
-    "background information",
-    "introduction"
-  ],
-
-
-
-
-  expertOpinion:[
-    "expert opinion",
-    "expert opinions",
-    "expert analysis",
-    "expert views",
-    "expert comments",
-    "analyst opinion"
-  ],
-
-
-
-
-  factCheck:[
-    "fact check",
-    "factcheck",
-    "verification",
-    "truth check",
-    "claim verification"
-  ],
-
-
-
-
-  whyItMatters:[
-    "why it matters",
-    "importance",
-    "significance",
-    "impact",
-    "impact analysis"
-  ],
-
-
-
-
-  timeline:[
-    "timeline",
-    "history timeline",
-    "key dates",
-    "chronology",
-    "events"
-  ],
-
-
-
-
-  whatsNext:[
-    "what's next",
-    "whats next",
-    "next steps",
-    "future",
-    "future outlook",
-    "upcoming"
-  ],
-
-
-
-
-  keyHighlights:[
-    "key highlights",
-    "highlights",
-    "key points",
-    "important points",
-    "bullet points"
-  ],
-
-
-
-
-  keyTakeaways:[
-    "key takeaways",
-    "main takeaways",
-    "major takeaways",
-    "summary points"
-  ],
-
-
-
-
-  faq:[
-    "faq",
-    "faqs",
-    "frequently asked questions",
-    "questions"
-  ],
-
-
-
-
-  sourceDesk:[
-    "source desk",
-    "sources",
-    "source information",
-    "reporting source",
-    "news source"
-  ],
-
-
-
-
-  quality:[
-    "ai quality",
-    "quality panel",
-    "ai confidence",
-    "editorial quality",
-    "quality assessment"
-  ],
-
-
-
-
-  imageGallery:[
-    "image gallery",
-    "images",
-    "photo gallery",
-    "media gallery"
-  ],
-
-
-
-
-  imageCaption:[
-    "image caption",
-    "caption",
-    "photo caption",
-    "image description"
-  ],
-
-
-
-
-  imageAlt:[
-    "image alt",
-    "image alt text",
-    "alt text",
-    "seo image alt"
-  ],
-
-
-
-
-  metaKeywords:[
-    "meta keywords",
-    "keywords",
-    "seo keywords",
-    "tags"
-  ]
-
+seoTitle:[
+"seo title",
+"seo headline",
+"meta title",
+"seo heading"
+],
+
+seoPreview:[
+  "seo preview",
+  "search preview",
+  "seo metadata"
+],
+
+
+slug:[
+  "slug",
+  "url slug",
+  "article slug"
+],
+
+
+metaDescription:[
+  "meta description",
+  "seo description",
+  "meta desc",
+  "seo summary"
+],
+
+
+metaKeywords:[
+  "meta keywords",
+  "keywords",
+  "seo keywords",
+  "tags"
+],
+
+
+brief:[
+  "brief",
+  "short description",
+  "short summary",
+  "short brief",
+  "summary",
+  "overview",
+  "executive summary"
+],
+
+
+headline:[
+  "headline",
+  "title",
+  "article title",
+  "news title",
+  "article headline"
+],
+
+
+headlineIntelligence:[
+  "headline intelligence",
+  "headline analysis",
+  "headline score",
+  "headline review"
+],
+
+
+body:[
+  "body",
+  "article body",
+  "article content",
+  "content",
+  "main story",
+  "main content",
+  "story",
+  "full article",
+  "article story"
+],
+
+
+background:[
+  "background",
+  "context",
+  "history",
+  "background information",
+  "introduction"
+],
+
+
+expertOpinion:[
+  "expert opinion",
+  "expert opinions",
+  "expert analysis",
+  "expert views",
+  "expert comments",
+  "analyst opinion",
+  "official perspective",
+  "expert perspective",
+  "expert commentary",
+  "expert insight"
+],
+
+
+factCheck:[
+  "fact check",
+  "factcheck",
+  "verification",
+  "truth check",
+  "claim verification"
+],
+
+
+whyItMatters:[
+  "why it matters",
+  "importance",
+  "significance",
+  "impact",
+  "impact analysis"
+],
+
+
+timeline:[
+  "timeline",
+  "history timeline",
+  "key dates",
+  "chronology",
+  "events"
+],
+
+
+whatsNext:[
+  "what's next",
+  "whats next",
+  "next steps",
+  "future",
+  "future outlook",
+  "upcoming"
+],
+
+
+keyHighlights:[
+  "key highlights",
+  "highlights",
+  "key points",
+  "important points",
+  "bullet points"
+],
+
+
+keyTakeaways:[
+  "key takeaways",
+  "main takeaways",
+  "major takeaways",
+  "summary points"
+],
+
+
+faq:[
+  "faq",
+  "faqs",
+  "frequently asked questions",
+  "questions"
+],
+
+
+sourceDesk:[
+  "source desk",
+  "sources",
+  "source information",
+  "reporting source",
+  "news source"
+],
+
+
+quality:[
+  "ai quality",
+  "quality panel",
+  "ai confidence",
+  "editorial quality",
+  "quality assessment"
+],
+
+
+imageGallery:[
+  "image gallery",
+  "images",
+  "photo gallery",
+  "media gallery"
+],
+
+
+imageCaption:[
+  "image caption",
+  "caption",
+  "photo caption",
+  "image description"
+],
+
+
+imageAlt:[
+  "image alt",
+  "image alt text",
+  "alt text",
+  "seo image alt"
+]
 
 };
 
 
 
-
-
-
-
 // ============================================
-// Section Priority
+// SECTION PRIORITY
 // ============================================
 
 const SECTION_PRIORITY:string[] = [
 
+"headline",
 
-  "headline",
+"headlineIntelligence",
 
+"body",
 
-  "headlineIntelligence",
+"brief",
 
+"background",
 
-  "body",
+"expertOpinion",
 
+"factCheck",
 
-  "brief",
+"whyItMatters",
 
+"whatsNext",
 
-  "background",
+"keyHighlights",
 
+"keyTakeaways",
 
-  "expertOpinion",
+"timeline",
 
+"faq",
 
-  "factCheck",
+"sourceDesk",
 
+"quality",
 
-  "whyItMatters",
+"imageGallery",
 
+"seoPreview",
 
-  "whatsNext",
+"seoTitle",
 
+"metaDescription",
 
-  "keyHighlights",
+"metaKeywords",
 
+"slug",
 
-  "keyTakeaways",
+"imageAlt",
 
-
-  "timeline",
-
-
-  "faq",
-
-
-  "sourceDesk",
-
-
-  "quality",
-
-
-  "imageGallery",
-
-
-  "seoTitle",
-
-
-  "metaDescription",
-
-
-  "metaKeywords",
-
-
-  "slug",
-
-
-  "imageAlt",
-
-
-  "imageCaption"
-
+"imageCaption"
 
 ];
 
 
 
-
-
-
-
 // ============================================
-// Normalize Heading
+// NORMALIZE HEADING
 // ============================================
 
 function normalizeHeading(
@@ -351,79 +308,101 @@ function normalizeHeading(
 ):string {
 
 
-  return heading
+return heading
 
-    .replace(/^#+/,"")
+.replace(/^#+/,"")
 
-    .replace(/\*\*/g,"")
+.replace(/\*\*/g,"")
 
-    .replace(/^[-*]/,"")
+.replace(/^[-*]/,"")
 
-    .replace(/^\d+\./,"")
+.replace(/^\d+\./,"")
 
-    .trim()
+.replace(/[`]/g,"")
 
-    .toLowerCase()
+.trim()
 
-    .replace(
-      /[:\-]+$/,
-      ""
-    )
+.toLowerCase()
 
-    .replace(
-      /\s+/g,
-      " "
-    );
+.replace(/[:\-]+$/,"")
 
+.replace(/\s+/g," ");
+
+}
+// ============================================
+// FUZZY HEADING MATCHING
+// ============================================
+
+function similarity(
+  a:string,
+  b:string
+):number {
+
+
+if(
+  a === b
+){
+
+  return 1;
 
 }
 
 
 
+const aWords =
+new Set(
+  a.split(" ")
+);
 
 
 
+const bWords =
+new Set(
+  b.split(" ")
+);
 
 
-// ============================================
-// Clean Content
-// ============================================
 
-function cleanContent(
-  text:string
-):string {
+const intersection =
+[
+  ...aWords
+]
+.filter(
+  word =>
+    bWords.has(word)
+);
 
 
-  return text
 
-    .replace(
-      /^---$/gm,
-      ""
-    )
+const union =
+new Set([
+  ...aWords,
+  ...bWords
+]);
 
-    .replace(
-      /\*\*/g,
-      ""
-    )
 
-    .replace(
-      /^\s*[-*_]{3,}\s*$/gm,
-      ""
-    )
 
-    .trim();
+if(
+  !union.size
+){
+
+  return 0;
 
 }
 
 
 
+return (
+  intersection.length /
+  union.size
+);
 
-
+}
 
 
 
 // ============================================
-// Detect Section Type
+// DETECT SECTION TYPE
 // ============================================
 
 export function detectSectionType(
@@ -431,37 +410,16 @@ export function detectSectionType(
 ):string|null {
 
 
-  const normalized =
-    normalizeHeading(
-      heading
-    );
+const normalized =
+normalizeHeading(
+  heading
+);
 
 
 
-  for(
-    const key of Object.keys(
-      SECTION_ALIASES
-    )
-  ){
-
-
-    if(
-
-      SECTION_ALIASES[key]
-      .includes(
-        normalized
-      )
-
-    ){
-
-      return key;
-
-    }
-
-
-  }
-
-
+if(
+  !normalized
+){
 
   return null;
 
@@ -469,13 +427,276 @@ export function detectSectionType(
 
 
 
+for(
+  const key of Object.keys(
+    SECTION_ALIASES
+  )
+){
 
 
+const aliases =
+SECTION_ALIASES[key];
+
+
+
+for(
+  const alias of aliases
+){
+
+
+if(
+  normalized === alias
+){
+
+  return key;
+
+}
+
+
+
+if(
+  normalized.includes(alias)
+){
+
+  return key;
+
+}
+
+
+
+if(
+  similarity(
+    normalized,
+    alias
+  ) >= 0.65
+){
+
+  return key;
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+return null;
+
+}
 
 
 
 // ============================================
-// Extract Sections
+// HEADING DETECTOR
+// ============================================
+
+function extractHeading(
+  line:string
+):string|null {
+
+
+const trimmed =
+line.trim();
+
+
+
+if(
+  !trimmed
+){
+
+  return null;
+
+}
+
+
+
+// Markdown headings
+
+if(
+  /^#{1,6}\s+/.test(
+    trimmed
+  )
+){
+
+  return trimmed;
+
+}
+
+
+
+// Bold headings
+//
+// Supports:
+// **Title**
+// **Title:**
+// **Title:** value
+//
+// Field values are preserved
+// inside section content.
+
+if(
+  /^\*\*[^*]+\*\*/.test(
+    trimmed
+  )
+){
+
+  const value =
+    trimmed
+      .replace(
+        /^\*\*/,
+        ""
+      )
+      .replace(
+        /\*\*.*/,
+        ""
+      )
+      .trim();
+
+
+
+  if(
+    value.length &&
+    value.length < 80
+  ){
+
+    return trimmed;
+
+  }
+
+}
+
+
+
+// Plain heading with colon
+
+if(
+  /^[A-Za-z0-9\s&'-]{2,60}:$/.test(
+    trimmed
+  )
+){
+
+  return trimmed;
+
+}
+
+
+
+return null;
+
+}
+
+
+
+// ============================================
+// CLEAN CONTENT
+// ============================================
+
+function cleanContent(
+  text:string
+):string {
+
+
+return text
+
+.replace(
+  /^---$/gm,
+  ""
+)
+
+.replace(
+  /^\s*[-*_]{3,}\s*$/gm,
+  ""
+)
+
+.replace(
+  /^\s+$/gm,
+  ""
+)
+
+.trim();
+
+}
+
+
+
+// ============================================
+// JSON DETECTOR
+// ============================================
+
+function isJsonLine(
+  line:string
+):boolean {
+
+
+const value =
+line.trim();
+
+
+
+return (
+
+value.startsWith("{")
+
+||
+
+value.startsWith("[")
+
+||
+
+value.endsWith("}")
+
+||
+
+value.endsWith("]")
+
+);
+
+}
+
+
+
+// ============================================
+// IGNORE HEADING CHECK
+// ============================================
+
+function shouldIgnoreHeading(
+  line:string,
+  insideJson:boolean
+):boolean {
+
+
+if(
+  insideJson
+){
+
+  return true;
+
+}
+
+
+
+if(
+  isJsonLine(
+    line
+  )
+){
+
+  return true;
+
+}
+
+
+
+return false;
+
+}
+// ============================================
+// EXTRACT SECTIONS
 // ============================================
 
 export function extractSections(
@@ -483,164 +704,403 @@ export function extractSections(
 ):ParsedSection[] {
 
 
-  const lines =
-    text.split("\n");
+const lines =
 
+text
 
+.replace(
+  /\r\n/g,
+  "\n"
+)
 
-  const sections:
-    ParsedSection[] = [];
+.split(
+  "\n"
+);
 
 
 
-  let currentHeading:
-    string|null = null;
+const sections:ParsedSection[] = [];
 
 
 
-  let currentContent:
-    string[] = [];
+let currentHeading:
+string|null = null;
 
 
 
+let currentContent:
+string[] = [];
 
 
 
-  function pushSection(){
+let jsonDepth = 0;
 
 
-    if(
 
-      currentHeading
-      &&
-      currentContent.length
+function updateJsonState(
+  line:string
+){
 
-    ){
 
+const open =
 
-      const content =
-        cleanContent(
-          currentContent.join("\n")
-        );
+(
+  line.match(
+    /[\{\[]/g
+  )
+  ||
+  []
+)
+.length;
 
 
 
-      if(content){
+const close =
 
+(
+  line.match(
+    /[\}\]]/g
+  )
+  ||
+  []
+)
+.length;
 
-        sections.push({
 
-          heading:
-            currentHeading,
 
+jsonDepth +=
+open - close;
 
-          content
 
-        });
 
+if(
+  jsonDepth < 0
+){
 
-      }
+  jsonDepth = 0;
 
-
-    }
-
-
-  }
-
-
-
-
-
-
-  for(
-    const rawLine of lines
-  ){
-
-
-    const line =
-      rawLine.trim();
-
-
-
-
-    if(!line){
-
-      continue;
-
-    }
-
-
-
-
-    const detected =
-      detectSectionType(
-        line
-      );
-
-
-
-
-    if(detected){
-
-
-      pushSection();
-
-
-
-      currentHeading =
-        line;
-
-
-
-      currentContent =
-        [];
-
-
-
-      continue;
-
-    }
-
-
-
-
-
-    if(currentHeading){
-
-      currentContent.push(
-        line
-      );
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  pushSection();
-
-
-
-  return sections;
+}
 
 
 }
 
 
 
+function pushSection(){
+
+
+if(
+  !currentHeading
+){
+
+  return;
+
+}
 
 
 
+const content =
+
+cleanContent(
+  currentContent.join(
+    "\n"
+  )
+);
+
+
+
+if(
+  content
+){
+
+sections.push({
+
+  heading:
+    currentHeading,
+
+
+  content
+
+});
+
+
+}
+
+
+}
+
+
+
+for(
+let index = 0;
+index < lines.length;
+index++
+){
+
+
+const rawLine =
+lines[index];
+
+
+
+const trimmed =
+rawLine.trim();
+
+
+
+if(
+  !trimmed
+){
+
+
+if(
+  currentHeading
+){
+
+  currentContent.push(
+    ""
+  );
+
+}
+
+
+continue;
+
+}
+
+
+
+const insideJson =
+jsonDepth > 0;
+
+
+
+const heading =
+extractHeading(
+  trimmed
+);
+
+
+
+if(
+  heading &&
+  !shouldIgnoreHeading(
+    trimmed,
+    insideJson
+  )
+){
+
+
+const detected =
+detectSectionType(
+  heading
+);
+
+
+
+if(
+  detected
+){
+
+
+pushSection();
+
+
+
+currentHeading =
+heading;
+
+
+
+currentContent =
+[];
+
+
+
+continue;
+
+}
+
+
+}
+
+
+
+if(
+  currentHeading
+){
+
+  currentContent.push(
+    rawLine
+  );
+
+}
+
+
+
+updateJsonState(
+  trimmed
+);
+
+
+}
+
+
+
+pushSection();
+
+
+
+return sections;
+
+}
 
 
 
 // ============================================
-// Sections To Map
+// MERGE DUPLICATE SECTIONS
+// ============================================
+
+function mergeSections(
+  sections:ParsedSection[]
+):ParsedSection[] {
+
+
+const output:ParsedSection[] = [];
+
+
+
+for(
+  const section of sections
+){
+
+
+const type =
+detectSectionType(
+  section.heading
+);
+
+
+
+if(
+  !type
+){
+
+  continue;
+
+}
+
+
+
+const existing =
+output.find(
+  item =>
+
+  detectSectionType(
+    item.heading
+  )
+  ===
+  type
+);
+
+
+
+if(
+  existing
+){
+
+
+existing.content +=
+
+"\n\n" +
+
+section.content;
+
+
+
+}
+
+else{
+
+
+output.push(
+  section
+);
+
+
+}
+
+
+}
+
+
+
+return output;
+
+}
+
+
+
+// ============================================
+// REMOVE NESTED SECTION LEAKAGE
+// ============================================
+
+function removeNestedSections(
+  content:string
+):string {
+
+
+const lines =
+content.split(
+  "\n"
+);
+
+
+
+const clean:string[] = [];
+
+
+
+for(
+  const line of lines
+){
+
+
+const detected =
+detectSectionType(
+  line
+);
+
+
+
+if(
+  detected
+){
+
+  continue;
+
+}
+
+
+
+clean.push(
+  line
+);
+
+
+}
+
+
+
+return clean
+.join(
+  "\n"
+)
+.trim();
+
+}
+// ============================================
+// SECTIONS TO MAP
 // ============================================
 
 export function sectionsToMap(
@@ -648,75 +1108,247 @@ export function sectionsToMap(
 ):Record<string,string>{
 
 
-  const result:
-    Record<string,string> = {};
+const result:
+Record<string,string> = {};
 
 
 
-  for(
-    const section of sections
-  ){
-
-
-    const key =
-      detectSectionType(
-        section.heading
-      );
+const merged =
+mergeSections(
+  sections
+);
 
 
 
-    if(!key){
+for(
+  const section of merged
+){
 
-      continue;
-
-    }
-
-
-
-
-    if(
-      !result[key]
-    ){
-
-
-      result[key] =
-        section.content;
+const key =
+detectSectionType(
+  section.heading
+);
 
 
 
-      continue;
+if(
+  !key
+){
 
-    }
+  continue;
 
-
-
-
-
-    const existingIndex =
-      SECTION_PRIORITY.indexOf(
-        key
-      );
+}
 
 
 
-    if(existingIndex !== -1){
-
-
-      result[key] =
-        section.content;
-
-
-    }
-
-
-  }
+let content =
+section.content;
 
 
 
+// ============================================
+// BODY SAFETY
+// ============================================
+//
+// Article body should never contain:
+// - Background
+// - Timeline
+// - FAQ
+// - SEO
+// - Intelligence sections
+//
+// ============================================
+
+if(
+  key === "body"
+){
+
+content =
+removeNestedSections(
+  content
+);
+
+}
 
 
-  return result;
+
+// ============================================
+// EMPTY CHECK
+// ============================================
+
+if(
+  !content
+){
+
+  continue;
+
+}
+
+
+
+// ============================================
+// FIRST VALID SECTION WINS
+// ============================================
+
+if(
+  !result[key]
+){
+
+  result[key] =
+    content;
+
+  continue;
+
+}
+
+
+
+// ============================================
+// PRIORITY OVERRIDE
+// ============================================
+
+const existingPriority =
+SECTION_PRIORITY.indexOf(
+  key
+);
+
+
+
+if(
+  existingPriority !== -1
+){
+
+result[key] =
+content;
 
 
 }
 
+
+
+}
+
+
+
+return result;
+
+}
+
+
+
+// ============================================
+// CLEAN SECTION TEXT EXPORT
+// ============================================
+
+export function cleanSectionText(
+  text:string
+):string {
+
+
+return cleanContent(
+  text
+);
+
+}
+
+
+
+// ============================================
+// ISOLATE ARTICLE BODY
+// ============================================
+
+export function isolateArticleBody(
+  sections:ParsedSection[]
+):string {
+
+
+const body =
+sections.find(
+  section =>
+
+  detectSectionType(
+    section.heading
+  )
+  ===
+  "body"
+);
+
+
+
+if(
+  !body
+){
+
+  return "";
+
+}
+
+
+
+return removeNestedSections(
+  body.content
+);
+
+}
+
+
+
+// ============================================
+// DEBUG SECTION INSPECTOR
+// ============================================
+
+export function inspectSections(
+  sections:ParsedSection[]
+){
+
+
+return sections.map(
+  section =>
+
+({
+
+heading:
+section.heading,
+
+
+type:
+detectSectionType(
+  section.heading
+),
+
+
+length:
+section.content.length
+
+
+})
+
+);
+
+}
+// ============================================
+// FINAL SECTION EXTRACTION ENGINE CHECKS
+// ============================================
+//
+// Public exports preserved:
+//
+// detectSectionType()
+// extractSections()
+// sectionsToMap()
+// cleanSectionText()
+// isolateArticleBody()
+// inspectSections()
+//
+// Compatible with:
+//
+// parser.ts
+// mapper.ts
+// validator.ts
+//
+// ============================================
+
+
+
+// ============================================
+// END OF FILE
+// ============================================

@@ -17,7 +17,7 @@ import FuturePlatformBanner
 from "@/components/home/FuturePlatformBanner";
 
 import AdRenderer 
-from "@/components/ads/AdRenderer";
+from "@/components/ads/AdRendererClient";
 
 import LeadStory 
 from "@/components/home/LeadStory";
@@ -42,37 +42,37 @@ from "@/components/home/EditorialSection";
 
 import dynamic from "next/dynamic";
 
-
-const AstrologyWidget = dynamic(
-  () => import("@/components/home/AstrologyWidget"),
-  {
-    ssr:false
-  }
-);
-
+// const AstrologyWidget = dynamic(
+//   () => import("@/components/home/AstrologyWidget"),
+//   {
+//     ssr:false
+//   }
+// );
 
 /*
 ====================================================
  SIDEBAR COMPONENTS
 ====================================================
 */
+const TrendingTopics = dynamic(
+  () => import("@/components/sidebar/TrendingTopics")
+);
 
-import TrendingTopics 
-from "@/components/sidebar/TrendingTopics";
+const WeatherWidget = dynamic(
+  () => import("@/components/sidebar/WeatherWidget")
+);
 
-import WeatherWidget 
-from "@/components/sidebar/WeatherWidget";
+const TrendingNews = dynamic(
+  () => import("@/components/sidebar/TrendingNews")
+);
 
-import TrendingNews 
-from "@/components/sidebar/TrendingNews";
+const MostRead = dynamic(
+  () => import("@/components/sidebar/MostRead")
+);
 
-import MostRead 
-from "@/components/sidebar/MostRead";
-
-import TopStories 
-from "@/components/sidebar/TopStories";
-
-
+const TopStories = dynamic(
+  () => import("@/components/sidebar/TopStories")
+);
 
 export const revalidate = 60;
 
@@ -1250,21 +1250,12 @@ placement="homepage_sidebar_top"
 <section
 
 className="
-mt-16
+mt-8
 "
 
 >
 
-
-<AstrologyWidget
-
-horoscopes={[]}
-
-/>
-
-
 </section>
-
 
 
 

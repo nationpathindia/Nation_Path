@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import AdRenderer from "@/components/ads/AdRenderer";
+import AdRenderer from "@/components/ads/AdRendererClient";
 
 
 // ============================================

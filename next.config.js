@@ -1,17 +1,17 @@
 /** @type {import('next').NextConfig} */
 
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const nextConfig = {
-  // Enable gzip/brotli compression
   compress: true,
 
-  // Remove "X-Powered-By" header
   poweredByHeader: false,
 
-  // React strict mode (development only)
   reactStrictMode: true,
 
   images: {
-    // Next.js 15 recommended configuration
     remotePatterns: [
       {
         protocol: "https",
@@ -23,13 +23,10 @@ const nextConfig = {
       },
     ],
 
-    // Modern image formats
     formats: ["image/avif", "image/webp"],
 
-    // Cache optimized images
     minimumCacheTTL: 31536000,
 
-    // Responsive breakpoints
     deviceSizes: [
       320,
       420,
@@ -66,4 +63,4 @@ const nextConfig = {
   staticPageGenerationTimeout: 0,
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

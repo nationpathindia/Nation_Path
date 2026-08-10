@@ -1,677 +1,550 @@
 // ============================================
 // NationPath AI News Importer
-// CMS Mapper v4 FINAL LOCK
-// Parsed Article → CMS Payload Converter
+// CMS Mapper v6 ENHANCED LOCK
+//
+// ParsedArticle
+// ↓
+// CMSArticlePayload
 //
 // Compatible:
-// - Existing Create Post CMS
+// - Existing Article CMS
 // - Article Intelligence
 // - SEO
 // - FAQ
 // - Timeline
-// - Image Gallery
-// - AI Quality Intelligence
+// - Images
+// - AI Quality
+//
+// Handles:
+// - Missing AI fields
+// - String/Array mismatch
+// - Empty AI sections
+// - Legacy compatibility
 // ============================================
 
 
 import type {
-
   ParsedArticle,
-
-  CMSArticlePayload
-
+  CMSArticlePayload,
+  FAQItem,
+  TimelineItem,
+  ExpertOpinionItem,
+  FactCheckItem,
+  ImageGalleryItem
 } from "./types";
 
 
 
-
 // ============================================
-// Safe Text
+// SAFE TEXT
 // ============================================
 
 function safeText(
-  value?:unknown
+  value:any
 ):string {
 
+  if(typeof value === "string"){
+    return value.trim();
+  }
 
-  return typeof value === "string"
-
-    ? value.trim()
-
-    : "";
-
-}
-
-
-
-
-
-// ============================================
-// Unique Array
-// ============================================
-
-function uniqueArray(
-  items:string[]
-):string[] {
-
-
-  return [
-
-    ...new Set(
-
-      items
-
-      .map(
-        item =>
-          item.trim()
-      )
-
-      .filter(Boolean)
-
-    )
-
-  ];
+  return "";
 
 }
 
 
 
-
-
 // ============================================
-// Text To Array
+// ARRAY NORMALIZER
 // ============================================
 
-function textToArray(
-  value?:string|string[]
+function cleanArray(
+  value:any
 ):string[] {
 
 
-  if(
-    Array.isArray(value)
-  ){
+  if(Array.isArray(value)){
 
-    return uniqueArray(
-
-      value
-
-      .map(
-        item =>
-          safeText(item)
-      )
-
-    );
+    return value
+      .map(item=>safeText(item))
+      .filter(Boolean);
 
   }
 
 
+  if(typeof value==="string"){
 
-  if(
-    typeof value !== "string"
-  ){
-
-    return [];
+    return value
+      .split("\n")
+      .map(item=>
+        item
+        .replace(/^[-*•]\s*/,"")
+        .trim()
+      )
+      .filter(Boolean);
 
   }
 
 
-
-  return uniqueArray(
-
-    value
-
-    .split("\n")
-
-    .map(item =>
-
-      item
-
-      .replace(
-        /^[-*•]\s*/,
-        ""
-      )
-
-      .trim()
-
-    )
-
-  );
+  return [];
 
 }
 
 
 
-
-
 // ============================================
-// Slug Generator
+// SLUG
 // ============================================
 
 function createSlug(
-  text:string
+ text:string
 ):string {
 
-
-  return text
-
-    .toLowerCase()
-
-    .trim()
-
-    .replace(
-      /[^a-z0-9]+/g,
-      "-"
-    )
-
-    .replace(
-      /^-+|-+$/g,
-      "" 
-    );
+ return text
+ .toLowerCase()
+ .trim()
+ .replace(/[^a-z0-9]+/g,"-")
+ .replace(/^-+|-+$/g,"");
 
 }
 
 
 
-
-
 // ============================================
-// FAQ Normalizer
+// FAQ
 // ============================================
 
 function normalizeFAQ(
-  value:any
-){
-
-  if(
-    Array.isArray(value)
-  ){
-
-    return value
-
-    .filter(
-
-      item =>
-
-      item &&
-
-      safeText(
-        item.question
-      ) &&
-
-      safeText(
-        item.answer
-      )
-
-    )
-
-    .map(item => ({
-
-      question:
-        safeText(
-          item.question
-        ),
+ value:any
+):FAQItem[] {
 
 
-      answer:
-        safeText(
-          item.answer
-        )
-
-    }));
-
-  }
+ if(!Array.isArray(value))
+ return [];
 
 
+ return value
+ .filter(
+  item=>
+  item &&
+  safeText(item.question) &&
+  safeText(item.answer)
+ )
+ .map(item=>({
 
-  return [];
+  question:
+    safeText(item.question),
+
+  answer:
+    safeText(item.answer)
+
+ }));
 
 }
 
 
 
-
-
 // ============================================
-// Timeline Normalizer
+// TIMELINE
 // ============================================
 
 function normalizeTimeline(
-  value:any
-):any[] {
+ value:any
+):TimelineItem[] {
 
 
-  if(
-    Array.isArray(value)
-  ){
-
-    return value.filter(Boolean);
-
-  }
+ if(!Array.isArray(value))
+ return [];
 
 
+ return value
+ .filter(
+  item=>
+  item &&
+  safeText(item.title) &&
+  safeText(item.title)!=":"
+ )
+ .map(item=>({
 
-  return [];
+  date:
+    safeText(item.date)
+    ||
+    undefined,
+
+
+  title:
+    safeText(item.title),
+
+
+  description:
+    safeText(item.description)
+
+ }));
 
 }
 
 
 
-
-
 // ============================================
-// Expert Opinion Normalizer
+// EXPERT OPINION
 // ============================================
 
 function normalizeExpertOpinion(
-  value:any
-):any[] {
+ value:any
+):ExpertOpinionItem[] {
 
 
-  if(
-    Array.isArray(value)
-  ){
-
-    return value.filter(
-
-      item =>
-
-      item &&
-
-      safeText(
-        item.opinion
-      )
-
-    );
-
-  }
+ if(!Array.isArray(value))
+ return [];
 
 
+ return value
+ .filter(
+ item=>
+ item &&
+ (
+  safeText(item.opinion) ||
+  safeText(item.quote)
+ )
+ )
+ .map(item=>({
 
-  return [];
+  name:
+    safeText(item.name)
+    ||
+    "Expert",
+
+
+  designation:
+    safeText(item.designation)
+    ||
+    safeText(item.role),
+
+
+  organization:
+    safeText(item.organization),
+
+
+  opinion:
+    safeText(item.opinion)
+    ||
+    safeText(item.quote)
+
+ }));
 
 }
 
 
 
-
-
 // ============================================
-// Fact Check Normalizer
+// FACT CHECK
 // ============================================
 
 function normalizeFactCheck(
-  value:any
-):any[] {
+ value:any
+):FactCheckItem[] {
 
 
-  if(
-    Array.isArray(value)
-  ){
-
-    return value.filter(
-
-      item =>
-
-      item &&
-
-      safeText(
-        item.claim
-      )
-
-    );
-
-  }
+ if(!Array.isArray(value))
+ return [];
 
 
+ return value
+ .filter(
+ item=>
+ item &&
+ safeText(item.claim)
+ )
+ .map(item=>({
 
-  return [];
+  claim:
+    safeText(item.claim),
+
+
+  status:
+
+    item.status
+    ||
+    "pending",
+
+
+  explanation:
+    safeText(item.explanation),
+
+
+  sources:
+    safeText(item.sources)
+
+ }));
 
 }
 
 
 
-
-
 // ============================================
-// Image Gallery Normalizer
+// IMAGE GALLERY
 // ============================================
 
 function normalizeImageGallery(
-  value:any
-):any[] {
+ value:any
+):ImageGalleryItem[] {
 
 
-  if(
-    !Array.isArray(value)
-  ){
-
-    return [];
-
-  }
+ if(!Array.isArray(value))
+ return [];
 
 
+ return value
+ .filter(
+ item=>
+ item &&
+ safeText(item.url)
+ )
+ .map(item=>({
 
-  return value
-
-  .filter(
-
-    item =>
-
-    item &&
-
-    safeText(
-      item.url
-    )
-
-  )
-
-  .map(
-
-    item => ({
-
-      url:
-        safeText(
-          item.url
-        ),
+  url:
+    safeText(item.url),
 
 
-      alt:
-        safeText(
-          item.alt
-        ),
+  alt:
+    safeText(item.alt)
+    ||
+    "NationPath image",
 
 
-      caption:
-        safeText(
-          item.caption
-        ),
+  caption:
+    safeText(item.caption),
 
 
-      isPrimary:
-        Boolean(
-          item.isPrimary
-        )
+  isPrimary:
+    Boolean(item.isPrimary)
 
-    })
-
-  );
+ }));
 
 }
 
 
 
-
-
 // ============================================
-// Convert Parsed Article
-// Into NationPath CMS Format
+// MAIN MAPPER
 // ============================================
+
 
 export function mapToCMS(
 
-  article:ParsedArticle
+ article:ParsedArticle
 
 ):CMSArticlePayload {
 
 
 
-  const title =
+const title =
 
-    safeText(
-      article.headline
-    )
+ safeText(article.headline)
+ ||
+ safeText(article.seoTitle)
+ ||
+ "Untitled Article";
 
-    ||
 
-    safeText(
-      article.seoTitle
-    )
 
-    ||
+const content =
 
-    "Untitled Article";
+ safeText(article.body)
+ ||
+ safeText(article.brief);
 
 
 
+const shortBrief =
 
+ safeText(article.brief)
+ ||
+ content;
 
-  const content =
 
-    safeText(
-      article.body
-    )
 
-    ||
+return {
 
-    safeText(
-      article.brief
-    );
 
+title,
 
 
+slug:
 
+createSlug(
+ safeText(article.slug)
+ ||
+ title
+),
 
-  const shortBrief =
 
-    safeText(
-      article.brief
-    )
 
-    ||
+shortBrief,
 
-    content;
 
+content,
 
 
 
+// ==================================
+// INTELLIGENCE
+// ==================================
 
-  return {
 
+background:
 
-    // ==================================
-    // Core Article
-    // ==================================
+safeText(article.background),
 
-    title,
 
+whyItMatters:
 
-    slug:
+safeText(article.whyItMatters),
 
-      createSlug(
 
-        safeText(
-          article.slug
-        )
+whatsNext:
 
-        ||
+safeText(article.whatsNext),
 
-        title
 
-      ),
 
+keyHighlights:
 
+cleanArray(
+ article.keyHighlights
+),
 
-    shortBrief,
 
 
-    content,
+keyTakeaways:
 
+cleanArray(
+ article.keyTakeaways
+),
 
 
 
+timeline:
 
-    // ==================================
-    // Editorial Intelligence
-    // ==================================
+normalizeTimeline(
+ article.timeline
+),
 
-    background:
 
-      safeText(
-        article.background
-      ),
 
+expertOpinion:
 
+normalizeExpertOpinion(
+ article.expertOpinion
+),
 
-    whyItMatters:
 
-      safeText(
-        article.whyItMatters
-      ),
 
+factCheck:
 
+normalizeFactCheck(
+ article.factCheck
+),
 
-    whatsNext:
 
-      safeText(
-        article.whatsNext
-      ),
 
+sourceDesk:
 
+safeText(article.sourceDesk),
 
-    keyHighlights:
 
-      textToArray(
-        article.keyHighlights
-      ),
 
+faq:
 
+normalizeFAQ(
+ article.faq
+),
 
-    keyTakeaways:
 
-      textToArray(
-        article.keyTakeaways
-      ),
 
 
+// ==================================
+// MEDIA
+// ==================================
 
-    timeline:
 
-      normalizeTimeline(
-        article.timeline
-      ),
+imageAlt:
 
+safeText(
+ article.image?.altText
+),
 
 
-    expertOpinion:
 
-      normalizeExpertOpinion(
-        article.expertOpinion
-      ),
+imageCaption:
 
+safeText(
+ article.image?.caption
+),
 
 
-    factCheck:
 
-      normalizeFactCheck(
-        article.factCheck
-      ),
+imageGallery:
 
+normalizeImageGallery(
+ article.imageGallery
+),
 
 
-    sourceDesk:
 
-      safeText(
-        article.sourceDesk
-      ),
 
+// ==================================
+// SEO
+// ==================================
 
 
-    faq:
+metaTitle:
 
-      normalizeFAQ(
-        article.faq
-      ),
+safeText(article.seoTitle)
+||
+title,
 
 
 
+metaDescription:
 
+safeText(article.metaDescription)
+||
+shortBrief,
 
-    // ==================================
-    // Image Intelligence
-    // ==================================
 
-    imageAlt:
 
-      safeText(
-        article.image?.altText
-      ),
+metaKeywords:
 
+cleanArray(
+ article.metaKeywords
+),
 
 
-    imageCaption:
 
-      safeText(
-        article.image?.caption
-      ),
 
+// ==================================
+// AI
+// ==================================
 
 
-    imageGallery:
+headlineIntelligence:
 
-      normalizeImageGallery(
-        article.imageGallery
-      ),
+article.headlineIntelligence
+||
+undefined,
 
 
 
+quality:
 
+article.quality
+||
+undefined
 
-    // ==================================
-    // SEO
-    // ==================================
 
-    metaTitle:
 
-      safeText(
-        article.seoTitle
-      )
+};
 
-      ||
-
-      title,
-
-
-
-    metaDescription:
-
-      safeText(
-        article.metaDescription
-      )
-
-      ||
-
-      shortBrief,
-
-
-
-    metaKeywords:
-
-      textToArray(
-        article.metaKeywords
-      ),
-
-
-
-
-
-    // ==================================
-    // AI Intelligence
-    // ==================================
-
-    headlineIntelligence:
-
-      article.headlineIntelligence,
-
-
-
-    quality:
-
-      article.quality
-
-
-
-  };
 
 
 }
-

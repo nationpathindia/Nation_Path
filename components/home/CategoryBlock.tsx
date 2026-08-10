@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import SectionHeader from "@/components/common/SectionHeader";
-
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
 
 interface CategoryBlockProps {
@@ -438,35 +438,28 @@ getPrimaryImage(main)
 ?
 
 <Image
-
-src={
-getPrimaryImage(main)
-}
-
-alt={
-getImageAlt(main)
-}
-
-fill
-
-sizes="
-(max-width:768px) 100vw,
-720px
-"
-
-loading="lazy"
-
-className="
-object-cover
-transition-transform
-duration-700
-ease-out
-group-hover:scale-[1.035]
-"
-
-itemProp="image"
-
+  src={cloudinaryImageUrl(
+    getPrimaryImage(main),
+    720
+  )}
+  alt={getImageAlt(main)}
+  fill
+  sizes="
+    (max-width:768px) 100vw,
+    720px
+  "
+  loading="lazy"
+  className="
+    object-cover
+    transition-transform
+    duration-700
+    ease-out
+    group-hover:scale-[1.035]
+  "
+  itemProp="image"
 />
+
+
 
 
 :

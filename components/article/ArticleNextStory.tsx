@@ -1,9 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  cloudinaryImageUrl,
-} from "@/lib/cloudinary-image";
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
 interface ArticleNextStoryProps {
   article: any;
@@ -23,55 +21,81 @@ export default function ArticleNextStory({
     return null;
   }
 
+  /*
+   * =====================================================
+   * ARTICLE URL
+   * =====================================================
+   */
+
   const articleUrl =
-    article?.category?.slug
+    article?.category?.slug && article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : "#";
 
   /*
+   * =====================================================
    * IMAGE INTELLIGENCE
+   * =====================================================
    *
    * Priority:
+   *
    * 1. Primary image from imageGallery
    * 2. First image from imageGallery
    * 3. Legacy images[0]
    */
 
-  const gallery: GalleryImage[] = Array.isArray(
-    article?.imageGallery
-  )
-    ? article.imageGallery
-    : [];
+  const gallery: GalleryImage[] =
+    Array.isArray(article?.imageGallery)
+      ? article.imageGallery.filter(
+          (image: GalleryImage) =>
+            image &&
+            typeof image.url === "string" &&
+            image.url.trim().length > 0,
+        )
+      : [];
 
   const primaryGalleryImage =
     gallery.find(
       (image: GalleryImage) =>
-        image?.isPrimary
+        image.isPrimary === true,
     ) || gallery[0];
 
   const originalImage =
     primaryGalleryImage?.url ||
-    article?.images?.[0] ||
+    (Array.isArray(article?.images)
+      ? article.images[0]
+      : null) ||
     null;
 
   /*
+   * =====================================================
    * CLOUDINARY DELIVERY
+   * =====================================================
    *
-   * Keep non-Cloudinary URLs untouched.
-   * Cloudinary images receive automatic format,
-   * quality and width optimization.
+   * cloudinaryImageUrl() handles:
+   *
+   * - f_auto
+   * - q_auto
+   * - requested width
+   *
+   * We keep the original database URL untouched.
+   *
+   * `unoptimized` prevents Next/Vercel from creating
+   * another image optimization request.
    */
 
   const imageSrc = originalImage
     ? cloudinaryImageUrl(
         originalImage,
-        640
+        640,
       )
     : null;
 
   const imageAlt =
-    primaryGalleryImage?.alt ||
-    `${article.title} - Nation Path India`;
+    primaryGalleryImage?.alt?.trim() ||
+    (typeof article?.title === "string"
+      ? `${article.title} - Nation Path India`
+      : "NationPath News");
 
   return (
     <section
@@ -151,10 +175,11 @@ export default function ArticleNextStory({
                 alt={imageAlt}
                 fill
                 sizes="
-                  (max-width:768px) 100vw,
+                  (max-width: 768px) 100vw,
                   320px
                 "
                 loading="lazy"
+                unoptimized
                 className="
                   object-cover
                   transition-transform

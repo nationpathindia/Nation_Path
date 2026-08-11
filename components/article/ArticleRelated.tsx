@@ -1,9 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  cloudinaryImageUrl,
-} from "@/lib/cloudinary-image";
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
 interface ArticleRelatedProps {
   articles: any;
@@ -19,54 +17,75 @@ interface GalleryImage {
 export default function ArticleRelated({
   articles,
 }: ArticleRelatedProps) {
-  if (!articles || articles.length === 0) {
+  if (!Array.isArray(articles) || articles.length === 0) {
     return null;
   }
 
   /*
+   * =====================================================
    * IMAGE INTELLIGENCE
+   * =====================================================
    *
-   * Preserve the existing image fallback chain:
+   * Priority:
    *
    * 1. Primary imageGallery image
    * 2. First imageGallery image
-   * 3. Existing images[0]
+   * 3. Legacy images[0]
    *
-   * Only Cloudinary delivery is optimized.
-   * Database URLs are never modified.
+   * Original database URLs remain untouched.
+   * Cloudinary optimization happens only at delivery time.
    */
+
   function getPrimaryImage(article: any): string | null {
     const gallery: GalleryImage[] = Array.isArray(
-      article?.imageGallery
+      article?.imageGallery,
     )
-      ? article.imageGallery
+      ? article.imageGallery.filter(
+          (image: GalleryImage) =>
+            image &&
+            typeof image.url === "string" &&
+            image.url.trim().length > 0,
+        )
       : [];
 
-    return (
+    const primary =
       gallery.find(
         (image: GalleryImage) =>
-          image?.isPrimary
-      )?.url ||
-      gallery[0]?.url ||
-      article?.images?.[0] ||
-      null
-    );
+          image.isPrimary === true,
+      ) || gallery[0];
+
+    if (primary?.url) {
+      return primary.url;
+    }
+
+    if (
+      Array.isArray(article?.images) &&
+      typeof article.images[0] === "string"
+    ) {
+      return article.images[0];
+    }
+
+    return null;
   }
 
   function getImageAlt(article: any): string {
     const gallery: GalleryImage[] = Array.isArray(
-      article?.imageGallery
+      article?.imageGallery,
     )
       ? article.imageGallery
       : [];
 
-    return (
+    const primary =
       gallery.find(
         (image: GalleryImage) =>
-          image?.isPrimary
-      )?.alt ||
-      gallery[0]?.alt ||
-      `${article?.title || "News"} - Nation Path India`
+          image?.isPrimary === true,
+      ) || gallery[0];
+
+    return (
+      primary?.alt?.trim() ||
+      (typeof article?.title === "string"
+        ? `${article.title} - Nation Path India`
+        : "NationPath News")
     );
   }
 
@@ -120,122 +139,169 @@ export default function ArticleRelated({
           lg:grid-cols-3
         "
       >
-        {articles.slice(0, 6).map((article: any) => {
-          const primaryImage =
-            getPrimaryImage(article);
+        {articles
+          .slice(0, 6)
+          .map((article: any) => {
+            const primaryImage =
+              getPrimaryImage(article);
 
-          const optimizedImage =
-            primaryImage
-              ? cloudinaryImageUrl(
-                  primaryImage,
-                  640
-                )
-              : null;
+            /*
+             * Cloudinary delivery optimization.
+             *
+             * 640px is appropriate for the related-story
+             * card width.
+             */
+            const optimizedImage =
+              primaryImage
+                ? cloudinaryImageUrl(
+                    primaryImage,
+                    640,
+                  )
+                : null;
 
-          return (
-            <article
-              key={article.id}
-              className="
-                group
-              "
-            >
-              <Link
-                href={`/${article.category?.slug}/${article.slug}`}
-                className="
-                  block
-                "
-              >
-                {/* IMAGE */}
+            const categorySlug =
+              typeof article?.category?.slug ===
+              "string"
+                ? article.category.slug
+                : "";
 
-                {optimizedImage && (
-                  <div
-                    className="
-                      relative
-                      aspect-[16/9]
-                      overflow-hidden
-                      rounded-xl
-                      bg-[#F5F5F5]
-                    "
-                  >
-                    <Image
-                      src={optimizedImage}
-                      alt={getImageAlt(article)}
-                      fill
-                      sizes="
-                        (max-width:640px) 100vw,
-                        (max-width:1024px) 50vw,
-                        33vw
-                      "
-                      loading="lazy"
-                      className="
-                        object-cover
-                        transition-transform
-                        duration-700
-                        group-hover:scale-105
-                      "
-                    />
-                  </div>
-                )}
+            const articleSlug =
+              typeof article?.slug === "string"
+                ? article.slug
+                : "";
 
-                {/* CATEGORY */}
+            const articleUrl =
+              categorySlug && articleSlug
+                ? `/${categorySlug}/${articleSlug}`
+                : "#";
 
-                <p
-                  className="
-                    mt-5
-                    text-[10px]
-                    font-bold
-                    uppercase
-                    tracking-[0.3em]
-                    text-[#EA661B]
-                  "
-                >
-                  {article.category?.name || "News"}
-                </p>
+            const createdAt =
+              article?.createdAt
+                ? new Date(
+                    article.createdAt,
+                  )
+                : null;
 
-                {/* TITLE */}
-
-                <h3
-                  className="
-                    mt-2
-                    font-serif
-                    text-xl
-                    font-bold
-                    leading-snug
-                    tracking-tight
-                    text-[#111]
-                    transition-colors
-                    group-hover:text-[#163C80]
-                  "
-                >
-                  {article.title}
-                </h3>
-
-                {/* DATE */}
-
-                <p
-                  className="
-                    mt-3
-                    text-[11px]
-                    uppercase
-                    tracking-[0.18em]
-                    text-gray-500
-                  "
-                >
-                  {new Date(
-                    article.createdAt
-                  ).toLocaleDateString(
+            const formattedDate =
+              createdAt &&
+              !Number.isNaN(
+                createdAt.getTime(),
+              )
+                ? createdAt.toLocaleDateString(
                     "en-IN",
                     {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
-                    }
+                    },
+                  )
+                : "";
+
+            return (
+              <article
+                key={
+                  article?.id ||
+                  `${article?.slug}-${article?.title}`
+                }
+                className="group"
+              >
+                <Link
+                  href={articleUrl}
+                  className="block"
+                >
+                  {/* IMAGE */}
+
+                  {optimizedImage && (
+                    <div
+                      className="
+                        relative
+                        aspect-[16/9]
+                        overflow-hidden
+                        rounded-xl
+                        bg-[#F5F5F5]
+                      "
+                    >
+                      <Image
+                        src={optimizedImage}
+                        alt={getImageAlt(article)}
+                        fill
+                        sizes="
+                          (max-width: 640px) 100vw,
+                          (max-width: 1024px) 50vw,
+                          33vw
+                        "
+                        loading="lazy"
+                        /*
+                         * IMPORTANT:
+                         *
+                         * Cloudinary already optimized the
+                         * image. Do not send it through
+                         * Vercel's image optimizer again.
+                         */
+                        unoptimized
+                        className="
+                          object-cover
+                          transition-transform
+                          duration-700
+                          group-hover:scale-105
+                        "
+                      />
+                    </div>
                   )}
-                </p>
-              </Link>
-            </article>
-          );
-        })}
+
+                  {/* CATEGORY */}
+
+                  <p
+                    className="
+                      mt-5
+                      text-[10px]
+                      font-bold
+                      uppercase
+                      tracking-[0.3em]
+                      text-[#EA661B]
+                    "
+                  >
+                    {article?.category?.name ||
+                      "News"}
+                  </p>
+
+                  {/* TITLE */}
+
+                  <h3
+                    className="
+                      mt-2
+                      font-serif
+                      text-xl
+                      font-bold
+                      leading-snug
+                      tracking-tight
+                      text-[#111]
+                      transition-colors
+                      group-hover:text-[#163C80]
+                    "
+                  >
+                    {article?.title}
+                  </h3>
+
+                  {/* DATE */}
+
+                  {formattedDate && (
+                    <p
+                      className="
+                        mt-3
+                        text-[11px]
+                        uppercase
+                        tracking-[0.18em]
+                        text-gray-500
+                      "
+                    >
+                      {formattedDate}
+                    </p>
+                  )}
+                </Link>
+              </article>
+            );
+          })}
       </div>
     </section>
   );

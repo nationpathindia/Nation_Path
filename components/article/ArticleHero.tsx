@@ -1,13 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import ArticleShareBar from "@/components/article/ArticleShareBar";
-
-import {
-  cloudinaryImageUrl,
-} from "@/lib/cloudinary-image";
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
 interface GalleryImage {
   url: string;
@@ -32,72 +29,160 @@ export default function ArticleHero({
   shareUrl,
 }: ArticleHeroProps) {
   /*
-   * GALLERY INTELLIGENCE
+   * =====================================================
+   * BUILD GALLERY
+   * =====================================================
    *
-   * Preserve existing gallery priority:
+   * Priority:
    *
-   * imageGallery
-   * → images
-   * → single image
-   * → empty
+   * 1. imageGallery
+   * 2. images[]
+   * 3. single image
+   *
+   * Original database URLs are never modified.
    */
 
-  const gallery: GalleryImage[] =
-    imageGallery.length > 0
-      ? imageGallery
-      : images.length > 0
-      ? images.map((url) => ({
+  const gallery = useMemo<GalleryImage[]>(() => {
+    if (imageGallery.length > 0) {
+      return imageGallery.filter(
+        (item) =>
+          item &&
+          typeof item.url === "string" &&
+          item.url.trim().length > 0,
+      );
+    }
+
+    if (images.length > 0) {
+      return images
+        .filter(
+          (url) =>
+            typeof url === "string" &&
+            url.trim().length > 0,
+        )
+        .map((url) => ({
           url,
           alt: title,
           caption: "",
           isPrimary: false,
-        }))
-      : image
-      ? [
-          {
-            url: image,
-            alt: title,
-            caption: "",
-            isPrimary: true,
-          },
-        ]
-      : [];
+        }));
+    }
+
+    if (image) {
+      return [
+        {
+          url: image,
+          alt: title,
+          caption: "",
+          isPrimary: true,
+        },
+      ];
+    }
+
+    return [];
+  }, [imageGallery, images, image, title]);
 
   /*
+   * =====================================================
    * PRIMARY IMAGE
+   * =====================================================
    */
 
-  const primaryIndex =
-    gallery.findIndex(
-      (img) => img.isPrimary
+  const initialIndex = useMemo(() => {
+    const primaryIndex = gallery.findIndex(
+      (item) => item.isPrimary === true,
     );
+
+    return primaryIndex >= 0 ? primaryIndex : 0;
+  }, [gallery]);
 
   const [activeIndex, setActiveIndex] =
-    useState(
-      primaryIndex >= 0
-        ? primaryIndex
-        : 0
-    );
+    useState(initialIndex);
 
   /*
-   * RESET ACTIVE IMAGE
+   * =====================================================
+   * RESET WHEN ARTICLE / GALLERY CHANGES
+   * =====================================================
    */
 
   useEffect(() => {
-    const primary =
-      gallery.findIndex(
-        (img) => img.isPrimary
-      );
-
-    setActiveIndex(
-      primary >= 0
-        ? primary
-        : 0
-    );
-  }, [imageGallery]);
+    setActiveIndex(initialIndex);
+  }, [initialIndex]);
 
   /*
+   * =====================================================
+   * SAFETY
+   * =====================================================
+   */
+
+  if (gallery.length === 0) {
+    return null;
+  }
+
+  const safeActiveIndex =
+    activeIndex >= 0 &&
+    activeIndex < gallery.length
+      ? activeIndex
+      : 0;
+
+  const activeImage =
+    gallery[safeActiveIndex];
+
+  if (!activeImage?.url) {
+    return null;
+  }
+
+  /*
+   * =====================================================
+   * CLOUDINARY DELIVERY URL
+   * =====================================================
+   *
+   * Cloudinary handles:
+   *
+   * - f_auto
+   * - q_auto
+   * - requested width
+   *
+   * We intentionally keep `unoptimized` on next/image
+   * so Vercel does NOT proxy/optimize the image again.
+   */
+
+  const optimizedImage = useMemo(() => {
+    return cloudinaryImageUrl(
+      activeImage.url,
+      1200,
+    );
+  }, [activeImage.url]);
+
+  if (!optimizedImage) {
+    return null;
+  }
+
+  /*
+   * =====================================================
+   * SLIDER CONTROLS
+   * =====================================================
+   */
+
+  function nextImage() {
+    setActiveIndex((current) =>
+      current >= gallery.length - 1
+        ? 0
+        : current + 1,
+    );
+  }
+
+  function previousImage() {
+    setActiveIndex((current) =>
+      current <= 0
+        ? gallery.length - 1
+        : current - 1,
+    );
+  }
+
+  /*
+   * =====================================================
    * AUTO SLIDER
+   * =====================================================
    */
 
   useEffect(() => {
@@ -105,106 +190,63 @@ export default function ArticleHero({
       return;
     }
 
-    const timer = setInterval(() => {
-      setActiveIndex((prev) =>
-        prev === gallery.length - 1
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) =>
+        current >= gallery.length - 1
           ? 0
-          : prev + 1
+          : current + 1,
       );
     }, 5000);
 
-    return () =>
-      clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, [gallery.length]);
 
-  if (!gallery.length) {
-    return null;
-  }
-
   /*
-   * SLIDER CONTROLS
+   * =====================================================
+   * RENDER
+   * =====================================================
    */
-
-  function nextImage() {
-    setActiveIndex((prev) =>
-      prev === gallery.length - 1
-        ? 0
-        : prev + 1
-    );
-  }
-
-  function previousImage() {
-    setActiveIndex((prev) =>
-      prev === 0
-        ? gallery.length - 1
-        : prev - 1
-    );
-  }
-
-  const activeImage =
-    gallery[activeIndex];
-
-  /*
-   * CLOUDINARY DELIVERY OPTIMIZATION
-   *
-   * Original database URL remains unchanged.
-   * Only delivery URL is optimized.
-   */
-
-  const optimizedImage =
-    activeImage?.url
-      ? cloudinaryImageUrl(
-          activeImage.url,
-          1200
-        )
-      : null;
-
-  if (!optimizedImage) {
-    return null;
-  }
 
   return (
-    <div
-      className="
-        mb-12
-      "
-    >
+    <div className="mb-12">
       <div
         className="
           group
           relative
           aspect-[16/10]
-          sm:aspect-[16/9]
           w-full
           overflow-hidden
           rounded-2xl
           bg-black/5
+          sm:aspect-[16/9]
         "
       >
         <Image
           key={activeImage.url}
           src={optimizedImage}
-          alt={
-            activeImage.alt ||
-            title
-          }
+          alt={activeImage.alt || title}
           fill
-          priority={
-            activeIndex === 0
+          priority={safeActiveIndex === initialIndex}
+          loading={
+            safeActiveIndex === initialIndex
+              ? undefined
+              : "lazy"
           }
           sizes="
-            (max-width:640px) 100vw,
-            (max-width:1024px) 90vw,
-            900px
+            (max-width: 640px) 100vw,
+            (max-width: 1024px) 90vw,
+            1200px
           "
           unoptimized
           className="
             object-cover
             scale-100
-            group-hover:scale-105
             transition-all
             duration-[1200ms]
             ease-out
+            group-hover:scale-105
           "
         />
 
@@ -218,19 +260,19 @@ export default function ArticleHero({
                 absolute
                 left-4
                 top-1/2
-                -translate-y-1/2
                 flex
-                items-center
-                justify-center
                 h-10
                 w-10
+                -translate-y-1/2
+                items-center
+                justify-center
                 rounded-full
-                bg-black/40
-                backdrop-blur-md
                 border
                 border-white/20
-                text-white
+                bg-black/40
                 text-xl
+                text-white
+                backdrop-blur-md
               "
             >
               ‹
@@ -244,19 +286,19 @@ export default function ArticleHero({
                 absolute
                 right-4
                 top-1/2
-                -translate-y-1/2
                 flex
-                items-center
-                justify-center
                 h-10
                 w-10
+                -translate-y-1/2
+                items-center
+                justify-center
                 rounded-full
-                bg-black/40
-                backdrop-blur-md
                 border
                 border-white/20
-                text-white
+                bg-black/40
                 text-xl
+                text-white
+                backdrop-blur-md
               "
             >
               ›
@@ -267,40 +309,38 @@ export default function ArticleHero({
                 absolute
                 bottom-5
                 left-1/2
-                -translate-x-1/2
                 flex
+                -translate-x-1/2
                 gap-2
               "
             >
-              {gallery.map(
-                (_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() =>
-                      setActiveIndex(
-                        index
-                      )
+              {gallery.map((item, index) => (
+                <button
+                  key={`${index}-${item.url}`}
+                  type="button"
+                  onClick={() =>
+                    setActiveIndex(index)
+                  }
+                  aria-label={`Go to image ${
+                    index + 1
+                  }`}
+                  aria-current={
+                    safeActiveIndex === index
+                      ? "true"
+                      : undefined
+                  }
+                  className={`
+                    h-2
+                    rounded-full
+                    transition-all
+                    ${
+                      safeActiveIndex === index
+                        ? "w-6 bg-white"
+                        : "w-2 bg-white/60"
                     }
-                    aria-label={
-                      `Go to image ${
-                        index + 1
-                      }`
-                    }
-                    className={`
-                      h-2
-                      rounded-full
-                      transition-all
-                      ${
-                        activeIndex ===
-                        index
-                          ? "w-6 bg-white"
-                          : "w-2 bg-white/60"
-                      }
-                    `}
-                  />
-                )
-              )}
+                  `}
+                />
+              ))}
             </div>
           </>
         )}

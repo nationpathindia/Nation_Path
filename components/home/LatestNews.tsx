@@ -5,6 +5,7 @@ import SectionHeader from "@/components/common/SectionHeader";
 
 import {
   cloudinaryImageUrl,
+  isCloudinaryUrl,
 } from "@/lib/cloudinary-image";
 
 interface LatestNewsProps {
@@ -14,97 +15,103 @@ interface LatestNewsProps {
 export default function LatestNews({
   articles,
 }: LatestNewsProps) {
-  if (!articles?.length) return null;
+  if (!articles?.length) {
+    return null;
+  }
 
-  /*
-   * IMAGE INTELLIGENCE
-   */
+  /* =====================================================
+     IMAGE INTELLIGENCE
+  ===================================================== */
 
   function getPrimaryImage(
-    article: any
-  ) {
+    article: any,
+  ): string | null {
     return (
       article?.imageGallery?.find(
         (image: any) =>
-          image?.isPrimary
+          image?.isPrimary &&
+          typeof image?.url === "string",
       )?.url ||
-
-      article?.imageGallery?.[0]?.url ||
-
-      article?.images?.[0] ||
-
+      article?.imageGallery?.find(
+        (image: any) =>
+          typeof image?.url === "string",
+      )?.url ||
+      article?.images?.find(
+        (image: any) =>
+          typeof image === "string",
+      ) ||
       null
     );
   }
 
   function getImageAlt(
-    article: any
-  ) {
+    article: any,
+  ): string {
     return (
       article?.imageGallery?.find(
         (image: any) =>
-          image?.isPrimary
-      )?.alt ||
-
-      `${article.title} - Nation Path India`
+          image?.isPrimary &&
+          typeof image?.alt === "string" &&
+          image.alt.trim(),
+      )?.alt?.trim() ||
+      `${article?.title || "News"} - Nation Path India`
     );
   }
 
-  /*
-   * SUMMARY INTELLIGENCE
-   */
+  /* =====================================================
+     SUMMARY INTELLIGENCE
+  ===================================================== */
 
   function cleanText(
-    html: string
-  ) {
-    if (!html) return "";
+    html: string,
+  ): string {
+    if (!html) {
+      return "";
+    }
 
     return html
-      .replace(
-        /<\/?[^>]+(>|$)/g,
-        ""
-      )
+      .replace(/<[^>]*>/g, "")
       .replace(/\s+/g, " ")
       .trim();
   }
 
   function getSummary(
     article: any,
-    limit: number = 220
-  ) {
+    limit: number = 220,
+  ): string {
     const source =
       article?.excerpt ||
       article?.shortBrief ||
       article?.content ||
       "";
 
-    const text =
-      cleanText(source);
+    const text = cleanText(source);
 
     return text.length > limit
       ? `${text.slice(0, limit)}...`
       : text;
   }
 
-  const articleUrl = (
-    article: any
-  ) =>
-    article?.category?.slug
+  /* =====================================================
+     ARTICLE URL
+  ===================================================== */
+
+  function articleUrl(
+    article: any,
+  ): string {
+    return article?.category?.slug &&
+      article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : "#";
+  }
 
-  /*
-   * CLOUDINARY DELIVERY OPTIMIZATION
-   *
-   * Existing database/original image URL
-   * remains untouched.
-   *
-   * Only browser delivery is optimized.
-   */
+  /* =====================================================
+     CLOUDINARY DELIVERY OPTIMIZATION
+  ===================================================== */
 
   function getOptimizedImage(
-    article: any
-  ) {
+    article: any,
+  ): string | null {
     const image =
       getPrimaryImage(article);
 
@@ -112,9 +119,16 @@ export default function LatestNews({
       return null;
     }
 
+    /*
+     * Cloudinary:
+     * f_auto + q_auto + width
+     *
+     * Non-Cloudinary:
+     * original URL remains untouched.
+     */
     return cloudinaryImageUrl(
       image,
-      600
+      600,
     );
   }
 
@@ -144,8 +158,26 @@ export default function LatestNews({
           (article: any) => {
             const optimizedImage =
               getOptimizedImage(
-                article
+                article,
               );
+
+            /*
+             * IMPORTANT:
+             *
+             * Cloudinary already performs:
+             * - format optimization
+             * - quality optimization
+             * - width transformation
+             *
+             * Therefore Next/Vercel Image Optimization
+             * must NOT process Cloudinary URLs again.
+             */
+            const cloudinary =
+              optimizedImage
+                ? isCloudinaryUrl(
+                    optimizedImage,
+                  )
+                : false;
 
             return (
               <article
@@ -163,7 +195,9 @@ export default function LatestNews({
                 itemScope
                 itemType="https://schema.org/NewsArticle"
               >
-                {/* IMAGE */}
+                {/* =================================================
+                    IMAGE
+                ================================================= */}
 
                 <div
                   className="
@@ -172,14 +206,12 @@ export default function LatestNews({
                 >
                   <Link
                     href={articleUrl(
-                      article
+                      article,
                     )}
                     className="block"
-                    aria-label={
-                      `Read ${article.title}`
-                    }
+                    aria-label={`Read ${article?.title || "news article"}`}
                   >
-                    {optimizedImage && (
+                    {optimizedImage ? (
                       <div
                         className="
                           relative
@@ -193,17 +225,28 @@ export default function LatestNews({
                           src={
                             optimizedImage
                           }
-                          alt={
-                            getImageAlt(
-                              article
-                            )
-                          }
+                          alt={getImageAlt(
+                            article,
+                          )}
                           fill
                           sizes="
-                            (max-width:768px) 100vw,
+                            (max-width: 768px) 100vw,
                             420px
                           "
                           loading="lazy"
+                          /*
+                           * Cloudinary is already optimized.
+                           *
+                           * This prevents the request from
+                           * going through Vercel's Image
+                           * Optimization service.
+                           *
+                           * Non-Cloudinary images continue
+                           * using normal Next/Image optimization.
+                           */
+                          unoptimized={
+                            cloudinary
+                          }
                           className="
                             object-cover
                             transition-transform
@@ -214,11 +257,13 @@ export default function LatestNews({
                           itemProp="image"
                         />
                       </div>
-                    )}
+                    ) : null}
                   </Link>
                 </div>
 
-                {/* CONTENT */}
+                {/* =================================================
+                    CONTENT
+                ================================================= */}
 
                 <div
                   className="
@@ -230,12 +275,14 @@ export default function LatestNews({
                 >
                   <Link
                     href={articleUrl(
-                      article
+                      article,
                     )}
                     className="block"
                   >
+                    {/* CATEGORY */}
+
                     {article?.category
-                      ?.name && (
+                      ?.name ? (
                       <div
                         className="
                           category-badge
@@ -258,7 +305,9 @@ export default function LatestNews({
                           }
                         </span>
                       </div>
-                    )}
+                    ) : null}
+
+                    {/* HEADLINE */}
 
                     <h2
                       className="
@@ -273,12 +322,14 @@ export default function LatestNews({
                       "
                       itemProp="headline"
                     >
-                      {article.title}
+                      {article?.title}
                     </h2>
 
+                    {/* SUMMARY */}
+
                     {getSummary(
-                      article
-                    ) && (
+                      article,
+                    ) ? (
                       <p
                         className="
                           news-body
@@ -291,10 +342,12 @@ export default function LatestNews({
                         itemProp="description"
                       >
                         {getSummary(
-                          article
+                          article,
                         )}
                       </p>
-                    )}
+                    ) : null}
+
+                    {/* META */}
 
                     <div
                       className="
@@ -313,10 +366,11 @@ export default function LatestNews({
                         itemProp="author"
                         className="font-medium"
                       >
-                        NationPath Editorial Desk
+                        NationPath
+                        Editorial Desk
                       </span>
 
-                      {article.createdAt && (
+                      {article?.createdAt ? (
                         <>
                           <span>
                             •
@@ -325,27 +379,51 @@ export default function LatestNews({
                           <time
                             itemProp="datePublished"
                             dateTime={
-                              new Date(
-                                article.createdAt
-                              ).toISOString()
+                              (() => {
+                                const date =
+                                  new Date(
+                                    article.createdAt,
+                                  );
+
+                                return Number.isNaN(
+                                  date.getTime(),
+                                )
+                                  ? undefined
+                                  : date.toISOString();
+                              })()
                             }
                           >
-                            {new Date(
-                              article.createdAt
-                            ).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
+                            {(() => {
+                              const date =
+                                new Date(
+                                  article.createdAt,
+                                );
+
+                              if (
+                                Number.isNaN(
+                                  date.getTime(),
+                                )
+                              ) {
+                                return "";
                               }
-                            )}
+
+                              return date.toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              );
+                            })()}
                           </time>
                         </>
-                      )}
+                      ) : null}
                     </div>
                   </Link>
                 </div>
+
+                {/* STRUCTURED DATA */}
 
                 <meta
                   itemProp="publisher"
@@ -353,7 +431,7 @@ export default function LatestNews({
                 />
               </article>
             );
-          }
+          },
         )}
       </div>
     </section>

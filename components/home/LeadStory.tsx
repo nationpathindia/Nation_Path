@@ -12,42 +12,77 @@ export default function LeadStory({
 }: LeadStoryProps) {
   if (!article) return null;
 
+  /*
+   * ============================================================
+   * ARTICLE URL
+   * ============================================================
+   */
+
   const articleUrl =
-    article?.category?.slug
+    article?.category?.slug && article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : "#";
 
   /*
-   * HERO IMAGE
+   * ============================================================
+   * PRIMARY IMAGE
+   * ============================================================
    *
-   * DB URL remains unchanged.
-   * Browser receives optimized Cloudinary delivery URL.
+   * Priority:
+   * 1. Explicit primary image
+   * 2. First gallery image
+   * 3. Legacy images array
+   *
+   * Original database URL is never modified.
    */
+
   const primaryImage =
     article?.imageGallery?.find(
-      (image: any) => image?.isPrimary
+      (image: any) => image?.isPrimary && image?.url
     )?.url ||
-    article?.imageGallery?.[0]?.url ||
-    article?.images?.[0] ||
+    article?.imageGallery?.find(
+      (image: any) => image?.url
+    )?.url ||
+    article?.images?.find(
+      (image: any) => typeof image === "string" && image.trim()
+    ) ||
     null;
+
+  /*
+   * ============================================================
+   * IMAGE ALT
+   * ============================================================
+   */
 
   const imageAlt =
     article?.imageGallery?.find(
-      (image: any) => image?.isPrimary
+      (image: any) => image?.isPrimary && image?.alt
     )?.alt ||
-    `${article.title} - Nation Path India`;
+    article?.imageGallery?.find(
+      (image: any) => image?.alt
+    )?.alt ||
+    `${article?.title || "News"} - Nation Path India`;
 
   /*
+   * ============================================================
    * SUMMARY
+   * ============================================================
    */
-  const cleanText = (html: string) => {
-    if (!html) return "";
 
-    return html
-      .replace(/<\/?[^>]+(>|$)/g, "")
+  function cleanText(value: any): string {
+    if (!value || typeof value !== "string") {
+      return "";
+    }
+
+    return value
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
       .replace(/\s+/g, " ")
       .trim();
-  };
+  }
 
   const summarySource =
     article?.excerpt ||
@@ -59,23 +94,70 @@ export default function LeadStory({
 
   const shortSummary =
     summary.length > 300
-      ? summary.slice(0, 300)
+      ? `${summary.slice(0, 300).trim()}...`
       : summary;
 
-  const publishedDate =
-    article?.createdAt
-      ? new Date(article.createdAt).toISOString()
-      : undefined;
+  /*
+   * ============================================================
+   * PUBLISHED DATE
+   * ============================================================
+   */
+
+  let publishedDate: string | undefined;
+  let displayDate = "";
+
+  if (article?.createdAt) {
+    const date = new Date(article.createdAt);
+
+    if (!Number.isNaN(date.getTime())) {
+      publishedDate = date.toISOString();
+
+      displayDate = date.toLocaleDateString(
+        "en-IN",
+        {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }
+      );
+    }
+  }
 
   /*
+   * ============================================================
    * CLOUDINARY DELIVERY
+   * ============================================================
    *
-   * Original DB image URL is untouched.
-   * Only the delivery URL is optimized.
+   * IMPORTANT:
+   *
+   * The original database image URL remains untouched.
+   *
+   * If the image belongs to Cloudinary:
+   *
+   *   f_auto
+   *   q_auto
+   *   w_1200
+   *
+   * are added by cloudinaryImageUrl().
+   *
+   * If the image is NOT a Cloudinary URL,
+   * cloudinaryImageUrl() returns the original URL.
    */
+
   const optimizedImage = primaryImage
     ? cloudinaryImageUrl(primaryImage, 1200)
     : null;
+
+  /*
+   * ============================================================
+   * CANONICAL ARTICLE URL
+   * ============================================================
+   */
+
+  const absoluteArticleUrl =
+    articleUrl !== "#"
+      ? `https://nationpathindia.com${articleUrl}`
+      : undefined;
 
   return (
     <article
@@ -85,21 +167,52 @@ export default function LeadStory({
       <Link
         href={articleUrl}
         className="group block"
-        aria-label={`Read full article: ${article.title}`}
+        aria-label={`Read full article: ${
+          article?.title || "News article"
+        }`}
       >
+        {/* ======================================================
+            HERO IMAGE
+            ====================================================== */}
+
         {optimizedImage && (
-          <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-lg bg-[var(--news-soft)]">
+          <div
+            className="
+              relative
+              mb-6
+              aspect-[16/9]
+              w-full
+              overflow-hidden
+              rounded-lg
+              bg-[var(--news-soft)]
+            "
+          >
             <Image
               src={optimizedImage}
               alt={imageAlt}
               fill
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 66vw, 1200px"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              unoptimized
+              sizes="
+                (max-width: 768px) 100vw,
+                (max-width: 1280px) 66vw,
+                1200px
+              "
+              className="
+                object-cover
+                transition-transform
+                duration-500
+                ease-out
+                group-hover:scale-[1.02]
+              "
               itemProp="image"
             />
           </div>
         )}
+
+        {/* ======================================================
+            CATEGORY
+            ====================================================== */}
 
         {article?.category?.name && (
           <div className="category-badge mb-5">
@@ -110,6 +223,10 @@ export default function LeadStory({
             </span>
           </div>
         )}
+
+        {/* ======================================================
+            HEADLINE
+            ====================================================== */}
 
         <h1
           className="
@@ -131,6 +248,10 @@ export default function LeadStory({
           {article.title}
         </h1>
 
+        {/* ======================================================
+            SUMMARY
+            ====================================================== */}
+
         {shortSummary && (
           <p
             className="
@@ -144,9 +265,12 @@ export default function LeadStory({
             itemProp="description"
           >
             {shortSummary}
-            {summary.length > 300 && "..."}
           </p>
         )}
+
+        {/* ======================================================
+            META
+            ====================================================== */}
 
         <div
           className="
@@ -168,28 +292,25 @@ export default function LeadStory({
             NationPath Editorial Desk
           </span>
 
-          {article?.createdAt && (
+          {publishedDate && displayDate && (
             <>
-              <span>•</span>
+              <span aria-hidden="true">
+                •
+              </span>
 
               <time
                 dateTime={publishedDate}
                 itemProp="datePublished"
               >
-                {new Date(
-                  article.createdAt
-                ).toLocaleDateString(
-                  "en-IN",
-                  {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  }
-                )}
+                {displayDate}
               </time>
             </>
           )}
         </div>
+
+        {/* ======================================================
+            READ STORY CTA
+            ====================================================== */}
 
         <div
           className="
@@ -215,6 +336,7 @@ export default function LeadStory({
           </span>
 
           <span
+            aria-hidden="true"
             className="
               transition-transform
               duration-300
@@ -226,15 +348,22 @@ export default function LeadStory({
         </div>
       </Link>
 
+      {/* ========================================================
+          STRUCTURED DATA
+          ======================================================== */}
+
       <meta
         itemProp="publisher"
         content="Nation Path India"
       />
 
-      <meta
-        itemProp="mainEntityOfPage"
-        content={`https://nationpathindia.com${articleUrl}`}
-      />
+      {absoluteArticleUrl && (
+        <meta
+          itemProp="mainEntityOfPage"
+          content={absoluteArticleUrl}
+        />
+      )}
     </article>
   );
 }
+

@@ -14,38 +14,83 @@ export default function NewsCard({
 }: NewsCardProps) {
   if (!article) return null;
 
+  /*
+   * =====================================================
+   * ARTICLE URL
+   * =====================================================
+   */
+
   const articleUrl =
-    article?.category?.slug
+    article?.category?.slug && article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : "#";
 
   /*
+   * =====================================================
    * IMAGE INTELLIGENCE
+   * =====================================================
+   *
+   * Priority:
+   * 1. Primary gallery image
+   * 2. First gallery image
+   * 3. Legacy images array
+   *
+   * Original database URL is never modified.
    */
 
   const primaryImage =
     article?.imageGallery?.find(
-      (image: any) => image?.isPrimary
+      (image: any) =>
+        image?.isPrimary && image?.url
     )?.url ||
-    article?.imageGallery?.[0]?.url ||
-    article?.images?.[0] ||
+    article?.imageGallery?.find(
+      (image: any) => image?.url
+    )?.url ||
+    article?.images?.find(
+      (image: any) =>
+        typeof image === "string" &&
+        image.trim()
+    ) ||
     null;
+
+  /*
+   * =====================================================
+   * IMAGE ALT
+   * =====================================================
+   */
 
   const imageAlt =
     article?.imageGallery?.find(
-      (image: any) => image?.isPrimary
+      (image: any) =>
+        image?.isPrimary && image?.alt
     )?.alt ||
-    `${article.title} - Nation Path India`;
+    article?.imageGallery?.find(
+      (image: any) => image?.alt
+    )?.alt ||
+    `${article?.title || "News article"} - Nation Path India`;
 
   /*
-   * SUMMARY INTELLIGENCE
+   * =====================================================
+   * SUMMARY
+   * =====================================================
    */
 
-  function cleanText(html: string) {
-    if (!html) return "";
+  function cleanText(value: unknown): string {
+    if (
+      typeof value !== "string" ||
+      !value
+    ) {
+      return "";
+    }
 
-    return html
-      .replace(/<\/?[^>]+(>|$)/g, "")
+    return value
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
       .replace(/\s+/g, " ")
       .trim();
   }
@@ -56,19 +101,25 @@ export default function NewsCard({
     article?.content ||
     "";
 
-  const summary = cleanText(summarySource);
+  const summary =
+    cleanText(summarySource);
 
   /*
-   * CARD STYLES
+   * =====================================================
+   * CARD VARIANTS
+   * =====================================================
    */
 
-  const styles = {
+  const cardStyles = {
     large: {
       image: "aspect-[16/9]",
       title:
         "text-3xl sm:text-4xl lg:text-[44px]",
       excerpt: true,
       spacing: "mb-6",
+      imageWidth: 1200,
+      imageSizes:
+        "(max-width: 768px) 100vw, 750px",
     },
 
     default: {
@@ -77,55 +128,112 @@ export default function NewsCard({
         "text-xl sm:text-2xl lg:text-[28px]",
       excerpt: true,
       spacing: "mb-5",
+      imageWidth: 900,
+      imageSizes:
+        "(max-width: 768px) 100vw, 600px",
     },
 
     compact: {
       image: "aspect-[16/10]",
-      title: "text-lg sm:text-xl",
+      title:
+        "text-lg sm:text-xl",
       excerpt: false,
       spacing: "mb-4",
+      imageWidth: 600,
+      imageSizes:
+        "(max-width: 768px) 100vw, 450px",
     },
   };
 
-  const style = styles[size];
+  const style =
+    cardStyles[size];
 
   /*
-   * CLOUDINARY DELIVERY
+   * =====================================================
+   * SAFE IMAGE DELIVERY
+   * =====================================================
    *
-   * Original database URL remains unchanged.
-   * Cloudinary handles:
+   * Cloudinary:
+   *   f_auto
+   *   q_auto
+   *   w_<width>
    *
-   * f_auto
-   * q_auto
-   * width
+   * Non-Cloudinary:
+   *   Original URL remains unchanged.
    *
-   * Next.js image optimizer is intentionally bypassed.
-   * This allows the browser to receive the optimized
-   * Cloudinary AVIF/WebP asset directly.
+   * unoptimized:
+   *   Prevents Next/Vercel from creating another
+   *   image transformation on top of Cloudinary.
    */
 
-  const imageWidth =
-    size === "large"
-      ? 1200
-      : size === "default"
-      ? 900
-      : 600;
+  const optimizedImage =
+    primaryImage
+      ? cloudinaryImageUrl(
+          primaryImage,
+          style.imageWidth
+        )
+      : null;
 
-  const optimizedImage = primaryImage
-    ? cloudinaryImageUrl(
-        primaryImage,
-        imageWidth
+  /*
+   * =====================================================
+   * SAFE DATE
+   * =====================================================
+   */
+
+  let publishedDate: string | undefined;
+  let displayDate = "";
+
+  if (article?.createdAt) {
+    const date = new Date(
+      article.createdAt
+    );
+
+    if (
+      !Number.isNaN(
+        date.getTime()
       )
-    : null;
+    ) {
+      publishedDate =
+        date.toISOString();
+
+      displayDate =
+        date.toLocaleDateString(
+          "en-IN",
+          {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }
+        );
+    }
+  }
+
+  /*
+   * =====================================================
+   * ABSOLUTE ARTICLE URL
+   * =====================================================
+   */
+
+  const absoluteArticleUrl =
+    articleUrl !== "#"
+      ? `https://nationpathindia.com${articleUrl}`
+      : undefined;
 
   return (
     <article>
       <Link
         href={articleUrl}
         className="block group"
-        aria-label={`Read article: ${article.title}`}
+        aria-label={`Read article: ${
+          article?.title ||
+          "News article"
+        }`}
       >
-        {optimizedImage && (
+        {/* =================================================
+            IMAGE
+        ================================================= */}
+
+        {optimizedImage ? (
           <div
             className={`
               relative
@@ -140,11 +248,7 @@ export default function NewsCard({
               src={optimizedImage}
               alt={imageAlt}
               fill
-              sizes={
-                size === "large"
-                  ? "(max-width:768px) 100vw, 750px"
-                  : "(max-width:768px) 100vw, 450px"
-              }
+              sizes={style.imageSizes}
               unoptimized
               loading="lazy"
               className="
@@ -159,6 +263,7 @@ export default function NewsCard({
 
             <div
               className="
+                pointer-events-none
                 absolute
                 inset-0
                 bg-gradient-to-t
@@ -169,9 +274,13 @@ export default function NewsCard({
               "
             />
           </div>
-        )}
+        ) : null}
 
-        {article?.category?.name && (
+        {/* =================================================
+            CATEGORY
+        ================================================= */}
+
+        {article?.category?.name ? (
           <div
             className="
               category-badge
@@ -184,7 +293,11 @@ export default function NewsCard({
               {article.category.name}
             </span>
           </div>
-        )}
+        ) : null}
+
+        {/* =================================================
+            HEADLINE
+        ================================================= */}
 
         <h2
           className={`
@@ -196,10 +309,15 @@ export default function NewsCard({
           `}
           itemProp="headline"
         >
-          {article.title}
+          {article?.title}
         </h2>
 
-        {style.excerpt && summary && (
+        {/* =================================================
+            SUMMARY
+        ================================================= */}
+
+        {style.excerpt &&
+        summary ? (
           <p
             className="
               news-body
@@ -212,10 +330,16 @@ export default function NewsCard({
             itemProp="description"
           >
             {summary.length > 180
-              ? `${summary.slice(0, 180)}...`
+              ? `${summary
+                  .slice(0, 180)
+                  .trim()}...`
               : summary}
           </p>
-        )}
+        ) : null}
+
+        {/* =================================================
+            META
+        ================================================= */}
 
         <div
           className="
@@ -237,41 +361,43 @@ export default function NewsCard({
             NationPath Editorial Desk
           </span>
 
-          {article.createdAt && (
+          {publishedDate &&
+          displayDate ? (
             <>
-              <span>•</span>
+              <span aria-hidden="true">
+                •
+              </span>
 
               <time
-                dateTime={new Date(
-                  article.createdAt
-                ).toISOString()}
+                dateTime={
+                  publishedDate
+                }
                 itemProp="datePublished"
               >
-                {new Date(
-                  article.createdAt
-                ).toLocaleDateString(
-                  "en-IN",
-                  {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  }
-                )}
+                {displayDate}
               </time>
             </>
-          )}
+          ) : null}
         </div>
       </Link>
+
+      {/* =================================================
+          STRUCTURED DATA
+      ================================================= */}
 
       <meta
         itemProp="publisher"
         content="Nation Path India"
       />
 
-      <meta
-        itemProp="mainEntityOfPage"
-        content={`https://nationpathindia.com${articleUrl}`}
-      />
+      {absoluteArticleUrl ? (
+        <meta
+          itemProp="mainEntityOfPage"
+          content={
+            absoluteArticleUrl
+          }
+        />
+      ) : null}
     </article>
   );
 }

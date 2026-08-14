@@ -5,29 +5,32 @@ import { unstable_cache } from "next/cache";
 export const dynamic = "force-dynamic";
 
 /*
- * ============================================================
- * CACHED BREAKING NEWS QUERY
- * ============================================================
- *
- * Breaking news is refreshed every 60 seconds.
- *
- * The current time is passed INTO the cached function so that
- * the cache key also changes with the time bucket.
- *
- * This prevents an expired breaking article from remaining
- * active indefinitely inside the cache.
- */
+============================================================
+BREAKING NEWS CACHE
+============================================================
+
+- Cache window: 60 seconds
+- Cache key changes every 60-second bucket
+- This prevents an expired breaking article from staying
+  cached indefinitely.
+- Only the fields required by BreakingNewsBar are returned.
+============================================================
+*/
 
 const getBreakingArticles = unstable_cache(
-  async () => {
-    const now = new Date();
+  async (timeBucket: number) => {
+    /*
+     * Use the beginning of the current cache bucket.
+     *
+     * The bucket is part of the unstable_cache key because it
+     * is passed as an argument to this cached function.
+     */
+    const now = new Date(timeBucket * 60_000);
 
     return prisma.article.findMany({
       where: {
         breaking: true,
-
         isDeleted: false,
-
         status: "approved",
 
         breakingEnd: {
@@ -37,27 +40,14 @@ const getBreakingArticles = unstable_cache(
 
       select: {
         id: true,
-
         title: true,
-
         slug: true,
-
-        excerpt: true,
-
-        breakingPriority: true,
-
-        breakingStart: true,
-
-        breakingEnd: true,
-
-        createdAt: true,
       },
 
       orderBy: [
         {
           breakingPriority: "desc",
         },
-
         {
           createdAt: "desc",
         },
@@ -71,32 +61,43 @@ const getBreakingArticles = unstable_cache(
 
   {
     revalidate: 60,
-
     tags: ["breaking-news"],
   }
 );
 
 /*
- * ============================================================
- * GET ACTIVE BREAKING NEWS
- * ============================================================
- */
+============================================================
+GET ACTIVE BREAKING NEWS
+============================================================
+*/
 
 export async function GET() {
   try {
+    /*
+     * 60-second cache bucket.
+     *
+     * Example:
+     * 10:25:xx -> bucket 10:25
+     * 10:26:xx -> new cache key
+     */
+    const timeBucket = Math.floor(Date.now() / 60_000);
+
     const breakingArticles =
-      await getBreakingArticles();
+      await getBreakingArticles(timeBucket);
 
     return NextResponse.json(
       {
         success: true,
-
         breaking: breakingArticles,
       },
       {
         status: 200,
 
         headers: {
+          /*
+           * CDN/browser cache can reuse the response for 60s
+           * and serve stale content while refreshing.
+           */
           "Cache-Control":
             "public, s-maxage=60, stale-while-revalidate=120",
         },
@@ -111,11 +112,8 @@ export async function GET() {
     return NextResponse.json(
       {
         success: false,
-
         breaking: [],
-
-        error:
-          "Failed to fetch breaking news",
+        error: "Failed to fetch breaking news",
       },
       {
         status: 500,
@@ -130,20 +128,19 @@ export async function GET() {
 }
 
 /*
- * ============================================================
- * POST BREAKING REFRESH
- * ============================================================
- *
- * Kept for compatibility with the existing system.
- */
+============================================================
+POST BREAKING REFRESH
+============================================================
+
+Kept for compatibility with the existing system.
+============================================================
+*/
 
 export async function POST() {
   try {
     return NextResponse.json({
       success: true,
-
-      message:
-        "Breaking news refresh triggered",
+      message: "Breaking news refresh triggered",
     });
   } catch (error) {
     console.error(
@@ -154,9 +151,7 @@ export async function POST() {
     return NextResponse.json(
       {
         success: false,
-
-        error:
-          "Breaking refresh failed",
+        error: "Breaking refresh failed",
       },
       {
         status: 500,

@@ -21,7 +21,7 @@ export default function BreakingNewsBar() {
       try {
         const res = await fetch("/api/push-breaking", {
           method: "GET",
-          cache: "no-store",
+          cache: "default",
         });
 
         if (!res.ok) {
@@ -33,11 +33,6 @@ export default function BreakingNewsBar() {
         }
 
         const data = await res.json();
-
-        console.log(
-          "BREAKING API DATA:",
-          data
-        );
 
         if (
           mounted &&
@@ -54,29 +49,29 @@ export default function BreakingNewsBar() {
       }
     };
 
-    // Initial background load
+    // Background load — does not block initial render.
     loadBreaking();
 
-    // Refresh every 60 seconds
-    const interval = setInterval(
+    // Refresh every 60 seconds.
+    const interval = window.setInterval(
       loadBreaking,
       60000
     );
 
     return () => {
       mounted = false;
-      clearInterval(interval);
+      window.clearInterval(interval);
     };
   }, []);
 
   const headlines = useMemo(() => {
-    if (breaking.length > 0) {
-      return breaking
-        .map((item) => item.title)
-        .filter(Boolean);
-    }
+    const titles = breaking
+      .map((item) => item?.title?.trim())
+      .filter(Boolean);
 
-    return [FALLBACK_HEADLINE];
+    return titles.length > 0
+      ? titles
+      : [FALLBACK_HEADLINE];
   }, [breaking]);
 
   const ticker = useMemo(
@@ -92,6 +87,7 @@ export default function BreakingNewsBar() {
         overflow-hidden
         group
       "
+      aria-label="Breaking news"
     >
       <div
         className="
@@ -126,6 +122,7 @@ export default function BreakingNewsBar() {
               bg-white
               animate-pulse
             "
+            aria-hidden="true"
           />
 
           <span
@@ -153,6 +150,7 @@ export default function BreakingNewsBar() {
           <div
             className="
               flex
+              w-max
               whitespace-nowrap
               animate-marquee
               group-hover:[animation-play-state:paused]
@@ -176,6 +174,7 @@ export default function BreakingNewsBar() {
                     ml-4
                     text-[var(--news-breaking-dot)]
                   "
+                  aria-hidden="true"
                 >
                   •
                 </span>

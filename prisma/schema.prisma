@@ -471,7 +471,9 @@ sourceDesk Json?
   @@index([isEditorial])
   @@index([isAstrology])
   @@index([isDeleted])
+  @@index([breaking, isDeleted, status, breakingEnd, breakingPriority, createdAt])
   @@map("Article")
+  
 }
 
 //////////////////////////////////////////////////////

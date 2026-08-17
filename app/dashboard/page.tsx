@@ -48,10 +48,24 @@ export default async function DashboardPage() {
   const planName =
     subscription?.planId?.name ?? "Free";
 
+  /*
+   * AstroSubscriptionCard currently accepts:
+   * "Expired" | "Active" | "Trial"
+   *
+   * Keep the dashboard build-safe without changing
+   * the existing subscription-card contract.
+   *
+   * Active subscription → Active
+   * Non-active / Free → Trial
+   *
+   * NOTE:
+   * This is only a compatibility mapping for the
+   * existing AstroSubscriptionCard contract.
+   */
   const subscriptionStatus =
     subscription?.status === "active"
       ? "Active"
-      : "Free";
+      : "Trial";
 
   const subscriptionExpiry =
     subscription?.expiryDate
@@ -258,7 +272,7 @@ export default async function DashboardPage() {
           </div>
 
 
-          {/* 
+          {/*
             NEWS COMPONENTS
 
             NewsDashboardSection internally renders:
@@ -501,3 +515,4 @@ export default async function DashboardPage() {
     </main>
   );
 }
+

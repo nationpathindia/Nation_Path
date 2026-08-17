@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-
   try {
-
     /* ================= AUTH CHECK ================= */
 
     const currentUser = await getCurrentUser();
-
 
     if (!currentUser) {
       return NextResponse.json(
@@ -20,7 +17,6 @@ export async function GET() {
         { status: 401 }
       );
     }
-
 
     if (
       ![
@@ -35,24 +31,28 @@ export async function GET() {
       );
     }
 
-
     /* ================= FETCH USERS ================= */
 
-    const users = await User.find({})
-      .select(
-        "name email role status createdAt"
-      )
-      .sort({
-        createdAt: -1,
-      });
-
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
     /* ================= RESPONSE ================= */
 
     return NextResponse.json({
       success: true,
       users: users.map((user) => ({
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -60,12 +60,8 @@ export async function GET() {
         createdAt: user.createdAt,
       })),
     });
-
-
   } catch (error) {
-
     console.error("USERS API ERROR:", error);
-
 
     return NextResponse.json(
       {
@@ -76,7 +72,5 @@ export async function GET() {
         status: 500,
       }
     );
-
   }
-
 }

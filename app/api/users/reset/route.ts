@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-import dbConnect from "@/lib/mongodb";
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
-
 export const dynamic = "force-dynamic";
-
-
 
 /*
 =====================================================
@@ -20,21 +16,14 @@ function canResetPassword(
   currentRole: string,
   targetRole: string
 ) {
-
-
   /*
   SUPERADMIN
   Full control
   */
 
-  if(currentRole === "superadmin") {
-
+  if (currentRole === "superadmin") {
     return true;
-
   }
-
-
-
 
   /*
   ADMIN
@@ -50,23 +39,14 @@ function canResetPassword(
   admin
   */
 
-  if(currentRole === "admin") {
-
+  if (currentRole === "admin") {
     return [
-
       "editor",
       "reporter",
       "advertiser",
       "user",
-
     ].includes(targetRole);
-
   }
-
-
-
-
-
 
   /*
   EDITOR
@@ -74,16 +54,9 @@ function canResetPassword(
   Reporter only
   */
 
-  if(currentRole === "editor") {
-
+  if (currentRole === "editor") {
     return targetRole === "reporter";
-
   }
-
-
-
-
-
 
   /*
   REPORTER
@@ -94,15 +67,7 @@ function canResetPassword(
   */
 
   return false;
-
-
 }
-
-
-
-
-
-
 
 /*
 =====================================================
@@ -110,58 +75,27 @@ RESET PASSWORD API
 =====================================================
 */
 
-export async function POST(
-  req: Request
-) {
-
-
+export async function POST(req: Request) {
   try {
-
-
-    await dbConnect();
-
-
-
-
-
     /*
     =====================================================
     AUTH CHECK
     =====================================================
     */
 
+    const currentUser = await getCurrentUser();
 
-    const currentUser =
-    await getCurrentUser();
-
-
-
-
-    if(!currentUser) {
-
-
+    if (!currentUser) {
       return NextResponse.json(
-
         {
-          success:false,
-          message:"Unauthorized"
+          success: false,
+          message: "Unauthorized",
         },
-
         {
-          status:401
+          status: 401,
         }
-
       );
-
-
     }
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -169,52 +103,27 @@ export async function POST(
     =====================================================
     */
 
+    const body = await req.json();
 
-    const body =
-    await req.json();
-
-
-
-    const userId =
-    body?.userId;
-
-
+    const userId = body?.userId;
 
     const newPassword =
-    body?.newPassword?.trim();
+      typeof body?.newPassword === "string"
+        ? body.newPassword.trim()
+        : "";
 
-
-
-
-
-
-
-    if(!userId || !newPassword) {
-
-
+    if (!userId || !newPassword) {
       return NextResponse.json(
-
         {
-          success:false,
-          message:"User ID and new password required"
+          success: false,
+          message:
+            "User ID and new password required",
         },
-
         {
-          status:400
+          status: 400,
         }
-
       );
-
-
     }
-
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -222,36 +131,18 @@ export async function POST(
     =====================================================
     */
 
-
-    if(
-      typeof newPassword !== "string" ||
-      newPassword.length < 8
-    ) {
-
-
+    if (newPassword.length < 8) {
       return NextResponse.json(
-
         {
-          success:false,
-          message:"Password must contain minimum 8 characters"
+          success: false,
+          message:
+            "Password must contain minimum 8 characters",
         },
-
         {
-          status:400
+          status: 400,
         }
-
       );
-
-
     }
-
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -259,41 +150,27 @@ export async function POST(
     =====================================================
     */
 
+    const targetUser = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
 
-    const targetUser =
-    await User.findById(userId);
-
-
-
-
-
-
-    if(!targetUser) {
-
-
+    if (!targetUser) {
       return NextResponse.json(
-
         {
-          success:false,
-          message:"User not found"
+          success: false,
+          message: "User not found",
         },
-
         {
-          status:404
+          status: 404,
         }
-
       );
-
-
     }
-
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -301,61 +178,27 @@ export async function POST(
     =====================================================
     */
 
+    const currentRole = currentUser.role;
 
-    const currentRole =
-    currentUser.role;
+    const targetRole = targetUser.role;
 
-
-
-    const targetRole =
-    targetUser.role;
-
-
-
-
-
-
-    const allowed =
-    canResetPassword(
-
+    const allowed = canResetPassword(
       currentRole,
-
       targetRole
-
     );
 
-
-
-
-
-
-    if(!allowed) {
-
-
+    if (!allowed) {
       return NextResponse.json(
-
         {
-          success:false,
+          success: false,
           message:
-          "You do not have permission to reset this user's password"
+            "You do not have permission to reset this user's password",
         },
-
         {
-          status:403
+          status: 403,
         }
-
       );
-
-
     }
-
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -363,23 +206,10 @@ export async function POST(
     =====================================================
     */
 
-
-    const hashedPassword =
-    await bcrypt.hash(
-
+    const hashedPassword = await bcrypt.hash(
       newPassword,
-
       12
-
     );
-
-
-
-
-
-
-
-
 
     /*
     =====================================================
@@ -387,70 +217,39 @@ export async function POST(
     =====================================================
     */
 
-
-    targetUser.password =
-    hashedPassword;
-
-
-
-    await targetUser.save();
-
-
-
-
-
-
-
-
-
-    return NextResponse.json(
-
-      {
-
-        success:true,
-
-        message:
-        "Password reset successfully"
-
-      }
-
-    );
-
-
-
-
-
-  }
-
-  catch(error) {
-
-
-    console.error(
-
-      "RESET PASSWORD ERROR:",
-
-      error
-
-    );
-
-
-
-
-    return NextResponse.json(
-
-      {
-        success:false,
-        message:"Internal server error"
+    await prisma.user.update({
+      where: {
+        id: userId,
       },
+      data: {
+        password: hashedPassword,
+      },
+    });
 
-      {
-        status:500
-      }
+    /*
+    =====================================================
+    RESPONSE
+    =====================================================
+    */
 
+    return NextResponse.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error(
+      "RESET PASSWORD ERROR:",
+      error
     );
 
-
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+      },
+      {
+        status: 500,
+      }
+    );
   }
-
-
 }

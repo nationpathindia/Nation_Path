@@ -6,7 +6,7 @@ import "./globals.css";
 
 import { cn } from "@/lib/utils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-import IndependenceDayPopup from "@/components/independence-day/IndependenceDayPopup";
+
 
 
 export const viewport: Viewport = {
@@ -151,7 +151,7 @@ export default function RootLayout({
           {children}
         </Providers>
 
-  <IndependenceDayPopup />
+  
         {gaEnabled && <GoogleAnalytics />}
       </body>
     </html>

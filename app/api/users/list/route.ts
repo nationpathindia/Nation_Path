@@ -1,59 +1,38 @@
 import { NextResponse } from "next/server";
 
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
 export async function GET() {
-
   try {
-
-
-    const users = await User.find({})
-
-      .select(
-        "name email role status createdAt"
-      )
-
-      .sort({
-        createdAt: -1,
-      });
-
-
-
-    return NextResponse.json({
-
-      success: true,
-
-      users: users.map((user) => ({
-
-        id: user._id.toString(),
-
-        name: user.name,
-
-        email: user.email,
-
-        role: user.role,
-
-        status: user.status,
-
-        createdAt: user.createdAt,
-
-      })),
-
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-
-
+    return NextResponse.json({
+      success: true,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+      })),
+    });
   } catch (error) {
-
-
-    console.error(
-      "USERS LIST ERROR:",
-      error
-    );
-
+    console.error("USERS LIST ERROR:", error);
 
     return NextResponse.json(
       {
@@ -64,7 +43,5 @@ export async function GET() {
         status: 500,
       }
     );
-
   }
-
 }

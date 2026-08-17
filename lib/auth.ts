@@ -1,63 +1,91 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH AUTH CONFIG
 //
-// Handles:
-// - NextAuth
-// - Mongo Credentials Login
-// - Google Login
-// - JWT Helpers
+// SINGLE CANONICAL USER SYSTEM
+//
+// Authentication:
+// - Email + Password
+// - Google
+// - Phone OTP
+//
+// Database:
+// - Prisma
+// - MongoDB canonical collection: "users"
+//
+// IMPORTANT:
+// - Do NOT use the old MongoDB "User" collection.
+// - Prisma User maps to "users".
+// - OTP records live in UserOtp.
+// - Phone identities live in UserPhone.
+// - All authentication methods resolve to the same User.
+// - All authenticated users receive the same NextAuth JWT/session.
 //////////////////////////////////////////////////////////////
 
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
 import type {
-  NextAuthOptions
+  NextAuthOptions,
 } from "next-auth";
 
-import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
-import dbConnect from "@/lib/mongodb";
-import User from "@/app/models/User";
+import {
+  normalizePhone as normalizeOtpPhone,
+  verifyOtp,
+} from "@/lib/auth/otp";
 
 
+//////////////////////////////////////////////////////////////
+// JWT SECRET
+//////////////////////////////////////////////////////////////
 
 const JWT_SECRET =
-  process.env.JWT_SECRET ||
-  "supersecretkey";
+  process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+
+  throw new Error(
+    "JWT_SECRET is not configured"
+  );
+
+}
 
 
+//////////////////////////////////////////////////////////////
+// JWT HELPERS
+//////////////////////////////////////////////////////////////
 
-
-
-// Existing JWT Support
-
-export function signToken(payload:any){
+export function signToken(
+  payload: Record<string, unknown>
+) {
 
   return jwt.sign(
     payload,
     JWT_SECRET,
     {
-      expiresIn:"7d",
+      expiresIn: "7d",
     }
   );
 
 }
 
 
+export function verifyToken(
+  token: string
+) {
 
-export function verifyToken(token:string){
-
-  try{
+  try {
 
     return jwt.verify(
       token,
       JWT_SECRET
     );
 
-  }
-  catch{
+  } catch {
 
     return null;
 
@@ -66,311 +94,1003 @@ export function verifyToken(token:string){
 }
 
 
+//////////////////////////////////////////////////////////////
+// USER STATUS
+//////////////////////////////////////////////////////////////
+
+function isUserActive(
+  user: any
+): boolean {
+
+  if (!user) {
+
+    return false;
+
+  }
 
 
+  if (
+    user.isActive === false
+  ) {
 
-// NextAuth
+    return false;
+
+  }
+
+
+  if (
+    user.status &&
+    user.status !== "active"
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+//////////////////////////////////////////////////////////////
+// EMAIL NORMALIZATION
+//////////////////////////////////////////////////////////////
+
+function normalizeEmail(
+  email?: string | null
+): string {
+
+  return (
+    email
+      ?.trim()
+      .toLowerCase() ||
+    ""
+  );
+
+}
+
+
+//////////////////////////////////////////////////////////////
+// FIND USER BY PHONE
+//
+// Phone ownership belongs to UserPhone.
+// The actual canonical identity remains User.
+//
+// MongoDB:
+// users
+//
+// UserPhone:
+// phone -> userId
+//////////////////////////////////////////////////////////////
+
+async function findUserByPhone(
+  phone: string
+) {
+
+  const phoneRecord =
+    await prisma.userPhone.findUnique({
+
+      where: {
+
+        phone,
+
+      },
+
+      include: {
+
+        user: true,
+
+      },
+
+    });
+
+
+  return (
+    phoneRecord?.user ||
+    null
+  );
+
+}
+
+
+//////////////////////////////////////////////////////////////
+// BUILD NEXTAUTH USER
+//
+// Keeps all authentication methods consistent.
+//
+// Email:
+// Google:
+// OTP:
+//
+// All return the same identity shape.
+//////////////////////////////////////////////////////////////
+
+function buildAuthUser(
+  user: any,
+  phone?: string | null
+) {
+
+  return {
+
+    id:
+      user.id,
+
+    name:
+      user.name || null,
+
+    email:
+      user.email || null,
+
+    image:
+      user.avatar || null,
+
+    role:
+      user.role,
+
+    ...(phone
+      ? {
+          phone,
+        }
+      : {}),
+
+  } as any;
+
+}
+
+
+//////////////////////////////////////////////////////////////
+// NEXTAUTH
+//////////////////////////////////////////////////////////////
 
 export const authOptions: NextAuthOptions = {
 
+  ////////////////////////////////////////////////////////////
+  // PROVIDERS
+  ////////////////////////////////////////////////////////////
 
-providers:[
+  providers: [
+
+    ////////////////////////////////////////////////////////////
+    // CREDENTIALS
+    //
+    // Supports:
+    //
+    // 1. Email + Password
+    // 2. Phone + OTP
+    ////////////////////////////////////////////////////////////
+
+    CredentialsProvider({
+
+      name: "credentials",
+
+      credentials: {
+
+        email: {
+
+          label: "Email",
+
+          type: "email",
+
+        },
+
+        password: {
+
+          label: "Password",
+
+          type: "password",
+
+        },
+
+        phone: {
+
+          label: "Phone",
+
+          type: "tel",
+
+        },
+
+        otp: {
+
+          label: "OTP",
+
+          type: "text",
+
+        },
+
+        loginType: {
+
+          label: "Login Type",
+
+          type: "text",
+
+        },
+
+      },
 
 
+      async authorize(
+        credentials
+      ) {
 
-//////////////////////////////////////////////////////////////
-// EMAIL PASSWORD LOGIN
-//////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////
+        // DETERMINE LOGIN TYPE
+        ////////////////////////////////////////////////////////
 
-CredentialsProvider({
-
-name:"credentials",
-
-
-credentials:{
- email:{},
- password:{},
-},
-
-
-
-async authorize(credentials){
+        const loginType =
+          String(
+            credentials?.loginType || ""
+          )
+            .trim()
+            .toLowerCase();
 
 
-await dbConnect();
+        ////////////////////////////////////////////////////////
+        // PHONE OTP LOGIN
+        ////////////////////////////////////////////////////////
+
+        if (
+          loginType === "otp"
+        ) {
+
+          //////////////////////////////////////////////////////
+          // INPUT
+          //////////////////////////////////////////////////////
+
+          const rawPhone =
+            String(
+              credentials?.phone || ""
+            ).trim();
 
 
+          const otp =
+            String(
+              credentials?.otp || ""
+            ).trim();
 
-const user = await User.findOne({
 
-email: credentials?.email,
+          //////////////////////////////////////////////////////
+          // VALIDATION
+          //////////////////////////////////////////////////////
 
+          if (!rawPhone) {
+
+            throw new Error(
+              "Phone number is required"
+            );
+
+          }
+
+
+          if (!otp) {
+
+            throw new Error(
+              "OTP is required"
+            );
+
+          }
+
+
+          if (
+            !/^\d{6}$/.test(otp)
+          ) {
+
+            throw new Error(
+              "OTP must contain 6 digits"
+            );
+
+          }
+
+
+          //////////////////////////////////////////////////////
+          // NORMALIZE PHONE
+          //////////////////////////////////////////////////////
+
+          let phone: string;
+
+
+          try {
+
+            phone =
+              normalizeOtpPhone(
+                rawPhone
+              );
+
+          } catch {
+
+            throw new Error(
+              "Enter a valid international phone number with country code"
+            );
+
+          }
+
+
+          //////////////////////////////////////////////////////
+          // VERIFY OTP
+          //
+          // verifyOtp():
+          // - checks expiry
+          // - checks attempts
+          // - compares bcrypt hash
+          // - consumes OTP
+          //////////////////////////////////////////////////////
+
+          let verification;
+
+
+          try {
+
+            verification = await verifyOtp({
+  channel: "phone",
+  phone,
+  otp,
+  purpose: "login",
 });
 
+          } catch (error) {
 
+            throw new Error(
 
-if(!user){
+              error instanceof Error
+                ? error.message
+                : "Invalid or expired OTP"
 
-throw new Error("User not found");
+            );
 
-}
+          }
 
 
+          //////////////////////////////////////////////////////
+          // RESOLVE CANONICAL USER
+          //
+          // Primary source:
+          // UserPhone -> User
+          //
+          // Fallback:
+          // UserOtp.userId
+          //////////////////////////////////////////////////////
 
+          let user =
+            await findUserByPhone(
+              phone
+            );
 
-const validPassword =
-await bcrypt.compare(
 
-credentials?.password || "",
+          if (
+            !user &&
+            verification.userId
+          ) {
 
-user.password
+            user =
+              await prisma.user.findUnique({
 
-);
+                where: {
 
+                  id:
+                    verification.userId,
 
+                },
 
-if(!validPassword){
+              });
 
-throw new Error("Invalid password");
+          }
 
-}
 
+          //////////////////////////////////////////////////////
+          // USER MUST EXIST
+          //
+          // OTP login is NOT signup.
+          //////////////////////////////////////////////////////
 
+          if (!user) {
 
-return {
+            throw new Error(
+              "No account is linked to this phone number"
+            );
 
-id:user._id.toString(),
+          }
 
-name:user.name,
 
-email:user.email,
+          //////////////////////////////////////////////////////
+          // ACCOUNT STATUS
+          //////////////////////////////////////////////////////
 
-role:user.role,
+          if (
+            !isUserActive(user)
+          ) {
 
-};
+            throw new Error(
+              "Account is not active"
+            );
 
-}
+          }
 
 
-}),
+          //////////////////////////////////////////////////////
+          // SECURITY:
+          // CONFIRM PHONE BELONGS TO SAME USER
+          //////////////////////////////////////////////////////
 
+          const phoneRecord =
+            await prisma.userPhone.findUnique({
 
+              where: {
 
+                phone,
 
+              },
 
+            });
 
 
-//////////////////////////////////////////////////////////////
-// GOOGLE LOGIN
-//////////////////////////////////////////////////////////////
+          if (
+            phoneRecord &&
+            phoneRecord.userId !==
+              user.id
+          ) {
 
-GoogleProvider({
+            throw new Error(
+              "This phone number belongs to another account"
+            );
 
-clientId:
-process.env.GOOGLE_CLIENT_ID!,
+          }
 
 
-clientSecret:
-process.env.GOOGLE_CLIENT_SECRET!,
+          //////////////////////////////////////////////////////
+          // UPDATE LAST LOGIN
+          //////////////////////////////////////////////////////
 
+          await prisma.user.update({
 
-}),
+            where: {
 
+              id:
+                user.id,
 
+            },
 
-],
+            data: {
 
+              lastLoginAt:
+                new Date(),
 
+            },
 
+          });
 
 
+          //////////////////////////////////////////////////////
+          // RETURN CANONICAL USER
+          //////////////////////////////////////////////////////
 
+          return buildAuthUser(
+            user,
+            phone
+          );
 
-session:{
+        }
 
 
-strategy:"jwt",
+        ////////////////////////////////////////////////////////
+        // EMAIL + PASSWORD LOGIN
+        ////////////////////////////////////////////////////////
 
+        const email =
+          normalizeEmail(
+            credentials?.email
+          );
 
-},
 
+        const password =
+          credentials?.password || "";
 
 
+        ////////////////////////////////////////////////////////
+        // VALIDATION
+        ////////////////////////////////////////////////////////
 
+        if (!email) {
 
-secret:
-process.env.NEXTAUTH_SECRET,
+          throw new Error(
+            "Email is required"
+          );
 
+        }
 
 
+        if (!password) {
 
+          throw new Error(
+            "Password is required"
+          );
 
-pages:{
+        }
 
 
-signIn:"/login",
+        ////////////////////////////////////////////////////////
+        // FIND CANONICAL USER
+        ////////////////////////////////////////////////////////
 
+        const user =
+          await prisma.user.findUnique({
 
-},
+            where: {
 
+              email,
 
+            },
 
+          });
 
 
+        ////////////////////////////////////////////////////////
+        // USER NOT FOUND
+        ////////////////////////////////////////////////////////
 
+        if (!user) {
 
+          throw new Error(
+            "User not found"
+          );
 
-callbacks:{
+        }
 
 
+        ////////////////////////////////////////////////////////
+        // ACCOUNT STATUS
+        ////////////////////////////////////////////////////////
 
+        if (
+          !isUserActive(user)
+        ) {
 
+          throw new Error(
+            "Account is not active"
+          );
 
-//////////////////////////////////////////////////////////////
-// CREATE / SYNC GOOGLE USER
-//////////////////////////////////////////////////////////////
+        }
 
-async signIn({user, account}){
 
+        ////////////////////////////////////////////////////////
+        // PASSWORD LOGIN REQUIRED
+        ////////////////////////////////////////////////////////
 
-if(account?.provider === "google"){
+        if (!user.password) {
 
+          throw new Error(
+            "This account does not have a password login"
+          );
 
-await dbConnect();
+        }
 
 
+        ////////////////////////////////////////////////////////
+        // VERIFY PASSWORD
+        ////////////////////////////////////////////////////////
 
-let existingUser =
-await User.findOne({
+        const validPassword =
+          await bcrypt.compare(
 
-email:user.email,
+            password,
 
-});
+            user.password
 
+          );
 
 
+        if (!validPassword) {
 
-if(!existingUser){
+          throw new Error(
+            "Invalid password"
+          );
 
+        }
 
-existingUser =
-await User.create({
 
-name:user.name || "Google User",
+        ////////////////////////////////////////////////////////
+        // UPDATE LAST LOGIN
+        ////////////////////////////////////////////////////////
 
-email:user.email,
+        await prisma.user.update({
 
-avatar:user.image || null,
+          where: {
 
-role:"user",
+            id:
+              user.id,
 
-status:"active",
+          },
 
-});
+          data: {
 
+            lastLoginAt:
+              new Date(),
 
-}
+          },
 
+        });
 
 
-(user as any).id =
-existingUser._id.toString();
+        ////////////////////////////////////////////////////////
+        // RETURN CANONICAL USER
+        ////////////////////////////////////////////////////////
 
+        return buildAuthUser(
+          user
+        );
 
+      },
 
-(user as any).role =
-existingUser.role;
+    }),
 
 
+    ////////////////////////////////////////////////////////////
+    // GOOGLE
+    ////////////////////////////////////////////////////////////
 
-}
+    GoogleProvider({
 
+      clientId:
+        process.env.GOOGLE_CLIENT_ID!,
 
+      clientSecret:
+        process.env.GOOGLE_CLIENT_SECRET!,
 
-return true;
+    }),
 
+  ],
 
-},
 
+  ////////////////////////////////////////////////////////////
+  // SESSION
+  ////////////////////////////////////////////////////////////
 
+  session: {
 
+    strategy:
+      "jwt",
 
+  },
 
 
+  ////////////////////////////////////////////////////////////
+  // NEXTAUTH SECRET
+  ////////////////////////////////////////////////////////////
 
+  secret:
+    process.env.NEXTAUTH_SECRET,
 
-//////////////////////////////////////////////////////////////
-// JWT
-//////////////////////////////////////////////////////////////
 
-async jwt({
-token,
-user
-}){
+  ////////////////////////////////////////////////////////////
+  // AUTH PAGES
+  ////////////////////////////////////////////////////////////
 
+  pages: {
 
-if(user){
+    signIn:
+      "/login",
 
+  },
 
-token.id =
-(user as any).id;
 
+  ////////////////////////////////////////////////////////////
+  // CALLBACKS
+  ////////////////////////////////////////////////////////////
 
-token.role =
-(user as any).role;
+  callbacks: {
 
 
-}
+    ////////////////////////////////////////////////////////////
+    // SIGN IN
+    ////////////////////////////////////////////////////////////
 
+    async signIn({
 
+      user,
+      account,
 
-return token;
+    }) {
 
 
-},
+      ////////////////////////////////////////////////////////
+      // GOOGLE LOGIN
+      ////////////////////////////////////////////////////////
 
+      if (
+        account?.provider ===
+        "google"
+      ) {
 
 
+        //////////////////////////////////////////////////////
+        // GOOGLE EMAIL
+        //////////////////////////////////////////////////////
 
+        const email =
+          normalizeEmail(
+            user.email
+          );
 
 
+        if (!email) {
 
-//////////////////////////////////////////////////////////////
-// SESSION
-//////////////////////////////////////////////////////////////
+          return false;
 
-async session({
-session,
-token
-}){
+        }
 
 
-if(session.user){
+        //////////////////////////////////////////////////////
+        // FIND CANONICAL USER
+        //////////////////////////////////////////////////////
 
+        let existingUser =
+          await prisma.user.findUnique({
 
-session.user.id =
-token.id as string;
+            where: {
 
+              email,
 
+            },
 
-session.user.role =
-token.role as string;
+          });
 
 
+        //////////////////////////////////////////////////////
+        // CREATE GOOGLE USER
+        //////////////////////////////////////////////////////
 
-}
+        if (!existingUser) {
 
+          existingUser =
+            await prisma.user.create({
 
+              data: {
 
-return session;
+                name:
+                  user.name ||
+                  "Google User",
 
+                email,
 
-},
+                avatar:
+                  user.image ||
+                  null,
 
+                provider:
+                  "google",
 
+                providerId:
+                  account.providerAccountId ||
+                  null,
 
-},
+                role:
+                  "user",
 
+                status:
+                  "active",
 
+                isActive:
+                  true,
+
+                lastLoginAt:
+                  new Date(),
+
+              },
+
+            });
+
+        }
+
+
+        //////////////////////////////////////////////////////
+        // EXISTING GOOGLE USER
+        //////////////////////////////////////////////////////
+
+        else {
+
+
+          ////////////////////////////////////////////////////
+          // ACCOUNT STATUS
+          ////////////////////////////////////////////////////
+
+          if (
+            !isUserActive(
+              existingUser
+            )
+          ) {
+
+            return false;
+
+          }
+
+
+          ////////////////////////////////////////////////////
+          // SYNC GOOGLE DATA
+          ////////////////////////////////////////////////////
+
+          existingUser =
+            await prisma.user.update({
+
+              where: {
+
+                id:
+                  existingUser.id,
+
+              },
+
+              data: {
+
+                lastLoginAt:
+                  new Date(),
+
+                avatar:
+                  user.image ||
+                  existingUser.avatar,
+
+                provider:
+                  existingUser.provider ===
+                  "credentials"
+
+                    ? "google"
+
+                    : existingUser.provider,
+
+                providerId:
+                  existingUser.providerId ||
+                  account.providerAccountId ||
+                  null,
+
+              },
+
+            });
+
+        }
+
+
+        //////////////////////////////////////////////////////
+        // PASS CANONICAL USER
+        //////////////////////////////////////////////////////
+
+        (user as any).id =
+          existingUser.id;
+
+        (user as any).role =
+          existingUser.role;
+
+        (user as any).name =
+          existingUser.name;
+
+        (user as any).email =
+          existingUser.email;
+
+        (user as any).image =
+          existingUser.avatar;
+
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // ALLOW LOGIN
+      ////////////////////////////////////////////////////////
+
+      return true;
+
+    },
+
+
+    ////////////////////////////////////////////////////////////
+    // JWT
+    ////////////////////////////////////////////////////////////
+
+    async jwt({
+
+      token,
+      user,
+
+    }) {
+
+
+      ////////////////////////////////////////////////////////
+      // INITIAL AUTHENTICATION
+      ////////////////////////////////////////////////////////
+
+      if (user) {
+
+        token.id =
+          (user as any).id;
+
+        token.role =
+          (user as any).role;
+
+        token.name =
+          user.name;
+
+        token.email =
+          user.email;
+
+        token.picture =
+          (user as any).image;
+
+
+        //////////////////////////////////////////////////////
+        // OTP PHONE
+        //////////////////////////////////////////////////////
+
+        if (
+          (user as any).phone
+        ) {
+
+          token.phone =
+            (user as any).phone;
+
+        }
+
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // RETURN TOKEN
+      ////////////////////////////////////////////////////////
+
+      return token;
+
+    },
+
+
+    ////////////////////////////////////////////////////////////
+    // SESSION
+    ////////////////////////////////////////////////////////////
+
+    async session({
+
+      session,
+      token,
+
+    }) {
+
+
+      if (
+        session.user
+      ) {
+
+        session.user.id =
+          token.id as string;
+
+        session.user.role =
+          token.role as string;
+
+        session.user.name =
+          (token.name as string | null)
+          ?? null;
+
+        session.user.email =
+          (token.email as string | null)
+          ?? null;
+
+        session.user.image =
+          (token.picture as string | null)
+          ?? null;
+
+
+        //////////////////////////////////////////////////////
+        // OPTIONAL PHONE
+        //////////////////////////////////////////////////////
+
+        if (
+          token.phone
+        ) {
+
+          (session.user as any).phone =
+            token.phone;
+
+        }
+
+      }
+
+
+      return session;
+
+    },
+
+  },
 
 };

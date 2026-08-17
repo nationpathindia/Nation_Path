@@ -19,6 +19,7 @@ interface ArticleHeroProps {
   imageGallery?: GalleryImage[];
   title: string;
   shareUrl: string;
+  articleId?: string;
 }
 
 export default function ArticleHero({
@@ -27,19 +28,12 @@ export default function ArticleHero({
   imageGallery = [],
   title,
   shareUrl,
+  articleId,
 }: ArticleHeroProps) {
   /*
    * =====================================================
    * BUILD GALLERY
    * =====================================================
-   *
-   * Priority:
-   *
-   * 1. imageGallery
-   * 2. images[]
-   * 3. single image
-   *
-   * Original database URLs are never modified.
    */
 
   const gallery = useMemo<GalleryImage[]>(() => {
@@ -135,15 +129,6 @@ export default function ArticleHero({
    * =====================================================
    * CLOUDINARY DELIVERY URL
    * =====================================================
-   *
-   * Cloudinary handles:
-   *
-   * - f_auto
-   * - q_auto
-   * - requested width
-   *
-   * We intentionally keep `unoptimized` on next/image
-   * so Vercel does NOT proxy/optimize the image again.
    */
 
   const optimizedImage = useMemo(() => {
@@ -395,9 +380,9 @@ export default function ArticleHero({
         <ArticleShareBar
           title={title}
           url={shareUrl}
+          articleId={articleId}
         />
       </div>
     </div>
   );
 }
-

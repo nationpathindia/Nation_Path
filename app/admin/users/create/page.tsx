@@ -1,10 +1,8 @@
-import User from "@/app/models/User";
-import dbConnect from "@/lib/mongodb";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
 
 const ALLOWED_ROLES = [
   "admin",
@@ -14,118 +12,72 @@ const ALLOWED_ROLES = [
   "user",
 ];
 
-
-
 export default function CreateUserPage() {
-
-
-
   async function createUser(formData: FormData) {
-
     "use server";
 
-
     try {
-
-
-      await dbConnect();
-
-
-
-      const name =
-        String(
-          formData.get("name") || ""
-        )
+      const name = String(
+        formData.get("name") || ""
+      )
         .trim();
 
-
-
-      const email =
-        String(
-          formData.get("email") || ""
-        )
+      const email = String(
+        formData.get("email") || ""
+      )
         .toLowerCase()
         .trim();
 
+      const password = String(
+        formData.get("password") || ""
+      );
 
+      const role = String(
+        formData.get("role") || "user"
+      );
 
-      const password =
-        String(
-          formData.get("password") || ""
-        );
+      /* ================= VALIDATION ================= */
 
-
-
-      const role =
-        String(
-          formData.get("role") || "user"
-        );
-
-
-
-
-
-      if(
+      if (
         !name ||
         !email ||
         !password
-      ){
-
+      ) {
         throw new Error(
           "All fields are required"
         );
-
       }
 
-
-
-
-
-      if(password.length < 6){
-
+      if (password.length < 6) {
         throw new Error(
           "Password must contain minimum 6 characters"
         );
-
       }
 
-
-
-
-
-      if(
+      if (
         !ALLOWED_ROLES.includes(role)
-      ){
-
+      ) {
         throw new Error(
           "Invalid user role"
         );
-
       }
 
-
-
-
+      /* ================= CHECK EXISTING USER ================= */
 
       const existingUser =
-        await User.findOne({
-          email,
+        await prisma.user.findUnique({
+          where: {
+            email,
+          },
         });
 
-
-
-
-      if(existingUser){
-
+      if (existingUser) {
         throw new Error(
           "User with this email already exists"
         );
-
       }
 
-
-
-
+      /* ================= HASH PASSWORD ================= */
 
       const hashedPassword =
         await bcrypt.hash(
@@ -133,68 +85,45 @@ export default function CreateUserPage() {
           12
         );
 
+      /* ================= CREATE USER ================= */
 
+      await prisma.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
 
+          provider: "credentials",
 
+          role: role as
+            | "admin"
+            | "editor"
+            | "reporter"
+            | "advertiser"
+            | "user",
 
+          status: "active",
 
-      await User.create({
-
-        name,
-
-        email,
-
-        password: hashedPassword,
-
-
-        provider:
-          "credentials",
-
-
-        role,
-
-
-        status:
-          "active",
-
-
+          isActive: true,
+        },
       });
 
-
-
-
+      /* ================= REDIRECT ================= */
 
       redirect(
         "/admin/users"
       );
-
-
-
-    }
-    catch(error){
-
-
+    } catch (error) {
       console.error(
         "CREATE USER ERROR:",
         error
       );
 
-
       throw error;
-
-
     }
-
-
-
   }
 
-
-
-
-
   return (
-
     <div
       className="
       max-w-xl
@@ -202,11 +131,7 @@ export default function CreateUserPage() {
       text-white
       "
     >
-
-
-
       <div>
-
         <h1
           className="
           text-3xl
@@ -216,7 +141,6 @@ export default function CreateUserPage() {
           Create User
         </h1>
 
-
         <p
           className="
           text-gray-400
@@ -225,13 +149,7 @@ export default function CreateUserPage() {
         >
           Create newsroom team members and subscribers.
         </p>
-
-
       </div>
-
-
-
-
 
       <form
         action={createUser}
@@ -244,17 +162,10 @@ export default function CreateUserPage() {
         p-6
         "
       >
-
-
-
-
-
         <div>
-
           <label className="text-sm text-gray-400">
             Full Name
           </label>
-
 
           <input
             name="name"
@@ -273,32 +184,18 @@ export default function CreateUserPage() {
             focus:border-[#EA661B]
             "
           />
-
         </div>
 
-
-
-
-
-
-
         <div>
-
           <label className="text-sm text-gray-400">
             Email
           </label>
 
-
           <input
-
             name="email"
-
             type="email"
-
             required
-
             placeholder="Enter email address"
-
             className="
             mt-2
             w-full
@@ -311,35 +208,19 @@ export default function CreateUserPage() {
             outline-none
             focus:border-[#EA661B]
             "
-
           />
-
-
         </div>
 
-
-
-
-
-
-
         <div>
-
           <label className="text-sm text-gray-400">
             Password
           </label>
 
-
           <input
-
             name="password"
-
             type="password"
-
             required
-
             placeholder="Minimum 6 characters"
-
             className="
             mt-2
             w-full
@@ -352,31 +233,17 @@ export default function CreateUserPage() {
             outline-none
             focus:border-[#EA661B]
             "
-
           />
-
-
         </div>
 
-
-
-
-
-
-
         <div>
-
           <label className="text-sm text-gray-400">
             Role
           </label>
 
-
           <select
-
             name="role"
-
             defaultValue="user"
-
             className="
             mt-2
             w-full
@@ -388,50 +255,31 @@ export default function CreateUserPage() {
             text-white
             outline-none
             "
-
           >
-
-
             <option value="admin">
               Admin
             </option>
-
 
             <option value="editor">
               Editor
             </option>
 
-
             <option value="reporter">
               Reporter
             </option>
-
 
             <option value="advertiser">
               Advertiser
             </option>
 
-
             <option value="user">
               Subscriber
             </option>
-
-
           </select>
-
-
         </div>
 
-
-
-
-
-
-
         <button
-
           type="submit"
-
           className="
           w-full
           py-3
@@ -441,23 +289,10 @@ export default function CreateUserPage() {
           font-semibold
           transition
           "
-
         >
-
           Create User
-
         </button>
-
-
-
-
       </form>
-
-
-
     </div>
-
   );
-
-
 }

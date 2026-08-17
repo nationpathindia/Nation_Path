@@ -10,8 +10,8 @@ datasource db {
 //////////////////////////////////////////////////////
 // ENUMS
 //////////////////////////////////////////////////////
-
 enum Role {
+  superadmin
   admin
   editor
   reporter
@@ -61,11 +61,8 @@ enum AdType {
 // CATEGORY
 //////////////////////////////////////////////////////
 
-
 model Category {
-
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
   //////////////////////////////////////////////////////
   // BASIC INFORMATION
@@ -75,23 +72,17 @@ model Category {
   slug        String  @unique
   description String?
 
-
-
   //////////////////////////////////////////////////////
   // NATIONPATH INTELLIGENCE
   //////////////////////////////////////////////////////
 
   intelligenceLabel String?
 
-
-
   //////////////////////////////////////////////////////
   // UI / BRAND CONTROL
   //////////////////////////////////////////////////////
 
   color String?
-
-
 
   //////////////////////////////////////////////////////
   // STATUS & ORDER
@@ -100,16 +91,12 @@ model Category {
   status   String @default("active")
   priority Int    @default(0)
 
-
-
   //////////////////////////////////////////////////////
   // SEO
   //////////////////////////////////////////////////////
 
   seoTitle       String?
   seoDescription String?
-
-
 
   //////////////////////////////////////////////////////
   // TIMESTAMPS
@@ -118,15 +105,12 @@ model Category {
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-
-
   //////////////////////////////////////////////////////
   // RELATIONS
   //////////////////////////////////////////////////////
 
-  articles Article[]
-
-
+  articles        Article[]
+  analyticsEvents CategoryAnalyticsEvent[]
 
   //////////////////////////////////////////////////////
   // INDEXES
@@ -135,7 +119,6 @@ model Category {
   @@index([status])
   @@index([priority])
   @@map("Category")
-
 }
 
 //////////////////////////////////////////////////////
@@ -151,15 +134,25 @@ model Article {
   content String
   excerpt String?
 
-  images   String[]
-  imageGallery Json?
-  imageMeta Json?
- videoUrl String?
-videoTitle String?
-videoPosition String?
-videoEmbed String?
-videoThumbnail String?
+  //////////////////////////////////////////////////////
+  // MEDIA
+  //////////////////////////////////////////////////////
 
+  images       String[]
+  imageGallery Json?
+  imageMeta    Json?
+
+  videoUrl       String?
+  videoTitle     String?
+  videoPosition  String?
+  videoEmbed     String?
+  videoThumbnail String?
+
+  //////////////////////////////////////////////////////
+  // ANALYTICS
+  //////////////////////////////////////////////////////
+
+  analyticsEvents ArticleAnalyticsEvent[]
 
   //////////////////////////////////////////////////////
   // FLAGS
@@ -175,30 +168,20 @@ videoThumbnail String?
   isLive        Boolean @default(false)
 
   breakingStart DateTime?
+  breakingEnd   DateTime?
 
-  breakingEnd DateTime?
-  
   homepagePriority Int @default(0)
 
   breakingPriority Int @default(0)
   flashPriority    Int @default(0)
 
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   // ASTROLOGY
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // ==========================================================
-  // BASIC HOROSCOPE
-  // ==========================================================
+  //////////////////////////////////////////////////////
 
   zodiacSign      String?
   horoscopeDate   DateTime?
   zodiacDateRange String?
-
-  // ==========================================================
-  // DAILY HOROSCOPE
-  // ==========================================================
 
   lovePrediction    String?
   careerPrediction  String?
@@ -210,10 +193,6 @@ videoThumbnail String?
   dailyTheme       String?
   dailyAffirmation String?
   featuredQuote    String?
-
-  // ==========================================================
-  // LUCKY INSIGHTS
-  // ==========================================================
 
   luckyColor     String?
   luckyColorHex  String?
@@ -228,18 +207,15 @@ videoThumbnail String?
   luckyFood   String?
   luckyMetal  String?
 
-  // ==========================================================
-  // ENERGY SCORES
-  // ==========================================================
-
   loveScore    Int?
   careerScore  Int?
   financeScore Int?
   healthScore  Int?
+
   dayEnergy String?
-mood String?
-bestTime String?
-warning String?
+  mood      String?
+  bestTime  String?
+  warning   String?
 
   loveCompatibility Int?
   careerGrowth      Int?
@@ -249,22 +225,10 @@ warning String?
   travelLuck        Int?
   overallLuck       Int?
 
-  // ==========================================================
-  // FEATURED
-  // ==========================================================
-
   isFeaturedZodiac Boolean @default(false)
-
-  // ==========================================================
-  // ASTROLOGY SEO
-  // ==========================================================
 
   astroTitle       String?
   astroDescription String?
-
-  // ==========================================================
-  // PANCHANG
-  // ==========================================================
 
   tithi     String?
   nakshatra String?
@@ -284,10 +248,6 @@ warning String?
   brahmaMuhurat  String?
   amritKaal      String?
 
-  // ==========================================================
-  // PLANETARY DETAILS
-  // ==========================================================
-
   moonSign  String?
   sunSign   String?
   ascendant String?
@@ -304,16 +264,8 @@ warning String?
   rahuStatus    String?
   ketuStatus    String?
 
-  // ==========================================================
-  // COMPATIBILITY
-  // ==========================================================
-
   compatibleSigns String[]
   avoidSigns      String[]
-
-  // ==========================================================
-  // REMEDIES
-  // ==========================================================
 
   todayRemedy    String?
   chantMantra    String?
@@ -324,36 +276,29 @@ warning String?
   fastingSuggestion String?
   deityOfTheDay     String?
 
-  // ==========================================================
-  // IMAGES
-  // ==========================================================
-
   horoscopeImage String?
   instagramImage String?
   storyImage     String?
   squareImage    String?
   bannerImage    String?
 
-  // ==========================================================
-  // SOCIAL SHARE
-  // ==========================================================
-
   shareTitle       String?
   shareDescription String?
   shareUrl         String?
 
-  // ==========================================================
+  //////////////////////////////////////////////////////
   // AI
-  // ==========================================================
+  //////////////////////////////////////////////////////
 
   aiGenerated Boolean   @default(false)
   aiVersion   String?
   aiPrompt    String?
   generatedAt DateTime?
   aiSummary   Json?
-  // ==========================================================
+
+  //////////////////////////////////////////////////////
   // INTERNAL
-  // ==========================================================
+  //////////////////////////////////////////////////////
 
   astrologyVersion Int?      @default(1)
   lastAstroUpdate  DateTime?
@@ -363,8 +308,8 @@ warning String?
   //////////////////////////////////////////////////////
 
   status      PostStatus @default(pending)
-publishedAt DateTime?
-scheduledAt DateTime?
+  publishedAt DateTime?
+  scheduledAt DateTime?
 
   //////////////////////////////////////////////////////
   // ENGAGEMENT
@@ -379,35 +324,27 @@ scheduledAt DateTime?
   surprising Int @default(0)
   concerning Int @default(0)
 
-
   //////////////////////////////////////////////////////
   // EDITORIAL INTELLIGENCE
   //////////////////////////////////////////////////////
 
   keyHighlights String[]
+  whyItMatters  String?
 
-  whyItMatters String?
+  //////////////////////////////////////////////////////
+  // ARTICLE INTELLIGENCE V1
+  //////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////
-// ARTICLE INTELLIGENCE V1
-//////////////////////////////////////////////////////
+  shortBrief String?
+  background String?
 
-shortBrief String?
+  timeline      Json?
+  expertOpinion Json?
+  factCheck     Json?
 
-background String?
-
-timeline Json?
-
-expertOpinion Json?
-
-factCheck Json?
-
-whatsNext String?
-
-keyTakeaways String[]
-
-sourceDesk Json?
-
+  whatsNext    String?
+  keyTakeaways String[]
+  sourceDesk   Json?
 
   //////////////////////////////////////////////////////
   // TRENDING
@@ -429,7 +366,7 @@ sourceDesk Json?
   readingTime     Int?
   metaTitle       String?
   metaDescription String?
- faqItems        Json?
+  faqItems        Json?
   metaKeywords    String?
   canonicalUrl    String?
   ogImage         String?
@@ -452,8 +389,6 @@ sourceDesk Json?
   authorId String? @db.ObjectId
   author   User?   @relation(fields: [authorId], references: [id])
 
-  comments Comment[]
-
   //////////////////////////////////////////////////////
   // INDEXES
   //////////////////////////////////////////////////////
@@ -473,81 +408,614 @@ sourceDesk Json?
   @@index([isDeleted])
   @@index([breaking, isDeleted, status, breakingEnd, breakingPriority, createdAt])
   @@map("Article")
-  
 }
 
 //////////////////////////////////////////////////////
-// COMMENT
+// ARTICLE ANALYTICS EVENT
 //////////////////////////////////////////////////////
 
-model Comment {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  content String
+model ArticleAnalyticsEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  userId String? @db.ObjectId
-  user   User?   @relation(fields: [userId], references: [id])
+  //////////////////////////////////////////////////////
+  // ARTICLE
+  //////////////////////////////////////////////////////
 
   articleId String  @db.ObjectId
   article   Article @relation(fields: [articleId], references: [id])
 
-  isDeleted Boolean  @default(false)
+  //////////////////////////////////////////////////////
+  // EVENT
+  //////////////////////////////////////////////////////
+
+  eventType String
+
+  //////////////////////////////////////////////////////
+  // USER / SESSION
+  //////////////////////////////////////////////////////
+
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
+
+  sessionId String?
+
+  //////////////////////////////////////////////////////
+  // REQUEST / DEVICE
+  //////////////////////////////////////////////////////
+
+  ip        String?
+  userAgent String?
+  referrer  String?
+
+  //////////////////////////////////////////////////////
+  // LOCATION
+  //////////////////////////////////////////////////////
+  //
+  // Resolved from visitor request/IP.
+  // Optional because location may not always resolve.
+  //
+
+  country     String?
+  countryCode String?
+
+  state  String?
+  city   String?
+  region String?
+
+  latitude  Float?
+  longitude Float?
+
+  timezone String?
+
+  //////////////////////////////////////////////////////
+  // PAGE / SOURCE
+  //////////////////////////////////////////////////////
+
+  path     String?
+  source   String?
+  campaign String?
+
+  //////////////////////////////////////////////////////
+  // EXTRA EVENT DATA
+  //////////////////////////////////////////////////////
+
+  metadata Json?
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMP
+  //////////////////////////////////////////////////////
+
   createdAt DateTime @default(now())
 
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
   @@index([articleId])
+  @@index([eventType])
+  @@index([userId])
+  @@index([sessionId])
   @@index([createdAt])
-  @@map("Comment")
+  @@index([country, createdAt])
+  @@index([countryCode, createdAt])
+  @@index([state, createdAt])
+  @@index([city, createdAt])
+  @@index([articleId, eventType, createdAt])
+  @@map("ArticleAnalyticsEvent")
+}
+
+//////////////////////////////////////////////////////
+// CATEGORY ANALYTICS EVENT
+//////////////////////////////////////////////////////
+
+model CategoryAnalyticsEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // CATEGORY
+  //////////////////////////////////////////////////////
+
+  categoryId String   @db.ObjectId
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // EVENT
+  //////////////////////////////////////////////////////
+
+  eventType String
+
+  //////////////////////////////////////////////////////
+  // USER / SESSION
+  //////////////////////////////////////////////////////
+
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
+
+  sessionId String?
+
+  //////////////////////////////////////////////////////
+  // REQUEST / DEVICE
+  //////////////////////////////////////////////////////
+
+  ip        String?
+  userAgent String?
+  referrer  String?
+
+  //////////////////////////////////////////////////////
+  // LOCATION
+  //////////////////////////////////////////////////////
+
+  country     String?
+  countryCode String?
+
+  state  String?
+  city   String?
+  region String?
+
+  latitude  Float?
+  longitude Float?
+
+  timezone String?
+
+  //////////////////////////////////////////////////////
+  // PAGE / SOURCE
+  //////////////////////////////////////////////////////
+
+  path     String?
+  source   String?
+  campaign String?
+
+  //////////////////////////////////////////////////////
+  // EXTRA EVENT DATA
+  //////////////////////////////////////////////////////
+
+  metadata Json?
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMP
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([categoryId])
+  @@index([eventType])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([country, createdAt])
+  @@index([countryCode, createdAt])
+  @@index([state, createdAt])
+  @@index([city, createdAt])
+  @@index([categoryId, eventType, createdAt])
+  @@map("CategoryAnalyticsEvent")
 }
 
 //////////////////////////////////////////////////////
 // USER
 //////////////////////////////////////////////////////
+//
+// SINGLE CANONICAL USER MODEL
+//
+// MongoDB collection:
+//   users
+//
+// Authentication:
+// - Email + password
+// - Google
+// - Phone OTP
+// - Email OTP
+//
+// IMPORTANT:
+// - There is ONE User model.
+// - There is ONE canonical users collection.
+// - All authentication methods resolve to this User.
+//
+//////////////////////////////////////////////////////
 
 model User {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name     String?
-  email    String  @unique
-  password String
+  //////////////////////////////////////////////////////
+  // BASIC PROFILE
+  //////////////////////////////////////////////////////
 
-  role     Role    @default(user)
-  isActive Boolean @default(true)
-  avatar   String?
+  name   String?
+  email  String? @unique
+  avatar String?
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  //////////////////////////////////////////////////////
+  // LEGACY / PROFILE DATA
+  //////////////////////////////////////////////////////
+
+  profile      Json?
+  permissions  Json?
+  birthProfile Json?
+  subscription Json?
+
+  //////////////////////////////////////////////////////
+  // AUTHENTICATION
+  //////////////////////////////////////////////////////
+
+  password String?
+
+  // credentials | google | otp
+  provider   String  @default("credentials")
+  providerId String?
+
+  lastLoginAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // ACCOUNT STATUS
+  //////////////////////////////////////////////////////
+
+  role     Role     @default(user)
+  status   String   @default("active")
+  isActive Boolean? @default(true)
+
+  //////////////////////////////////////////////////////
+  // PHONE IDENTITIES
+  //////////////////////////////////////////////////////
+
+  phoneNumbers UserPhone[]
+
+  //////////////////////////////////////////////////////
+  // EMAIL IDENTITIES
+  //////////////////////////////////////////////////////
+
+  emailAddresses          UserEmail[]
+  emailVerificationTokens EmailVerificationToken[]
+
+  //////////////////////////////////////////////////////
+  // OTP RECORDS
+  //////////////////////////////////////////////////////
+
+  otps UserOtp[]
+
+  //////////////////////////////////////////////////////
+  // CONTENT RELATIONS
+  //////////////////////////////////////////////////////
 
   articles Article[]
-  comments Comment[]
-  activity ActivityLog[]
-  createdPolls Poll[]
 
-pollVotes PollVote[]
+  //////////////////////////////////////////////////////
+  // ANALYTICS RELATIONS
+  //////////////////////////////////////////////////////
+
+  articleAnalyticsEvents  ArticleAnalyticsEvent[]
+  categoryAnalyticsEvents CategoryAnalyticsEvent[]
+
+  //////////////////////////////////////////////////////
+  // ACTIVITY
+  //////////////////////////////////////////////////////
+
+  activity ActivityLog[]
+
+  //////////////////////////////////////////////////////
+  // POLLS
+  //////////////////////////////////////////////////////
+
+  createdPolls Poll[]
+  pollVotes    PollVote[]
+
+  //////////////////////////////////////////////////////
+  // CHAT
+  //////////////////////////////////////////////////////
 
   sentMessages     ChatMessage[] @relation("MessageSender")
   receivedMessages ChatMessage[] @relation("MessageReceiver")
 
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////
+  // CANONICAL MONGODB COLLECTION
+  //////////////////////////////////////////////////////
+
   @@index([role])
   @@index([isActive])
-  @@map("User")
+  @@index([status])
+  @@index([provider])
+  @@index([providerId])
+  @@map("users")
 }
 
 //////////////////////////////////////////////////////
-// CHAT
+// USER PHONE
+//
+// Stores phone identities belonging to a User.
+//
+// Phone numbers are globally unique.
+//
+// Phone format:
+//   E.164
+//
+// Example:
+//   +919876543210
+//
+//////////////////////////////////////////////////////
+
+model UserPhone {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // PHONE
+  //////////////////////////////////////////////////////
+
+  phone String @unique
+
+  //////////////////////////////////////////////////////
+  // VERIFICATION
+  //////////////////////////////////////////////////////
+
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // OWNERSHIP
+  //////////////////////////////////////////////////////
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////
+  // COLLECTION
+  //////////////////////////////////////////////////////
+
+  @@index([userId])
+  @@index([isVerified])
+  @@map("UserPhone")
+}
+
+//////////////////////////////////////////////////////
+// USER EMAIL
+//
+// Stores email identities belonging to a User.
+//
+// Email verification is independent from phone
+// verification.
+//
+//////////////////////////////////////////////////////
+
+model UserEmail {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // EMAIL
+  //////////////////////////////////////////////////////
+
+  email String @unique
+
+  //////////////////////////////////////////////////////
+  // VERIFICATION
+  //////////////////////////////////////////////////////
+
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // OWNERSHIP
+  //////////////////////////////////////////////////////
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////
+  // COLLECTION
+  //////////////////////////////////////////////////////
+
+  @@index([userId])
+  @@index([isVerified])
+  @@map("UserEmail")
+}
+
+//////////////////////////////////////////////////////
+// USER OTP
+//
+// Temporary OTP authentication records.
+//
+// Supports:
+// - Phone OTP
+// - Email OTP
+//
+// IMPORTANT:
+// - NEVER store plaintext OTP.
+// - Only otpHash is stored.
+// - OTP may exist before a User account exists.
+//
+//////////////////////////////////////////////////////
+
+model UserOtp {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // OTP CHANNEL
+  //
+  // phone
+  // email
+  //
+  //////////////////////////////////////////////////////
+
+  channel String @default("phone")
+
+  //////////////////////////////////////////////////////
+  // DESTINATION
+  //
+  // Phone example:
+  //   +919876543210
+  //
+  // Email example:
+  //   user@example.com
+  //
+  //////////////////////////////////////////////////////
+
+  phone String?
+  email String?
+
+  //////////////////////////////////////////////////////
+  // OTP SECURITY
+  //////////////////////////////////////////////////////
+
+  otpHash String
+
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // PURPOSE
+  //
+  // login
+  // signup
+  // verify_phone
+  // verify_email
+  // change_phone
+  // change_email
+  // reset_password
+  //
+  //////////////////////////////////////////////////////
+
+  purpose String @default("login")
+
+  //////////////////////////////////////////////////////
+  // SECURITY / RATE LIMITING
+  //////////////////////////////////////////////////////
+
+  attempts    Int @default(0)
+  maxAttempts Int @default(5)
+
+  //////////////////////////////////////////////////////
+  // USER LINK
+  //
+  // Optional because OTP may be created before
+  // the User account exists.
+  //
+  //////////////////////////////////////////////////////
+
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMP
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////
+  // COLLECTION
+  //////////////////////////////////////////////////////
+
+  @@index([phone])
+  @@index([email])
+  @@index([channel])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([purpose])
+  @@index([createdAt])
+  @@map("UserOtp")
+}
+
+//////////////////////////////////////////////////////
+// EMAIL VERIFICATION TOKEN
+//////////////////////////////////////////////////////
+
+model EmailVerificationToken {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  tokenHash String @unique
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  email String
+
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("EmailVerificationToken")
+}
+
+//////////////////////////////////////////////////////
+// CHAT MESSAGE
 //////////////////////////////////////////////////////
 
 model ChatMessage {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
+  //////////////////////////////////////////////////////
+  // SENDER
+  //////////////////////////////////////////////////////
+
   senderId String? @db.ObjectId
-  sender   User?   @relation("MessageSender", fields: [senderId], references: [id])
+
+  sender User? @relation("MessageSender", fields: [senderId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // RECEIVER
+  //////////////////////////////////////////////////////
 
   receiverId String? @db.ObjectId
-  receiver   User?   @relation("MessageReceiver", fields: [receiverId], references: [id])
+
+  receiver User? @relation("MessageReceiver", fields: [receiverId], references: [id])
+
+  //////////////////////////////////////////////////////
+  // MESSAGE
+  //////////////////////////////////////////////////////
 
   message String
   isRead  Boolean @default(false)
 
+  //////////////////////////////////////////////////////
+  // TIMESTAMP
+  //////////////////////////////////////////////////////
+
   createdAt DateTime @default(now())
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
 
   @@index([senderId])
   @@index([receiverId])
@@ -651,15 +1119,13 @@ model VisitorChat {
   @@index([status])
   @@map("VisitorChat")
 }
+
 //////////////////////////////////////////////////////
 // POLL SYSTEM
 //////////////////////////////////////////////////////
 
 model Poll {
-
   id String @id @default(auto()) @map("_id") @db.ObjectId
-
-
 
   //////////////////////////////////////////////////////
   // CONTENT
@@ -667,19 +1133,15 @@ model Poll {
 
   question String
 
- slug String? @unique
+  slug String? @unique
 
   category String?
-
-
 
   //////////////////////////////////////////////////////
   // STATUS
   //////////////////////////////////////////////////////
 
   status String @default("draft")
-
-
 
   //////////////////////////////////////////////////////
   // PUBLISH CONTROL
@@ -689,15 +1151,11 @@ model Poll {
 
   expiresAt DateTime?
 
-
-
   //////////////////////////////////////////////////////
   // ENGAGEMENT
   //////////////////////////////////////////////////////
 
   totalVotes Int @default(0)
-
-
 
   //////////////////////////////////////////////////////
   // CREATOR
@@ -707,8 +1165,6 @@ model Poll {
 
   createdBy User? @relation(fields: [createdById], references: [id])
 
-
-
   //////////////////////////////////////////////////////
   // RELATIONS
   //////////////////////////////////////////////////////
@@ -716,8 +1172,6 @@ model Poll {
   options PollOption[]
 
   votes PollVote[]
-
-
 
   //////////////////////////////////////////////////////
   // TIMESTAMPS
@@ -727,130 +1181,67 @@ model Poll {
 
   updatedAt DateTime? @updatedAt
 
-
-
   //////////////////////////////////////////////////////
   // INDEXES
   //////////////////////////////////////////////////////
 
   @@index([status])
-
   @@index([publishedAt])
-
   @@index([expiresAt])
-
   @@map("Poll")
-
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////
 // POLL OPTION
 //////////////////////////////////////////////////////
 
 model PollOption {
-
-
   id String @id @default(auto()) @map("_id") @db.ObjectId
-
-
 
   text String
 
-
   votes Int @default(0)
-
-
 
   pollId String @db.ObjectId
 
-
   poll Poll @relation(fields: [pollId], references: [id])
-
 
   pollVotes PollVote[]
 
-
-
   createdAt DateTime @default(now())
 
-
-
   @@index([pollId])
-
-
   @@map("PollOption")
-
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////
 // POLL VOTE
 //////////////////////////////////////////////////////
 
 model PollVote {
-
-
   id String @id @default(auto()) @map("_id") @db.ObjectId
-
-
 
   pollId String @db.ObjectId
 
-
   optionId String @db.ObjectId
-
-
 
   userId String? @db.ObjectId
 
-
-
   user User? @relation(fields: [userId], references: [id])
-
-
 
   poll Poll @relation(fields: [pollId], references: [id])
 
-
   option PollOption @relation(fields: [optionId], references: [id])
-
-
 
   ip String?
 
-
   userAgent String?
-
-
 
   createdAt DateTime @default(now())
 
-
-
   @@index([pollId])
-
   @@index([optionId])
-
   @@index([userId])
-
   @@index([createdAt])
-
-
   @@map("PollVote")
-
 }

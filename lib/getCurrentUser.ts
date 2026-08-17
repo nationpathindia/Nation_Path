@@ -1,123 +1,36 @@
 import { getServerSession } from "next-auth";
-import { authOptions } 
-from "@/lib/auth";
 
-import User from "@/app/models/User";
-import dbConnect from "@/lib/mongodb";
-
-
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function getCurrentUser() {
-
-
   try {
+    const session = await getServerSession(authOptions);
 
-
-    await dbConnect();
-
-
-
-
-    const session =
-      await getServerSession(
-        authOptions
-      );
-
-
-
-    if (
-      !session?.user?.email
-    ) {
-
-      console.log(
-        "NO NEXTAUTH SESSION"
-      );
-
+    if (!session?.user?.email) {
       return null;
-
     }
 
+    const email = session.user.email.toLowerCase().trim();
 
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
-
-
-    const email =
-      session.user.email
-      .toLowerCase()
-      .trim();
-
-
-
-
-
-
-    const user =
-      await User.findOne({
-
-        email: {
-          $regex:
-          new RegExp(
-            `^${email}$`,
-            "i"
-          )
-        }
-
-      });
-
-
-
-
-
-
-    if(!user){
-
-      console.log(
-        "USER NOT FOUND:",
-        email
-      );
-
+    if (!user) {
       return null;
-
     }
 
-
-
-
-
-    if(
-      user.status === "blocked"
-    ){
-
-      console.log(
-        "USER BLOCKED:",
-        email
-      );
-
+    if (user.status === "blocked") {
       return null;
-
     }
-
-
-
-
 
     return user;
-
-
-
-  } catch(error){
-
-
-    console.error(
-      "CURRENT USER ERROR:",
-      error
-    );
-
+  } catch (error) {
+    console.error("CURRENT USER ERROR:", error);
 
     return null;
-
-
   }
-
-
 }

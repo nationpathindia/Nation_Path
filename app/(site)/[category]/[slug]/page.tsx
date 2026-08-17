@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import AdRenderer from "@/components/ads/AdRendererClient";
-
+import ArticleAnalyticsTracker from "@/components/analytics/ArticleAnalyticsTracker";
 import ArticleIntelligence from "@/components/article/ArticleIntelligence";
 import ArticleReadingProgress from "@/components/article/ArticleReadingProgress";
 import ArticleHeader from "@/components/article/ArticleHeader";
@@ -797,7 +797,10 @@ export default async function ArticlePage({
           {/* READING PROGRESS */}
 
           <ArticleReadingProgress />
-
+<ArticleAnalyticsTracker
+  articleId={article.id}
+  articleUrl={articleUrl}
+/>
           {/* ================= BREADCRUMB ================= */}
 
           <nav
@@ -869,13 +872,12 @@ export default async function ArticlePage({
           {/* ================= HERO ================= */}
 
           <ArticleHero
-            imageGallery={
-              optimizedGallery
-            }
-            images={article.images}
-            title={article.title}
-            shareUrl={articleUrl}
-          />
+  imageGallery={optimizedGallery}
+  images={article.images}
+  title={article.title}
+  shareUrl={articleUrl}
+  articleId={article.id}
+/>
 
           {/* ================= AI SUMMARY ================= */}
 

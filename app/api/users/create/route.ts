@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
 export async function POST(req: Request) {
-
   try {
-
-
     const body = await req.json();
-
 
     const {
       name,
@@ -21,10 +16,9 @@ export async function POST(req: Request) {
       role,
     } = body;
 
-
+    /* ================= VALIDATION ================= */
 
     if (!name || !email || !password) {
-
       return NextResponse.json(
         {
           success: false,
@@ -34,23 +28,22 @@ export async function POST(req: Request) {
           status: 400,
         }
       );
-
     }
-
-
 
     const normalizedEmail = email.toLowerCase().trim();
 
+    /* ================= DUPLICATE CHECK ================= */
 
-
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: normalizedEmail,
+      },
+      select: {
+        id: true,
+      },
     });
 
-
-
     if (existingUser) {
-
       return NextResponse.json(
         {
           success: false,
@@ -60,17 +53,16 @@ export async function POST(req: Request) {
           status: 409,
         }
       );
-
     }
 
-
+    /* ================= PASSWORD ================= */
 
     const hashedPassword = await bcrypt.hash(
       password,
       10
     );
 
-
+    /* ================= ROLE ================= */
 
     const allowedRoles = [
       "superadmin",
@@ -81,69 +73,54 @@ export async function POST(req: Request) {
       "user",
     ];
 
-
-
     const safeRole = allowedRoles.includes(role)
       ? role
       : "user";
 
+    /* ================= CREATE USER ================= */
 
-
-    const user = await User.create({
-
-      name,
-
-      email: normalizedEmail,
-
-      password: hashedPassword,
-
-      role: safeRole,
-
-      status: "active",
-
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: safeRole,
+        status: "active",
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
     });
 
-
+    /* ================= RESPONSE ================= */
 
     return NextResponse.json({
-
       success: true,
-
       user: {
-
-        id: user._id.toString(),
-
+        id: user.id,
         name: user.name,
-
         email: user.email,
-
         role: user.role,
-
       },
-
     });
-
-
-
-  } catch(error) {
-
-
+  } catch (error) {
     console.error(
       "CREATE USER ERROR:",
       error
     );
 
-
     return NextResponse.json(
       {
-        success:false,
-        message:"Server error",
+        success: false,
+        message: "Server error",
       },
       {
-        status:500,
+        status: 500,
       }
     );
-
   }
-
 }

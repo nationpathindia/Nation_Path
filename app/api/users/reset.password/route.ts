@@ -1,28 +1,20 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
 export async function POST(req: Request) {
-
   try {
-
-
     const body = await req.json();
 
     const userId = body?.userId;
-
     const newPassword = body?.newPassword;
-
-
 
     /* ================= VALIDATION ================= */
 
     if (!userId || !newPassword) {
-
       return NextResponse.json(
         {
           success: false,
@@ -32,19 +24,20 @@ export async function POST(req: Request) {
           status: 400,
         }
       );
-
     }
-
-
 
     /* ================= CHECK USER ================= */
 
-    const user = await User.findById(userId);
-
-
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
     if (!user) {
-
       return NextResponse.json(
         {
           success: false,
@@ -54,10 +47,7 @@ export async function POST(req: Request) {
           status: 404,
         }
       );
-
     }
-
-
 
     /* ================= HASH PASSWORD ================= */
 
@@ -66,37 +56,28 @@ export async function POST(req: Request) {
       10
     );
 
-
-
     /* ================= UPDATE PASSWORD ================= */
 
-    await User.findByIdAndUpdate(
-      userId,
-      {
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
         password: hashedPassword,
-      }
-    );
-
-
-
-    return NextResponse.json({
-
-      success: true,
-
-      message: "Password reset successful",
-
+      },
     });
 
+    /* ================= RESPONSE ================= */
 
-
+    return NextResponse.json({
+      success: true,
+      message: "Password reset successful",
+    });
   } catch (error) {
-
-
     console.error(
       "RESET PASSWORD ERROR:",
       error
     );
-
 
     return NextResponse.json(
       {
@@ -107,7 +88,5 @@ export async function POST(req: Request) {
         status: 500,
       }
     );
-
   }
-
 }

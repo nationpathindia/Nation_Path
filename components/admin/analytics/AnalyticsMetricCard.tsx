@@ -8,130 +8,161 @@ interface AnalyticsMetricCardProps {
   description?: string;
 }
 
+
 const ACCENTS = {
   navy: {
-    icon: "bg-[#163C80]/15 text-[#7FA1E3]",
-    border: "hover:border-[#163C80]/40",
+    icon: "bg-[#163C80]/20 text-[#8FAEFF]",
     glow: "bg-[#163C80]/10",
+    hover: "hover:border-[#163C80]/40",
   },
 
   orange: {
-    icon: "bg-[#EA661B]/10 text-[#EA661B]",
-    border: "hover:border-[#EA661B]/40",
-    glow: "bg-[#EA661B]/10",
+    icon: "bg-orange-500/10 text-orange-400",
+    glow: "bg-orange-500/10",
+    hover: "hover:border-orange-500/40",
   },
 
   green: {
     icon: "bg-emerald-500/10 text-emerald-400",
-    border: "hover:border-emerald-500/30",
     glow: "bg-emerald-500/10",
+    hover: "hover:border-emerald-500/40",
   },
 } as const;
+
 
 export default function AnalyticsMetricCard({
   label,
   value,
   icon: Icon,
-  accent = "navy",
+  accent = "orange",
   description,
 }: AnalyticsMetricCardProps) {
-  const style = ACCENTS[accent];
 
-  const safeValue = Number.isFinite(value) ? value : 0;
+  const style = ACCENTS[accent];
 
   return (
     <div
-      className={[
-        "group relative overflow-hidden",
-        "rounded-2xl border border-white/[0.08]",
-        "bg-white/[0.035]",
-        "px-5 py-4",
-        "transition-all duration-200 ease-out",
-        "hover:-translate-y-[1px]",
-        "hover:bg-white/[0.05]",
-        style.border,
-      ].join(" ")}
+      className={`
+        group
+        relative
+        overflow-hidden
+        h-[88px]
+        rounded-xl
+        border
+        border-white/[0.08]
+        bg-black/30
+        backdrop-blur-xl
+        px-4
+        py-3
+        transition-all
+        duration-300
+        hover:-translate-y-0.5
+        hover:bg-white/[0.04]
+        hover:shadow-lg
+        ${style.hover}
+      `}
     >
-      {/* =====================================================
-          SUBTLE ACCENT GLOW
-      ===================================================== */}
+
+      {/* subtle glow */}
 
       <div
-        aria-hidden="true"
-        className={[
-          "pointer-events-none absolute -right-8 -top-8",
-          "h-20 w-20 rounded-full blur-2xl",
-          "opacity-0 transition-opacity duration-300",
-          "group-hover:opacity-100",
-          style.glow,
-        ].join(" ")}
+        className={`
+          absolute
+          right-0
+          top-0
+          h-14
+          w-14
+          rounded-full
+          blur-2xl
+          opacity-60
+          ${style.glow}
+        `}
       />
 
-      {/* =====================================================
-          CONTENT
-      ===================================================== */}
 
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
+      <div
+        className="
+          relative
+          z-10
+          flex
+          h-full
+          items-center
+          justify-between
+        "
+      >
+
+        <div className="min-w-0">
+
           <p
-            className={[
-              "truncate",
-              "text-[11px] font-medium uppercase",
-              "tracking-[0.1em]",
-              "text-gray-500",
-              "transition-colors duration-200",
-              "group-hover:text-gray-400",
-            ].join(" ")}
+            className="
+              truncate
+              text-[10px]
+              uppercase
+              tracking-widest
+              text-gray-500
+            "
           >
             {label}
           </p>
 
-          <p
-            className={[
-              "mt-2",
-              "text-2xl font-semibold tracking-tight",
-              "text-white",
-              "tabular-nums",
-              "md:text-[28px]",
-            ].join(" ")}
+
+          <h3
+            className="
+              mt-1
+              text-xl
+              font-bold
+              leading-none
+              tracking-tight
+              text-white
+              tabular-nums
+            "
           >
-            {safeValue.toLocaleString("en-IN")}
-          </p>
+            {value?.toLocaleString("en-IN")}
+          </h3>
+
 
           {description && (
             <p
-              className={[
-                "mt-1",
-                "truncate",
-                "text-xs",
-                "leading-5",
-                "text-gray-500",
-              ].join(" ")}
+              className="
+                mt-1
+                truncate
+                text-[10px]
+                text-gray-600
+              "
             >
               {description}
             </p>
           )}
+
         </div>
 
-        {/* ===================================================
-            ICON
-        =================================================== */}
 
         <div
-          className={[
-            "flex h-10 w-10 shrink-0 items-center justify-center",
-            "rounded-xl",
-            "transition-transform duration-200",
-            "group-hover:scale-[1.04]",
-            style.icon,
-          ].join(" ")}
+          className={`
+            flex
+            h-7
+            w-7
+            items-center
+            justify-center
+            rounded-lg
+            border
+            border-white/5
+            transition
+            group-hover:scale-105
+            ${style.icon}
+          `}
         >
+
           <Icon
-            size={18}
-            strokeWidth={1.8}
+            size={14}
+            strokeWidth={2}
           />
+
         </div>
+
+
       </div>
+
     </div>
   );
 }

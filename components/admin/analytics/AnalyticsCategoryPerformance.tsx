@@ -6,373 +6,696 @@ import {
   BookOpen,
   Eye,
   FolderTree,
+  Flame,
   Share2,
   TrendingUp,
+  Users,
 } from "lucide-react";
 
+
 export interface AnalyticsCategoryItem {
-  id: string;
-  name: string;
 
-  views?: number;
-  reads?: number;
-  shares?: number;
-  events?: number;
-  score?: number;
+  id:string;
 
-  percentage?: number;
+  name:string;
+
+  views?:number;
+
+  reads?:number;
+
+  shares?:number;
+
+  events?:number;
+
+  users?:number;
+
+  growth?:number;
+
+  score?:number;
+
+  percentage?:number;
+
 }
 
-interface AnalyticsCategoryPerformanceProps {
-  categories?: AnalyticsCategoryItem[];
+
+
+interface AnalyticsCategoryPerformanceProps{
+
+ categories?:AnalyticsCategoryItem[];
+
 }
 
-function number(value?: number) {
-  return Number(value) || 0;
+
+
+function number(value?:number){
+
+ return Number(value)||0;
+
 }
 
-function getScore(
-  category: AnalyticsCategoryItem
-) {
-  if (
-    typeof category.score === "number" &&
-    Number.isFinite(category.score)
-  ) {
-    return category.score;
-  }
 
-  return (
-    number(category.views) +
-    number(category.reads) * 2 +
-    number(category.shares) * 3
-  );
+
+function score(item:AnalyticsCategoryItem){
+
+ if(typeof item.score==="number")
+ return item.score;
+
+
+ return (
+  number(item.views)
+  +
+  number(item.reads)*2
+  +
+  number(item.shares)*4
+ );
+
 }
 
-function getPerformanceLabel(score: number) {
-  if (score >= 1000) {
-    return "Leading";
-  }
 
-  if (score >= 500) {
-    return "Strong";
-  }
 
-  if (score >= 100) {
-    return "Growing";
-  }
+function engagementRate(item:AnalyticsCategoryItem){
 
-  return "Emerging";
+ const views=number(item.views);
+
+ if(!views)
+ return 0;
+
+
+ return Math.round(
+ (
+ (
+ number(item.reads)
+ +
+ number(item.shares)
+ )
+ /
+ views
+ )
+ *100
+ );
+
 }
 
-function getPerformanceClass(score: number) {
-  if (score >= 500) {
-    return "text-emerald-400";
-  }
 
-  if (score >= 100) {
-    return "text-[#EA661B]";
-  }
 
-  return "text-gray-500";
+function growthLabel(value:number){
+
+ if(value>=50)
+ return "Explosive";
+
+ if(value>=20)
+ return "Growing";
+
+ if(value>0)
+ return "Rising";
+
+ return "Stable";
+
 }
 
-function CategoryRow({
-  category,
-  index,
-  maxViews,
-}: {
-  category: AnalyticsCategoryItem;
-  index: number;
-  maxViews: number;
-}) {
-  const views = number(category.views);
-  const reads = number(category.reads);
-  const shares = number(category.shares);
-  const events = number(category.events);
 
-  const score = getScore(category);
 
-  const percentage =
-    typeof category.percentage === "number"
-      ? category.percentage
-      : maxViews > 0
-        ? (views / maxViews) * 100
-        : 0;
+function growthClass(value:number){
 
-  const performanceLabel =
-    getPerformanceLabel(score);
+ if(value>=50)
+ return "text-emerald-400";
 
-  return (
-    <div className="group px-5 py-4 transition hover:bg-white/[0.025]">
-      <div className="flex gap-4">
-        {/* RANK */}
 
-        <div className="flex w-8 shrink-0 flex-col items-center">
-          <div
-            className={[
-              "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold",
-              index === 0
-                ? "bg-[#EA661B]/10 text-[#EA661B]"
-                : "bg-white/[0.04] text-gray-500",
-            ].join(" ")}
-          >
-            {index + 1}
-          </div>
-        </div>
+ if(value>0)
+ return "text-[#EA661B]";
 
-        {/* CONTENT */}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-semibold text-gray-100 group-hover:text-white">
-                  {category.name}
-                </p>
+ return "text-gray-500";
 
-                <ArrowUpRight
-                  size={13}
-                  strokeWidth={1.8}
-                  className="hidden shrink-0 text-gray-700 sm:block"
-                />
-              </div>
-
-              <div className="mt-1.5 flex items-center gap-2">
-                <span className="text-xs text-gray-600">
-                  {events.toLocaleString()} events
-                </span>
-
-                <span className="text-gray-700">
-                  •
-                </span>
-
-                <span
-                  className={`text-xs font-medium ${getPerformanceClass(
-                    score
-                  )}`}
-                >
-                  {performanceLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* SCORE */}
-
-            <div className="shrink-0 text-right">
-              <p
-                className={`text-sm font-semibold ${getPerformanceClass(
-                  score
-                )}`}
-              >
-                {score.toLocaleString()}
-              </p>
-
-              <p className="mt-0.5 text-[10px] text-gray-600">
-                performance score
-              </p>
-            </div>
-          </div>
-
-          {/* PERFORMANCE BAR */}
-
-          <div className="mt-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] uppercase tracking-[0.07em] text-gray-600">
-                Audience activity
-              </span>
-
-              <span className="text-[10px] text-gray-600">
-                {Math.round(
-                  Math.max(
-                    0,
-                    Math.min(100, percentage)
-                  )
-                )}
-                %
-              </span>
-            </div>
-
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full bg-[#163C80] transition-all"
-                style={{
-                  width: `${Math.max(
-                    3,
-                    Math.min(100, percentage)
-                  )}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* METRICS */}
-
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <CategoryMetric
-              icon={Eye}
-              label="Views"
-              value={views}
-            />
-
-            <CategoryMetric
-              icon={BookOpen}
-              label="Reads"
-              value={reads}
-            />
-
-            <CategoryMetric
-              icon={Share2}
-              label="Shares"
-              value={shares}
-            />
-
-            <CategoryMetric
-              icon={BarChart3}
-              label="Events"
-              value={events}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
+
+
 
 function CategoryMetric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Eye;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon
-        size={13}
-        strokeWidth={1.8}
-        className="shrink-0 text-gray-500"
-      />
+icon:Icon,
+label,
+value
+}:{
+icon:any;
+label:string;
+value:number|string;
+}){
 
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-[0.06em] text-gray-600">
-          {label}
-        </p>
 
-        <p className="mt-0.5 text-xs font-semibold text-gray-300">
-          {value.toLocaleString()}
-        </p>
-      </div>
-    </div>
-  );
+return(
+
+<div className="
+rounded-lg
+bg-white/[0.025]
+border
+border-white/[0.05]
+p-3
+">
+
+<div className="
+flex
+items-center
+gap-2
+">
+
+<Icon
+size={13}
+className="text-gray-500"
+/>
+
+
+<span className="
+text-[10px]
+uppercase
+tracking-wide
+text-gray-600
+">
+{label}
+</span>
+
+</div>
+
+
+<p className="
+mt-2
+text-sm
+font-semibold
+text-white
+">
+
+{value}
+
+</p>
+
+
+</div>
+
+)
+
 }
+
+
+
+
+function CategoryRow({
+item,
+index,
+maxScore
+}:{
+item:AnalyticsCategoryItem;
+index:number;
+maxScore:number;
+}){
+
+
+const views=number(item.views);
+
+const reads=number(item.reads);
+
+const shares=number(item.shares);
+
+const users=number(item.users);
+
+
+const performance=score(item);
+
+
+const rate=
+engagementRate(item);
+
+
+
+const width=
+maxScore
+?
+(performance/maxScore)*100
+:
+0;
+
+
+
+return(
+
+<div
+className="
+group
+px-5
+py-5
+transition
+hover:bg-white/[0.025]
+"
+>
+
+
+<div className="
+flex
+gap-4
+">
+
+
+<div>
+
+<div
+className={`
+h-9
+w-9
+rounded-xl
+flex
+items-center
+justify-center
+text-xs
+font-bold
+${
+index===0
+?
+"bg-orange-500/10 text-orange-400"
+:
+"bg-white/[0.04] text-gray-500"
+}
+`}
+>
+
+{
+index===0
+?
+<Flame size={14}/>
+:
+index+1
+}
+
+</div>
+
+</div>
+
+
+
+<div className="
+flex-1
+min-w-0
+">
+
+
+<div className="
+flex
+justify-between
+gap-4
+">
+
+
+<div>
+
+
+<div className="
+flex
+items-center
+gap-2
+">
+
+
+<h3 className="
+text-sm
+font-semibold
+text-gray-100
+group-hover:text-white
+">
+
+{item.name}
+
+</h3>
+
+
+<ArrowUpRight
+size={13}
+className="
+text-gray-600
+"
+/>
+
+
+</div>
+
+
+
+<div className="
+mt-1
+flex
+items-center
+gap-2
+">
+
+
+<span className="
+text-xs
+text-gray-600
+">
+
+{growthLabel(item.growth||0)}
+
+</span>
+
+
+<span className="
+text-gray-700
+">
+•
+</span>
+
+
+<span
+className={`
+text-xs
+font-medium
+${growthClass(item.growth||0)}
+`}
+>
+
++{item.growth||0}%
+
+</span>
+
+
+</div>
+
+
+</div>
+
+
+
+<div className="text-right">
+
+
+<p className="
+text-sm
+font-bold
+text-white
+">
+
+{performance.toLocaleString()}
+
+</p>
+
+
+<p className="
+text-[10px]
+text-gray-600
+">
+
+score
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<div className="mt-4">
+
+
+<div className="
+flex
+justify-between
+text-[10px]
+text-gray-600
+">
+
+<span>
+Category impact
+</span>
+
+
+<span>
+{Math.round(width)}%
+</span>
+
+
+</div>
+
+
+
+<div className="
+mt-2
+h-1.5
+rounded-full
+bg-white/[0.06]
+overflow-hidden
+">
+
+
+<div
+className="
+h-full
+rounded-full
+bg-[#EA661B]
+"
+style={{
+width:`${Math.min(100,width)}%`
+}}
+/>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<div className="
+mt-4
+grid
+grid-cols-2
+gap-3
+sm:grid-cols-5
+">
+
+
+<CategoryMetric
+icon={Eye}
+label="Views"
+value={views.toLocaleString()}
+/>
+
+
+<CategoryMetric
+icon={BookOpen}
+label="Reads"
+value={reads.toLocaleString()}
+/>
+
+
+<CategoryMetric
+icon={Share2}
+label="Shares"
+value={shares.toLocaleString()}
+/>
+
+
+<CategoryMetric
+icon={Users}
+label="Users"
+value={users.toLocaleString()}
+/>
+
+
+<CategoryMetric
+icon={BarChart3}
+label="Engage"
+value={`${rate}%`}
+/>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+)
+
+}
+
+
+
 
 export default function AnalyticsCategoryPerformance({
-  categories = [],
-}: AnalyticsCategoryPerformanceProps) {
-  const visibleCategories =
-    categories.slice(0, 10);
 
-  const maxViews = Math.max(
-    ...visibleCategories.map((item) =>
-      number(item.views)
-    ),
-    1
-  );
+categories=[]
 
-  return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
-      {/* HEADER */}
+}:AnalyticsCategoryPerformanceProps){
 
-      <div className="flex flex-col gap-3 border-b border-white/[0.07] px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <FolderTree
-              size={17}
-              strokeWidth={1.8}
-              className="text-[#EA661B]"
-            />
 
-            <h2 className="text-lg font-semibold text-white">
-              Category Performance
-            </h2>
-          </div>
+const data=
+categories
+.slice(0,10)
+.sort(
+(a,b)=>
+score(b)-score(a)
+);
 
-          <p className="mt-1 text-sm text-gray-500">
-            Which content categories are generating the strongest audience engagement.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <TrendingUp
-            size={13}
-            strokeWidth={1.8}
-            className="text-[#EA661B]"
-          />
 
-          Engagement ranking
-        </div>
-      </div>
+const maxScore=
+Math.max(
+...data.map(score),
+1
+);
 
-      {/* CONTENT */}
 
-      {visibleCategories.length === 0 ? (
-        <div className="flex min-h-[180px] items-center justify-center px-5 text-center">
-          <div>
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-gray-600">
-              <FolderTree
-                size={18}
-                strokeWidth={1.8}
-              />
-            </div>
 
-            <p className="mt-3 text-sm font-medium text-gray-400">
-              No category analytics available
-            </p>
+return(
 
-            <p className="mt-1 text-xs text-gray-600">
-              Category performance will appear as analytics events accumulate.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="divide-y divide-white/[0.06]">
-          {visibleCategories.map(
-            (category, index) => (
-              <CategoryRow
-                key={
-                  category.id ||
-                  `${index}-${category.name}`
-                }
-                category={category}
-                index={index}
-                maxViews={maxViews}
-              />
-            )
-          )}
-        </div>
-      )}
+<section
+className="
+overflow-hidden
+rounded-2xl
+border
+border-white/10
+bg-white/[0.035]
+"
+>
 
-      {/* FOOTER */}
 
-      {visibleCategories.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] px-5 py-3">
-          <p className="text-xs text-gray-600">
-            Top {visibleCategories.length} categories
-          </p>
+<div className="
+flex
+items-center
+justify-between
+border-b
+border-white/[0.07]
+px-5
+py-5
+">
 
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <TrendingUp
-              size={12}
-              strokeWidth={1.8}
-            />
 
-            Ranked by engagement
-          </div>
-        </div>
-      )}
-    </section>
-  );
+<div>
+
+
+<div className="
+flex
+items-center
+gap-2
+">
+
+<FolderTree
+size={17}
+className="text-orange-400"
+/>
+
+
+<h2 className="
+text-lg
+font-semibold
+text-white
+">
+
+Category Intelligence
+
+</h2>
+
+
+</div>
+
+
+
+<p className="
+mt-1
+text-sm
+text-gray-500
+">
+
+Category performance powered by audience behaviour.
+
+</p>
+
+
+</div>
+
+
+<div className="
+flex
+items-center
+gap-2
+text-xs
+text-orange-400
+">
+
+<TrendingUp size={13}/>
+
+Live Ranking
+
+</div>
+
+
+</div>
+
+
+
+{
+data.length===0
+
+?
+
+<div className="
+h-48
+flex
+items-center
+justify-center
+text-gray-500
+">
+
+No category intelligence data
+
+</div>
+
+
+:
+
+
+<div className="
+divide-y
+divide-white/[0.06]
+">
+
+{
+data.map(
+(item,index)=>(
+
+<CategoryRow
+
+key={item.id}
+
+item={item}
+
+index={index}
+
+maxScore={maxScore}
+
+/>
+
+)
+
+)
+
 }
 
+</div>
+
+}
+
+
+
+</section>
+
+)
+
+}

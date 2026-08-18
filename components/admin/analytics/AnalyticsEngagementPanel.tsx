@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 
+
 export interface AnalyticsEngagementPanelData {
   views?: number;
   opens?: number;
@@ -21,306 +22,596 @@ export interface AnalyticsEngagementPanelData {
   uniqueSessions?: number;
 }
 
-interface AnalyticsEngagementPanelProps {
+
+interface Props {
   data?: AnalyticsEngagementPanelData;
 }
 
-function number(value?: number) {
-  return Number(value) || 0;
+
+
+function number(value?:number){
+  return Number(value)||0;
 }
 
-function percentage(
-  value: number,
-  total: number
-) {
-  if (!total || total <= 0) {
-    return 0;
-  }
 
-  return Math.min(
-    100,
-    Math.round((value / total) * 100)
-  );
+
+function rate(
+ value:number,
+ total:number
+){
+ if(!total) return 0;
+
+ return Math.min(
+ 100,
+ Math.round((value/total)*100)
+ );
 }
 
-function EngagementMetric({
-  label,
-  value,
-  icon: Icon,
-  percentageValue,
-  accent = "navy",
-}: {
-  label: string;
-  value: number;
-  icon: typeof Eye;
-  percentageValue?: number;
-  accent?: "navy" | "orange" | "green";
-}) {
-  const iconClass = {
-    navy: "bg-[#163C80]/15 text-[#7FA1E0]",
-    orange: "bg-[#EA661B]/10 text-[#EA661B]",
-    green: "bg-emerald-500/10 text-emerald-400",
-  }[accent];
 
-  return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-500">
-            {label}
-          </p>
 
-          <p className="mt-1.5 text-xl font-bold tracking-tight text-white">
-            {value.toLocaleString()}
-          </p>
-        </div>
+const styles = {
 
-        <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
-        >
-          <Icon
-            size={16}
-            strokeWidth={1.8}
-          />
-        </div>
-      </div>
+orange:{
+ icon:"text-orange-400 bg-orange-500/10",
+ bar:"bg-orange-500"
+},
 
-      {typeof percentageValue === "number" && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-[10px]">
-            <span className="text-gray-600">
-              Engagement share
-            </span>
+green:{
+ icon:"text-emerald-400 bg-emerald-500/10",
+ bar:"bg-emerald-500"
+},
 
-            <span className="font-medium text-gray-500">
-              {percentageValue}%
-            </span>
-          </div>
-
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.05]">
-            <div
-              className="h-full rounded-full bg-[#163C80] transition-all duration-500"
-              style={{
-                width: `${Math.max(
-                  percentageValue,
-                  percentageValue > 0 ? 2 : 0
-                )}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
+blue:{
+ icon:"text-blue-300 bg-blue-500/10",
+ bar:"bg-blue-400"
 }
+
+};
+
+
+
+function Metric({
+ label,
+ value,
+ icon:Icon,
+ percent,
+ color="orange"
+}:{
+ label:string;
+ value:number;
+ icon:any;
+ percent?:number;
+ color?:keyof typeof styles;
+}){
+
+
+const style=styles[color];
+
+
+return (
+
+<div
+className="
+rounded-xl
+border
+border-white/[0.07]
+bg-black/20
+px-4
+py-3
+transition
+hover:border-white/15
+"
+>
+
+
+<div
+className="
+flex
+items-center
+justify-between
+"
+>
+
+
+<div>
+
+<p
+className="
+text-[10px]
+uppercase
+tracking-widest
+text-gray-600
+"
+>
+
+{label}
+
+</p>
+
+
+<p
+className="
+mt-1
+text-xl
+font-semibold
+text-white
+"
+>
+
+{value.toLocaleString()}
+
+</p>
+
+</div>
+
+
+
+<div
+className={`
+flex
+h-7
+w-7
+items-center
+justify-center
+rounded-lg
+${style.icon}
+`}
+>
+
+<Icon
+size={14}
+/>
+
+</div>
+
+
+</div>
+
+
+
+{
+typeof percent==="number" &&
+
+<div
+className="
+mt-3
+"
+>
+
+
+<div
+className="
+flex
+justify-between
+text-[10px]
+text-gray-600
+"
+>
+
+<span>
+Rate
+</span>
+
+<span>
+{percent}%
+</span>
+
+</div>
+
+
+<div
+className="
+mt-1
+h-1
+overflow-hidden
+rounded-full
+bg-white/[0.06]
+"
+>
+
+<div
+className={`
+h-full
+rounded-full
+${style.bar}
+`}
+style={{
+width:`${percent}%`
+}}
+/>
+
+</div>
+
+
+</div>
+
+}
+
+
+
+</div>
+
+);
+
+}
+
+
+
+
+
 
 export default function AnalyticsEngagementPanel({
-  data,
-}: AnalyticsEngagementPanelProps) {
-  const views = number(data?.views);
-  const opens = number(data?.opens);
-  const reads = number(data?.reads);
-  const shares = number(data?.shares);
-  const reactions = number(data?.reactions);
-  const likes = number(data?.likes);
-  const uniqueUsers = number(data?.uniqueUsers);
-  const uniqueSessions = number(
-    data?.uniqueSessions
-  );
+data
+}:Props){
 
-  const totalInteractions =
-    opens +
-    reads +
-    shares +
-    reactions +
-    likes;
 
-  const readRate = percentage(
-    reads,
-    views
-  );
+const views=number(data?.views);
+const reads=number(data?.reads);
+const opens=number(data?.opens);
+const shares=number(data?.shares);
+const reactions=number(data?.reactions);
+const likes=number(data?.likes);
 
-  const shareRate = percentage(
-    shares,
-    views
-  );
+const users=number(data?.uniqueUsers);
+const sessions=number(data?.uniqueSessions);
 
-  const reactionRate = percentage(
-    reactions + likes,
-    views
-  );
 
-  const sessionDepth = percentage(
-    reads,
-    uniqueSessions || views
-  );
+const total=
+opens+
+reads+
+shares+
+reactions+
+likes;
 
-  return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
-      {/* HEADER */}
 
-      <div className="border-b border-white/[0.07] px-5 py-5">
-        <div className="flex items-center gap-2">
-          <Activity
-            size={17}
-            strokeWidth={1.8}
-            className="text-[#EA661B]"
-          />
+const readRate=rate(reads,views);
+const shareRate=rate(shares,views);
+const reactionRate=rate(
+reactions+likes,
+views
+);
 
-          <h2 className="text-lg font-semibold text-white">
-            Engagement Intelligence
-          </h2>
-        </div>
 
-        <p className="mt-1 text-sm text-gray-500">
-          How visitors move from viewing content to meaningful engagement.
-        </p>
-      </div>
 
-      {/* FUNNEL */}
+return (
 
-      <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
-        <EngagementMetric
-          label="Views"
-          value={views}
-          icon={Eye}
-          percentageValue={100}
-          accent="orange"
-        />
+<section
+className="
+overflow-hidden
+rounded-2xl
+border
+border-white/[0.08]
+bg-white/[0.035]
+"
+>
 
-        <EngagementMetric
-          label="Reads"
-          value={reads}
-          icon={BookOpen}
-          percentageValue={readRate}
-          accent="green"
-        />
 
-        <EngagementMetric
-          label="Shares"
-          value={shares}
-          icon={Share2}
-          percentageValue={shareRate}
-          accent="orange"
-        />
+{/* HEADER */}
 
-        <EngagementMetric
-          label="Reactions"
-          value={reactions + likes}
-          icon={Heart}
-          percentageValue={reactionRate}
-          accent="navy"
-        />
-      </div>
+<div
+className="
+border-b
+border-white/[0.06]
+px-5
+py-4
+"
+>
 
-      {/* SECONDARY INTELLIGENCE */}
 
-      <div className="grid gap-4 border-t border-white/[0.06] p-5 sm:grid-cols-3">
-        <div className="rounded-xl bg-white/[0.02] p-4">
-          <div className="flex items-center gap-2">
-            <MousePointerClick
-              size={14}
-              strokeWidth={1.8}
-              className="text-gray-500"
-            />
+<div
+className="
+flex
+items-center
+gap-2
+"
+>
 
-            <p className="text-xs text-gray-500">
-              Opens
-            </p>
-          </div>
+<Activity
+size={15}
+className="text-orange-400"
+/>
 
-          <p className="mt-2 text-lg font-semibold text-white">
-            {opens.toLocaleString()}
-          </p>
 
-          <p className="mt-1 text-[10px] text-gray-600">
-            Article entry interactions
-          </p>
-        </div>
+<h2
+className="
+text-base
+font-semibold
+text-white
+"
+>
 
-        <div className="rounded-xl bg-white/[0.02] p-4">
-          <div className="flex items-center gap-2">
-            <Users
-              size={14}
-              strokeWidth={1.8}
-              className="text-gray-500"
-            />
+Engagement Intelligence
 
-            <p className="text-xs text-gray-500">
-              Unique Users
-            </p>
-          </div>
+</h2>
 
-          <p className="mt-2 text-lg font-semibold text-white">
-            {uniqueUsers.toLocaleString()}
-          </p>
 
-          <p className="mt-1 text-[10px] text-gray-600">
-            Distinct authenticated visitors
-          </p>
-        </div>
+</div>
 
-        <div className="rounded-xl bg-white/[0.02] p-4">
-          <div className="flex items-center gap-2">
-            <Activity
-              size={14}
-              strokeWidth={1.8}
-              className="text-gray-500"
-            />
 
-            <p className="text-xs text-gray-500">
-              Sessions
-            </p>
-          </div>
+<p
+className="
+mt-1
+text-xs
+text-gray-500
+"
+>
 
-          <p className="mt-2 text-lg font-semibold text-white">
-            {uniqueSessions.toLocaleString()}
-          </p>
+Visitor behaviour and content interaction quality
 
-          <p className="mt-1 text-[10px] text-gray-600">
-            Unique analytics sessions
-          </p>
-        </div>
-      </div>
+</p>
 
-      {/* SUMMARY */}
 
-      <div className="border-t border-white/[0.06] px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium text-gray-400">
-              Total meaningful interactions
-            </p>
+</div>
 
-            <p className="mt-1 text-sm text-gray-600">
-              Opens, reads, shares, reactions and likes
-            </p>
-          </div>
 
-          <p className="text-lg font-bold text-white">
-            {totalInteractions.toLocaleString()}
-          </p>
-        </div>
 
-        <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-gray-600">
-          <span>
-            Read rate: {readRate}%
-          </span>
 
-          <span>
-            Share rate: {shareRate}%
-          </span>
 
-          <span>
-            Reaction rate: {reactionRate}%
-          </span>
+{/* MAIN */}
 
-          <span>
-            Session depth: {sessionDepth}%
-          </span>
-        </div>
-      </div>
-    </section>
-  );
+<div
+className="
+grid
+gap-3
+p-5
+sm:grid-cols-2
+xl:grid-cols-4
+"
+>
+
+
+<Metric
+label="Views"
+value={views}
+icon={Eye}
+percent={100}
+/>
+
+
+<Metric
+label="Reads"
+value={reads}
+icon={BookOpen}
+percent={readRate}
+color="green"
+/>
+
+
+<Metric
+label="Shares"
+value={shares}
+icon={Share2}
+percent={shareRate}
+/>
+
+
+<Metric
+label="Reactions"
+value={reactions+likes}
+icon={Heart}
+percent={reactionRate}
+color="blue"
+/>
+
+
+
+</div>
+
+
+
+
+
+{/* SECONDARY */}
+
+<div
+className="
+grid
+gap-3
+border-t
+border-white/[0.06]
+p-5
+sm:grid-cols-3
+"
+>
+
+
+<div
+className="
+rounded-xl
+bg-white/[0.025]
+px-4
+py-3
+"
+>
+
+<div className="flex items-center gap-2">
+
+<MousePointerClick
+size={13}
+className="text-gray-500"
+/>
+
+<span className="text-xs text-gray-500">
+Opens
+</span>
+
+</div>
+
+
+<p
+className="
+mt-2
+text-lg
+font-semibold
+text-white
+"
+>
+
+{opens.toLocaleString()}
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div
+className="
+rounded-xl
+bg-white/[0.025]
+px-4
+py-3
+"
+>
+
+
+<div className="flex items-center gap-2">
+
+<Users
+size={13}
+className="text-gray-500"
+/>
+
+<span className="text-xs text-gray-500">
+Users
+</span>
+
+</div>
+
+
+<p
+className="
+mt-2
+text-lg
+font-semibold
+text-white
+"
+>
+
+{users.toLocaleString()}
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div
+className="
+rounded-xl
+bg-white/[0.025]
+px-4
+py-3
+"
+>
+
+
+<div className="flex items-center gap-2">
+
+<Activity
+size={13}
+className="text-gray-500"
+/>
+
+<span className="text-xs text-gray-500">
+Sessions
+</span>
+
+</div>
+
+
+<p
+className="
+mt-2
+text-lg
+font-semibold
+text-white
+"
+>
+
+{sessions.toLocaleString()}
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+{/* FOOTER */}
+
+<div
+className="
+flex
+items-center
+justify-between
+border-t
+border-white/[0.06]
+px-5
+py-3
+"
+>
+
+
+<div>
+
+<p
+className="
+text-xs
+text-gray-400
+"
+>
+
+Meaningful Interactions
+
+</p>
+
+<p
+className="
+text-[10px]
+text-gray-600
+"
+>
+
+Reads + Shares + Reactions
+
+</p>
+
+</div>
+
+
+<p
+className="
+text-lg
+font-bold
+text-white
+"
+>
+
+{total.toLocaleString()}
+
+</p>
+
+
+</div>
+
+
+
+</section>
+
+);
+
 }
-

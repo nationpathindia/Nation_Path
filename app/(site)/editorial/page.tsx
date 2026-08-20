@@ -1,133 +1,524 @@
-import Image from "next/image";
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-type Editorial = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  images: string[];
-};
+import type { Metadata } from "next";
 
-async function getEditorials(): Promise<Editorial[]> {
-  return await prisma.article.findMany({
-    where: {
-      isEditorial: true,
-      status: "approved",
-      isDeleted: false,
-    },
-    orderBy: {
-      publishedAt: "desc",
-    },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      excerpt: true,
-      images: true,
-    },
-  });
+import AdRenderer from "@/components/ads/AdRendererClient";
+
+import EditorialLandingHeader from "@/components/editorial/EditorialLandingHeader";
+import EditorialHero from "@/components/editorial/EditorialHero";
+import EditorialLatest from "@/components/editorial/EditorialLatest";
+import EditorialSidebar from "@/components/editorial/EditorialSidebar";
+
+export const dynamic = "force-dynamic";
+
+export const revalidate = 0;
+
+/* =====================================================
+   SITE URL
+===================================================== */
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://nationpathindia.com";
+
+/* =====================================================
+   PUBLISHED FILTER
+===================================================== */
+
+function isPublishedFilter() {
+  return {
+    OR: [
+      {
+        publishedAt: {
+          equals: null,
+        },
+      },
+      {
+        publishedAt: {
+          lte: new Date(),
+        },
+      },
+    ],
+  };
 }
 
-export default async function EditorialPage() {
-  const editorials = await getEditorials();
+/* =====================================================
+   SEO METADATA
+===================================================== */
 
-  if (!editorials.length) {
-    return (
-      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-24">
-        <h1 className="font-serif text-5xl font-semibold mb-6">Editorial</h1>
-        <p className="text-gray-500">No editorials published yet.</p>
-      </main>
-    );
-  }
+export const metadata: Metadata = {
+  title:
+    "NationPath Insight | Analysis, Context & Perspectives",
 
-  const lead = editorials[0];
-  const rest = editorials.slice(1);
+  description:
+    "Deep analysis, context and perspectives behind the stories shaping India and the world from NationPath Insight.",
+
+  keywords: [
+    "NationPath Insight",
+    "Editorial",
+    "Editorial News",
+    "India Analysis",
+    "Political Analysis",
+    "News Analysis",
+    "Opinion",
+    "In Depth Analysis",
+    "Nation Path India",
+  ],
+
+  alternates: {
+    canonical: `${SITE_URL}/editorial`,
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  openGraph: {
+    type: "website",
+
+    title:
+      "NationPath Insight | Analysis, Context & Perspectives",
+
+    description:
+      "Deep analysis, context and perspectives behind the stories shaping India and the world.",
+
+    url: `${SITE_URL}/editorial`,
+
+    siteName: "Nation Path India",
+
+    locale: "en_IN",
+
+    images: [
+      {
+        url: `${SITE_URL}/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "NationPath Insight",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+
+    title:
+      "NationPath Insight | Analysis, Context & Perspectives",
+
+    description:
+      "Deep analysis, context and perspectives behind the stories shaping India and the world.",
+
+    images: [`${SITE_URL}/logo.png`],
+  },
+};
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+export default async function EditorialLandingPage() {
+  /* =====================================================
+     EDITORIAL ARTICLES
+  ===================================================== */
+
+  const articles =
+    await prisma.article.findMany({
+      where: {
+        status: "approved",
+
+        isDeleted: false,
+
+        isEditorial: true,
+
+        isAstrology: false,
+
+        ...isPublishedFilter(),
+      },
+
+      include: {
+        category: true,
+      },
+
+      orderBy: [
+        {
+          publishedAt: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+
+      take: 40,
+    });
+
+  /* =====================================================
+     MOST READ EDITORIALS
+  ===================================================== */
+
+  const mostRead =
+    await prisma.article.findMany({
+      where: {
+        status: "approved",
+
+        isDeleted: false,
+
+        isEditorial: true,
+
+        isAstrology: false,
+
+        ...isPublishedFilter(),
+      },
+
+      include: {
+        category: true,
+      },
+
+      orderBy: [
+        {
+          views: "desc",
+        },
+        {
+          trendingScore: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+
+      take: 5,
+    });
+
+  /* =====================================================
+     ARTICLE GROUPS
+  ===================================================== */
+
+  const heroArticles =
+    articles.slice(0, 4);
+
+  const latestArticles =
+    articles.slice(4);
+
+  /* =====================================================
+     EDITORIAL URL
+  ===================================================== */
+
+  const editorialUrl =
+    `${SITE_URL}/editorial`;
+
+  /* =====================================================
+     ITEM LIST
+  ===================================================== */
+
+  const itemList =
+    articles
+      .slice(0, 10)
+      .map(
+        (
+          article: any,
+          index: number
+        ) => ({
+          "@type": "ListItem",
+
+          position: index + 1,
+
+          name: article.title,
+
+          url:
+            `${SITE_URL}/editorial/${article.slug}`,
+        })
+      );
+
+  /* =====================================================
+     COLLECTION PAGE SCHEMA
+  ===================================================== */
+
+  const structuredData = {
+    "@context": "https://schema.org",
+
+    "@type": "CollectionPage",
+
+    "@id": `${editorialUrl}#collection`,
+
+    name: "NationPath Insight",
+
+    headline:
+      "NationPath Insight | Analysis, Context & Perspectives",
+
+    description:
+      "Deep analysis, context and perspectives behind the stories shaping India and the world.",
+
+    url: editorialUrl,
+
+    inLanguage: "en-IN",
+
+    isPartOf: {
+      "@type": "WebSite",
+
+      "@id": `${SITE_URL}#website`,
+
+      name: "Nation Path India",
+
+      url: SITE_URL,
+    },
+
+    publisher: {
+      "@type": "Organization",
+
+      name: "Nation Path India",
+
+      url: SITE_URL,
+
+      logo: {
+        "@type": "ImageObject",
+
+        url: `${SITE_URL}/logo.png`,
+      },
+    },
+
+    mainEntity: {
+      "@type": "ItemList",
+
+      itemListOrder:
+        "https://schema.org/ItemListOrderDescending",
+
+      numberOfItems:
+        itemList.length,
+
+      itemListElement:
+        itemList,
+    },
+  };
+
+  /* =====================================================
+     BREADCRUMB SCHEMA
+  ===================================================== */
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+
+    "@type": "BreadcrumbList",
+
+    "@id":
+      `${editorialUrl}#breadcrumb`,
+
+    itemListElement: [
+      {
+        "@type": "ListItem",
+
+        position: 1,
+
+        name: "Home",
+
+        item: SITE_URL,
+      },
+
+      {
+        "@type": "ListItem",
+
+        position: 2,
+
+        name: "NationPath Insight",
+
+        item: editorialUrl,
+      },
+    ],
+  };
+
+  /* =====================================================
+     RENDER
+  ===================================================== */
 
   return (
-    <main className="max-w-6xl mx-auto px-4 lg:px-6 py-24 text-gray-900 dark:text-gray-100">
+    <>
+      {/* =================================================
+          COLLECTION PAGE SCHEMA
+      ================================================= */}
 
-      {/* ===== HEADER ===== */}
-      <header className="mb-20">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-500 mb-5">
-          Opinion
-        </p>
-        <h1 className="font-serif text-5xl md:text-6xl font-semibold tracking-tight">
-          Editorial
-        </h1>
-      </header>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html:
+            JSON.stringify(
+              structuredData
+            ),
+        }}
+      />
 
-      {/* ===== LEAD EDITORIAL ===== */}
-      <section className="border-b border-gray-300 dark:border-neutral-700 pb-20 mb-20">
-        <div className="grid lg:grid-cols-12 gap-14 items-start">
+      {/* =================================================
+          BREADCRUMB SCHEMA
+      ================================================= */}
 
-          {/* TEXT */}
-          <div className="lg:col-span-7">
-            <Link href={`/editorial/${lead.slug}`}>
-              <h2 className="font-serif text-4xl md:text-5xl font-semibold leading-tight hover:underline">
-                {lead.title}
-              </h2>
-            </Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html:
+            JSON.stringify(
+              breadcrumbSchema
+            ),
+        }}
+      />
 
-            {lead.excerpt && (
-              <p className="mt-6 text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-xl">
-                {lead.excerpt}
-              </p>
-            )}
-          </div>
+      {/* =================================================
+          EDITORIAL LANDING PAGE
+      ================================================= */}
 
-          {/* IMAGE */}
-          {lead.images?.[0] && (
-            <div className="lg:col-span-5">
-              <div className="relative w-full aspect-[4/3]">
-                <Image
-                  src={lead.images[0]}
-                  alt={lead.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          )}
+      <main
+        className="
+          mx-auto
+          max-w-7xl
+          px-4
+          py-10
+          sm:px-6
+          lg:px-8
+        "
+      >
+        {/* =================================================
+            EDITORIAL HEADER
+        ================================================= */}
 
+        <EditorialLandingHeader />
+
+        {/* =================================================
+            TOP AD
+        ================================================= */}
+
+        <div
+          className="
+            mb-10
+            flex
+            justify-center
+          "
+        >
+          <AdRenderer
+            placement="category_top"
+          />
         </div>
-      </section>
 
-      {/* ===== SECONDARY GRID ===== */}
-      <section className="grid md:grid-cols-2 gap-x-16 gap-y-16">
-        {rest.map((item, index) => (
-          <article
-            key={item.id}
-            className={`
-              ${index % 2 === 0
-                ? "md:pr-8"
-                : "md:pl-8 md:border-l md:border-gray-300 md:dark:border-neutral-700"}
-            `}
+        {/* =================================================
+            CONTENT GRID
+        ================================================= */}
+
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-10
+            lg:grid-cols-12
+          "
+        >
+          {/* =================================================
+              MAIN CONTENT
+          ================================================= */}
+
+          <section
+            className="
+              space-y-10
+              lg:col-span-8
+            "
           >
-            <Link href={`/editorial/${item.slug}`}>
-              <h3 className="font-serif text-2xl font-semibold leading-snug hover:underline">
-                {item.title}
-              </h3>
-            </Link>
+            {/* =================================================
+                FEATURED EDITORIALS
+            ================================================= */}
 
-            {item.excerpt && (
-              <p className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed max-w-md">
-                {item.excerpt}
-              </p>
+            {heroArticles.length > 0 && (
+              <EditorialHero
+                articles={
+                  heroArticles
+                }
+              />
             )}
-          </article>
-        ))}
-      </section>
 
-      {/* ===== LOAD MORE (Future Pagination) ===== */}
-      <div className="mt-28 pt-10 border-t border-gray-300 dark:border-neutral-700 text-center">
-        <button className="text-sm uppercase tracking-[0.25em] text-gray-600 dark:text-gray-400 hover:underline">
-          Load More
-        </button>
-      </div>
+            {/* =================================================
+                LATEST EDITORIALS
+            ================================================= */}
 
-    </main>
+            {latestArticles.length > 0 && (
+              <EditorialLatest
+                articles={
+                  latestArticles
+                }
+              />
+            )}
+
+            {/* =================================================
+                EMPTY STATE
+            ================================================= */}
+
+            {articles.length === 0 && (
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-gray-200
+                  bg-gray-50
+                  px-6
+                  py-12
+                  text-center
+                "
+              >
+                <h2
+                  className="
+                    text-xl
+                    font-semibold
+                    text-gray-900
+                  "
+                >
+                  No editorial stories yet
+                </h2>
+
+                <p
+                  className="
+                    mt-2
+                    text-sm
+                    text-gray-500
+                  "
+                >
+                  New NationPath Insight
+                  stories will appear here.
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* =================================================
+              MOST READ SIDEBAR
+          ================================================= */}
+
+          <aside
+            className="
+              lg:col-span-4
+            "
+          >
+            <EditorialSidebar
+              mostRead={
+                mostRead
+              }
+            />
+          </aside>
+        </div>
+
+        {/* =================================================
+            BOTTOM AD
+        ================================================= */}
+
+        <div
+          className="
+            mt-16
+            flex
+            justify-center
+          "
+        >
+          <AdRenderer
+            placement="category_bottom"
+          />
+        </div>
+      </main>
+    </>
   );
 }

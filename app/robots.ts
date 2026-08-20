@@ -66,9 +66,6 @@ disallow:[
 "/search",
 
 
-"/_next",
-
-
 "/test",
 
 

@@ -7,8 +7,6 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
-
-
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -130,6 +128,11 @@ export default function RootLayout({
           content="ca-pub-3337012180933768"
         />
 
+        <meta
+          name="facebook-domain-verification"
+          content="d06hwjzyxi36yd1x6ulvtat176a412"
+        />
+
         <Script
           id="google-adsense"
           async
@@ -151,7 +154,6 @@ export default function RootLayout({
           {children}
         </Providers>
 
-  
         {gaEnabled && <GoogleAnalytics />}
       </body>
     </html>

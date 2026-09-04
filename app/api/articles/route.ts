@@ -60,7 +60,6 @@ function normalizeSlug(value: string) {
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
-
 async function generateUniqueSlug(
   source: string,
   currentId?: string
@@ -75,18 +74,19 @@ async function generateUniqueSlug(
   let counter = 1;
 
   while (true) {
+    const where: any = {
+      slug,
+    };
+
+    if (currentId) {
+      where.NOT = {
+        id: currentId,
+      };
+    }
+
     const existing =
       await prisma.article.findFirst({
-        where: {
-          slug,
-          ...(currentId
-            ? {
-                NOT: {
-                  id: currentId,
-                },
-              },
-            : {}),
-        },
+        where,
         select: {
           id: true,
         },
@@ -418,11 +418,6 @@ export async function POST(req: Request) {
       typeof body.status === "string" &&
       body.status.toLowerCase() === "draft";
 
-    /*
-      Normalize content once.
-
-      Drafts may have no content yet.
-    */
     const content =
       typeof body.content === "string"
         ? body.content
@@ -444,10 +439,6 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-      Content is required only for a
-      non-draft article.
-    */
     if (
       !isDraft &&
       !content.trim()
@@ -463,13 +454,6 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-      Category is required only for a
-      non-draft News article.
-
-      Draft News articles can be saved
-      before category selection.
-    */
     if (
       !isDraft &&
       !isEditorial &&
@@ -566,8 +550,7 @@ export async function POST(req: Request) {
         ? body.images
             .filter(
               (img: any) =>
-                typeof img ===
-                  "string" &&
+                typeof img === "string" &&
                 img.trim()
             )
             .map(
@@ -614,7 +597,20 @@ export async function POST(req: Request) {
       | null
       | Date = null;
 
-    if (body.publishedAt) {
+    /*
+      Incoming publishedAt handling:
+
+      null / empty / missing
+        = no explicit schedule
+
+      valid date
+        = explicit publish/schedule date
+    */
+    if (
+      body.publishedAt !== undefined &&
+      body.publishedAt !== null &&
+      body.publishedAt !== ""
+    ) {
       const date =
         new Date(
           body.publishedAt
@@ -652,14 +648,17 @@ export async function POST(req: Request) {
           value as PostStatus;
 
         /*
-          Publishing now:
-          If CMS sends approved without
-          an explicit publishedAt, stamp
-          the current time automatically.
+          PERMANENT PUBLISH RULE
+
+          approved + no explicit date
+            = Publish Now
+
+          approved + explicit future date
+            = Scheduled Publish
         */
         if (
           value === PostStatus.approved &&
-          body.publishedAt === undefined
+          !publishedAt
         ) {
           publishedAt =
             new Date();
@@ -668,11 +667,14 @@ export async function POST(req: Request) {
     }
 
     /*
-      Autosave always creates a draft.
+      Autosave always creates a draft
+      and must never accidentally publish.
     */
     if (isDraft) {
       validStatus =
         PostStatus.draft;
+
+      publishedAt = null;
     }
 
     /* =================================================
@@ -1073,40 +1075,85 @@ export async function PATCH(req: Request) {
     }
 
     /* =================================================
-       STATUS
+       STATUS + PUBLISH DATE
     ================================================= */
+
+    let statusChangedToApproved =
+      false;
 
     if (body.status) {
       const value =
         body.status.toLowerCase();
 
       if (
-        Object.values(
-          PostStatus
-        ).includes(
+        Object.values(PostStatus).includes(
           value as PostStatus
         )
       ) {
         updateData.status =
           value as PostStatus;
 
-        /*
-          Publishing now:
-          When CMS changes an existing article
-          to approved and does not explicitly send
-          publishedAt, stamp the current time.
+        statusChangedToApproved =
+          value === PostStatus.approved;
+      }
+    }
 
-          Scheduled publishing remains untouched
-          because an explicit publishedAt is supplied.
-        */
+    /*
+      PERMANENT PUBLISH RULE
+
+      approved + publishedAt:null
+        = Publish Now
+
+      approved + future date
+        = Scheduled
+
+      draft/pending + null
+        = no published date
+
+      Explicit valid date
+        = preserve supplied date
+    */
+
+    if (
+      body.publishedAt !== undefined
+    ) {
+      if (
+        body.publishedAt === null ||
+        body.publishedAt === ""
+      ) {
         if (
-          value === PostStatus.approved &&
-          body.publishedAt === undefined
+          statusChangedToApproved
         ) {
           updateData.publishedAt =
             new Date();
+        } else {
+          updateData.publishedAt =
+            null;
+        }
+      } else {
+        const date =
+          new Date(
+            body.publishedAt
+          );
+
+        if (
+          !isNaN(
+            date.getTime()
+          )
+        ) {
+          updateData.publishedAt =
+            date;
         }
       }
+    } else if (
+      statusChangedToApproved
+    ) {
+      /*
+        Frontend did not send a publish date.
+        Approved therefore means Publish Now.
+      */
+      updateData.publishedAt =
+        new Date();
     }
 
     /* =================================================
@@ -1254,37 +1301,6 @@ export async function PATCH(req: Request) {
 
         updateData.categoryId =
           body.categoryId;
-      }
-    }
-
-    /* =================================================
-       PUBLISH DATE
-    ================================================= */
-
-    if (
-      body.publishedAt !==
-      undefined
-    ) {
-      if (
-        body.publishedAt ===
-        null
-      ) {
-        updateData.publishedAt =
-          null;
-      } else {
-        const date =
-          new Date(
-            body.publishedAt
-          );
-
-        if (
-          !isNaN(
-            date.getTime()
-          )
-        ) {
-          updateData.publishedAt =
-            date;
-        }
       }
     }
 

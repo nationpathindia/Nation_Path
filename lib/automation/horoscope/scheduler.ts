@@ -1,432 +1,134 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH AI AUTOMATION
 //
 // ASTRO HOROSCOPE SCHEDULER
 //
+// LOCKED PRODUCTION VERSION
+//
 // Responsibility:
 //
-// Daily Automation Controller
-//
-// Flow:
-//
-// Cron Trigger
-//      ↓
+// Cron / Background Trigger
+//          ↓
 // Scheduler
-//      ↓
-// 12 Zodiac Loop
-//      ↓
-// Generator
-//      ↓
-// CMS Ready Data
+//          ↓
+// Orchestrator
 //
-// Rules:
+// Scheduler does NOT:
 //
-// NO database logic
-// NO publishing logic
-// NO astrology logic
+// - Access MongoDB
+// - Load Zodiac Master
+// - Generate content
+// - Call generator
+// - Call mapper
+// - Call publisher
+// - Calculate astrology
+// - Modify predictions
+// - Generate AI
+//
+// The orchestrator owns the complete automation pipeline.
+//
 //////////////////////////////////////////////////////////////
-
 
 import {
-  generateAutomatedHoroscope,
-} from "./generator";
-
-
-
+  runHoroscopeAutomation,
+} from "./orchestrator";
 
 //////////////////////////////////////////////////////////////
-// ZODIAC MASTER LIST
-//////////////////////////////////////////////////////////////
-
-export const DEFAULT_ZODIACS = [
-
-  "aries",
-
-  "taurus",
-
-  "gemini",
-
-  "cancer",
-
-  "leo",
-
-  "virgo",
-
-  "libra",
-
-  "scorpio",
-
-  "sagittarius",
-
-  "capricorn",
-
-  "aquarius",
-
-  "pisces",
-
-];
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// INPUT
-//////////////////////////////////////////////////////////////
-
-export interface HoroscopeScheduleInput {
-
-
-  date?:Date;
-
-
-  zodiacList?:string[];
-
-
-}
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// DAILY HOROSCOPE RUNNER
+// DAILY HOROSCOPE
 //////////////////////////////////////////////////////////////
 
 export async function runDailyHoroscopeAutomation(
 
- input:HoroscopeScheduleInput = {}
+  date: Date = new Date()
 
-){
+) {
 
+  return runHoroscopeAutomation({
 
+    period:
+      "daily",
 
- const date =
+    language:
+      "english",
 
-   input.date
+    startDate:
+      date,
 
-   ||
+    endDate:
+      date,
 
-   new Date();
-
-
-
-
-
- const zodiacList =
-
-   input.zodiacList
-
-   ||
-
-   DEFAULT_ZODIACS;
-
-
-
-
-
-
-
- const results = [];
-
-
-
-
-
-
-
- for(
-
-   const zodiac of zodiacList
-
- ){
-
-
-
-   try{
-
-
-
-     const result =
-
-       await generateAutomatedHoroscope({
-
-         zodiac,
-
-
-         date,
-
-
-         period:"daily",
-
-
-         language:"english",
-
-
-       });
-
-
-
-
-
-     results.push(
-
-       result
-
-     );
-
-
-
-
-
-     console.log(
-
-       `✅ Horoscope generated: ${zodiac}`
-
-     );
-
-
-
-
-   }
-
-   catch(error){
-
-
-
-     console.error(
-
-       `❌ Horoscope generation failed: ${zodiac}`,
-
-       error
-
-     );
-
-
-
-   }
-
-
-
- }
-
-
-
-
-
-
-
- return {
-
-
-   total:
-
-     zodiacList.length,
-
-
-
-   generated:
-
-     results.length,
-
-
-
-   failed:
-
-     zodiacList.length -
-
-     results.length,
-
-
-
-   data:
-
-     results,
-
-
-
-   generatedAt:
-
-     new Date(),
-
-
- };
-
-
+  });
 
 }
 
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
-// WEEKLY AUTOMATION READY
+// WEEKLY HOROSCOPE
 //////////////////////////////////////////////////////////////
 
 export async function runWeeklyHoroscopeAutomation(
 
- date:Date
+  date: Date = new Date()
 
-){
+) {
 
+  return runHoroscopeAutomation({
 
- return runPeriodAutomation(
+    period:
+      "weekly",
 
-   "weekly",
+    language:
+      "english",
 
-   date
+    startDate:
+      date,
 
- );
+    endDate:
+      date,
 
+  });
 
 }
 
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
-// MONTHLY AUTOMATION READY
+// MONTHLY HOROSCOPE
 //////////////////////////////////////////////////////////////
 
 export async function runMonthlyHoroscopeAutomation(
 
- date:Date
+  date: Date = new Date()
 
-){
+) {
 
+  return runHoroscopeAutomation({
 
- return runPeriodAutomation(
+    period:
+      "monthly",
 
-   "monthly",
+    language:
+      "english",
 
-   date
+    startDate:
+      date,
 
- );
+    endDate:
+      date,
 
-
-}
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// INTERNAL PERIOD RUNNER
-//////////////////////////////////////////////////////////////
-
-async function runPeriodAutomation(
-
- period:
-
- "weekly"
-
- |
-
- "monthly",
-
- date:Date
-
-){
-
-
-
- const results = [];
-
-
-
-
- for(
-
-  const zodiac of DEFAULT_ZODIACS
-
- ){
-
-
-   const result =
-
-     await generateAutomatedHoroscope({
-
-       zodiac,
-
-
-       date,
-
-
-       period,
-
-
-       language:"english",
-
-
-     });
-
-
-
-   results.push(
-
-     result
-
-   );
-
-
- }
-
-
-
-
-
- return results;
-
+  });
 
 }
 
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
-// EXPORT
+// DEFAULT EXPORT
 //////////////////////////////////////////////////////////////
 
 export default {
 
+  runDailyHoroscopeAutomation,
 
- runDailyHoroscopeAutomation,
+  runWeeklyHoroscopeAutomation,
 
-
- runWeeklyHoroscopeAutomation,
-
-
- runMonthlyHoroscopeAutomation,
-
-
- DEFAULT_ZODIACS,
-
+  runMonthlyHoroscopeAutomation,
 
 };
+

@@ -1,12 +1,421 @@
 :root {
-  --cosmic-bg: #F8F5EE;
-  --cosmic-card: #FFFDF8;
+  /* =========================================================
+     NATIONPATH ASTRO
+     COSMIC PREMIUM DESIGN SYSTEM
 
-  --cosmic-navy: #33120a;
-  --cosmic-blue: #cf7031;
+     Deep cosmic + living nebula + Vedic gold
+     Shared visual foundation:
+     Web + Mobile Astro
+     ========================================================= */
 
-  --cosmic-gold: #C6A15B;
-  --cosmic-gold-glow: #E8D18A;
 
-  --cosmic-text: #475569;
+  /* =========================================================
+     BACKGROUND
+     ========================================================= */
+
+  --cosmic-bg: #08070D;
+
+  --cosmic-bg-soft: #0D0A16;
+
+  --cosmic-bg-deep: #05040A;
+
+  --cosmic-bg-mid: #100C1B;
+
+  --cosmic-bg-glow: #151025;
+
+
+  /* =========================================================
+     SURFACES / CARDS
+     ========================================================= */
+
+  --cosmic-card: #12101A;
+
+  --cosmic-card-soft: #171421;
+
+  --cosmic-card-elevated: #1C1728;
+
+  --cosmic-surface: #211B2E;
+
+  --cosmic-surface-glass: rgba(18, 16, 26, 0.72);
+
+  --cosmic-surface-glass-strong: rgba(18, 16, 26, 0.88);
+
+
+  /* =========================================================
+     COSMIC / PRIMARY COLORS
+     ========================================================= */
+
+  --cosmic-navy: #171126;
+
+  --cosmic-blue: #7C4DFF;
+
+  --cosmic-violet: #8B5CF6;
+
+  --cosmic-purple: #6D28D9;
+
+  --cosmic-magenta: #C026D3;
+
+  --cosmic-indigo: #4F46E5;
+
+
+  /* =========================================================
+     COSMIC GRADIENTS
+     ========================================================= */
+
+  --cosmic-gradient:
+    linear-gradient(
+      135deg,
+      #171126 0%,
+      #24123D 45%,
+      #3A1452 100%
+    );
+
+
+  --cosmic-gradient-accent:
+    linear-gradient(
+      135deg,
+      #6D28D9 0%,
+      #8B5CF6 45%,
+      #C026D3 100%
+    );
+
+
+  --cosmic-gradient-soft:
+    linear-gradient(
+      135deg,
+      rgba(124, 77, 255, 0.14),
+      rgba(192, 38, 211, 0.08)
+    );
+
+
+  /* =========================================================
+     LIVING COSMIC BACKGROUND
+     ========================================================= */
+
+  --cosmic-nebula-purple:
+    rgba(124, 77, 255, 0.12);
+
+  --cosmic-nebula-violet:
+    rgba(139, 92, 246, 0.10);
+
+  --cosmic-nebula-magenta:
+    rgba(192, 38, 211, 0.07);
+
+  --cosmic-nebula-indigo:
+    rgba(79, 70, 229, 0.08);
+
+  --cosmic-nebula-gold:
+    rgba(231, 201, 120, 0.035);
+
+
+  /* =========================================================
+     COSMIC AMBIENT GLOW
+     ========================================================= */
+
+  --cosmic-glow-purple:
+    rgba(124, 77, 255, 0.18);
+
+  --cosmic-glow-violet:
+    rgba(139, 92, 246, 0.14);
+
+  --cosmic-glow-magenta:
+    rgba(192, 38, 211, 0.12);
+
+  --cosmic-glow-indigo:
+    rgba(79, 70, 229, 0.10);
+
+  --cosmic-glow-gold:
+    rgba(231, 201, 120, 0.12);
+
+
+  /* =========================================================
+     VEDIC GOLD
+     ========================================================= */
+
+  --cosmic-gold: #C9A45C;
+
+  --cosmic-gold-light: #DDBB78;
+
+  --cosmic-gold-glow: #E7C978;
+
+  --cosmic-gold-soft:
+    rgba(201, 164, 92, 0.14);
+
+
+  /* =========================================================
+     TEXT
+     ========================================================= */
+
+  --cosmic-text: #F3F0F8;
+
+  --cosmic-text-soft: #D8D2E3;
+
+  --cosmic-text-muted: #A9A1B8;
+
+  --cosmic-text-subtle: #7F778F;
+
+  --cosmic-text-dim:
+    rgba(243, 240, 248, 0.48);
+
+
+  /* =========================================================
+     BORDERS
+     ========================================================= */
+
+  --cosmic-border:
+    rgba(255, 255, 255, 0.08);
+
+  --cosmic-border-strong:
+    rgba(255, 255, 255, 0.14);
+
+  --cosmic-border-purple:
+    rgba(124, 77, 255, 0.30);
+
+  --cosmic-border-gold:
+    rgba(201, 164, 92, 0.28);
+
+  --cosmic-border-glow:
+    rgba(139, 92, 246, 0.18);
+
+
+  /* =========================================================
+     STAR FIELD
+     ========================================================= */
+
+  --cosmic-stars:
+    rgba(255, 255, 255, 0.16);
+
+  --cosmic-stars-bright:
+    rgba(255, 255, 255, 0.28);
+
+  --cosmic-stars-soft:
+    rgba(255, 255, 255, 0.08);
+
+
+  /* =========================================================
+     STATUS / SEMANTIC
+     ========================================================= */
+
+  --cosmic-success: #6FCF97;
+
+  --cosmic-warning: #E7C978;
+
+  --cosmic-danger: #E8798F;
+
+  --cosmic-info: #8B7CFF;
+
+
+  /* =========================================================
+     INTERACTION
+     ========================================================= */
+
+  --cosmic-hover:
+    rgba(124, 77, 255, 0.10);
+
+  --cosmic-active:
+    rgba(124, 77, 255, 0.18);
+
+  --cosmic-focus:
+    rgba(139, 92, 246, 0.35);
+
+  --cosmic-selected:
+    rgba(201, 164, 92, 0.12);
+
+
+  /* =========================================================
+     SHADOWS
+     ========================================================= */
+
+  --cosmic-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.35);
+
+  --cosmic-shadow-soft:
+    0 15px 45px rgba(0, 0, 0, 0.22);
+
+  --cosmic-shadow-purple:
+    0 18px 50px rgba(124, 77, 255, 0.16);
+
+  --cosmic-shadow-violet:
+    0 20px 60px rgba(139, 92, 246, 0.12);
+
+  --cosmic-shadow-gold:
+    0 18px 45px rgba(201, 164, 92, 0.12);
+
+
+  /* =========================================================
+     OVERLAY
+     ========================================================= */
+
+  --cosmic-overlay:
+    rgba(5, 4, 10, 0.72);
+
+  --cosmic-overlay-soft:
+    rgba(5, 4, 10, 0.45);
+
+  --cosmic-overlay-heavy:
+    rgba(5, 4, 10, 0.84);
+
+
+  /* =========================================================
+     GLASS
+     ========================================================= */
+
+  --cosmic-glass:
+    rgba(255, 255, 255, 0.035);
+
+  --cosmic-glass-hover:
+    rgba(255, 255, 255, 0.055);
+
+  --cosmic-glass-border:
+    rgba(255, 255, 255, 0.075);
+
+
+  /* =========================================================
+     COSMIC MOTION
+     ========================================================= */
+
+  --cosmic-drift-primary: 18s;
+
+  --cosmic-drift-secondary: 26s;
+
+  --cosmic-drift-stars: 16s;
+
+  --cosmic-pulse: 8s;
+
+  --cosmic-shimmer: 6s;
+}
+
+
+/* =========================================================
+   LIVING COSMIC ATMOSPHERE
+   ========================================================= */
+
+@keyframes nationpathCosmicDrift {
+
+  0% {
+    transform:
+      translate3d(-3%, -2%, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(3%, 2%, 0)
+      scale(1.08);
+  }
+
+  100% {
+    transform:
+      translate3d(-3%, -2%, 0)
+      scale(1);
+  }
+}
+
+
+@keyframes nationpathCosmicDriftReverse {
+
+  0% {
+    transform:
+      translate3d(3%, 2%, 0)
+      scale(1.05);
+  }
+
+  50% {
+    transform:
+      translate3d(-3%, -2%, 0)
+      scale(1);
+  }
+
+  100% {
+    transform:
+      translate3d(3%, 2%, 0)
+      scale(1.05);
+  }
+}
+
+
+@keyframes nationpathCosmicStars {
+
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.12;
+  }
+
+  50% {
+    transform: translate3d(0, -18px, 0);
+    opacity: 0.20;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.12;
+  }
+}
+
+
+@keyframes nationpathCosmicPulse {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   UTILITY CLASSES
+   ========================================================= */
+
+.cosmic-nebula-primary {
+  animation:
+    nationpathCosmicDrift
+    var(--cosmic-drift-primary)
+    ease-in-out
+    infinite;
+}
+
+
+.cosmic-nebula-secondary {
+  animation:
+    nationpathCosmicDriftReverse
+    var(--cosmic-drift-secondary)
+    ease-in-out
+    infinite;
+}
+
+
+.cosmic-stars {
+  animation:
+    nationpathCosmicStars
+    var(--cosmic-drift-stars)
+    ease-in-out
+    infinite;
+}
+
+
+.cosmic-pulse {
+  animation:
+    nationpathCosmicPulse
+    var(--cosmic-pulse)
+    ease-in-out
+    infinite;
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .cosmic-nebula-primary,
+  .cosmic-nebula-secondary,
+  .cosmic-stars,
+  .cosmic-pulse {
+    animation: none;
+  }
 }

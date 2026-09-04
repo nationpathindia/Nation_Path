@@ -587,9 +587,8 @@ export async function POST(
       ////////////////////////////////////////////////////////
 
       const isOtpProvisionalUser =
-        user.provider === "otp" &&
-        !user.email &&
-        !user.password;
+  user.provider === "otp" &&
+  !user.password;
 
       if (!isOtpProvisionalUser) {
 

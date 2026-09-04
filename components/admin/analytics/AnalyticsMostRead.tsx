@@ -7,588 +7,246 @@ import {
   FileText,
   Flame,
   Share2,
-  TrendingUp,
 } from "lucide-react";
 
-
 export interface AnalyticsMostReadItem {
-  id:string;
-  title:string;
+  id: string;
+  title: string;
 
-  views?:number;
-  reads?:number;
-  shares?:number;
+  views?: number;
+  reads?: number;
+  shares?: number;
 
-  category?:{
-    name?:string|null;
-  }|null;
+  category?: {
+    name?: string | null;
+  } | null;
 
   contentType?:
-  |"news"
-  |"editorial"
-  |"astro"
-  |string;
+    | "news"
+    | "editorial"
+    | "astro"
+    | string;
 }
 
-
-interface AnalyticsMostReadProps{
-  articles?:AnalyticsMostReadItem[];
+interface AnalyticsMostReadProps {
+  articles?: AnalyticsMostReadItem[];
 }
 
-
-
-function number(value?:number){
-  return Number(value)||0;
+function number(value?: number) {
+  return Number.isFinite(value) ? Number(value) : 0;
 }
 
+function compactNumber(value: number) {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
 
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
 
-function compactNumber(value:number){
-
-if(value>=1000000)
-return `${(value/1000000).toFixed(1)}M`;
-
-if(value>=1000)
-return `${(value/1000).toFixed(1)}K`;
-
-return value.toLocaleString("en-IN");
-
+  return value.toLocaleString("en-IN");
 }
 
-
-
-function contentLabel(type?:string){
-
-if(type==="astro")
-return "Astro";
-
-if(type==="editorial")
-return "Editorial";
-
-return "News";
-
+function contentLabel(type?: string) {
+  if (type === "astro") return "Astro";
+  if (type === "editorial") return "Editorial";
+  return "News";
 }
 
+function contentStyle(type?: string) {
+  if (type === "astro") {
+    return "bg-orange-500/10 text-orange-400";
+  }
 
+  if (type === "editorial") {
+    return "bg-blue-500/10 text-blue-300";
+  }
 
-function contentStyle(type?:string){
-
-if(type==="astro")
-return "bg-orange-500/10 text-orange-400";
-
-if(type==="editorial")
-return "bg-blue-500/10 text-blue-300";
-
-return "bg-emerald-500/10 text-emerald-400";
-
+  return "bg-emerald-500/10 text-emerald-400";
 }
 
+function rankStyle(index: number) {
+  if (index === 0) {
+    return "border-orange-500/20 bg-orange-500/10 text-orange-400";
+  }
 
+  if (index === 1) {
+    return "border-white/10 bg-white/[0.06] text-gray-300";
+  }
 
-function rankStyle(index:number){
+  if (index === 2) {
+    return "border-blue-500/15 bg-blue-500/10 text-blue-300";
+  }
 
-if(index===0)
-return "bg-orange-500/15 text-orange-400 border-orange-500/20";
-
-if(index===1)
-return "bg-white/10 text-gray-300";
-
-if(index===2)
-return "bg-blue-500/10 text-blue-300";
-
-return "bg-white/[0.04] text-gray-500";
-
+  return "border-white/[0.06] bg-white/[0.025] text-gray-500";
 }
-
-
-
-function engagementScore(
-article:AnalyticsMostReadItem
-){
-
-const views=number(article.views);
-const reads=number(article.reads);
-const shares=number(article.shares);
-
-
-if(!views)
-return 0;
-
-
-return Math.min(
-100,
-Math.round(
-(
-(reads/views)*70+
-(shares/views)*30
-)*100
-)
-);
-
-}
-
-
-
-
 
 function ArticleRow({
-article,
-index
-}:{
-article:AnalyticsMostReadItem;
-index:number;
-}){
+  article,
+  index,
+}: {
+  article: AnalyticsMostReadItem;
+  index: number;
+}) {
+  const views = number(article.views);
+  const reads = number(article.reads);
+  const shares = number(article.shares);
 
+  return (
+    <div className="group flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.025] sm:px-5">
+      {/* Rank */}
+      <div
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-[11px] font-bold ${rankStyle(
+          index
+        )}`}
+      >
+        {index === 0 ? (
+          <Flame size={13} />
+        ) : (
+          index + 1
+        )}
+      </div>
 
-const views=number(article.views);
-const reads=number(article.reads);
-const shares=number(article.shares);
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <p className="truncate text-xs font-semibold text-gray-200 transition group-hover:text-white sm:text-sm">
+            {article.title}
+          </p>
 
-const score=engagementScore(article);
+          <ArrowUpRight
+            size={12}
+            className="hidden shrink-0 text-gray-600 transition group-hover:text-gray-300 sm:block"
+          />
+        </div>
 
+        <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-[10px] text-gray-500">
+            {article.category?.name || "Uncategorized"}
+          </span>
 
+          <span className="text-gray-700">•</span>
 
-return(
+          <span
+            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${contentStyle(
+              article.contentType
+            )}`}
+          >
+            {contentLabel(article.contentType)}
+          </span>
+        </div>
+      </div>
 
-<div
-className="
-group
-flex
-gap-4
-px-5
-py-4
-transition
-hover:bg-white/[0.035]
-"
->
+      {/* Metrics */}
+      <div className="hidden shrink-0 items-center gap-4 sm:flex md:gap-6">
+        <Metric
+          icon={<Eye size={11} />}
+          label="Views"
+          value={views}
+        />
 
+        <Metric
+          icon={<BookOpen size={11} />}
+          label="Reads"
+          value={reads}
+        />
 
-<div
-className={`
-flex
-h-10
-w-10
-shrink-0
-items-center
-justify-center
-rounded-xl
-border
-border-white/[0.08]
-text-xs
-font-bold
-${rankStyle(index)}
-`}
->
-
-{
-index===0 &&
-<Flame size={13} className="mr-1"/>
+        <Metric
+          icon={<Share2 size={11} />}
+          label="Shares"
+          value={shares}
+        />
+      </div>
+    </div>
+  );
 }
 
-{index+1}
-
-</div>
-
-
-
-
-
-<div className="min-w-0 flex-1">
-
-
-<div className="
-flex
-items-center
-gap-2
-">
-
-
-<p
-className="
-truncate
-text-sm
-font-semibold
-text-gray-200
-group-hover:text-white
-"
->
-{article.title}
-</p>
-
-
-<ArrowUpRight
-size={13}
-className="
-hidden
-text-gray-600
-group-hover:text-gray-300
-sm:block
-"
-/>
-
-
-</div>
-
-
-
-
-<div
-className="
-mt-2
-flex
-items-center
-gap-2
-"
->
-
-<span
-className="
-truncate
-text-xs
-text-gray-500
-"
->
-{article.category?.name || "Uncategorized"}
-</span>
-
-
-<span className="text-gray-700">
-•
-</span>
-
-
-<span
-className={`
-rounded-md
-px-2
-py-0.5
-text-[10px]
-font-semibold
-${contentStyle(article.contentType)}
-`}
->
-{contentLabel(article.contentType)}
-</span>
-
-
-</div>
-
-
-
-
-
-<div
-className="
-mt-3
-flex
-items-center
-gap-3
-"
->
-
-
-<div
-className="
-h-1.5
-flex-1
-overflow-hidden
-rounded-full
-bg-white/[0.05]
-"
->
-
-<div
-className="
-h-full
-rounded-full
-bg-orange-500
-transition-all
-"
-style={{
-width:`${score}%`
-}}
-/>
-
-</div>
-
-
-<span
-className="
-text-[10px]
-font-semibold
-text-gray-500
-"
->
-{score}
-</span>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-<div
-className="
-hidden
-items-center
-gap-6
-md:flex
-"
->
-
-
-<div className="text-right">
-
-<p className="text-[10px] text-gray-600">
-VIEWS
-</p>
-
-<p className="mt-1 text-sm font-semibold text-white">
-{compactNumber(views)}
-</p>
-
-</div>
-
-
-
-
-<div className="text-right">
-
-<p className="text-[10px] text-gray-600">
-READS
-</p>
-
-<p className="mt-1 text-sm font-semibold text-white">
-{compactNumber(reads)}
-</p>
-
-</div>
-
-
-
-
-<div className="text-right">
-
-<p className="text-[10px] text-gray-600">
-SHARES
-</p>
-
-<p className="mt-1 text-sm font-semibold text-white">
-{compactNumber(shares)}
-</p>
-
-</div>
-
-
-</div>
-
-
-
-</div>
-
-)
-
+function Metric({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="min-w-[42px] text-right">
+      <div className="flex items-center justify-end gap-1 text-[8px] uppercase tracking-wider text-gray-600">
+        {icon}
+        {label}
+      </div>
+
+      <p className="mt-0.5 text-xs font-semibold text-white">
+        {compactNumber(value)}
+      </p>
+    </div>
+  );
 }
-
-
-
-
-
-
 
 export default function AnalyticsMostRead({
-articles=[]
-}:AnalyticsMostReadProps){
+  articles = [],
+}: AnalyticsMostReadProps) {
+  const items = articles.slice(0, 10);
 
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/25 backdrop-blur-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 border-b border-white/[0.06] px-4 py-4 sm:px-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <BookOpen
+              size={16}
+              className="shrink-0 text-orange-400"
+            />
 
-const items=articles.slice(0,10);
+            <h2 className="text-base font-semibold text-white">
+              Most Read Intelligence
+            </h2>
+          </div>
 
+          <p className="mt-1 text-[11px] text-gray-500">
+            Top content by reading performance.
+          </p>
+        </div>
 
+        <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.035] px-2.5 py-1.5 text-[10px] text-gray-400">
+          <FileText size={11} />
+          Top {items.length}
+        </div>
+      </div>
 
-return(
+      {/* Content */}
+      {items.length === 0 ? (
+        <div className="flex h-36 items-center justify-center text-xs text-gray-500">
+          No reading data available
+        </div>
+      ) : (
+        <div className="divide-y divide-white/[0.05]">
+          {items.map((article, index) => (
+            <ArticleRow
+              key={article.id || index}
+              article={article}
+              index={index}
+            />
+          ))}
+        </div>
+      )}
 
-<section
-className="
-overflow-hidden
-rounded-2xl
-border
-border-white/[0.08]
-bg-black/30
-backdrop-blur-xl
-"
->
+      {/* Footer */}
+      {items.length > 0 && (
+        <div className="flex items-center justify-between border-t border-white/[0.05] px-4 py-2.5 sm:px-5">
+          <span className="text-[10px] text-gray-600">
+            Ranked by API reading performance
+          </span>
 
-
-<div
-className="
-flex
-items-center
-justify-between
-border-b
-border-white/[0.07]
-px-5
-py-5
-"
->
-
-
-<div>
-
-<div className="flex items-center gap-2">
-
-<BookOpen
-size={17}
-className="text-orange-400"
-/>
-
-<h2 className="
-text-lg
-font-semibold
-text-white
-">
-Most Read Intelligence
-</h2>
-
-</div>
-
-
-<p className="
-mt-1
-text-sm
-text-gray-500
-">
-Top content ranked by reading behaviour and engagement.
-</p>
-
-
-</div>
-
-
-
-
-<div
-className="
-flex
-items-center
-gap-2
-rounded-lg
-border
-border-white/10
-bg-white/[0.04]
-px-3
-py-1.5
-text-xs
-text-gray-400
-"
->
-
-<FileText size={12}/>
-
-Top {items.length}
-
-</div>
-
-
-</div>
-
-
-
-
-
-{
-items.length===0 ?
-
-<div
-className="
-flex
-h-48
-items-center
-justify-center
-text-sm
-text-gray-500
-"
->
-No reading data available
-</div>
-
-:
-
-<div
-className="
-divide-y
-divide-white/[0.06]
-"
->
-
-{
-items.map(
-(article,index)=>(
-
-<ArticleRow
-key={article.id || index}
-article={article}
-index={index}
-/>
-
-))
-}
-
-</div>
-
-}
-
-
-
-
-{
-items.length>0 &&
-
-<div
-className="
-flex
-items-center
-justify-between
-border-t
-border-white/[0.06]
-px-5
-py-3
-"
->
-
-<span className="text-xs text-gray-600">
-Ranked by reading engagement
-</span>
-
-
-<div className="
-flex
-items-center
-gap-1
-text-xs
-text-gray-600
-">
-
-<TrendingUp size={12}/>
-
-Live ranking
-
-</div>
-
-
-</div>
-
-}
-
-
-</section>
-
-)
-
+          <span className="flex items-center gap-1 text-[10px] text-gray-600">
+            <BookOpen size={10} />
+            {items.length} stories
+          </span>
+        </div>
+      )}
+    </section>
+  );
 }

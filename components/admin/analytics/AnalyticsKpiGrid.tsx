@@ -7,179 +7,216 @@ import {
   FileText,
   FolderTree,
   Heart,
-  Layers3,
   MessageSquareText,
   Newspaper,
   Share2,
   Sparkles,
   Users,
-  CalendarClock,
 } from "lucide-react";
 
 import AnalyticsMetricCard from "./AnalyticsMetricCard";
 
 /* =========================================================
    NATIONPATH ANALYTICS
-   KPI GRID — LOCKED ENHANCED VERSION
 
-   Responsibilities:
-   - Current platform snapshot
-   - Current published article count
-   - Current scheduled article count
-   - Today's calendar-day publishing count
-   - Selected-range publishing count
-   - Current categories
-   - Current content-type counts
-   - Current registered users
-   - Selected analytics-period performance
-   - Dynamic range-aware descriptions
+   KPI GRID
+   ENHANCED / LOCKED VERSION
 
-   IMPORTANT:
-   - Reads canonical dashboard API data only
-   - No Prisma queries
-   - No analytics calculations
-   - No legacy admin dashboard dependency
-   - Platform metrics remain current/live
-   - Analytics Performance follows selected range
-   - Published In Range follows selected range
-   - No duplicate analytics logic
+   SOURCE
+   ---------------------------------------------------------
+   • /api/analytics/dashboard
+
+   RULES
+   ---------------------------------------------------------
+   • Presentation only
+   • No API calls
+   • No database access
+   • No analytics calculations
+   • No legacy lib/analytics dependency
+   • Current API range contract only
+   • No video KPI / video calculation
 ========================================================= */
 
 export type AnalyticsTimeRange =
-  | "1h"
-  | "6h"
   | "24h"
   | "7d"
-  | "30d"
-  | "90d"
-  | "all";
+  | "30d";
 
 interface AnalyticsKpiGridProps {
   range?: AnalyticsTimeRange;
 
   platform?: {
-    /* Current platform content */
-    totalArticles?: number;
-    liveArticles?: number;
-    scheduledArticles?: number;
-
-    /* Calendar-day publishing */
-    todayArticles?: number;
-    publishedToday?: number;
-
-    /* Current platform structure */
-    totalCategories?: number;
-
-    /* Historical cumulative analytics */
-    allTimeViews?: number;
-
-    /* Current content types */
-    newsArticles?: number;
-    astroArticles?: number;
-    editorialArticles?: number;
-
-    /* Users */
-    totalUsers?: number;
-    activeUsers?: number;
-  };
-
-  overview?: {
-    /* Selected analytics range */
-    totalEvents?: number;
-
-    articleEvents?: number;
-    categoryEvents?: number;
-
     views?: number;
-    opens?: number;
     reads?: number;
-    scrolls?: number;
+    sessions?: number;
+    users?: number;
+    anonymousSessions?: number;
 
+    newsTotal?: number;
+    newsPublished?: number;
+    newsReads?: number;
+
+    categoryViews?: number;
+    categoryOpens?: number;
+    categoryReads?: number;
+    categoryScrolls?: number;
+
+    likes?: number;
     shares?: number;
     reactions?: number;
-    likes?: number;
 
     videoPlays?: number;
     videoCompletes?: number;
 
-    uniqueUsers?: number;
-    uniqueSessions?: number;
+    readRate?: number;
+    engagementRate?: number;
+    videoCompletionRate?: number;
+  };
 
-    /* Selected-range publishing */
-    publishedInRange?: number;
+  overview?: {
+    range?: AnalyticsTimeRange;
+
+    views?: number;
+    reads?: number;
+    sessions?: number;
+    users?: number;
+    uniqueVisitors?: number;
+
+    readRate?: number;
+    averageReadDuration?: number;
+    averageReadPercentage?: number;
+
+    likes?: number;
+    shares?: number;
+    reactions?: number;
+
+    engagementRate?: number;
+    shareRate?: number;
+    likeRate?: number;
+    reactionRate?: number;
+
+    videoPlays?: number;
+    videoCompletes?: number;
+    videoCompletionRate?: number;
+
+    changes?: {
+      views?: number;
+      reads?: number;
+      sessions?: number;
+    };
+  };
+
+  news?: {
+    total?: number;
+    published?: number;
+    reads?: number;
   };
 }
 
 /* =========================================================
-   SAFE NUMBER
+   HELPERS
 ========================================================= */
 
-function value(input?: number) {
-  return Number.isFinite(input) ? Number(input) : 0;
+function numberValue(value?: number) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : 0;
 }
 
-/* =========================================================
-   RANGE LABEL
-========================================================= */
+function formatNumber(value?: number) {
+  return numberValue(value).toLocaleString("en-IN");
+}
 
-function getRangeLabel(range: AnalyticsTimeRange): string {
+function formatPercentage(value?: number) {
+  return `${numberValue(value).toFixed(1)}%`;
+}
+
+function formatDuration(value?: number) {
+  const seconds = numberValue(value);
+
+  if (seconds < 60) {
+    return `${Math.round(seconds)}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.round(seconds % 60);
+
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+function getRangeLabel(range: AnalyticsTimeRange) {
   switch (range) {
-    case "1h":
-      return "Last 1 hour";
-
-    case "6h":
-      return "Last 6 hours";
-
-    case "24h":
-      return "Last 24 hours";
-
     case "7d":
       return "Last 7 days";
 
     case "30d":
       return "Last 30 days";
 
-    case "90d":
-      return "Last 90 days";
-
-    case "all":
-      return "All time";
-
     default:
-      return "Selected range";
+      return "Last 24 hours";
   }
 }
 
 /* =========================================================
-   RANGE SHORT LABEL
+   SECTION HEADER
 ========================================================= */
 
-function getRangeShortLabel(range: AnalyticsTimeRange): string {
-  switch (range) {
-    case "1h":
-      return "1h";
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof Activity;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <div
+        className="
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-white/10
+          bg-white/[0.04]
+        "
+      >
+        <Icon
+          className="h-4 w-4 text-white/70"
+          strokeWidth={1.8}
+        />
+      </div>
 
-    case "6h":
-      return "6h";
+      <div className="min-w-0">
+        <h2
+          className="
+            text-sm
+            font-semibold
+            tracking-tight
+            text-white
+          "
+        >
+          {title}
+        </h2>
 
-    case "24h":
-      return "24h";
-
-    case "7d":
-      return "7d";
-
-    case "30d":
-      return "30d";
-
-    case "90d":
-      return "90d";
-
-    case "all":
-      return "All Time";
-
-    default:
-      return "Selected";
-  }
+        <p
+          className="
+            mt-0.5
+            truncate
+            text-xs
+            text-white/40
+          "
+        >
+          {description}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 /* =========================================================
@@ -190,310 +227,317 @@ export default function AnalyticsKpiGrid({
   range = "24h",
   platform,
   overview,
+  news,
 }: AnalyticsKpiGridProps) {
-  const rangeLabel = getRangeLabel(range);
-  const rangeShortLabel = getRangeShortLabel(range);
+  const activeRange =
+    overview?.range || range;
 
-  const todayArticles = value(
-    platform?.todayArticles ?? platform?.publishedToday
+  const rangeLabel =
+    getRangeLabel(activeRange);
+
+  /* =======================================================
+     CANONICAL NEWS VALUES
+
+     News Total / Published
+     → Article DB snapshot
+
+     News Reads
+     → ArticleAnalyticsEvent
+  ======================================================= */
+
+  const newsTotal = numberValue(
+    news?.total ??
+      platform?.newsTotal
+  );
+
+  const newsPublished = numberValue(
+    news?.published ??
+      platform?.newsPublished
+  );
+
+  const newsReads = numberValue(
+    news?.reads ??
+      platform?.newsReads
+  );
+
+  /* =======================================================
+     RANGE-BASED ANALYTICS VALUES
+
+     These values are display-only.
+     No calculations are performed here.
+  ======================================================= */
+
+  const views = numberValue(
+    overview?.views
+  );
+
+  const reads = numberValue(
+    overview?.reads
+  );
+
+  const sessions = numberValue(
+    overview?.sessions
+  );
+
+  const uniqueVisitors = numberValue(
+    overview?.uniqueVisitors
+  );
+
+  const likes = numberValue(
+    overview?.likes
+  );
+
+  const shares = numberValue(
+    overview?.shares
+  );
+
+  const reactions = numberValue(
+    overview?.reactions
+  );
+
+  const engagementRate = numberValue(
+    overview?.engagementRate
+  );
+
+  const readRate = numberValue(
+    overview?.readRate
+  );
+
+  const averageReadDuration = numberValue(
+    overview?.averageReadDuration
+  );
+
+  const averageReadPercentage = numberValue(
+    overview?.averageReadPercentage
+  );
+
+  const users = numberValue(
+    overview?.users
+  );
+
+  const categoryViews = numberValue(
+    platform?.categoryViews
   );
 
   return (
-    <div className="space-y-10">
-
+    <div className="space-y-8">
       {/* =====================================================
-          PLATFORM OVERVIEW
-          CURRENT SNAPSHOT — RANGE INDEPENDENT
+          EXECUTIVE OVERVIEW
       ===================================================== */}
 
       <section>
-        <div className="mb-5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA661B]/10">
-              <Layers3
-                size={17}
-                strokeWidth={1.8}
-                className="text-[#EA661B]"
-              />
-            </div>
+        <SectionHeader
+          icon={Activity}
+          title="Executive Overview"
+          description={`Core platform snapshot · ${rangeLabel}`}
+        />
 
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight text-white">
-                Platform Overview
-              </h2>
-
-              <p className="mt-0.5 text-sm text-gray-500">
-                Current NationPath content and audience snapshot.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          {/* Published */}
-
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            sm:grid-cols-2
+            xl:grid-cols-4
+          "
+        >
           <AnalyticsMetricCard
-            label="Published Articles"
-            value={value(platform?.liveArticles)}
+            label="News Total"
+            value={formatNumber(newsTotal)}
             icon={Newspaper}
-            accent="green"
-            description="Currently published"
-          />
-
-          {/* Scheduled */}
-
-          <AnalyticsMetricCard
-            label="Scheduled Articles"
-            value={value(platform?.scheduledArticles)}
-            icon={CalendarClock}
-            accent="orange"
-            description="Currently scheduled"
-          />
-
-          {/* Today */}
-
-          <AnalyticsMetricCard
-            label="Today's Articles"
-            value={todayArticles}
-            icon={Newspaper}
-            accent="orange"
-            description="Published today"
-          />
-
-          {/* Total */}
-
-          <AnalyticsMetricCard
-            label="Total Articles"
-            value={value(platform?.totalArticles)}
-            icon={FileText}
             accent="navy"
-            description="Current public content"
+            description="Total News articles"
           />
 
-          {/* Categories */}
+          <AnalyticsMetricCard
+            label="News Published"
+            value={formatNumber(newsPublished)}
+            icon={FileText}
+            accent="green"
+            description="Approved + published News"
+          />
 
           <AnalyticsMetricCard
-            label="Categories"
-            value={value(platform?.totalCategories)}
+            label="News Reads"
+            value={formatNumber(newsReads)}
+            icon={BookOpen}
+            accent="orange"
+            description={`Event reads · ${rangeLabel}`}
+          />
+
+          <AnalyticsMetricCard
+            label="Category Views"
+            value={formatNumber(categoryViews)}
             icon={FolderTree}
             accent="navy"
-            description="Current platform categories"
+            description={`Category view events · ${rangeLabel}`}
           />
-
-          {/* All-time views */}
-
-          <AnalyticsMetricCard
-            label="All-Time Views"
-            value={value(platform?.allTimeViews)}
-            icon={Eye}
-            accent="orange"
-            description="Cumulative content views"
-          />
-
-          {/* News */}
-
-          <AnalyticsMetricCard
-            label="News Content"
-            value={value(platform?.newsArticles)}
-            icon={Newspaper}
-            accent="green"
-            description="Current public News content"
-          />
-
-          {/* Astro */}
-
-          <AnalyticsMetricCard
-            label="Astro Content"
-            value={value(platform?.astroArticles)}
-            icon={Sparkles}
-            accent="orange"
-            description="Current public Astro content"
-          />
-
-          {/* Editorial */}
-
-          <AnalyticsMetricCard
-            label="Editorial Content"
-            value={value(platform?.editorialArticles)}
-            icon={BookOpen}
-            accent="navy"
-            description="Current public Editorial content"
-          />
-
-          {/* Users */}
-
-          <AnalyticsMetricCard
-            label="Total Users"
-            value={value(platform?.totalUsers)}
-            icon={Users}
-            accent="navy"
-            description="Registered NationPath users"
-          />
-
         </div>
       </section>
 
       {/* =====================================================
-          SELECTED ANALYTICS PERIOD
+          TRAFFIC INTELLIGENCE
       ===================================================== */}
 
       <section>
-        <div className="mb-5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA661B]/10">
-              <Activity
-                size={17}
-                strokeWidth={1.8}
-                className="text-[#EA661B]"
-              />
-            </div>
+        <SectionHeader
+          icon={Eye}
+          title="Traffic Intelligence"
+          description={`Audience activity · ${rangeLabel}`}
+        />
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-              <h2 className="text-lg font-semibold tracking-tight text-white">
-                Analytics Performance
-              </h2>
-
-              <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400">
-                {rangeShortLabel}
-              </span>
-            </div>
-          </div>
-
-          <p className="mt-1.5 text-sm text-gray-500">
-            Engagement and publishing activity generated during{" "}
-            <span className="text-gray-400">
-              {rangeLabel.toLowerCase()}
-            </span>
-            .
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          {/* Views */}
-
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            sm:grid-cols-2
+            xl:grid-cols-4
+          "
+        >
           <AnalyticsMetricCard
             label="Views"
-            value={value(overview?.views)}
+            value={formatNumber(views)}
             icon={Eye}
             accent="orange"
-            description={`${rangeLabel} content views`}
+            description={`Article view events · ${rangeLabel}`}
           />
-
-          {/* Reads */}
 
           <AnalyticsMetricCard
             label="Reads"
-            value={value(overview?.reads)}
+            value={formatNumber(reads)}
             icon={BookOpen}
             accent="green"
-            description={`${rangeLabel} completed reads`}
+            description={`Article read events · ${rangeLabel}`}
           />
 
-          {/* Opens */}
-
           <AnalyticsMetricCard
-            label="Opens"
-            value={value(overview?.opens)}
+            label="Sessions"
+            value={formatNumber(sessions)}
             icon={Activity}
             accent="navy"
-            description={`${rangeLabel} article opens`}
+            description={`Analytics sessions · ${rangeLabel}`}
           />
 
-          {/* Total Events */}
-
           <AnalyticsMetricCard
-            label="Total Events"
-            value={value(overview?.totalEvents)}
-            icon={Layers3}
-            accent="navy"
-            description={`${rangeLabel} analytics events`}
-          />
-
-          {/* Shares */}
-
-          <AnalyticsMetricCard
-            label="Shares"
-            value={value(overview?.shares)}
-            icon={Share2}
-            accent="orange"
-            description={`${rangeLabel} content shares`}
-          />
-
-          {/* Reactions */}
-
-          <AnalyticsMetricCard
-            label="Reactions"
-            value={value(overview?.reactions)}
-            icon={Heart}
-            accent="orange"
-            description={`${rangeLabel} reactions`}
-          />
-
-          {/* Unique Users */}
-
-          <AnalyticsMetricCard
-            label="Unique Users"
-            value={value(overview?.uniqueUsers)}
+            label="Unique Visitors"
+            value={formatNumber(uniqueVisitors)}
             icon={Users}
-            accent="green"
-            description={`${rangeLabel} unique users`}
-          />
-
-          {/* Unique Sessions */}
-
-          <AnalyticsMetricCard
-            label="Unique Sessions"
-            value={value(overview?.uniqueSessions)}
-            icon={MessageSquareText}
-            accent="navy"
-            description={`${rangeLabel} unique sessions`}
-          />
-
-          {/* Published In Range */}
-
-          <AnalyticsMetricCard
-            label="Published In Range"
-            value={value(overview?.publishedInRange)}
-            icon={Newspaper}
-            accent="green"
-            description={`Articles published during ${rangeLabel.toLowerCase()}`}
-          />
-
-          {/* Article Events */}
-
-          <AnalyticsMetricCard
-            label="Article Events"
-            value={value(overview?.articleEvents)}
-            icon={FileText}
-            accent="navy"
-            description={`${rangeLabel} article events`}
-          />
-
-          {/* Category Events */}
-
-          <AnalyticsMetricCard
-            label="Category Events"
-            value={value(overview?.categoryEvents)}
-            icon={FolderTree}
             accent="orange"
-            description={`${rangeLabel} category events`}
+            description={`Unique visitors · ${rangeLabel}`}
           />
-
-          {/* Likes */}
-
-          <AnalyticsMetricCard
-            label="Likes"
-            value={value(overview?.likes)}
-            icon={Heart}
-            accent="orange"
-            description={`${rangeLabel} article likes`}
-          />
-
         </div>
       </section>
 
+      {/* =====================================================
+          ENGAGEMENT INTELLIGENCE
+      ===================================================== */}
+
+      <section>
+        <SectionHeader
+          icon={Heart}
+          title="Engagement Intelligence"
+          description={`Reader interaction · ${rangeLabel}`}
+        />
+
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            sm:grid-cols-2
+            xl:grid-cols-4
+          "
+        >
+          <AnalyticsMetricCard
+            label="Likes"
+            value={formatNumber(likes)}
+            icon={Heart}
+            accent="green"
+            description={`Like events · ${rangeLabel}`}
+          />
+
+          <AnalyticsMetricCard
+            label="Shares"
+            value={formatNumber(shares)}
+            icon={Share2}
+            accent="orange"
+            description={`Share events · ${rangeLabel}`}
+          />
+
+          <AnalyticsMetricCard
+            label="Reactions"
+            value={formatNumber(reactions)}
+            icon={MessageSquareText}
+            accent="navy"
+            description={`Reaction events · ${rangeLabel}`}
+          />
+
+          <AnalyticsMetricCard
+            label="Engagement Rate"
+            value={formatPercentage(engagementRate)}
+            icon={Sparkles}
+            accent="orange"
+            description={`Engagement rate · ${rangeLabel}`}
+          />
+        </div>
+      </section>
+
+      {/* =====================================================
+          READING INTELLIGENCE
+      ===================================================== */}
+
+      <section>
+        <SectionHeader
+          icon={BookOpen}
+          title="Reading Intelligence"
+          description={`Content consumption depth · ${rangeLabel}`}
+        />
+
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            sm:grid-cols-2
+            xl:grid-cols-4
+          "
+        >
+          <AnalyticsMetricCard
+            label="Read Rate"
+            value={formatPercentage(readRate)}
+            icon={BookOpen}
+            accent="green"
+            description="Reads / views"
+          />
+
+          <AnalyticsMetricCard
+            label="Avg Read Duration"
+            value={formatDuration(averageReadDuration)}
+            icon={Activity}
+            accent="navy"
+            description="Average time per read"
+          />
+
+          <AnalyticsMetricCard
+            label="Avg Read Percentage"
+            value={formatPercentage(
+              averageReadPercentage
+            )}
+            icon={FileText}
+            accent="orange"
+            description="Average content completion"
+          />
+
+          <AnalyticsMetricCard
+            label="Users"
+            value={formatNumber(users)}
+            icon={Users}
+            accent="navy"
+            description={`Users in analytics range · ${rangeLabel}`}
+          />
+        </div>
+      </section>
     </div>
   );
 }

@@ -12,690 +12,291 @@ import {
   Users,
 } from "lucide-react";
 
-
 export interface AnalyticsCategoryItem {
+  id: string;
+  name: string;
 
-  id:string;
-
-  name:string;
-
-  views?:number;
-
-  reads?:number;
-
-  shares?:number;
-
-  events?:number;
-
-  users?:number;
-
-  growth?:number;
-
-  score?:number;
-
-  percentage?:number;
-
+  views?: number;
+  reads?: number;
+  shares?: number;
+  events?: number;
+  users?: number;
+  growth?: number;
+  score?: number;
+  percentage?: number;
 }
 
-
-
-interface AnalyticsCategoryPerformanceProps{
-
- categories?:AnalyticsCategoryItem[];
-
+interface AnalyticsCategoryPerformanceProps {
+  categories?: AnalyticsCategoryItem[];
 }
 
-
-
-function number(value?:number){
-
- return Number(value)||0;
-
+function number(value?: number) {
+  return Number.isFinite(value) ? Number(value) : 0;
 }
 
+function compactNumber(value: number) {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
 
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
 
-function score(item:AnalyticsCategoryItem){
-
- if(typeof item.score==="number")
- return item.score;
-
-
- return (
-  number(item.views)
-  +
-  number(item.reads)*2
-  +
-  number(item.shares)*4
- );
-
+  return value.toLocaleString("en-IN");
 }
 
-
-
-function engagementRate(item:AnalyticsCategoryItem){
-
- const views=number(item.views);
-
- if(!views)
- return 0;
-
-
- return Math.round(
- (
- (
- number(item.reads)
- +
- number(item.shares)
- )
- /
- views
- )
- *100
- );
-
+function growthLabel(value: number) {
+  if (value >= 50) return "Explosive";
+  if (value >= 20) return "Growing";
+  if (value > 0) return "Rising";
+  return "Stable";
 }
 
-
-
-function growthLabel(value:number){
-
- if(value>=50)
- return "Explosive";
-
- if(value>=20)
- return "Growing";
-
- if(value>0)
- return "Rising";
-
- return "Stable";
-
+function growthClass(value: number) {
+  if (value >= 50) return "text-emerald-400";
+  if (value > 0) return "text-orange-400";
+  return "text-gray-500";
 }
-
-
-
-function growthClass(value:number){
-
- if(value>=50)
- return "text-emerald-400";
-
-
- if(value>0)
- return "text-[#EA661B]";
-
-
- return "text-gray-500";
-
-}
-
-
 
 function CategoryMetric({
-icon:Icon,
-label,
-value
-}:{
-icon:any;
-label:string;
-value:number|string;
-}){
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Eye;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-2.5 py-2">
+      <div className="flex items-center gap-1.5">
+        <Icon
+          size={11}
+          className="text-gray-600"
+          strokeWidth={1.8}
+        />
 
+        <span className="text-[9px] uppercase tracking-wide text-gray-600">
+          {label}
+        </span>
+      </div>
 
-return(
-
-<div className="
-rounded-lg
-bg-white/[0.025]
-border
-border-white/[0.05]
-p-3
-">
-
-<div className="
-flex
-items-center
-gap-2
-">
-
-<Icon
-size={13}
-className="text-gray-500"
-/>
-
-
-<span className="
-text-[10px]
-uppercase
-tracking-wide
-text-gray-600
-">
-{label}
-</span>
-
-</div>
-
-
-<p className="
-mt-2
-text-sm
-font-semibold
-text-white
-">
-
-{value}
-
-</p>
-
-
-</div>
-
-)
-
+      <p className="mt-1 text-xs font-semibold text-white">
+        {value}
+      </p>
+    </div>
+  );
 }
-
-
-
 
 function CategoryRow({
-item,
-index,
-maxScore
-}:{
-item:AnalyticsCategoryItem;
-index:number;
-maxScore:number;
-}){
+  item,
+  index,
+}: {
+  item: AnalyticsCategoryItem;
+  index: number;
+}) {
+  const views = number(item.views);
+  const reads = number(item.reads);
+  const shares = number(item.shares);
+  const users = number(item.users);
+  const events = number(item.events);
 
+  const hasGrowth =
+    typeof item.growth === "number" &&
+    Number.isFinite(item.growth);
 
-const views=number(item.views);
+  const hasScore =
+    typeof item.score === "number" &&
+    Number.isFinite(item.score);
 
-const reads=number(item.reads);
+  const hasPercentage =
+    typeof item.percentage === "number" &&
+    Number.isFinite(item.percentage);
 
-const shares=number(item.shares);
+  return (
+    <div className="group px-4 py-3.5 transition hover:bg-white/[0.025] sm:px-5">
+      <div className="flex items-start gap-3">
+        {/* Rank */}
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-[11px] font-bold ${
+            index === 0
+              ? "border-orange-500/20 bg-orange-500/10 text-orange-400"
+              : "border-white/[0.06] bg-white/[0.025] text-gray-500"
+          }`}
+        >
+          {index === 0 ? (
+            <Flame size={13} />
+          ) : (
+            index + 1
+          )}
+        </div>
 
-const users=number(item.users);
+        {/* Main */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className="truncate text-sm font-semibold text-gray-200 transition group-hover:text-white">
+                  {item.name}
+                </h3>
 
+                <ArrowUpRight
+                  size={12}
+                  className="hidden shrink-0 text-gray-600 transition group-hover:text-gray-300 sm:block"
+                />
+              </div>
 
-const performance=score(item);
+              <div className="mt-1 flex items-center gap-1.5">
+                {hasGrowth && (
+                  <>
+                    <span className="text-[10px] text-gray-600">
+                      {growthLabel(item.growth!)}
+                    </span>
 
+                    <span className="text-gray-700">
+                      •
+                    </span>
 
-const rate=
-engagementRate(item);
+                    <span
+                      className={`text-[10px] font-medium ${growthClass(
+                        item.growth!
+                      )}`}
+                    >
+                      {item.growth! > 0 ? "+" : ""}
+                      {item.growth}%
+                    </span>
+                  </>
+                )}
 
+                {hasScore && (
+                  <>
+                    {hasGrowth && (
+                      <span className="text-gray-700">
+                        •
+                      </span>
+                    )}
 
+                    <span className="text-[10px] text-gray-600">
+                      Score {item.score}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
 
-const width=
-maxScore
-?
-(performance/maxScore)*100
-:
-0;
+            {hasPercentage && (
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-semibold text-white">
+                  {item.percentage}%
+                </p>
 
+                <p className="text-[9px] text-gray-600">
+                  Share
+                </p>
+              </div>
+            )}
+          </div>
 
+          {/* Metrics */}
+          <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+            <CategoryMetric
+              icon={Eye}
+              label="Views"
+              value={compactNumber(views)}
+            />
 
-return(
+            <CategoryMetric
+              icon={BookOpen}
+              label="Reads"
+              value={compactNumber(reads)}
+            />
 
-<div
-className="
-group
-px-5
-py-5
-transition
-hover:bg-white/[0.025]
-"
->
+            <CategoryMetric
+              icon={Share2}
+              label="Shares"
+              value={compactNumber(shares)}
+            />
 
+            <CategoryMetric
+              icon={Users}
+              label="Users"
+              value={compactNumber(users)}
+            />
 
-<div className="
-flex
-gap-4
-">
-
-
-<div>
-
-<div
-className={`
-h-9
-w-9
-rounded-xl
-flex
-items-center
-justify-center
-text-xs
-font-bold
-${
-index===0
-?
-"bg-orange-500/10 text-orange-400"
-:
-"bg-white/[0.04] text-gray-500"
+            <CategoryMetric
+              icon={BarChart3}
+              label="Events"
+              value={compactNumber(events)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
-`}
->
-
-{
-index===0
-?
-<Flame size={14}/>
-:
-index+1
-}
-
-</div>
-
-</div>
-
-
-
-<div className="
-flex-1
-min-w-0
-">
-
-
-<div className="
-flex
-justify-between
-gap-4
-">
-
-
-<div>
-
-
-<div className="
-flex
-items-center
-gap-2
-">
-
-
-<h3 className="
-text-sm
-font-semibold
-text-gray-100
-group-hover:text-white
-">
-
-{item.name}
-
-</h3>
-
-
-<ArrowUpRight
-size={13}
-className="
-text-gray-600
-"
-/>
-
-
-</div>
-
-
-
-<div className="
-mt-1
-flex
-items-center
-gap-2
-">
-
-
-<span className="
-text-xs
-text-gray-600
-">
-
-{growthLabel(item.growth||0)}
-
-</span>
-
-
-<span className="
-text-gray-700
-">
-•
-</span>
-
-
-<span
-className={`
-text-xs
-font-medium
-${growthClass(item.growth||0)}
-`}
->
-
-+{item.growth||0}%
-
-</span>
-
-
-</div>
-
-
-</div>
-
-
-
-<div className="text-right">
-
-
-<p className="
-text-sm
-font-bold
-text-white
-">
-
-{performance.toLocaleString()}
-
-</p>
-
-
-<p className="
-text-[10px]
-text-gray-600
-">
-
-score
-
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-<div className="mt-4">
-
-
-<div className="
-flex
-justify-between
-text-[10px]
-text-gray-600
-">
-
-<span>
-Category impact
-</span>
-
-
-<span>
-{Math.round(width)}%
-</span>
-
-
-</div>
-
-
-
-<div className="
-mt-2
-h-1.5
-rounded-full
-bg-white/[0.06]
-overflow-hidden
-">
-
-
-<div
-className="
-h-full
-rounded-full
-bg-[#EA661B]
-"
-style={{
-width:`${Math.min(100,width)}%`
-}}
-/>
-
-
-</div>
-
-
-</div>
-
-
-
-
-<div className="
-mt-4
-grid
-grid-cols-2
-gap-3
-sm:grid-cols-5
-">
-
-
-<CategoryMetric
-icon={Eye}
-label="Views"
-value={views.toLocaleString()}
-/>
-
-
-<CategoryMetric
-icon={BookOpen}
-label="Reads"
-value={reads.toLocaleString()}
-/>
-
-
-<CategoryMetric
-icon={Share2}
-label="Shares"
-value={shares.toLocaleString()}
-/>
-
-
-<CategoryMetric
-icon={Users}
-label="Users"
-value={users.toLocaleString()}
-/>
-
-
-<CategoryMetric
-icon={BarChart3}
-label="Engage"
-value={`${rate}%`}
-/>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-)
-
-}
-
-
-
 
 export default function AnalyticsCategoryPerformance({
-
-categories=[]
-
-}:AnalyticsCategoryPerformanceProps){
-
-
-const data=
-categories
-.slice(0,10)
-.sort(
-(a,b)=>
-score(b)-score(a)
-);
-
-
-
-const maxScore=
-Math.max(
-...data.map(score),
-1
-);
-
-
-
-return(
-
-<section
-className="
-overflow-hidden
-rounded-2xl
-border
-border-white/10
-bg-white/[0.035]
-"
->
-
-
-<div className="
-flex
-items-center
-justify-between
-border-b
-border-white/[0.07]
-px-5
-py-5
-">
-
-
-<div>
-
-
-<div className="
-flex
-items-center
-gap-2
-">
-
-<FolderTree
-size={17}
-className="text-orange-400"
-/>
-
-
-<h2 className="
-text-lg
-font-semibold
-text-white
-">
-
-Category Intelligence
-
-</h2>
-
-
-</div>
-
-
-
-<p className="
-mt-1
-text-sm
-text-gray-500
-">
-
-Category performance powered by audience behaviour.
-
-</p>
-
-
-</div>
-
-
-<div className="
-flex
-items-center
-gap-2
-text-xs
-text-orange-400
-">
-
-<TrendingUp size={13}/>
-
-Live Ranking
-
-</div>
-
-
-</div>
-
-
-
-{
-data.length===0
-
-?
-
-<div className="
-h-48
-flex
-items-center
-justify-center
-text-gray-500
-">
-
-No category intelligence data
-
-</div>
-
-
-:
-
-
-<div className="
-divide-y
-divide-white/[0.06]
-">
-
-{
-data.map(
-(item,index)=>(
-
-<CategoryRow
-
-key={item.id}
-
-item={item}
-
-index={index}
-
-maxScore={maxScore}
-
-/>
-
-)
-
-)
-
-}
-
-</div>
-
-}
-
-
-
-</section>
-
-)
-
+  categories = [],
+}: AnalyticsCategoryPerformanceProps) {
+  /*
+   * Preserve API ordering.
+   * Do not calculate a new category ranking in the UI.
+   */
+  const data = categories.slice(0, 10);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/25 backdrop-blur-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 border-b border-white/[0.06] px-4 py-4 sm:px-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <FolderTree
+              size={16}
+              className="shrink-0 text-orange-400"
+            />
+
+            <h2 className="text-base font-semibold text-white">
+              Category Intelligence
+            </h2>
+          </div>
+
+          <p className="mt-1 text-[11px] text-gray-500">
+            Category performance from audience behaviour.
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.025] px-2.5 py-1.5 text-[9px] text-gray-500">
+          <TrendingUp size={10} />
+          TOP {data.length}
+        </div>
+      </div>
+
+      {/* Content */}
+      {data.length === 0 ? (
+        <div className="flex h-36 items-center justify-center text-xs text-gray-500">
+          No category intelligence data
+        </div>
+      ) : (
+        <div className="divide-y divide-white/[0.05]">
+          {data.map((item, index) => (
+            <CategoryRow
+              key={item.id || `${item.name}-${index}`}
+              item={item}
+              index={index}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      {data.length > 0 && (
+        <div className="border-t border-white/[0.05] px-4 py-2.5 sm:px-5">
+          <span className="text-[10px] text-gray-600">
+            Category order supplied by analytics API
+          </span>
+        </div>
+      )}
+    </section>
+  );
 }

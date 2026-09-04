@@ -4,36 +4,78 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
+
 interface EditorialLatestProps {
   articles: any[];
 }
 
+/* =====================================================
+   IMAGE
+===================================================== */
+
 function getImage(article: any) {
-  const gallery = Array.isArray(article?.imageGallery)
+  const gallery = Array.isArray(
+    article?.imageGallery
+  )
     ? article.imageGallery
     : [];
 
   return (
-    gallery.find((image: any) => image?.isPrimary)?.url ||
+    gallery.find(
+      (image: any) => image?.isPrimary
+    )?.url ||
     gallery[0]?.url ||
     article?.images?.[0] ||
     null
   );
 }
 
+/* =====================================================
+   OPTIMIZED IMAGE
+===================================================== */
+
+function getOptimizedImage(
+  article: any
+) {
+  const image = getImage(article);
+
+  if (!image) {
+    return null;
+  }
+
+  return cloudinaryImageUrl(
+    image,
+    700
+  );
+}
+
+/* =====================================================
+   DATE
+===================================================== */
+
 function getDate(article: any) {
-  const date = article?.publishedAt || article?.createdAt;
+  const date =
+    article?.publishedAt ||
+    article?.createdAt;
 
   if (!date) {
     return "";
   }
 
-  return new Date(date).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(date).toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  );
 }
+
+/* =====================================================
+   COMPONENT
+===================================================== */
 
 export default function EditorialLatest({
   articles,
@@ -44,7 +86,9 @@ export default function EditorialLatest({
 
   return (
     <section className="space-y-6">
-      {/* SECTION HEADER */}
+      {/* =================================================
+          SECTION HEADER
+      ================================================= */}
 
       <div
         className="
@@ -89,167 +133,192 @@ export default function EditorialLatest({
         </span>
       </div>
 
-      {/* ARTICLES */}
+      {/* =================================================
+          ARTICLES
+      ================================================= */}
 
       <div className="space-y-5">
-        {articles.map((article, index) => {
-          const image = getImage(article);
+        {articles.map(
+          (article, index) => {
+            const image =
+              getOptimizedImage(
+                article
+              );
 
-          return (
-            <motion.article
-              key={article.id}
-              initial={{
-                opacity: 0,
-                y: 12,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.35,
-                delay: Math.min(index * 0.04, 0.25),
-              }}
-              className="
-                group
-                border-b
-                border-black/10
-                pb-5
-                last:border-b-0
-              "
-            >
-              <Link
-                href={`/editorial/${article.slug}`}
+            return (
+              <motion.article
+                key={article.id}
+                initial={{
+                  opacity: 0,
+                  y: 12,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  duration: 0.35,
+                  delay: Math.min(
+                    index * 0.04,
+                    0.25
+                  ),
+                }}
                 className="
-                  grid
-                  grid-cols-1
-                  gap-4
-                  sm:grid-cols-[180px_minmax(0,1fr)]
+                  group
+                  border-b
+                  border-black/10
+                  pb-5
+                  last:border-b-0
                 "
               >
-                {/* IMAGE */}
+                <Link
+                  href={`/editorial/${article.slug}`}
+                  className="
+                    grid
+                    grid-cols-1
+                    gap-4
+                    sm:grid-cols-[180px_minmax(0,1fr)]
+                  "
+                >
+                  {/* =================================================
+                      IMAGE
+                  ================================================= */}
 
-                {image ? (
-                  <div
-                    className="
-                      relative
-                      aspect-[16/10]
-                      overflow-hidden
-                      rounded-xl
-                      bg-gray-100
-                      sm:aspect-[16/10]
-                    "
-                  >
-                    <Image
-                      src={image}
-                      alt={article.title}
-                      fill
+                  {image ? (
+                    <div
                       className="
-                        object-cover
-                        transition
-                        duration-500
-                        group-hover:scale-[1.03]
-                      "
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className="
-                      flex
-                      aspect-[16/10]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-gray-100
-                      text-xs
-                      font-medium
-                      uppercase
-                      tracking-wider
-                      text-gray-400
-                    "
-                  >
-                    NationPath Insight
-                  </div>
-                )}
-
-                {/* CONTENT */}
-
-                <div className="flex flex-col justify-center">
-                  <p
-                    className="
-                      mb-2
-                      text-[10px]
-                      font-bold
-                      uppercase
-                      tracking-[0.2em]
-                      text-[#EA661B]
-                    "
-                  >
-                    Insight
-                  </p>
-
-                  <h3
-                    className="
-                      text-lg
-                      font-bold
-                      leading-snug
-                      tracking-tight
-                      text-gray-950
-                      transition
-                      group-hover:text-[#163C80]
-                      sm:text-xl
-                    "
-                  >
-                    {article.title}
-                  </h3>
-
-                  {article.excerpt && (
-                    <p
-                      className="
-                        mt-2
-                        line-clamp-2
-                        text-sm
-                        leading-6
-                        text-gray-600
+                        relative
+                        aspect-[16/10]
+                        overflow-hidden
+                        rounded-xl
+                        bg-gray-100
+                        sm:aspect-[16/10]
                       "
                     >
-                      {article.excerpt}
-                    </p>
+                      <Image
+                        src={image}
+                        alt={
+                          article.title ||
+                          "NationPath Insight"
+                        }
+                        fill
+                        sizes="
+                          (max-width: 640px) 100vw,
+                          180px
+                        "
+                        className="
+                          object-cover
+                          transition
+                          duration-500
+                          group-hover:scale-[1.03]
+                        "
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="
+                        flex
+                        aspect-[16/10]
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-gray-100
+                        text-xs
+                        font-medium
+                        uppercase
+                        tracking-wider
+                        text-gray-400
+                      "
+                    >
+                      NationPath Insight
+                    </div>
                   )}
 
-                  <div
-                    className="
-                      mt-3
-                      flex
-                      flex-wrap
-                      items-center
-                      gap-3
-                      text-xs
-                      text-gray-500
-                    "
-                  >
-                    <span>
-                      {getDate(article)}
-                    </span>
+                  {/* =================================================
+                      CONTENT
+                  ================================================= */}
 
-                    {typeof article.views === "number" &&
-                      article.views > 0 && (
-                        <>
-                          <span className="text-gray-300">
-                            |
-                          </span>
+                  <div className="flex flex-col justify-center">
+                    <p
+                      className="
+                        mb-2
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.2em]
+                        text-[#EA661B]
+                      "
+                    >
+                      Insight
+                    </p>
 
-                          <span>
-                            {article.views.toLocaleString("en-IN")} views
-                          </span>
-                        </>
-                      )}
+                    <h3
+                      className="
+                        text-lg
+                        font-bold
+                        leading-snug
+                        tracking-tight
+                        text-gray-950
+                        transition
+                        group-hover:text-[#163C80]
+                        sm:text-xl
+                      "
+                    >
+                      {article.title}
+                    </h3>
+
+                    {article.excerpt && (
+                      <p
+                        className="
+                          mt-2
+                          line-clamp-2
+                          text-sm
+                          leading-6
+                          text-gray-600
+                        "
+                      >
+                        {article.excerpt}
+                      </p>
+                    )}
+
+                    <div
+                      className="
+                        mt-3
+                        flex
+                        flex-wrap
+                        items-center
+                        gap-3
+                        text-xs
+                        text-gray-500
+                      "
+                    >
+                      <span>
+                        {getDate(article)}
+                      </span>
+
+                      {typeof article.views ===
+                        "number" &&
+                        article.views > 0 && (
+                          <>
+                            <span className="text-gray-300">
+                              |
+                            </span>
+
+                            <span>
+                              {article.views.toLocaleString(
+                                "en-IN"
+                              )}{" "}
+                              views
+                            </span>
+                          </>
+                        )}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            </motion.article>
-          );
-        })}
+                </Link>
+              </motion.article>
+            );
+          }
+        )}
       </div>
     </section>
   );

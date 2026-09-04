@@ -1,19 +1,25 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ZODIAC MASTER MODEL
 //
 // Responsibility:
-// Store zodiac knowledge database.
+//
+// Store canonical Zodiac Master knowledge.
 //
 // Used for:
 // - Horoscope pages
 // - Zodiac information
 // - SEO pages
 // - Astro intelligence
+// - Zodiac Explorer
+// - Name Initials
 //
 // Does NOT:
 // - calculate horoscope
-// - prediction engine
-// - AI generation
+// - run prediction engine
+// - generate AI content
+// - calculate name initials
+//
 //////////////////////////////////////////////////////////////
 
 import mongoose, {
@@ -22,143 +28,180 @@ import mongoose, {
   Model,
 } from "mongoose";
 
-
-
-
-
 //////////////////////////////////////////////////////////////
 // TYPE
 //////////////////////////////////////////////////////////////
 
 export interface IZodiac extends Document {
 
+  ////////////////////////////////////////////////////////////
+  // BASIC IDENTITY
+  ////////////////////////////////////////////////////////////
 
-  zodiac:string;
+  zodiac: string;
 
-  slug:string;
-
-
-  names?:{
-
-    english:string;
-
-    hindi?:string;
-
-    sanskrit?:string;
-
-    gujarati?:string;
-
-    nepali?:string;
-
-  };
+  slug: string;
 
 
+  ////////////////////////////////////////////////////////////
+  // MULTI LANGUAGE NAMES
+  ////////////////////////////////////////////////////////////
 
-  identity?:{
+  names?: {
 
-    rashi?:string;
+    english: string;
 
-    sanskritName?:string;
+    hindi?: string;
 
-    dates?:string;
+    sanskrit?: string;
 
-    description?:string;
+    gujarati?: string;
 
-    energy?:string;
+    nepali?: string;
 
   };
 
 
+  ////////////////////////////////////////////////////////////
+  // IDENTITY
+  ////////////////////////////////////////////////////////////
 
-  symbol?:string;
+  identity?: {
+
+    rashi?: string;
+
+    sanskritName?: string;
+
+    dates?: string;
+
+    description?: string;
+
+    energy?: string;
+
+  };
+
+
+  ////////////////////////////////////////////////////////////
+  // NAME INITIALS
+  //
+  // IMPORTANT:
+  //
+  // MongoDB canonical structure stores this field
+  // at TOP LEVEL.
+  //
+  // Example:
+  //
+  // nameInitials: [
+  //   "चू",
+  //   "चे",
+  //   "चो",
+  //   "ला",
+  //   "ली",
+  //   "लू",
+  //   "ले",
+  //   "लो",
+  //   "अ"
+  // ]
+  //
+  // This is static Zodiac Master knowledge.
+  //
+  // NEVER CALCULATE.
+  // NEVER GENERATE.
+  //
+  ////////////////////////////////////////////////////////////
+
+  nameInitials?: string[];
+
+
+  ////////////////////////////////////////////////////////////
+  // ASTRO INFO
+  ////////////////////////////////////////////////////////////
+
+  symbol?: string;
 
 
   element?:
-  |
-  "fire"
-  |
-  "earth"
-  |
-  "air"
-  |
-  "water";
-
+    | "fire"
+    | "earth"
+    | "air"
+    | "water";
 
 
   modality?:
-  |
-  "cardinal"
-  |
-  "fixed"
-  |
-  "mutable";
+    | "cardinal"
+    | "fixed"
+    | "mutable";
 
 
-
-  rulingPlanet?:string;
-
+  rulingPlanet?: string;
 
 
-  traits?:{
+  ////////////////////////////////////////////////////////////
+  // PERSONALITY
+  ////////////////////////////////////////////////////////////
 
-    strengths?:string[];
+  traits?: {
 
-    weaknesses?:string[];
+    strengths?: string[];
 
-    personality?:string;
+    weaknesses?: string[];
 
-  };
-
-
-
-  lucky?:{
-
-    color?:string;
-
-    number?:string;
-
-    day?:string;
+    personality?: string;
 
   };
 
 
+  ////////////////////////////////////////////////////////////
+  // LUCK
+  ////////////////////////////////////////////////////////////
 
-  media?:{
+  lucky?: {
 
-    icon?:string;
+    color?: string;
 
-    banner?:string;
+    number?: string;
 
-  };
-
-
-
-  seo?:{
-
-    title?:string;
-
-    description?:string;
+    day?: string;
 
   };
 
 
+  ////////////////////////////////////////////////////////////
+  // MEDIA
+  ////////////////////////////////////////////////////////////
+
+  media?: {
+  icon?: string;
+  banner?: string;
+  modality?:
+    | "cardinal"
+    | "fixed"
+    | "mutable";
+};
+
+
+  ////////////////////////////////////////////////////////////
+  // SEO
+  ////////////////////////////////////////////////////////////
+
+  seo?: {
+
+    title?: string;
+
+    description?: string;
+
+  };
+
+
+  ////////////////////////////////////////////////////////////
+  // STATUS
+  ////////////////////////////////////////////////////////////
 
   status:
-  |
-  "draft"
-  |
-  "published";
-
-
+    | "draft"
+    | "published";
 
 }
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -166,346 +209,260 @@ export interface IZodiac extends Document {
 //////////////////////////////////////////////////////////////
 
 const ZodiacSchema =
-new Schema<IZodiac>(
+  new Schema<IZodiac>(
+    {
 
+      //////////////////////////////////////////////////////////
+      // BASIC IDENTITY
+      //////////////////////////////////////////////////////////
 
+      zodiac: {
 
-{
+        type: String,
 
+        required: true,
 
-//////////////////////////////////////////////////////////////
-// BASIC IDENTITY
-//////////////////////////////////////////////////////////////
+        lowercase: true,
 
-zodiac:{
+        unique: true,
 
+        trim: true,
 
-type:String,
+      },
 
-required:true,
 
-lowercase:true,
+      slug: {
 
-unique:true,
+        type: String,
 
-trim:true,
+        required: true,
 
+        unique: true,
 
-},
+        lowercase: true,
 
+        trim: true,
 
+      },
 
 
-slug:{
+      //////////////////////////////////////////////////////////
+      // MULTI LANGUAGE NAMES
+      //////////////////////////////////////////////////////////
 
+      names: {
 
-type:String,
+        english: {
 
-required:true,
+          type: String,
 
-unique:true,
+          required: true,
 
-lowercase:true,
+        },
 
-trim:true,
+        hindi: String,
 
+        sanskrit: String,
 
-},
+        gujarati: String,
 
+        nepali: String,
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // IDENTITY
+      //////////////////////////////////////////////////////////
 
+      identity: {
 
+        rashi: String,
 
+        sanskritName: String,
 
+        dates: String,
 
-//////////////////////////////////////////////////////////////
-// MULTI LANGUAGE NAME
-//////////////////////////////////////////////////////////////
+        description: String,
 
-names:{
+        energy: String,
 
+      },
 
-english:{
 
+      //////////////////////////////////////////////////////////
+      // NAME INITIALS
+      //
+      // IMPORTANT:
+      //
+      // TOP LEVEL FIELD.
+      //
+      // This matches the actual MongoDB document:
+      //
+      // {
+      //   ...
+      //   identity: {
+      //     rashi: "...",
+      //     sanskritName: "...",
+      //     ...
+      //   },
+      //
+      //   nameInitials: [
+      //     "चू",
+      //     "चे",
+      //     "चो",
+      //     "ला",
+      //     "ली",
+      //     "लू",
+      //     "ले",
+      //     "लो",
+      //     "अ"
+      //   ]
+      // }
+      //
+      //////////////////////////////////////////////////////////
 
-type:String,
+      nameInitials: {
 
-required:true,
+        type: [String],
 
+        default: [],
 
-},
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // ASTRO INFO
+      //////////////////////////////////////////////////////////
 
-hindi:String,
+      symbol: String,
 
 
-sanskrit:String,
+      element: {
 
+        type: String,
 
-gujarati:String,
+        enum: [
 
+          "fire",
 
-nepali:String,
+          "earth",
 
+          "air",
 
-},
+          "water",
 
+        ],
 
+      },
 
 
+      modality: {
 
+        type: String,
 
+        enum: [
 
+          "cardinal",
 
+          "fixed",
 
-//////////////////////////////////////////////////////////////
-// IDENTITY
-//////////////////////////////////////////////////////////////
+          "mutable",
 
-identity:{
+        ],
 
+      },
 
-rashi:String,
 
+      rulingPlanet: String,
 
-sanskritName:String,
 
+      //////////////////////////////////////////////////////////
+      // PERSONALITY
+      //////////////////////////////////////////////////////////
 
-dates:String,
+      traits: {
 
+        strengths: [String],
 
-description:String,
+        weaknesses: [String],
 
+        personality: String,
 
-energy:String,
+      },
 
 
-},
+      //////////////////////////////////////////////////////////
+      // LUCK
+      //////////////////////////////////////////////////////////
 
+      lucky: {
 
+        color: String,
 
+        number: String,
 
+        day: String,
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // MEDIA
+      //////////////////////////////////////////////////////////
 
+      media: {
 
-//////////////////////////////////////////////////////////////
-// ASTRO INFO
-//////////////////////////////////////////////////////////////
+        icon: String,
 
-symbol:String,
+        banner: String,
 
+      },
 
 
-element:{
+      //////////////////////////////////////////////////////////
+      // SEO
+      //////////////////////////////////////////////////////////
 
+      seo: {
 
-type:String,
+        title: String,
 
+        description: String,
 
-enum:[
+      },
 
-"fire",
 
-"earth",
+      //////////////////////////////////////////////////////////
+      // STATUS
+      //////////////////////////////////////////////////////////
 
-"air",
+      status: {
 
-"water",
+        type: String,
 
-],
+        enum: [
 
+          "draft",
 
-},
+          "published",
 
+        ],
 
+        default: "draft",
 
+        index: true,
 
-modality:{
+      },
 
+    },
 
-type:String,
+    {
 
+      timestamps: true,
 
-enum:[
-
-"cardinal",
-
-"fixed",
-
-"mutable",
-
-],
-
-
-},
-
-
-
-
-rulingPlanet:String,
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PERSONALITY
-//////////////////////////////////////////////////////////////
-
-traits:{
-
-
-strengths:[String],
-
-
-weaknesses:[String],
-
-
-personality:String,
-
-
-},
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// LUCK
-//////////////////////////////////////////////////////////////
-
-lucky:{
-
-
-color:String,
-
-
-number:String,
-
-
-day:String,
-
-
-},
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// MEDIA
-//////////////////////////////////////////////////////////////
-
-media:{
-
-
-icon:String,
-
-
-banner:String,
-
-
-},
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SEO
-//////////////////////////////////////////////////////////////
-
-seo:{
-
-
-title:String,
-
-
-description:String,
-
-
-},
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// STATUS
-//////////////////////////////////////////////////////////////
-
-status:{
-
-
-type:String,
-
-
-enum:[
-
-"draft",
-
-"published",
-
-],
-
-
-default:"draft",
-
-
-index:true,
-
-
-},
-
-
-
-},
-
-
-
-{
-
-
-timestamps:true,
-
-
-}
-
-
-
-);
-
-
-
-
-
-
-
+    }
+  );
 
 
 //////////////////////////////////////////////////////////////
@@ -513,39 +470,30 @@ timestamps:true,
 //////////////////////////////////////////////////////////////
 
 ZodiacSchema.index(
-{
-zodiac:1
-},
-{
-unique:true
-}
+  {
+    zodiac: 1,
+  },
+  {
+    unique: true,
+  }
 );
-
 
 
 ZodiacSchema.index(
-{
-slug:1
-},
-{
-unique:true
-}
+  {
+    slug: 1,
+  },
+  {
+    unique: true,
+  }
 );
-
 
 
 ZodiacSchema.index(
-{
-status:1
-}
+  {
+    status: 1,
+  }
 );
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -553,13 +501,11 @@ status:1
 //////////////////////////////////////////////////////////////
 
 const Zodiac =
-(mongoose.models.Zodiac as Model<IZodiac>)
-||
-mongoose.model<IZodiac>(
-"Zodiac",
-ZodiacSchema
-);
-
+  (mongoose.models.Zodiac as Model<IZodiac>) ||
+  mongoose.model<IZodiac>(
+    "Zodiac",
+    ZodiacSchema
+  );
 
 
 export default Zodiac;

@@ -6,15 +6,39 @@ import NewsQuickActions from "./NewsQuickActions";
 
 export default function NewsDashboardSection() {
   return (
-    <section className="space-y-6">
+    <section className="relative space-y-5">
+      {/* =====================================================
+          NEWS INTELLIGENCE
+      ===================================================== */}
+
       <NewsOverviewCard />
+
+      {/* =====================================================
+          QUICK COMMANDS
+      ===================================================== */}
 
       <NewsQuickActions />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* =====================================================
+          EDITORIAL WORKSPACE
+      ===================================================== */}
+
+      <div
+        className="
+          grid items-start gap-5
+          xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)]
+        "
+      >
+        {/* Breaking / Live newsroom */}
         <NewsBreakingCard />
+
+        {/* Category explorer */}
         <NewsCategoryCard />
       </div>
+
+      {/* =====================================================
+          READING SPACE
+      ===================================================== */}
 
       <NewsReadingCard />
     </section>

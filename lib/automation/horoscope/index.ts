@@ -185,21 +185,11 @@ export {
 // Yearly Ready
 //
 //////////////////////////////////////////////////////////////
-
 export {
-
-  DEFAULT_ZODIACS,
-
   runDailyHoroscopeAutomation,
-
   runWeeklyHoroscopeAutomation,
-
   runMonthlyHoroscopeAutomation,
-
 } from "./scheduler";
-
-
-
 
 
 

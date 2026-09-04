@@ -1,4 +1,5 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ASTRO HOROSCOPE CMS MODEL
 //
 // CMS FIRST ARCHITECTURE
@@ -18,7 +19,6 @@
 // MongoDB CMS CONTENT ONLY
 //////////////////////////////////////////////////////////////
 
-
 import mongoose, {
   Schema,
   Document,
@@ -26,42 +26,32 @@ import mongoose, {
 } from "mongoose";
 
 
-
 //////////////////////////////////////////////////////////////
 // TYPES
 //////////////////////////////////////////////////////////////
 
 export type HoroscopePeriod =
-| "daily"
-| "weekly"
-| "monthly"
-| "yearly";
-
-
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly";
 
 
 export type HoroscopeStatus =
-| "draft"
-| "review"
-| "approved"
-| "published"
-| "archived";
-
-
+  | "draft"
+  | "review"
+  | "approved"
+  | "published"
+  | "archived";
 
 
 export type HoroscopeLanguage =
-| "english"
-| "hindi"
-| "marathi"
-| "tamil"
-| "telugu"
-| "nepali";
-
-
-
-
-
+  | "english"
+  | "hindi"
+  | "marathi"
+  | "tamil"
+  | "telugu"
+  | "nepali";
 
 
 //////////////////////////////////////////////////////////////
@@ -71,1526 +61,1165 @@ export type HoroscopeLanguage =
 export interface IHoroscope extends Document {
 
 
+  //////////////////////////////////////////////////////////////
+  // BASIC
+  //////////////////////////////////////////////////////////////
 
-zodiac:string;
+  zodiac: string;
 
+  slug: string;
 
 
-slug:string;
+  //////////////////////////////////////////////////////////////
+  // STATIC ZODIAC MASTER SNAPSHOT
+  //
+  // IMPORTANT:
+  //
+  // This is intentionally TOP LEVEL.
+  //
+  // Source:
+  // Zodiac Master.nameInitials
+  //
+  // Example:
+  //
+  // nameInitials: [
+  //   "चू",
+  //   "चे",
+  //   "चो",
+  //   "ला",
+  //   "ली",
+  //   "लू",
+  //   "ले",
+  //   "लो",
+  //   "अ"
+  // ]
+  //
+  // NO CALCULATION
+  // NO GENERATION
+  // NO AI
+  //
+  //////////////////////////////////////////////////////////////
 
+  nameInitials?: string[];
 
 
+  //////////////////////////////////////////////////////////////
+  // META CMS CONTROL
+  //////////////////////////////////////////////////////////////
 
+  meta: {
 
+    period: HoroscopePeriod;
 
+    language: HoroscopeLanguage;
 
-//////////////////////////////////////////////////////////////
-// META CMS CONTROL
-//////////////////////////////////////////////////////////////
+    status: HoroscopeStatus;
 
-meta:{
+    startDate: Date;
 
+    endDate: Date;
 
 
-period:HoroscopePeriod;
+    ////////////////////////////////////////////////////////////
+    // ARCHIVE SUPPORT
+    ////////////////////////////////////////////////////////////
 
+    slugDate?: string;
 
+    archivedAt?: Date;
 
-language:HoroscopeLanguage;
+    publishedAt?: Date;
 
+    scheduledAt?: Date;
 
 
-status:HoroscopeStatus;
+    ////////////////////////////////////////////////////////////
+    // VERSION CONTROL
+    ////////////////////////////////////////////////////////////
 
+    version?: string;
 
+    contentVersion?: number;
 
-startDate:Date;
+    priority?: number;
 
 
+    featured?: {
 
-endDate:Date;
+      homepage?: boolean;
 
+      trending?: boolean;
 
+      seo?: boolean;
 
-//////////////////////////////////////////////////////////////
-// ARCHIVE SUPPORT
-//////////////////////////////////////////////////////////////
+    };
 
-slugDate?:string;
 
+    ////////////////////////////////////////////////////////////
+    // VISIBILITY CONTROL
+    ////////////////////////////////////////////////////////////
 
+    visibility?: {
 
-archivedAt?:Date;
+      public?: boolean;
 
+      premium?: boolean;
 
+      featured?: boolean;
 
+    };
 
+  };
 
-publishedAt?:Date;
 
+  //////////////////////////////////////////////////////////////
+  // BASIC ZODIAC
+  //////////////////////////////////////////////////////////////
 
+  symbol?: string;
 
-scheduledAt?:Date;
+  element?: string;
 
+  modality?: string;
 
+  rulingPlanet?: string;
 
 
+  //////////////////////////////////////////////////////////////
+  // HERO
+  //////////////////////////////////////////////////////////////
 
+  hero?: {
 
-//////////////////////////////////////////////////////////////
-// VERSION CONTROL
-//////////////////////////////////////////////////////////////
+    badge?: string;
 
-version?:string;
+    title?: string;
 
+    subtitle?: string;
 
+    description?: string;
 
-contentVersion?:number;
+    image?: string;
 
+    cosmicLabel?: string;
 
+    theme?: string;
 
-priority?:number;
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // IDENTITY
+  //////////////////////////////////////////////////////////////
 
+  identity?: {
 
+    rashi?: string;
 
+    sanskritName?: string;
 
-featured?:{
+    dates?: string;
 
-homepage?:boolean;
+    symbol?: string;
 
-trending?:boolean;
+    element?: string;
 
-seo?:boolean;
+    nature?: string;
 
-};
+    rulingPlanet?: string;
 
+    energy?: string;
 
+    description?: string;
 
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // TRAITS
+  //////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-// VISIBILITY CONTROL
-//////////////////////////////////////////////////////////////
+  traits?: {
 
-visibility?:{
+    strengths?: string[];
 
-public?:boolean;
+    weaknesses?: string[];
 
-premium?:boolean;
+    personality?: string;
 
-featured?:boolean;
+  };
 
-};
 
+  //////////////////////////////////////////////////////////////
+  // EDITORIAL
+  //////////////////////////////////////////////////////////////
 
+  editorial?: {
 
-};
+    headline?: string;
 
+    overview?: string;
 
+    prediction?: string;
 
+    quote?: string;
 
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // LIFE INTELLIGENCE
+  //////////////////////////////////////////////////////////////
 
+  life?: {
 
+    career?: string;
 
-//////////////////////////////////////////////////////////////
-// BASIC ZODIAC
-//////////////////////////////////////////////////////////////
+    love?: string;
 
-symbol?:string;
+    finance?: string;
 
+    health?: string;
 
-element?:string;
+  };
 
 
-modality?:string;
+  //////////////////////////////////////////////////////////////
+  // INSIGHTS
+  //////////////////////////////////////////////////////////////
 
+  insights?: {
 
-rulingPlanet?:string;
+    planetaryInfluence?: string;
 
+    energy?: string;
 
+    guidance?: string;
 
+    remedy?: string;
 
+    strengths?: string[];
 
+    challenges?: string[];
 
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // PLANETARY INTELLIGENCE
+  //////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-// HERO
-//////////////////////////////////////////////////////////////
+  planets?: Array<{
 
-hero?:{
+    planetKey?: string;
 
+    name?: string;
 
-badge?:string;
+    title?: string;
 
+    message?: string;
 
-title?:string;
+    strength?: string;
 
+    icon?: string;
 
-subtitle?:string;
+    energyLevel?: string;
 
+  }>;
 
-description?:string;
 
+  //////////////////////////////////////////////////////////////
+  // LUCK FACTORS
+  //////////////////////////////////////////////////////////////
 
-image?:string;
+  lucky?: {
 
+    number?: string;
 
-cosmicLabel?:string;
+    color?: string;
 
+    direction?: string;
 
-theme?:string;
+    time?: string;
 
+    gemstone?: string;
 
-};
+    metal?: string;
 
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // REMEDY
+  //////////////////////////////////////////////////////////////
 
+  remedy?: {
 
+    category?: string;
 
+    title?: string;
 
+    practice?: string;
 
+    guidance?: string;
 
-//////////////////////////////////////////////////////////////
-// IDENTITY
-//////////////////////////////////////////////////////////////
+    reason?: string;
 
-identity?:{
+  };
 
 
-rashi?:string;
+  //////////////////////////////////////////////////////////////
+  // VEDIC
+  //////////////////////////////////////////////////////////////
 
+  vedic?: {
 
-sanskritName?:string;
+    favorable?: string[];
 
+    avoid?: string[];
 
-dates?:string;
+  };
 
 
-symbol?:string;
+  //////////////////////////////////////////////////////////////
+  // COMPATIBILITY
+  //////////////////////////////////////////////////////////////
 
+  compatibility?: {
 
-element?:string;
+    title?: string;
 
+    description?: string;
 
-nature?:string;
+    link?: string;
 
+  };
 
-rulingPlanet?:string;
 
+  //////////////////////////////////////////////////////////////
+  // PREMIUM
+  //////////////////////////////////////////////////////////////
 
-energy?:string;
+  premium?: {
 
+    title?: string;
 
-description?:string;
+    description?: string;
 
+    features?: string[];
 
-};
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////////////
 
+  seo?: {
 
+    title?: string;
 
+    description?: string;
 
+    keywords?: string[];
 
+    ogImage?: string;
 
+    canonical?: string;
 
-//////////////////////////////////////////////////////////////
-// TRAITS
-//////////////////////////////////////////////////////////////
+  };
 
-traits?:{
 
+  //////////////////////////////////////////////////////////////
+  // MEDIA
+  //////////////////////////////////////////////////////////////
 
-strengths?:string[];
+  media?: {
 
+    heroImage?: string;
 
-weaknesses?:string[];
+    backgroundImage?: string;
 
+    zodiacIcon?: string;
 
-personality?:string;
+    videoUrl?: string;
 
+    audioUrl?: string;
 
-};
+  };
 
 
+  //////////////////////////////////////////////////////////////
+  // ANALYTICS
+  //////////////////////////////////////////////////////////////
 
+  analytics?: {
 
+    views?: number;
 
+    clicks?: number;
 
+    premiumClicks?: number;
 
+  };
 
 
-//////////////////////////////////////////////////////////////
-// EDITORIAL
-//////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
+  // CMS TRACKING
+  //////////////////////////////////////////////////////////////
 
-editorial?:{
+  createdBy?: string;
 
-
-headline?:string;
-
-
-overview?:string;
-
-
-prediction?:string;
-
-
-quote?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// LIFE INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-life?:{
-
-
-career?:string;
-
-
-love?:string;
-
-
-finance?:string;
-
-
-health?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// INSIGHTS
-//////////////////////////////////////////////////////////////
-
-insights?:{
-
-
-planetaryInfluence?:string;
-
-
-energy?:string;
-
-
-guidance?:string;
-
-
-remedy?:string;
-
-
-
-strengths?:string[];
-
-
-challenges?:string[];
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PLANETARY INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-planets?:Array<{
-
-planetKey?:string;
-
-name?:string;
-
-title?:string;
-
-message?:string;
-
-strength?:string;
-
-icon?:string;
-
-energyLevel?:string;
-
-}>;
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// LUCK FACTORS
-//////////////////////////////////////////////////////////////
-
-lucky?:{
-
-
-number?:string;
-
-
-color?:string;
-
-
-direction?:string;
-
-
-time?:string;
-
-
-gemstone?:string;
-
-
-metal?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// REMEDY
-//////////////////////////////////////////////////////////////
-
-remedy?:{
-
-
-category?:string;
-
-
-title?:string;
-
-
-practice?:string;
-
-
-guidance?:string;
-
-
-reason?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// VEDIC
-//////////////////////////////////////////////////////////////
-
-vedic?:{
-
-
-favorable?:string[];
-
-
-avoid?:string[];
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// COMPATIBILITY
-//////////////////////////////////////////////////////////////
-
-compatibility?:{
-
-
-title?:string;
-
-
-description?:string;
-
-
-link?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PREMIUM
-//////////////////////////////////////////////////////////////
-
-premium?:{
-
-
-title?:string;
-
-
-description?:string;
-
-
-features?:string[];
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SEO
-//////////////////////////////////////////////////////////////
-
-seo?:{
-
-
-title?:string;
-
-
-description?:string;
-
-
-keywords?:string[];
-
-
-ogImage?:string;
-
-
-canonical?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// MEDIA
-//////////////////////////////////////////////////////////////
-
-media?:{
-
-
-heroImage?:string;
-
-
-backgroundImage?:string;
-
-
-zodiacIcon?:string;
-
-
-videoUrl?:string;
-
-
-audioUrl?:string;
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// ANALYTICS READY
-//////////////////////////////////////////////////////////////
-
-analytics?:{
-
-
-views?:number;
-
-
-clicks?:number;
-
-
-premiumClicks?:number;
-
-
-};
-
-
-
-
-
-
-
-createdBy?:string;
-
-
-
-updatedBy?:string;
-
-
+  updatedBy?: string;
 
 }
+
+
 //////////////////////////////////////////////////////////////
 // SCHEMA
 //////////////////////////////////////////////////////////////
 
 const HoroscopeSchema =
-new Schema<IHoroscope>(
+  new Schema<IHoroscope>(
 
+    {
 
-{
 
+      //////////////////////////////////////////////////////////
+      // BASIC
+      //////////////////////////////////////////////////////////
 
-zodiac:{
+      zodiac: {
 
+        type: String,
 
-type:String,
+        required: true,
 
-required:true,
+        lowercase: true,
 
-lowercase:true,
+        trim: true,
 
-trim:true,
+        index: true,
 
-index:true,
+      },
 
-},
 
+      slug: {
 
+        type: String,
 
+        required: true,
 
+        lowercase: true,
 
+        trim: true,
 
-slug:{
+      },
 
 
-type:String,
+      //////////////////////////////////////////////////////////
+      // STATIC ZODIAC MASTER SNAPSHOT
+      //
+      // IMPORTANT:
+      //
+      // TOP LEVEL FIELD.
+      //
+      // This MUST NOT be placed inside identity.
+      //
+      //////////////////////////////////////////////////////////
 
-required:true,
+      nameInitials: {
 
-lowercase:true,
+        type: [String],
 
-trim:true,
+        default: [],
 
-},
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // META CMS CONTROL
+      //////////////////////////////////////////////////////////
 
+      meta: {
 
+        period: {
 
+          type: String,
 
+          enum: [
 
-//////////////////////////////////////////////////////////////
-// META CMS CONTROL
-//////////////////////////////////////////////////////////////
+            "daily",
 
-meta:{
+            "weekly",
 
+            "monthly",
 
+            "yearly",
 
+          ],
 
+          default: "daily",
 
+        },
 
-period:{
 
+        language: {
 
-type:String,
+          type: String,
 
+          enum: [
 
-enum:[
+            "english",
 
-"daily",
+            "hindi",
 
-"weekly",
+            "marathi",
 
-"monthly",
+            "tamil",
 
-"yearly"
+            "telugu",
 
-],
+            "nepali",
 
+          ],
 
-default:"daily",
+          default: "english",
 
+        },
 
-},
 
+        status: {
 
+          type: String,
 
+          enum: [
 
+            "draft",
 
+            "review",
 
+            "approved",
 
-language:{
+            "published",
 
+            "archived",
 
-type:String,
+          ],
 
+          default: "draft",
 
-enum:[
+        },
 
-"english",
 
-"hindi",
+        startDate: {
 
-"marathi",
+          type: Date,
 
-"tamil",
+          required: true,
 
-"telugu",
+        },
 
-"nepali"
 
-],
+        endDate: {
 
+          type: Date,
 
-default:"english",
+          required: true,
 
+        },
 
-},
 
+        ////////////////////////////////////////////////////////
+        // ARCHIVE SUPPORT
+        ////////////////////////////////////////////////////////
 
+        slugDate: {
 
+          type: String,
 
+        },
 
 
+        publishedAt: {
 
+          type: Date,
 
+        },
 
-status:{
 
+        scheduledAt: {
 
-type:String,
+          type: Date,
 
+        },
 
-enum:[
 
-"draft",
+        archivedAt: {
 
-"review",
+          type: Date,
 
-"approved",
+        },
 
-"published",
 
-"archived"
+        ////////////////////////////////////////////////////////
+        // VERSION CONTROL
+        ////////////////////////////////////////////////////////
 
-],
+        version: {
 
+          type: String,
 
-default:"draft",
+          default: "1.0",
 
+        },
 
-},
 
+        contentVersion: {
 
+          type: Number,
 
+          default: 1,
 
+        },
 
 
+        priority: {
 
+          type: Number,
 
+          default: 0,
 
+        },
 
-startDate:{
 
+        ////////////////////////////////////////////////////////
+        // FEATURE CONTROL
+        ////////////////////////////////////////////////////////
 
-type:Date,
+        featured: {
 
+          homepage: {
 
-required:true,
+            type: Boolean,
 
+            default: false,
 
-},
+          },
 
 
+          trending: {
 
+            type: Boolean,
 
+            default: false,
 
+          },
 
-endDate:{
 
+          seo: {
 
-type:Date,
+            type: Boolean,
 
+            default: false,
 
-required:true,
+          },
 
+        },
 
-},
 
+        ////////////////////////////////////////////////////////
+        // VISIBILITY CONTROL
+        ////////////////////////////////////////////////////////
 
+        visibility: {
 
+          public: {
 
+            type: Boolean,
 
+            default: true,
 
+          },
 
-//////////////////////////////////////////////////////////////
-// ARCHIVE SUPPORT
-//////////////////////////////////////////////////////////////
 
-slugDate:{
+          premium: {
 
+            type: Boolean,
 
-type:String,
+            default: false,
 
+          },
 
-},
 
+          featured: {
 
+            type: Boolean,
 
+            default: false,
 
+          },
 
+        },
 
+      },
 
-publishedAt:Date,
 
+      //////////////////////////////////////////////////////////
+      // BASIC ZODIAC
+      //////////////////////////////////////////////////////////
 
+      symbol: String,
 
+      element: String,
 
+      modality: String,
 
-scheduledAt:Date,
+      rulingPlanet: String,
 
 
+      //////////////////////////////////////////////////////////
+      // HERO
+      //////////////////////////////////////////////////////////
 
+      hero: {
 
+        type: Object,
 
-archivedAt:Date,
+        default: {},
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // IDENTITY
+      //////////////////////////////////////////////////////////
 
+      identity: {
 
+        type: Object,
 
+        default: {},
 
+      },
 
 
-//////////////////////////////////////////////////////////////
-// VERSION CONTROL
-//////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////
+      // TRAITS
+      //////////////////////////////////////////////////////////
 
-version:{
+      traits: {
 
+        type: Object,
 
-type:String,
+        default: {},
 
+      },
 
-default:"1.0",
 
+      //////////////////////////////////////////////////////////
+      // EDITORIAL
+      //////////////////////////////////////////////////////////
 
-},
+      editorial: {
 
+        type: Object,
 
+        default: {},
 
+      },
 
 
-contentVersion:{
+      //////////////////////////////////////////////////////////
+      // LIFE
+      //////////////////////////////////////////////////////////
 
+      life: {
 
-type:Number,
+        type: Object,
 
+        default: {},
 
-default:1,
+      },
 
 
-},
+      //////////////////////////////////////////////////////////
+      // INSIGHTS
+      //////////////////////////////////////////////////////////
 
+      insights: {
 
+        type: Object,
 
+        default: {},
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // PLANETS
+      //////////////////////////////////////////////////////////
 
-priority:{
+      planets: {
 
+        type: [{
 
-type:Number,
+          planetKey: String,
 
+          name: String,
 
-default:0,
+          title: String,
 
+          message: String,
 
-},
+          strength: String,
 
+          icon: String,
 
+          energyLevel: String,
 
+        }],
 
+        default: [],
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // LUCK
+      //////////////////////////////////////////////////////////
 
+      lucky: {
 
-//////////////////////////////////////////////////////////////
-// FEATURE CONTROL
-//////////////////////////////////////////////////////////////
+        type: Object,
 
-featured:{
+        default: {},
 
+      },
 
 
-homepage:{
+      //////////////////////////////////////////////////////////
+      // REMEDY
+      //////////////////////////////////////////////////////////
 
+      remedy: {
 
-type:Boolean,
+        type: Object,
 
+        default: {},
 
-default:false,
+      },
 
 
-},
+      //////////////////////////////////////////////////////////
+      // VEDIC
+      //////////////////////////////////////////////////////////
 
+      vedic: {
 
+        type: Object,
 
+        default: {},
 
+      },
 
 
-trending:{
+      //////////////////////////////////////////////////////////
+      // COMPATIBILITY
+      //////////////////////////////////////////////////////////
 
+      compatibility: {
 
-type:Boolean,
+        type: Object,
 
+        default: {},
 
-default:false,
+      },
 
 
-},
+      //////////////////////////////////////////////////////////
+      // PREMIUM
+      //////////////////////////////////////////////////////////
 
+      premium: {
 
+        type: Object,
 
+        default: {},
 
+      },
 
 
-seo:{
+      //////////////////////////////////////////////////////////
+      // SEO
+      //////////////////////////////////////////////////////////
 
+      seo: {
 
-type:Boolean,
+        type: Object,
 
+        default: {},
 
-default:false,
+      },
 
 
-},
+      //////////////////////////////////////////////////////////
+      // MEDIA
+      //////////////////////////////////////////////////////////
 
+      media: {
 
+        type: Object,
 
-},
+        default: {},
 
+      },
 
 
+      //////////////////////////////////////////////////////////
+      // ANALYTICS
+      //////////////////////////////////////////////////////////
 
+      analytics: {
 
+        type: Object,
 
+        default: {},
 
-//////////////////////////////////////////////////////////////
-// VISIBILITY CONTROL
-//////////////////////////////////////////////////////////////
+      },
 
-visibility:{
 
+      //////////////////////////////////////////////////////////
+      // CMS TRACKING
+      //////////////////////////////////////////////////////////
 
+      createdBy: {
 
-public:{
+        type: String,
 
+        default: "admin",
 
-type:Boolean,
+      },
 
 
-default:true,
+      updatedBy: {
 
+        type: String,
 
-},
+        default: "admin",
 
+      },
 
+    },
 
 
+    {
 
-premium:{
+      timestamps: true,
 
+      collection: "horoscopes",
 
-type:Boolean,
+    }
 
+  );
 
-default:false,
 
-
-},
-
-
-
-
-
-featured:{
-
-
-type:Boolean,
-
-
-default:false,
-
-
-},
-
-
-
-},
-
-
-
-
-},
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// BASIC ZODIAC
-//////////////////////////////////////////////////////////////
-
-symbol:String,
-
-
-element:String,
-
-
-modality:String,
-
-
-rulingPlanet:String,
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// CONTENT SECTIONS
-//////////////////////////////////////////////////////////////
-
-hero:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-identity:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-traits:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-editorial:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-life:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-insights:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-planets:{
-
-type:[{
-
-planetKey:String,
-
-name:String,
-
-title:String,
-
-message:String,
-
-strength:String,
-
-icon:String,
-
-energyLevel:String,
-
-}],
-
-default:[],
-
-},
-
-
-
-
-
-
-lucky:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-remedy:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-vedic:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-compatibility:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-premium:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-seo:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-media:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-analytics:{
-
-
-type:Object,
-
-
-default:{},
-
-
-},
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// CMS TRACKING
-//////////////////////////////////////////////////////////////
-
-createdBy:{
-
-
-type:String,
-
-
-default:"admin",
-
-
-},
-
-
-
-
-
-
-updatedBy:{
-
-
-type:String,
-
-
-default:"admin",
-
-
-},
-
-
-
-
-
-
-
-},
-
-
-
-
-
-{
-
-
-timestamps:true,
-
-
-collection:"horoscopes"
-
-
-}
-
-);
 //////////////////////////////////////////////////////////////
 // INDEXES
 //////////////////////////////////////////////////////////////
 
 
-// Prevent duplicate horoscope content
+//////////////////////////////////////////////////////////////
+// DUPLICATE PROTECTION
+//
 // Same zodiac + period + language + date range
-// cannot create duplicate CMS entry
+// cannot create duplicate CMS entry.
+//
+//////////////////////////////////////////////////////////////
 
-HoroscopeSchema.index({
+HoroscopeSchema.index(
 
-zodiac:1,
+  {
 
-"meta.period":1,
+    zodiac: 1,
 
-"meta.language":1,
+    "meta.period": 1,
 
-"meta.startDate":1,
+    "meta.language": 1,
 
-"meta.endDate":1
+    "meta.startDate": 1,
 
-},{
+    "meta.endDate": 1,
 
-unique:true
+  },
 
-});
+  {
 
+    unique: true,
 
+  }
 
-
-
-
+);
 
 
 //////////////////////////////////////////////////////////////
-// CURRENT + ARCHIVE HOROSCOPE QUERY INDEX
+// CURRENT + ARCHIVE QUERY INDEX
 //////////////////////////////////////////////////////////////
 
-HoroscopeSchema.index({
+HoroscopeSchema.index(
 
-zodiac:1,
+  {
 
-"meta.period":1,
+    zodiac: 1,
 
-"meta.language":1,
+    "meta.period": 1,
 
-"meta.startDate":1,
+    "meta.language": 1,
 
-"meta.status":1
+    "meta.startDate": 1,
 
-});
+    "meta.status": 1,
 
+  }
 
-
-
-
-
+);
 
 
 //////////////////////////////////////////////////////////////
 // SEO ARCHIVE URL INDEX
 //////////////////////////////////////////////////////////////
 
-HoroscopeSchema.index({
+HoroscopeSchema.index(
 
-zodiac:1,
+  {
 
-"meta.period":1,
+    zodiac: 1,
 
-"meta.slugDate":1
+    "meta.period": 1,
 
-});
+    "meta.slugDate": 1,
 
+  }
 
-
-
-
-
+);
 
 
 //////////////////////////////////////////////////////////////
 // PUBLISHED CONTENT SORTING INDEX
 //////////////////////////////////////////////////////////////
 
-HoroscopeSchema.index({
+HoroscopeSchema.index(
 
-"meta.status":1,
+  {
 
-"meta.period":1,
+    "meta.status": 1,
 
-"meta.publishedAt":-1
+    "meta.period": 1,
 
-});
+    "meta.publishedAt": -1,
 
+  }
 
-
-
-
-
+);
 
 
 //////////////////////////////////////////////////////////////
 // FEATURED CONTENT INDEX
 //////////////////////////////////////////////////////////////
 
-HoroscopeSchema.index({
+HoroscopeSchema.index(
 
-"meta.featured.homepage":1,
+  {
 
-"meta.status":1
+    "meta.featured.homepage": 1,
 
-});
+    "meta.status": 1,
 
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// EXPORT
-//////////////////////////////////////////////////////////////
-
-const Horoscope =
-
-
-(mongoose.models.Horoscope as Model<IHoroscope>)
-
-||
-
-mongoose.model<IHoroscope>(
-
-"Horoscope",
-
-HoroscopeSchema
+  }
 
 );
 
 
+//////////////////////////////////////////////////////////////
+// MODEL EXPORT
+//
+// IMPORTANT:
+//
+// Next.js hot reload / server module caching can retain
+// an older compiled Horoscope model.
+//
+// If the cached model does NOT contain top-level
+// nameInitials, Mongoose can strip nameInitials while
+// saving the CMS document.
+//
+// Therefore:
+//
+// 1. Reuse cached model only if nameInitials exists.
+// 2. Otherwise remove stale cached model.
+// 3. Compile using the CURRENT HoroscopeSchema.
+//
+//////////////////////////////////////////////////////////////
+
+let Horoscope: Model<IHoroscope>;
+
+
+const existingHoroscopeModel =
+  mongoose.models.Horoscope as
+    | Model<IHoroscope>
+    | undefined;
+
+
+if (
+
+  existingHoroscopeModel &&
+
+  existingHoroscopeModel.schema.path(
+    "nameInitials"
+  )
+
+) {
+
+
+  //////////////////////////////////////////////////////////
+  // CURRENT MODEL IS CORRECT
+  //////////////////////////////////////////////////////////
+
+  Horoscope =
+    existingHoroscopeModel;
+
+
+} else {
+
+
+  //////////////////////////////////////////////////////////
+  // STALE MODEL DETECTED
+  //////////////////////////////////////////////////////////
+
+  if(existingHoroscopeModel){
+
+    delete mongoose.models.Horoscope;
+
+  }
+
+
+  //////////////////////////////////////////////////////////
+  // COMPILE CURRENT MODEL
+  //////////////////////////////////////////////////////////
+
+  Horoscope =
+    mongoose.model<IHoroscope>(
+
+      "Horoscope",
+
+      HoroscopeSchema
+
+    );
+
+}
+
+
+//////////////////////////////////////////////////////////////
+// FINAL EXPORT
+//////////////////////////////////////////////////////////////
 
 export default Horoscope;

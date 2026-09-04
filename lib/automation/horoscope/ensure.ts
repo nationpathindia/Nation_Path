@@ -4,7 +4,7 @@
 //
 // HOROSCOPE DAILY ENSURE SERVICE
 //
-// EVENT BASED GENERATION CONTROLLER
+// LOCKED PRODUCTION VERSION
 //
 // Responsibility:
 //
@@ -12,69 +12,52 @@
 //        ↓
 // Check Today's Published Horoscope
 //        ↓
-// Exists
-//        ↓
-// Return Ready
+// Exists → Return CMS
 //
 // Missing
 //        ↓
 // Generation Lock
 //        ↓
-// Load Zodiac Master
+// Full Automation Orchestrator
 //        ↓
-// Trigger Full Horoscope Automation
+// Generate All Zodiac
 //        ↓
-// Generate 12 Zodiac
+// Publish
 //        ↓
-// Publish Today's Horoscope
+// Verify Requested Zodiac
 //
 //
 //
-// NO:
+// IMPORTANT:
 //
-// - Astrology calculation
-// - Swiss Ephemeris
-// - Prediction modification
-// - AI generation logic
+// This file does NOT:
+//
+// - Load Zodiac Master
+// - Generate horoscope content
+// - Call generator directly
+// - Call mapper
+// - Call publisher
+// - Calculate astrology
+// - Modify prediction
+// - Generate AI
+//
+// Orchestrator owns the complete generation pipeline.
 //
 //////////////////////////////////////////////////////////////
 
-
 import {
-
   getHoroscopeByPeriod,
-
 } from "@/lib/services/horoscopeContentService";
 
-
-
-import Zodiac from "@/app/models/Zodiac";
-
-
-
 import {
-
   runHoroscopeAutomation,
-
 } from "./orchestrator";
 
-
-
 import {
-
   isHoroscopeGenerationRunning,
-
   acquireHoroscopeGenerationLock,
-
   releaseHoroscopeGenerationLock,
-
 } from "./lock";
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // TYPES
@@ -82,99 +65,19 @@ import {
 
 export interface EnsureDailyHoroscopeResult {
 
+  generated: boolean;
 
-  generated:boolean;
-
-
-
-  generating:boolean;
-
-
+  generating: boolean;
 
   source:
-
     | "cms"
-
     | "automation";
 
+  message?: string;
 
-
-  message?:string;
-
-
-
-  zodiac?:string;
-
-
+  zodiac?: string;
 
 }
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// LOAD ZODIAC MASTER SNAPSHOT
-//
-// Required by CMS Mapper
-//
-// Zodiac Collection
-//        ↓
-// Automation Payload
-//
-//////////////////////////////////////////////////////////////
-
-async function getAutomationZodiacList(){
-
-
-  const zodiacList = await Zodiac.find({
-
-    status:"published",
-
-  })
-
-  .select({
-
-    zodiac:1,
-
-    slug:1,
-
-    names:1,
-
-    symbol:1,
-
-    element:1,
-
-    rulingPlanet:1,
-
-    identity:1,
-
-    media:1,
-
-  })
-
-  .lean();
-
-
-
-
-
-  return zodiacList;
-
-
-}
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // ENSURE TODAY HOROSCOPE
@@ -182,64 +85,36 @@ async function getAutomationZodiacList(){
 
 export async function ensureDailyHoroscopeGenerated(
 
+  zodiacSign: string,
 
+  options?: {
 
-  zodiacSign:string,
+    language?:
+      | "english"
+      | "hindi"
+      | "marathi"
+      | "tamil"
+      | "telugu"
+      | "nepali";
 
+  }
 
-
-  options?:{
-
-  language?:
-
-    | "english"
-
-    | "hindi"
-
-    | "marathi"
-
-    | "tamil"
-
-    | "telugu"
-
-    | "nepali";
-
-}
-
-
-
-):Promise<EnsureDailyHoroscopeResult>{
-
-
-
-
+): Promise<EnsureDailyHoroscopeResult> {
 
   const language =
-
-    options?.language
-
-    ||
-
+    options?.language ||
     "english";
 
-
-
-
-
-  const today = new Date();
-
-
-
-
-
-
-
+  const today =
+    new Date();
 
   ////////////////////////////////////////////////////////////
   //
   // STEP 1
   //
-  // CMS FIRST CHECK
+  // CMS FIRST
+  //
+  // Never generate if today's published CMS content exists.
   //
   ////////////////////////////////////////////////////////////
 
@@ -247,69 +122,44 @@ export async function ensureDailyHoroscopeGenerated(
 
     await getHoroscopeByPeriod(
 
-
       zodiacSign,
-
 
       "daily",
 
-
       today,
-
 
       language
 
-
     );
 
-
-
-
-
-
-
-  if(existing){
-
-
+  if (existing) {
 
     return {
 
+      generated:
+        false,
 
-      generated:false,
+      generating:
+        false,
 
+      source:
+        "cms",
 
-      generating:false,
-
-
-      source:"cms",
-
-
-      zodiac:zodiacSign,
-
+      zodiac:
+        zodiacSign,
 
       message:
-
         "Today's horoscope already available",
-
 
     };
 
-
   }
-
-
-
-
-
-
-
-
 
   ////////////////////////////////////////////////////////////
   //
   // STEP 2
   //
-  // CHECK ACTIVE GENERATION
+  // CHECK ACTIVE DISTRIBUTED LOCK
   //
   ////////////////////////////////////////////////////////////
 
@@ -317,53 +167,34 @@ export async function ensureDailyHoroscopeGenerated(
 
     await isHoroscopeGenerationRunning();
 
-
-
-
-
-  if(alreadyRunning){
-
-
+  if (alreadyRunning) {
 
     return {
 
+      generated:
+        false,
 
-      generated:false,
+      generating:
+        true,
 
+      source:
+        "automation",
 
-      generating:true,
-
-
-      source:"automation",
-
-
-      zodiac:zodiacSign,
-
+      zodiac:
+        zodiacSign,
 
       message:
-
-
         "Preparing today's horoscope. Please wait.",
-
 
     };
 
-
   }
-
-
-
-
-
-
-
-
 
   ////////////////////////////////////////////////////////////
   //
   // STEP 3
   //
-  // ACQUIRE LOCK
+  // ACQUIRE DISTRIBUTED LOCK
   //
   ////////////////////////////////////////////////////////////
 
@@ -371,286 +202,217 @@ export async function ensureDailyHoroscopeGenerated(
 
     await acquireHoroscopeGenerationLock();
 
-
-
-
-
-
-  if(!lockAcquired){
-
-
+  if (!lockAcquired) {
 
     return {
 
+      generated:
+        false,
 
-      generated:false,
+      generating:
+        true,
 
+      source:
+        "automation",
 
-      generating:true,
-
-
-      source:"automation",
-
-
-      zodiac:zodiacSign,
-
+      zodiac:
+        zodiacSign,
 
       message:
-
-
         "Today's horoscope generation is already running.",
-
 
     };
 
-
   }
 
-
-
-
-
-
-
-
-
-  try{
-
-
+  try {
 
     console.log(
 
-      "🌌 Today's horoscope missing. Starting automation.",
+      "🌌 TODAY'S HOROSCOPE MISSING — STARTING AUTOMATION",
 
       {
 
-        zodiac:zodiacSign,
+        zodiac:
+          zodiacSign,
 
-        date:today,
+        date:
+          today,
+
+        language,
 
       }
 
     );
-
-
-
-
-
-
-
-
 
     //////////////////////////////////////////////////////////
     //
     // STEP 4
     //
-    // LOAD ZODIAC MASTER DATA
+    // FULL AUTOMATION
+    //
+    // Orchestrator owns:
+    //
+    // Zodiac Master
+    //      ↓
+    // Generator
+    //      ↓
+    // Mapper
+    //      ↓
+    // Publisher
     //
     //////////////////////////////////////////////////////////
 
-    const zodiacList =
+    const result =
 
-      await getAutomationZodiacList();
+      await runHoroscopeAutomation({
 
+        period:
+          "daily",
 
+        language,
 
+        startDate:
+          today,
 
+        endDate:
+          today,
 
-
-
-    if(!zodiacList.length){
-
-
-      throw new Error(
-
-        "No published zodiac master data found"
-
-      );
-
-
-    }
-
-
-
-
-
-
-
-
+      });
 
     //////////////////////////////////////////////////////////
     //
     // STEP 5
     //
-    // GENERATE ALL 12 HOROSCOPES
+    // AUTOMATION RESULT CHECK
     //
     //////////////////////////////////////////////////////////
 
-    await runHoroscopeAutomation(
+    if (!result.success) {
 
+      console.error(
 
-      zodiacList,
+        "[HOROSCOPE_AUTOMATION_PARTIAL_FAILURE]",
 
+        {
 
-      {
+          zodiac:
+            zodiacSign,
 
+          total:
+            result.total,
 
-        period:"daily",
+          generated:
+            result.generated,
 
+          failed:
+            result.failed,
 
-        language,
+        }
 
+      );
 
-        startDate:today,
-
-
-        endDate:today,
-
-
-      }
-
-
-    );
-
-
-
-
-
-
-
-
+    }
 
     //////////////////////////////////////////////////////////
     //
     // STEP 6
     //
-    // VERIFY REQUESTED SIGN
+    // VERIFY REQUESTED ZODIAC
+    //
+    // Always verify through CMS.
     //
     //////////////////////////////////////////////////////////
 
     const refreshed =
 
-
       await getHoroscopeByPeriod(
-
 
         zodiacSign,
 
-
         "daily",
-
 
         today,
 
-
         language
-
 
       );
 
-
-
-
-
-
-
-
+    //////////////////////////////////////////////////////////
+    //
+    // SUCCESS
+    //
+    //////////////////////////////////////////////////////////
 
     return {
 
+      generated:
+        !!refreshed,
 
+      generating:
+        false,
 
-      generated:true,
+      source:
+        "automation",
 
-
-      generating:false,
-
-
-      source:"automation",
-
-
-      zodiac:zodiacSign,
-
+      zodiac:
+        zodiacSign,
 
       message:
 
-
-
         refreshed
 
+          ? "Today's horoscope generated successfully"
 
-        ?
-
-
-        "Today's horoscope generated successfully"
-
-
-        :
-
-
-        "Generation completed but verification pending",
-
-
+          : "Generation completed but verification pending",
 
     };
 
-
-
-
-
   }
 
-  catch(error){
-
-
+  catch (error) {
 
     console.error(
 
       "[HOROSCOPE_AUTOMATION_FAILED]",
 
-      error
+      {
+
+        zodiac:
+          zodiacSign,
+
+        error,
+
+      }
 
     );
 
-
-
     return {
 
+      generated:
+        false,
 
-      generated:false,
+      generating:
+        false,
 
+      source:
+        "automation",
 
-      generating:false,
-
-
-      source:"automation",
-
-
-      zodiac:zodiacSign,
-
+      zodiac:
+        zodiacSign,
 
       message:
-
-
         "Unable to prepare today's horoscope.",
-
 
     };
 
-
-
   }
 
-
-
-
-
-
-  finally{
-
-
+  finally {
 
     //////////////////////////////////////////////////////////
+    //
+    // STEP 7
     //
     // ALWAYS RELEASE LOCK
     //
@@ -658,31 +420,17 @@ export async function ensureDailyHoroscopeGenerated(
 
     await releaseHoroscopeGenerationLock();
 
-
   }
-
-
-
-
 
 }
 
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
-// EXPORT
+// DEFAULT EXPORT
 //////////////////////////////////////////////////////////////
 
 export default {
 
-
   ensureDailyHoroscopeGenerated,
 
-
 };
+

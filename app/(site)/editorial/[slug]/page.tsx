@@ -756,10 +756,11 @@ export default async function EditorialArticle({
 
           {/* ================= ANALYTICS ================= */}
 
-          <ArticleAnalyticsTracker
-            articleId={article.id}
-            articleUrl={editorialUrl}
-          />
+         <ArticleAnalyticsTracker
+  type="editorial"
+  articleId={article.id}
+  articleUrl={`/${article.category.slug}/${article.slug}`}
+/>
 
           {/* ================= BREADCRUMB ================= */}
 

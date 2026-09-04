@@ -1,6 +1,32 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ASTRO HOROSCOPE ENGINE
+//
 // Future Proof Horoscope Type System
+//
+// LOCKED
+//
+// Calculation
+// Astronomy
+// Rashi
+// Nakshatra
+// Houses
+// Dasha
+// D1 / D9
+// Yoga
+// Dosha
+// Analysis
+// Influence
+// Interpretation
+// Language Intelligence
+// Remedy Intelligence
+// Prediction
+// Compatibility
+//
+// No CMS logic.
+// No AI generation.
+// No UI logic.
+//
 //////////////////////////////////////////////////////////////
 
 import type {
@@ -11,21 +37,21 @@ import type {
   Planet,
 } from "../client";
 
+import type {
+  CompatibilityResult,
+} from "../types";
 
 import type {
   PlanetInfluence,
 } from "./influence";
 
-
 import type {
   PlanetMetadata,
 } from "./intelligence";
 
-
 import type {
   PlanetStrengthResult,
 } from "./strength";
-
 
 import type {
   HoroscopeAnalysis,
@@ -47,6 +73,14 @@ import type {
   DoshaAnalysis,
 } from "../dosha/types";
 
+import type {
+  LanguageComposition,
+} from "./intelligence/language/types";
+
+import type {
+  RemedyIntelligenceResult,
+} from "./remedy/types";
+
 
 //////////////////////////////////////////////////////////////
 // PLANET IDENTIFIER
@@ -56,6 +90,7 @@ export type HoroscopePlanetId =
   | Planet
   | "Rahu"
   | "Ketu";
+
 
 //////////////////////////////////////////////////////////////
 // PLANET NAME
@@ -71,6 +106,7 @@ export type PlanetName =
   | "Saturn"
   | "Rahu"
   | "Ketu";
+
 
 //////////////////////////////////////////////////////////////
 // LANGUAGE SYSTEM
@@ -89,147 +125,113 @@ export type HoroscopeLanguage =
   | "te"
   | "sa";
 
+
 //////////////////////////////////////////////////////////////
 // HOROSCOPE REQUEST
 //////////////////////////////////////////////////////////////
 
 export interface HoroscopeRequest {
 
-
-  date:
-    Date;
-
-
-
-  language?:
-    HoroscopeLanguage;
-
-
-
-  zodiacSign?:
-    string;
-
-
+  /**
+   * Horoscope calculation date.
+   */
+  date: Date;
 
   /**
-   * Future Kundli Support
+   * Requested output language / locale.
    */
+  language?: HoroscopeLanguage;
 
+  /**
+   * Zodiac sign used by sign-based horoscope prediction.
+   */
+  zodiacSign?: string;
+
+  /**
+   * Future Kundli / birth-chart support.
+   */
   birthDetails?: {
 
-    date:
-      Date;
+    date: Date;
 
+    latitude: number;
 
-    latitude:
-      number;
+    longitude: number;
 
-
-    longitude:
-      number;
-
-
-    timezone?:
-      string;
+    timezone?: string;
 
   };
 
-
 }
-
 
 
 //////////////////////////////////////////////////////////////
 // PLANET DATA
 //////////////////////////////////////////////////////////////
+
 export interface HoroscopePlanet {
 
-
-  planet:
-    HoroscopePlanetId;
-
-
-
-  longitude:
-    number;
-
-
-
-  retrograde:
-    boolean;
-
-
-
-  rashi:
-    RashiInfo;
-
-
+  /**
+   * Planet identifier.
+   */
+  planet: HoroscopePlanetId;
 
   /**
-   * Planet Intelligence Database
+   * Sidereal longitude in degrees.
    */
-
-  intelligence:
-    PlanetMetadata;
-
-
+  longitude: number;
 
   /**
-   * Strength Calculation
+   * Retrograde state.
    */
-
-  strength:
-    PlanetStrengthResult;
-
-
+  retrograde: boolean;
 
   /**
-   * House Placement
+   * Rashi placement.
    */
+  rashi: RashiInfo;
 
+  /**
+   * Planet Intelligence Database.
+   */
+  intelligence: PlanetMetadata;
+
+  /**
+   * Planet strength calculation.
+   */
+  strength: PlanetStrengthResult;
+
+  /**
+   * House placement.
+   *
+   * Available when birth details are supplied.
+   */
   house?: {
 
-    number:
-      number;
+    number: number;
 
-
-    lord?:
-      string;
+    lord?: string;
 
   };
-
-
 
   /**
-   * Nakshatra System
+   * Nakshatra placement.
    */
-
   nakshatra?: {
 
-    index:
-      number;
+    index: number;
 
+    name: string;
 
-    name:
-      string;
+    lord: string;
 
+    pada: number;
 
-    lord:
-      string;
-
-
-    pada:
-      number;
-
-
-    degree:
-      number;
+    degree: number;
 
   };
 
-
 }
-
 
 
 //////////////////////////////////////////////////////////////
@@ -238,44 +240,26 @@ export interface HoroscopePlanet {
 
 export interface PlanetarySnapshot {
 
+  sun: HoroscopePlanet;
 
-  sun:
-    HoroscopePlanet;
+  moon: HoroscopePlanet;
 
+  mars: HoroscopePlanet;
 
-  moon:
-    HoroscopePlanet;
+  mercury: HoroscopePlanet;
 
+  jupiter: HoroscopePlanet;
 
-  mars:
-    HoroscopePlanet;
+  venus: HoroscopePlanet;
 
+  saturn: HoroscopePlanet;
 
-  mercury:
-    HoroscopePlanet;
+  rahu: HoroscopePlanet;
 
-
-  jupiter:
-    HoroscopePlanet;
-
-
-  venus:
-    HoroscopePlanet;
-
-
-  saturn:
-    HoroscopePlanet;
-
-
-  rahu:
-    HoroscopePlanet;
-
-
-  ketu:
-    HoroscopePlanet;
-
+  ketu: HoroscopePlanet;
 
 }
+
 
 //////////////////////////////////////////////////////////////
 // HOROSCOPE SUMMARY
@@ -283,30 +267,21 @@ export interface PlanetarySnapshot {
 
 export interface HoroscopeSummary {
 
+  title: string;
 
-  title:
-    string;
-
-
-  description:
-    string;
-
-
+  description: string;
 
   /**
-   * AI Interpretation Layer
+   * Analytical themes.
    */
+  themes?: string[];
 
-  themes?:
-    string[];
-
-
-  advice?:
-    string[];
-
+  /**
+   * General advice.
+   */
+  advice?: string[];
 
 }
-
 
 
 //////////////////////////////////////////////////////////////
@@ -315,310 +290,284 @@ export interface HoroscopeSummary {
 
 export interface HoroscopeResult {
 
-
   //////////////////////////////////////////////////////////////
   // BASIC INFORMATION
   //////////////////////////////////////////////////////////////
 
-  date:
-    Date;
+  date: Date;
 
-
-  language:
-    HoroscopeLanguage;
-
+  /**
+   * Requested horoscope language / locale.
+   *
+   * Examples:
+   * "en"
+   * "hi"
+   * "english"
+   * "hindi"
+   *
+   * IMPORTANT:
+   * This is only the requested language.
+   * It is NOT LanguageComposition.
+   */
+  language: HoroscopeLanguage;
 
 
   //////////////////////////////////////////////////////////////
   // BASIC SIGNS
   //////////////////////////////////////////////////////////////
 
-  sunSign:
-    RashiInfo;
+  /**
+   * Sidereal Sun Rashi.
+   */
+  sunSign: RashiInfo;
 
+  /**
+   * Sidereal Moon Rashi.
+   */
+  moonSign: RashiInfo;
 
-
-  moonSign:
-    RashiInfo;
-
-
+  /**
+   * Ascendant / Lagna.
+   *
+   * Available when birth details are supplied.
+   */
   ascendant?: {
 
-    longitude:number;
+    longitude: number;
 
-
-    rashi:RashiInfo;
+    rashi: RashiInfo;
 
   };
 
-
+  /**
+   * Birth chart house data.
+   *
+   * Available when birth details are supplied.
+   */
   houses?: {
 
-    ascendant:number;
+    ascendant: number;
 
+    mc: number;
 
-    mc:number;
+    cusps: number[];
 
-
-    cusps:number[];
-
-
-    houseSystem?:string;
+    houseSystem?: string;
 
   };
-
 
 
   //////////////////////////////////////////////////////////////
   // PLANETARY POSITIONS
   //////////////////////////////////////////////////////////////
 
-  planets:
-    PlanetarySnapshot;
-
- //////////////////////////////////////////////////////////////
-// DIVISIONAL CHARTS
-//////////////////////////////////////////////////////////////
-charts?: {
-
-  d1:{
-
-    planets:
-      PlanetarySnapshot;
+  planets: PlanetarySnapshot;
 
 
-    houses?: {
+  //////////////////////////////////////////////////////////////
+  // DIVISIONAL CHARTS
+  //////////////////////////////////////////////////////////////
 
-      ascendant:number;
+  charts?: {
 
-      mc:number;
+    /**
+     * D1 / Rashi chart.
+     */
+    d1: {
 
-      cusps:number[];
+      planets: PlanetarySnapshot;
 
-      houseSystem?:string;
+      houses?: {
+
+        ascendant: number;
+
+        mc: number;
+
+        cusps: number[];
+
+        houseSystem?: string;
+
+      };
+
+    };
+
+    /**
+     * D9 / Navamsa chart.
+     */
+    d9: {
+
+      type: "D9";
+
+      planets: {
+
+        planet: string;
+
+        d1: {
+
+          rashi: string;
+
+          longitude: number;
+
+        };
+
+        d9: {
+
+          rashi: string;
+
+        };
+
+        analysis: {
+
+          dignity: string;
+
+          strength: number;
+
+          keywords: string[];
+
+        };
+
+      }[];
 
     };
 
   };
 
 
+  //////////////////////////////////////////////////////////////
+  // D1 + D9 COMBINED INTELLIGENCE
+  //////////////////////////////////////////////////////////////
 
-  d9:{
+  d9Analysis?: {
 
-    type:"D9";
+    planet: string;
 
+    d1: {
 
-    planets:{
+      rashi: string;
 
-      planet:string;
+      strength: number;
 
+    };
 
-      d1:{
+    d9: {
 
-        rashi:string;
+      rashi: string;
 
-        longitude:number;
+      strength: number;
 
-      };
+    };
 
+    result: {
 
-      d9:{
+      status: string;
 
-        rashi:string;
+      combinedStrength: number;
 
-      };
+      keywords: string[];
 
+    };
 
-      analysis:{
-
-        dignity:string;
-
-        strength:number;
-
-        keywords:string[];
-
-      };
-
-
-    }[];
-
-  };
+  }[];
 
 
-};
+  //////////////////////////////////////////////////////////////
+  // YOGA / DOSHA
+  //////////////////////////////////////////////////////////////
 
+  yogas?: YogaAnalysis;
 
-//////////////////////////////////////////////////////////////
-// D1 + D9 COMBINED INTELLIGENCE
-//////////////////////////////////////////////////////////////
+  doshas?: DoshaAnalysis;
 
-d9Analysis?: {
-
-  planet:string;
-
-
-  d1:{
-
-    rashi:string;
-
-    strength:number;
-
-  };
-
-
-  d9:{
-
-    rashi:string;
-
-    strength:number;
-
-  };
-
-
-  result:{
-
-    status:string;
-
-    combinedStrength:number;
-
-    keywords:string[];
-
-  };
-
-}[];
-
-
-yogas?:
-
-  YogaAnalysis;
-
-  
-doshas?:
-  DoshaAnalysis;  
 
   //////////////////////////////////////////////////////////////
   // NAKSHATRA ENGINE
+  //
   // Phase 2
   //////////////////////////////////////////////////////////////
 
   nakshatra?: {
 
-
     moon?: {
 
-      name:string;
+      name: string;
 
-      pada:number;
+      pada: number;
 
-      longitude:number;
+      longitude: number;
 
     };
 
-
-
     planets?: {
 
-      planet:
-        HoroscopePlanetId;
+      planet: HoroscopePlanetId;
 
+      name: string;
 
-      name:string;
+      pada: number;
 
-
-      pada:number;
-
-
-      longitude:number;
-
+      longitude: number;
 
     }[];
 
   };
 
 
-
-
-
   //////////////////////////////////////////////////////////////
   // VEDIC INTELLIGENCE ENGINE
+  //
   // Phase 3
   //////////////////////////////////////////////////////////////
 
   vedicAnalysis?: {
 
+    lagnaLord?: HoroscopePlanet;
 
-    lagnaLord?:HoroscopePlanet;
-
-
-    bhavaLords?:unknown[];
-
+    bhavaLords?: unknown[];
 
     yogas?: {
 
+      name: string;
 
-      name:string;
+      description: string;
 
-
-      description:string;
-
-
-      planets:string[];
-
+      planets: string[];
 
     }[];
 
-
-
     doshas?: {
 
+      manglik?: boolean;
 
-      manglik?:boolean;
+      kaalSarp?: boolean;
 
-
-      kaalSarp?:boolean;
-
-
-      grahan?:boolean;
-
+      grahan?: boolean;
 
     };
-
 
   };
 
 
-
-
-
   //////////////////////////////////////////////////////////////
   // DASHA ENGINE
+  //
   // Phase 4
   //////////////////////////////////////////////////////////////
 
   dasha?: {
 
-
     current?: {
 
+      mahadasha: string;
 
-      mahadasha:string;
+      antardasha: string;
 
+      start?: Date;
 
-      antardasha:string;
-
-
-      start?:Date;
-
-
-      end?:Date;
-
+      end?: Date;
 
     };
 
-
-
-    vimshottari?:unknown[];
-
+    vimshottari?: unknown[];
 
   };
 
@@ -627,43 +576,77 @@ doshas?:
   // ANALYTICAL INTELLIGENCE
   //////////////////////////////////////////////////////////////
 
-  analysis?:
-    HoroscopeAnalysis;
-
-
+  analysis?: HoroscopeAnalysis;
 
 
   //////////////////////////////////////////////////////////////
   // PLANET INFLUENCE
   //////////////////////////////////////////////////////////////
 
-  influences:
-    PlanetInfluence[];
-
-
-
+  influences: PlanetInfluence[];
 
 
   //////////////////////////////////////////////////////////////
   // INTERPRETATION ENGINE
   //////////////////////////////////////////////////////////////
 
-  interpretation?:
-    HoroscopeInterpretation;
+  interpretation?: HoroscopeInterpretation;
 
 
+  //////////////////////////////////////////////////////////////
+  // LANGUAGE INTELLIGENCE
+  //////////////////////////////////////////////////////////////
+  //
+  // `language` = requested language / locale.
+  //
+  // `languageIntelligence` = actual language /
+  // literature intelligence output.
+  //
+  //////////////////////////////////////////////////////////////
 
+  languageIntelligence?: LanguageComposition;
+
+
+  //////////////////////////////////////////////////////////////
+  // REMEDY INTELLIGENCE
+  //////////////////////////////////////////////////////////////
+  //
+  // Receives already-resolved remedy intelligence.
+  //
+  // Remedy calculation/selection does NOT happen here.
+  // CMS/database access does NOT happen here.
+  //
+  //////////////////////////////////////////////////////////////
+
+  remedyIntelligence?: RemedyIntelligenceResult;
 
 
   //////////////////////////////////////////////////////////////
   // PREDICTION ENGINE
   //////////////////////////////////////////////////////////////
 
-  prediction?:
-    HoroscopePrediction;
+  prediction?: HoroscopePrediction;
 
 
+  //////////////////////////////////////////////////////////////
+  // BASIC RASHI COMPATIBILITY
+  //////////////////////////////////////////////////////////////
+  //
+  // Basic zodiac-sign compatibility.
+  //
+  // Calculation source:
+  // lib/astro/compatibility.ts
+  //
+  // Separate from:
+  // - planetary compatibility
+  // - Kundli matching
+  // - Ashtakoota
+  // - Guna Milan
+  // - D1 / D9 marriage analysis
+  //
+  //////////////////////////////////////////////////////////////
 
+  compatibility?: CompatibilityResult;
 
 
   //////////////////////////////////////////////////////////////
@@ -672,29 +655,19 @@ doshas?:
 
   predictions?: {
 
+    career?: unknown;
 
-    career?:unknown;
+    marriage?: unknown;
 
+    finance?: unknown;
 
-    marriage?:unknown;
+    health?: unknown;
 
+    education?: unknown;
 
-    finance?:unknown;
-
-
-    health?:unknown;
-
-
-    education?:unknown;
-
-
-    yearly?:unknown;
-
+    yearly?: unknown;
 
   };
-
-
-
 
 
   //////////////////////////////////////////////////////////////
@@ -703,34 +676,20 @@ doshas?:
 
   transits?: {
 
+    planet: HoroscopePlanetId;
 
-    planet:
-      HoroscopePlanetId;
+    from: string;
 
-
-    from:
-      string;
-
-
-    to:
-      string;
-
+    to: string;
 
   }[];
-
-
-
 
 
   //////////////////////////////////////////////////////////////
   // SCORING ENGINE
   //////////////////////////////////////////////////////////////
 
-  overallScore?:
-    number;
-
-
-
+  overallScore?: number;
 
 
   //////////////////////////////////////////////////////////////
@@ -739,32 +698,24 @@ doshas?:
 
   report?: {
 
+    generatedAt?: Date;
 
-    generatedAt?:Date;
+    format?: "pdf" | "json";
 
-
-    format?:
-      "pdf"
-      |
-      "json";
-
-
-    version?:string;
-
+    version?: string;
 
   };
-
-
-
 
 
   //////////////////////////////////////////////////////////////
   // SUMMARY
   //////////////////////////////////////////////////////////////
 
-  summary:
-    HoroscopeSummary;
-
-
+  summary: HoroscopeSummary;
 
 }
+
+
+//////////////////////////////////////////////////////////////
+// END OF TYPES
+//////////////////////////////////////////////////////////////

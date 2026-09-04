@@ -1,712 +1,738 @@
 "use client";
 
+/*
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO
 //
-// COSMIC INTELLIGENCE CHAMBER
+// PREMIUM HOROSCOPE — COSMIC INTELLIGENCE
 //
-// PREMIUM VEDIC ENERGY BLUEPRINT
+// CMS FIRST
+// NO ENGINE
+// NO CALCULATION
+// NO AI
 //
-// CMS ONLY
+// PURPOSE:
+//
+// ONE INTELLIGENCE PANEL
+//
+// 3 PRIMARY SIGNALS:
+//
+//   ├── Planetary Influence
+//   ├── Energy
+//   └── Cosmic Remedy
+//
+// Guidance intentionally removed.
+// Guidance already belongs to other horoscope components.
+//
+// Strengths / Challenges remain below as supporting intelligence.
+//
+// DESIGN:
+//
+// Premium Cosmic Life Observatory
+// Deep Navy / Violet / Gold
+// Warm Ivory Typography
+// Subtle Cosmic Atmosphere
+// Compact but premium
 //////////////////////////////////////////////////////////////
-
-import { motion } from "framer-motion";
+*/
 
 import {
-  Sparkles,
-  Flame,
   Compass,
-  Shield,
-  Sun,
+  ShieldCheck,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
-
 import type {
-  CmsHoroscopeInsights
+  CmsHoroscopeInsights,
 } from "./types";
 
-
-
 interface Props {
-
-insights:CmsHoroscopeInsights;
-
+  insights?: CmsHoroscopeInsights;
 }
-
-
-
-
-
-
 
 export default function HoroscopeIntelligencePanel({
-
-insights
-
-}:Props){
-
-
-
-return (
-
-
-<section
-
-className="
-relative
-px-4
-py-7
-sm:px-8
-lg:px-16
-overflow-hidden
-"
-
->
-
-
-<div
-
-className="
-mx-auto
-max-w-6xl
-"
-
->
-
-
-
-
-
-{/* HEADER */}
-
-
-
-<motion.div
-
-initial={{
-opacity:0,
-y:15
-}}
-
-whileInView={{
-opacity:1,
-y:0
-}}
-
-viewport={{
-once:true
-}}
-
-className="
-flex
-items-center
-gap-3
-"
-
->
-
-
-<div
-
-className="
-flex
-h-10
-w-10
-items-center
-justify-center
-rounded-xl
-border
-border-[#D4AF37]/40
-bg-[#D4AF37]/10
-shadow-[0_0_25px_rgba(212,175,55,.2)]
-"
-
->
-
-<Sparkles
-
-size={17}
-
-className="
-text-[#D4AF37]
-"
-
-/>
-
-</div>
-
-
-
-
-<div>
-
-<p
-
-className="
-text-[10px]
-font-bold
-uppercase
-tracking-[0.45em]
-text-[#8B5E00]
-"
-
->
-
-Astro Intelligence
-
-</p>
-
-
-
-<h2
-
-className="
-mt-1
-font-serif
-text-2xl
-font-bold
-text-[#3B2600]
-sm:text-3xl
-"
-
->
-
-Cosmic Energy Blueprint
-
-</h2>
-
-
-</div>
-
-
-
-</motion.div>
-
-
-
-
-
-
-
-
-
-{/* MAIN ENERGY CORE */}
-
-
-
-<motion.div
-
-
-initial={{
-opacity:0,
-scale:.98
-}}
-
-
-whileInView={{
-opacity:1,
-scale:1
-}}
-
-
-viewport={{
-once:true
-}}
-
-
-transition={{
-duration:.7
-}}
-
-
-
-className="
-group
-relative
-mt-6
-overflow-hidden
-rounded-[34px]
-border
-border-[#D4AF37]/35
-bg-gradient-to-br
-from-[#3B2600]
-via-[#24140B]
-to-[#120B06]
-p-5
-shadow-[0_30px_90px_rgba(59,38,0,.25)]
-sm:p-8
-"
-
->
-
-
-
-{/* MOVING GOLD RAY */}
-
-
-<motion.div
-
-animate={{
-
-x:[
-"-80%",
-"140%"
-]
-
-}}
-
-transition={{
-
-duration:10,
-
-repeat:Infinity,
-
-ease:"linear"
-
-}}
-
-className="
-absolute
-top-0
-left-0
-h-[2px]
-w-[50%]
-bg-gradient-to-r
-from-transparent
-via-[#D4AF37]
-to-transparent
-opacity-80
-"
-
-/>
-
-
-
-
-
-
-{/* ORBIT */}
-
-
-
-<motion.div
-
-animate={{
-
-rotate:360
-
-}}
-
-transition={{
-
-duration:50,
-
-repeat:Infinity,
-
-ease:"linear"
-
-}}
-
-className="
-absolute
-right-[-80px]
-top-[-80px]
-h-64
-w-64
-rounded-full
-border
-border-[#D4AF37]/20
-"
-
- />
-
-
-
-
-
-<div
-
-className="
-absolute
-right-[-100px]
-top-[-100px]
-h-72
-w-72
-rounded-full
-bg-[#D4AF37]/20
-blur-[120px]
-"
-
-/>
-
-
-
-
-
-
-<div
-
-className="
-relative
-flex
-items-start
-gap-5
-"
-
->
-
-
-
-<div
-
-className="
-flex
-h-14
-w-14
-shrink-0
-items-center
-justify-center
-rounded-2xl
-border
-border-[#D4AF37]/40
-bg-[#D4AF37]/10
-"
-
->
-
-<Flame
-
-size={24}
-
-className="
-text-[#D4AF37]
-"
-
-/>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div>
-
-
-<p
-
-className="
-text-[10px]
-font-bold
-uppercase
-tracking-[0.35em]
-text-[#D4AF37]
-"
-
->
-
-Planetary Influence
-
-</p>
-
-
-
-
-<p
-
-className="
-mt-4
-text-sm
-leading-7
-text-[#FFF4D6]
-sm:text-lg
-"
-
->
-
-{
-
-insights.planetaryInfluence ||
-
-"Cosmic forces are shaping your current journey."
-
+  insights,
+}: Props) {
+  if (!insights) {
+    return null;
+  }
+
+  /*
+  ////////////////////////////////////////////////////////////
+  // CONTENT CHECK
+  ////////////////////////////////////////////////////////////
+  */
+
+  const hasPrimaryContent =
+    Boolean(
+      insights.planetaryInfluence ||
+        insights.energy ||
+        insights.remedy
+    );
+
+  const hasLists =
+    Boolean(
+      insights.strengths?.length ||
+        insights.challenges?.length
+    );
+
+  if (!hasPrimaryContent && !hasLists) {
+    return null;
+  }
+
+  return (
+    <section className="w-full">
+      <div
+        className="
+          group
+          relative
+          isolate
+          overflow-hidden
+          rounded-[28px]
+          border
+          border-[#8c6aaf]/20
+          bg-[#08062b]
+          text-[#eee2b7]
+          shadow-[0_30px_100px_rgba(5,3,35,.24)]
+          backdrop-blur-2xl
+        "
+      >
+        {/* ====================================================
+            COSMIC ATMOSPHERE
+            ==================================================== */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            overflow-hidden
+          "
+        >
+          {/* Upper violet atmosphere */}
+
+          <div
+            className="
+              absolute
+              -left-32
+              -top-32
+              h-[360px]
+              w-[360px]
+              rounded-full
+              bg-[#8c1682]/16
+              blur-[130px]
+            "
+          />
+
+          {/* Right magenta atmosphere */}
+
+          <div
+            className="
+              absolute
+              -right-28
+              top-1/4
+              h-[340px]
+              w-[340px]
+              rounded-full
+              bg-[#c6539e]/[0.08]
+              blur-[140px]
+            "
+          />
+
+          {/* Lower violet atmosphere */}
+
+          <div
+            className="
+              absolute
+              bottom-[-180px]
+              left-1/3
+              h-[360px]
+              w-[360px]
+              rounded-full
+              bg-[#34136d]/20
+              blur-[150px]
+            "
+          />
+
+          {/* Very subtle central gold atmosphere */}
+
+          <div
+            className="
+              absolute
+              left-[42%]
+              top-[20%]
+              h-[260px]
+              w-[260px]
+              rounded-full
+              bg-[#d4af37]/[0.035]
+              blur-[120px]
+            "
+          />
+
+          {/* Fine cosmic stars */}
+
+          <div
+            className="
+              absolute
+              inset-0
+              opacity-[0.022]
+              [background-image:radial-gradient(rgba(255,255,255,.9)_1px,transparent_1px)]
+              [background-size:36px_36px]
+            "
+          />
+
+          {/* Gold top signal */}
+
+          <div
+            className="
+              absolute
+              left-6
+              right-6
+              top-0
+              h-[2px]
+              bg-gradient-to-r
+              from-transparent
+              via-[#e5c64e]/65
+              to-transparent
+              sm:left-8
+              sm:right-8
+            "
+          />
+        </div>
+
+        {/* ====================================================
+            HEADER
+            ==================================================== */}
+
+        <div
+          className="
+            relative
+            z-10
+            px-5
+            pb-5
+            pt-6
+            sm:px-7
+            sm:pb-6
+            sm:pt-7
+          "
+        >
+          <div className="flex items-start gap-4">
+            {/* Header icon */}
+
+            <div
+              className="
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
+                rounded-2xl
+                border
+                border-[#d4af37]/20
+                bg-[#d4af37]/[0.045]
+                shadow-[0_8px_30px_rgba(212,175,55,.045)]
+              "
+            >
+              <Sparkles
+                size={19}
+                strokeWidth={1.6}
+                className="
+                  text-[#dfc45a]
+                  drop-shadow-[0_0_8px_rgba(229,198,78,.32)]
+                "
+              />
+            </div>
+
+            <div>
+              <p
+                className="
+                  text-[9px]
+                  font-bold
+                  uppercase
+                  tracking-[0.28em]
+                  text-[#d8bd55]
+                "
+              >
+                Cosmic Intelligence
+              </p>
+
+              <h2
+                className="
+                  mt-1.5
+                  font-serif
+                  text-xl
+                  font-semibold
+                  tracking-[-0.02em]
+                  text-[#eee2b7]
+                  sm:text-2xl
+                "
+              >
+                Today&apos;s Cosmic Signals
+              </h2>
+
+              <p
+                className="
+                  mt-1.5
+                  max-w-2xl
+                  text-xs
+                  leading-5
+                  text-[#aaa1ba]
+                  sm:text-sm
+                "
+              >
+                Key planetary and energetic insights
+                from your horoscope.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ====================================================
+            DIVIDER
+            ==================================================== */}
+
+        <div
+          className="
+            relative
+            z-10
+            mx-5
+            h-px
+            bg-gradient-to-r
+            from-transparent
+            via-[#d4af37]/35
+            to-transparent
+            sm:mx-7
+          "
+        />
+
+        {/* ====================================================
+            PRIMARY INTELLIGENCE
+
+            DESKTOP:
+            EXACTLY 3 COLUMNS
+            ONE ROW
+
+            Planetary | Energy | Remedy
+            ==================================================== */}
+
+        {hasPrimaryContent && (
+          <div
+            className="
+              relative
+              z-10
+              grid
+              grid-cols-1
+              gap-3
+              p-5
+              sm:p-6
+              lg:grid-cols-3
+            "
+          >
+            {insights.planetaryInfluence && (
+              <IntelligenceCard
+                icon={Compass}
+                label="Planetary Influence"
+                value={insights.planetaryInfluence}
+                accent="planetary"
+              />
+            )}
+
+            {insights.energy && (
+              <IntelligenceCard
+                icon={Zap}
+                label="Energy"
+                value={insights.energy}
+                accent="energy"
+              />
+            )}
+
+            {insights.remedy && (
+              <IntelligenceCard
+                icon={ShieldCheck}
+                label="Cosmic Remedy"
+                value={insights.remedy}
+                accent="remedy"
+              />
+            )}
+          </div>
+        )}
+
+        {/* ====================================================
+            STRENGTHS / CHALLENGES
+            ==================================================== */}
+
+        {hasLists && (
+          <div
+            className="
+              relative
+              z-10
+              grid
+              gap-4
+              border-t
+              border-white/[0.055]
+              bg-[#05031f]/20
+              p-5
+              sm:p-6
+              md:grid-cols-2
+            "
+          >
+            {insights.strengths?.length ? (
+              <InsightList
+                title="Today&apos;s Strengths"
+                items={insights.strengths}
+                positive
+              />
+            ) : null}
+
+            {insights.challenges?.length ? (
+              <InsightList
+                title="Today&apos;s Challenges"
+                items={insights.challenges}
+              />
+            ) : null}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-{/* ENERGY FOOT LINE */}
-
-
-<div
-
-className="
-relative
-mt-7
-h-px
-bg-gradient-to-r
-from-transparent
-via-[#D4AF37]/50
-to-transparent
-"
-
-/>
-
-
-
-
-</motion.div>
-
-
-
-
-
-
-
-
-
-{/* SIGNALS */}
-
-
-
-<div
-
-className="
-mt-5
-grid
-gap-4
-sm:grid-cols-3
-"
-
->
-
-
-
-<SignalBox
-
-icon={<Sun size={17}/>}
-
-title="Energy"
-
-text={insights.energy}
-
-/>
-
-
-
-<SignalBox
-
-icon={<Compass size={17}/>}
-
-title="Guidance"
-
-text={insights.guidance}
-
-/>
-
-
-
-<SignalBox
-
-icon={<Shield size={17}/>}
-
-title="Balance"
-
-text={insights.remedy}
-
-/>
-
-
-
-</div>
-
-
-
-
-
-
-
-</div>
-
-
-</section>
-
-
-);
-
+/*
+//////////////////////////////////////////////////////////////
+// INTELLIGENCE CARD
+//////////////////////////////////////////////////////////////
+*/
+
+function IntelligenceCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: typeof Compass;
+  label: string;
+  value: string;
+  accent: "planetary" | "energy" | "remedy";
+}) {
+  const accentColor =
+    accent === "energy"
+      ? "text-[#d875b5]"
+      : accent === "remedy"
+        ? "text-[#75b9a5]"
+        : "text-[#a98bd4]";
+
+  const accentBorder =
+    accent === "energy"
+      ? "border-[#c6539e]/[0.16]"
+      : accent === "remedy"
+        ? "border-[#5eaa92]/[0.14]"
+        : "border-[#7757b5]/[0.16]";
+
+  const accentBackground =
+    accent === "energy"
+      ? "bg-[#c6539e]/[0.045]"
+      : accent === "remedy"
+        ? "bg-[#5eaa92]/[0.035]"
+        : "bg-[#7757b5]/[0.045]";
+
+  const accentGlow =
+    accent === "energy"
+      ? "bg-[#c6539e]/[0.08]"
+      : accent === "remedy"
+        ? "bg-[#5eaa92]/[0.06]"
+        : "bg-[#7757b5]/[0.08]";
+
+  return (
+    <article
+      className="
+        group
+        relative
+        min-w-0
+        overflow-hidden
+        rounded-[20px]
+        border
+        border-white/[0.065]
+        bg-gradient-to-br
+        from-[#151039]/90
+        via-[#0d092f]/95
+        to-[#110a35]/90
+        p-4
+        shadow-[0_14px_35px_rgba(0,0,0,.14)]
+        transition-all
+        duration-300
+        hover:-translate-y-0.5
+        hover:border-[#d4af37]/25
+        hover:shadow-[0_20px_45px_rgba(0,0,0,.22)]
+      "
+    >
+      {/* ==================================================
+          CARD GLOW
+          ================================================== */}
+
+      <div
+        aria-hidden="true"
+        className={`
+          pointer-events-none
+          absolute
+          -right-12
+          -top-12
+          h-28
+          w-28
+          rounded-full
+          blur-[48px]
+          opacity-60
+          transition-all
+          duration-500
+          group-hover:scale-[1.4]
+          group-hover:opacity-100
+          ${accentGlow}
+        `}
+      />
+
+      {/* ==================================================
+          CARD TOP GOLD SIGNAL
+          ================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          left-0
+          top-0
+          h-px
+          w-1/3
+          bg-gradient-to-r
+          from-transparent
+          via-[#d4af37]/60
+          to-transparent
+          opacity-0
+          transition-opacity
+          duration-300
+          group-hover:opacity-100
+        "
+      />
+
+      {/* ==================================================
+          HEADER
+          ================================================== */}
+
+      <div
+        className="
+          relative
+          flex
+          items-center
+          justify-between
+          gap-3
+        "
+      >
+        <div
+          className={`
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+            rounded-xl
+            border
+            ${accentBorder}
+            ${accentBackground}
+            transition-all
+            duration-300
+            group-hover:border-[#d4af37]/25
+            group-hover:bg-[#d4af37]/[0.055]
+          `}
+        >
+          <Icon
+            size={16}
+            strokeWidth={1.6}
+            className={`
+              ${accentColor}
+              transition-colors
+              duration-300
+              group-hover:text-[#dfc45a]
+            `}
+          />
+        </div>
+
+        <span
+          className="
+            rounded-full
+            border
+            border-white/[0.05]
+            bg-white/[0.018]
+            px-2
+            py-1
+            text-[7px]
+            font-bold
+            uppercase
+            tracking-[0.16em]
+            text-[#625b7c]
+          "
+        >
+          Cosmic Signal
+        </span>
+      </div>
+
+      {/* ==================================================
+          LABEL
+          ================================================== */}
+
+      <h3
+        className="
+          relative
+          mt-4
+          text-[10px]
+          font-bold
+          uppercase
+          tracking-[0.17em]
+          text-[#d9bd55]
+        "
+      >
+        {label}
+      </h3>
+
+      {/* Accent line */}
+
+      <div
+        aria-hidden="true"
+        className="
+          relative
+          mt-2
+          h-px
+          w-8
+          bg-gradient-to-r
+          from-[#d4af37]/65
+          to-transparent
+          transition-all
+          duration-300
+          group-hover:w-14
+        "
+      />
+
+      {/* ==================================================
+          CONTENT
+          ================================================== */}
+
+      <p
+        className="
+          relative
+          mt-3
+          text-[12px]
+          leading-5
+          text-[#bdb6c9]
+          sm:text-[13px]
+          sm:leading-6
+        "
+      >
+        {value}
+      </p>
+
+      {/* Bottom accent */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          bottom-0
+          left-4
+          right-4
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-[#d4af37]/20
+          to-transparent
+        "
+      />
+    </article>
+  );
 }
 
-
-
-
-
-
-
-
-
-function SignalBox({
-
-icon,
-
-title,
-
-text
-
-}:{
-
-icon:React.ReactNode;
-
-title:string;
-
-text?:string;
-
-}){
-
-
-return (
-
-
-<motion.div
-
-
-whileHover={{
-
-y:-5
-
-}}
-
-
-className="
-relative
-overflow-hidden
-rounded-[24px]
-border
-border-[#D4AF37]/25
-bg-[#FFF9E8]
-p-4
-shadow-[0_15px_40px_rgba(59,38,0,.08)]
-"
-
-
->
-
-
-<div
-
-className="
-absolute
-right-[-20px]
-top-[-20px]
-h-20
-w-20
-rounded-full
-bg-[#D4AF37]/20
-blur-2xl
-"
-
-/>
-
-
-
-
-
-<div
-
-className="
-relative
-flex
-items-center
-gap-3
-"
-
->
-
-
-<div
-
-className="
-text-[#8B5E00]
-"
-
->
-
-{icon}
-
-</div>
-
-
-
-
-<p
-
-className="
-text-[10px]
-font-bold
-uppercase
-tracking-[0.3em]
-text-[#8B5E00]
-"
-
->
-
-{title}
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-<p
-
-className="
-relative
-mt-3
-text-sm
-leading-6
-text-[#5B3A12]
-"
-
->
-
-{
-
-text ||
-
-"Aligned with your cosmic rhythm."
-
-}
-
-
-</p>
-
-
-
-</motion.div>
-
-
-);
-
+/*
+//////////////////////////////////////////////////////////////
+// STRENGTHS / CHALLENGES
+//////////////////////////////////////////////////////////////
+*/
+
+function InsightList({
+  title,
+  items,
+  positive = false,
+}: {
+  title: string;
+  items: string[];
+  positive?: boolean;
+}) {
+  return (
+    <div>
+      <p
+        className="
+          text-[9px]
+          font-bold
+          uppercase
+          tracking-[0.22em]
+          text-[#d9bd55]
+        "
+      >
+        {title}
+      </p>
+
+      <div className="mt-3 space-y-2">
+        {items.map((item, index) => (
+          <div
+            key={`${item}-${index}`}
+            className="
+              group/item
+              flex
+              items-start
+              gap-2.5
+              rounded-xl
+              border
+              border-white/[0.045]
+              bg-[#0d092f]/50
+              px-3
+              py-2.5
+              transition-all
+              duration-300
+              hover:border-[#d4af37]/15
+              hover:bg-[#151039]/70
+            "
+          >
+            <span
+              className={`
+                mt-1.5
+                h-1.5
+                w-1.5
+                shrink-0
+                rounded-full
+                ${
+                  positive
+                    ? "bg-[#e5c64e] shadow-[0_0_8px_rgba(229,198,78,.4)]"
+                    : "bg-[#746c88]"
+                }
+              `}
+            />
+
+            <p
+              className="
+                text-xs
+                leading-5
+                text-[#aaa1ba]
+                transition-colors
+                duration-300
+                group-hover/item:text-[#bdb6c9]
+              "
+            >
+              {item}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

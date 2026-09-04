@@ -3,6 +3,26 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+//////////////////////////////////////////////////////////////
+//
+// NATIONPATH ANALYTICS
+// ARTICLE / EDITORIAL / ASTRO EVENT COLLECTION API
+//
+// SOURCE OF TRUTH:
+// - ArticleAnalyticsEvent
+//
+// ALSO:
+// - VIEW → Article.views compatibility counter
+// - VIEW / READ → CategoryAnalyticsEvent
+//
+// IMPORTANT:
+// - No analytics calculations here
+// - No UI logic here
+// - Analytics failure must never break the frontend
+//
+//////////////////////////////////////////////////////////////
 
 type AnalyticsEventBody = {
   eventType?: unknown;
@@ -17,9 +37,7 @@ type AnalyticsEventBody = {
 
 const ALLOWED_EVENT_TYPES = new Set([
   "view",
-  "open",
   "read",
-  "scroll",
   "like",
   "reaction",
   "share",
@@ -27,11 +45,22 @@ const ALLOWED_EVENT_TYPES = new Set([
   "video_complete",
 ]);
 
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
+//////////////////////////////////////////////////////////////
+// STRING HELPERS
+//////////////////////////////////////////////////////////////
+
+function isNonEmptyString(
+  value: unknown
+): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim().length > 0
+  );
 }
 
-function cleanOptionalString(value: unknown): string | undefined {
+function cleanOptionalString(
+  value: unknown
+): string | undefined {
   if (!isNonEmptyString(value)) {
     return undefined;
   }
@@ -39,9 +68,9 @@ function cleanOptionalString(value: unknown): string | undefined {
   return value.trim();
 }
 
-/* =====================================================
-   ANALYTICS LOCATION
-   ===================================================== */
+//////////////////////////////////////////////////////////////
+// HEADER HELPERS
+//////////////////////////////////////////////////////////////
 
 function getHeaderValue(
   request: NextRequest,
@@ -62,7 +91,10 @@ function getOptionalFloat(
   request: NextRequest,
   names: string[]
 ): number | undefined {
-  const value = getHeaderValue(request, names);
+  const value = getHeaderValue(
+    request,
+    names
+  );
 
   if (!value) {
     return undefined;
@@ -77,54 +109,74 @@ function getOptionalFloat(
   return parsed;
 }
 
-function getAnalyticsLocation(request: NextRequest) {
-  const country =
-    getHeaderValue(request, [
+//////////////////////////////////////////////////////////////
+// LOCATION
+//////////////////////////////////////////////////////////////
+
+function getAnalyticsLocation(
+  request: NextRequest
+) {
+  const country = getHeaderValue(
+    request,
+    [
       "x-vercel-ip-country",
       "cf-ipcountry",
       "x-country",
-    ]);
+    ]
+  );
 
   const countryCode = country
     ? country.toUpperCase()
     : undefined;
 
-  const state =
-    getHeaderValue(request, [
+  const state = getHeaderValue(
+    request,
+    [
       "x-vercel-ip-country-region",
       "x-country-region",
       "x-region",
-    ]);
+    ]
+  );
 
-  const city =
-    getHeaderValue(request, [
+  const city = getHeaderValue(
+    request,
+    [
       "x-vercel-ip-city",
       "x-city",
-    ]);
+    ]
+  );
 
-  const region =
-    getHeaderValue(request, [
+  const region = getHeaderValue(
+    request,
+    [
       "x-vercel-ip-country-region",
       "x-region",
-    ]);
+    ]
+  );
 
-  const latitude =
-    getOptionalFloat(request, [
+  const latitude = getOptionalFloat(
+    request,
+    [
       "x-vercel-ip-latitude",
       "x-latitude",
-    ]);
+    ]
+  );
 
-  const longitude =
-    getOptionalFloat(request, [
+  const longitude = getOptionalFloat(
+    request,
+    [
       "x-vercel-ip-longitude",
       "x-longitude",
-    ]);
+    ]
+  );
 
-  const timezone =
-    getHeaderValue(request, [
+  const timezone = getHeaderValue(
+    request,
+    [
       "x-vercel-ip-timezone",
       "x-timezone",
-    ]);
+    ]
+  );
 
   return {
     country,
@@ -138,13 +190,104 @@ function getAnalyticsLocation(request: NextRequest) {
   };
 }
 
-export async function POST(request: NextRequest) {
+//////////////////////////////////////////////////////////////
+// METADATA
+//////////////////////////////////////////////////////////////
+
+function parseMetadata(
+  value: unknown
+):
+  | Prisma.InputJsonValue
+  | undefined {
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return undefined;
+  }
+
+  if (
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    throw new Error(
+      "metadata must be an object"
+    );
+  }
+
+  return value as Prisma.InputJsonValue;
+}
+
+//////////////////////////////////////////////////////////////
+// REQUEST INFORMATION
+//////////////////////////////////////////////////////////////
+
+function getRequestInformation(
+  request: NextRequest
+) {
+  const userAgent =
+    request.headers.get(
+      "user-agent"
+    ) || undefined;
+
+  const forwardedFor =
+    request.headers.get(
+      "x-forwarded-for"
+    );
+
+  const ip =
+    forwardedFor
+      ?.split(",")[0]
+      ?.trim() ||
+    request.headers.get(
+      "x-real-ip"
+    ) ||
+    undefined;
+
+  return {
+    userAgent,
+    ip,
+  };
+}
+
+//////////////////////////////////////////////////////////////
+// POST
+//////////////////////////////////////////////////////////////
+
+export async function POST(
+  request: NextRequest
+) {
   try {
-    const body = (await request.json()) as AnalyticsEventBody;
+    //////////////////////////////////////////////////////////
+    // PARSE BODY
+    //////////////////////////////////////////////////////////
+
+    let body: AnalyticsEventBody;
+
+    try {
+      body =
+        (await request.json()) as AnalyticsEventBody;
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid JSON body",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+    // EVENT TYPE
+    //////////////////////////////////////////////////////////
 
     const eventType =
       typeof body.eventType === "string"
-        ? body.eventType.trim().toLowerCase()
+        ? body.eventType
+            .trim()
+            .toLowerCase()
         : "";
 
     if (!eventType) {
@@ -153,41 +296,63 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "eventType is required",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    if (!ALLOWED_EVENT_TYPES.has(eventType)) {
+    if (
+      !ALLOWED_EVENT_TYPES.has(
+        eventType
+      )
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Unsupported analytics event",
+          error:
+            "Unsupported analytics event",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const articleId = cleanOptionalString(body.articleId);
+    //////////////////////////////////////////////////////////
+    // ARTICLE
+    //////////////////////////////////////////////////////////
+
+    const articleId =
+      cleanOptionalString(
+        body.articleId
+      );
 
     if (!articleId) {
       return NextResponse.json(
         {
           success: false,
-          error: "articleId is required",
+          error:
+            "articleId is required",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const article = await prisma.article.findFirst({
-      where: {
-        id: articleId,
-        isDeleted: false,
-      },
-      select: {
-        id: true,
-      },
-    });
+    const article =
+      await prisma.article.findFirst({
+        where: {
+          id: articleId,
+          isDeleted: false,
+        },
+
+        select: {
+          id: true,
+          categoryId: true,
+        },
+      });
 
     if (!article) {
       return NextResponse.json(
@@ -195,115 +360,266 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Article not found",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    const userId = cleanOptionalString(body.userId);
-    const sessionId = cleanOptionalString(body.sessionId);
-    const path = cleanOptionalString(body.path);
-    const source = cleanOptionalString(body.source);
-    const referrer = cleanOptionalString(body.referrer);
+    //////////////////////////////////////////////////////////
+    // REQUEST DATA
+    //////////////////////////////////////////////////////////
 
-    let metadata: Prisma.InputJsonValue | undefined;
+    const userId =
+      cleanOptionalString(
+        body.userId
+      );
 
-    if (body.metadata !== undefined && body.metadata !== null) {
-      if (
-        typeof body.metadata !== "object" ||
-        Array.isArray(body.metadata)
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "metadata must be an object",
-          },
-          { status: 400 }
+    const sessionId =
+      cleanOptionalString(
+        body.sessionId
+      );
+
+    const path =
+      cleanOptionalString(
+        body.path
+      );
+
+    const source =
+      cleanOptionalString(
+        body.source
+      );
+
+    const referrer =
+      cleanOptionalString(
+        body.referrer
+      );
+
+    //////////////////////////////////////////////////////////
+    // METADATA
+    //////////////////////////////////////////////////////////
+
+    let metadata:
+      | Prisma.InputJsonValue
+      | undefined;
+
+    try {
+      metadata =
+        parseMetadata(
+          body.metadata
         );
-      }
-
-      metadata = body.metadata as Prisma.InputJsonValue;
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "metadata must be an object",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
-    /* =====================================================
-       REQUEST INFORMATION
-    ===================================================== */
+    //////////////////////////////////////////////////////////
+    // REQUEST INFORMATION
+    //////////////////////////////////////////////////////////
 
-    const userAgent =
-      request.headers.get("user-agent") || undefined;
+    const requestInformation =
+      getRequestInformation(
+        request
+      );
 
-    const forwardedFor =
-      request.headers.get("x-forwarded-for");
+    //////////////////////////////////////////////////////////
+    // LOCATION
+    //////////////////////////////////////////////////////////
 
-    const ip =
-      forwardedFor?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      undefined;
+    const location =
+      getAnalyticsLocation(
+        request
+      );
 
-    /* =====================================================
-       LOCATION
-    ===================================================== */
-
-    const location = getAnalyticsLocation(request);
-
-    /* =====================================================
-       CREATE ANALYTICS EVENT
-    ===================================================== */
+    //////////////////////////////////////////////////////////
+    // CREATE ARTICLE EVENT
+    //////////////////////////////////////////////////////////
 
     const event =
-      await prisma.articleAnalyticsEvent.create({
-        data: {
-          articleId,
-          eventType,
+      await prisma.articleAnalyticsEvent.create(
+        {
+          data: {
+            articleId,
 
-          userId,
-          sessionId,
+            eventType,
 
-          path,
-          source,
-          referrer,
+            userId,
+            sessionId,
 
-          userAgent,
-          ip,
+            path,
+            source,
+            referrer,
 
-          country: location.country,
-          countryCode: location.countryCode,
+            userAgent:
+              requestInformation.userAgent,
 
-          state: location.state,
-          city: location.city,
-          region: location.region,
+            ip:
+              requestInformation.ip,
 
-          latitude: location.latitude,
-          longitude: location.longitude,
+            country:
+              location.country,
 
-          timezone: location.timezone,
+            countryCode:
+              location.countryCode,
 
-          metadata,
+            state:
+              location.state,
+
+            city:
+              location.city,
+
+            region:
+              location.region,
+
+            latitude:
+              location.latitude,
+
+            longitude:
+              location.longitude,
+
+            timezone:
+              location.timezone,
+
+            metadata,
+          },
+
+          select: {
+            id: true,
+            articleId: true,
+            eventType: true,
+
+            country: true,
+            countryCode: true,
+            state: true,
+            city: true,
+            region: true,
+
+            latitude: true,
+            longitude: true,
+
+            timezone: true,
+
+            createdAt: true,
+          },
+        }
+      );
+
+    //////////////////////////////////////////////////////////
+    // CATEGORY ANALYTICS
+    //
+    // Article VIEW / READ automatically contributes
+    // to the article's category analytics.
+    //
+    //////////////////////////////////////////////////////////
+
+    if (
+      article.categoryId &&
+      (
+        eventType === "view" ||
+        eventType === "read"
+      )
+    ) {
+      await prisma.categoryAnalyticsEvent.create(
+        {
+          data: {
+            categoryId:
+              article.categoryId,
+
+            eventType,
+
+            userId,
+            sessionId,
+
+            path,
+            source,
+            referrer,
+
+            userAgent:
+              requestInformation.userAgent,
+
+            ip:
+              requestInformation.ip,
+
+            country:
+              location.country,
+
+            countryCode:
+              location.countryCode,
+
+            state:
+              location.state,
+
+            city:
+              location.city,
+
+            region:
+              location.region,
+
+            latitude:
+              location.latitude,
+
+            longitude:
+              location.longitude,
+
+            timezone:
+              location.timezone,
+
+            metadata,
+          },
+        }
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+    // ARTICLE COMPATIBILITY COUNTER
+    //
+    // Analytics dashboard does NOT use Article.views.
+    //
+    // Only VIEW increments the legacy/public counter.
+    //
+    //////////////////////////////////////////////////////////
+
+    if (eventType === "view") {
+      await prisma.article.update({
+        where: {
+          id: articleId,
         },
 
-        select: {
-          id: true,
-          articleId: true,
-          eventType: true,
+        data: {
+          views: {
+            increment: 1,
+          },
 
-          country: true,
-          countryCode: true,
-          state: true,
-          city: true,
-          region: true,
-          latitude: true,
-          longitude: true,
-          timezone: true,
+          lastViewAt:
+            new Date(),
 
-          createdAt: true,
+          trendingScore: {
+            increment: 1,
+          },
         },
       });
+    }
+
+    //////////////////////////////////////////////////////////
+    // RESPONSE
+    //////////////////////////////////////////////////////////
 
     return NextResponse.json(
       {
         success: true,
         event,
       },
-      { status: 201 }
+      {
+        status: 201,
+      }
     );
   } catch (error) {
     console.error(
@@ -314,10 +630,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Unable to record analytics event",
+        error:
+          "Unable to record analytics event",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
-

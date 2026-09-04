@@ -1,11 +1,10 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
 //
-// LANGUAGE INTELLIGENCE COMPOSER v7
+// LANGUAGE INTELLIGENCE COMPOSER v8
 //
 // Premium Narrative Assembly Layer
 //
-// Combines:
 // Planet Literature
 // +
 // Dominant Influence
@@ -21,201 +20,93 @@
 // No astronomy.
 //////////////////////////////////////////////////////////////
 
-
 import type {
-
-  LanguageComposition,
-
-  PlanetLanguageOutput,
-
-  LanguageLifeArea,
-
-  LanguageTone,
-
+LanguageComposition,
+PlanetLanguageOutput,
+LanguageLifeArea,
+LanguageTone,
 } from "./types";
 
-
-
 import type {
-
-  NarrativeContext,
-
+NarrativeContext,
 } from "../narrativeContext";
-
-
 
 import {
-
-  hasUsedStatement,
-
-  rememberStatement,
-
-  hasUsedExplanation,
-
-  rememberExplanation,
-
-  hasUsedAdvice,
-
-  rememberAdvice,
-
+hasUsedStatement,
+rememberStatement,
+hasUsedExplanation,
+rememberExplanation,
+hasUsedAdvice,
+rememberAdvice,
 } from "../narrativeContext";
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // TEXT UTILITIES
 //////////////////////////////////////////////////////////////
 
 function cleanText(
+value: string
+): string {
 
-  value:string
-
-):string {
-
-
-  return value
-
-    .replace(/\s+/g," ")
-
-    .trim();
-
+return value
+.replace(/\s+/g, " ")
+.trim();
 
 }
-
-
-
-
 
 function normalizeSentence(
+value: string
+): string {
 
-  value:string
-
-):string {
-
-
-  return value
-
-    .toLowerCase()
-
-    .replace(
-
-      /[^a-z0-9]/g,
-
-      ""
-
-    );
-
+return value
+.toLowerCase()
+.replace(/[^a-z0-9]/g, "");
 
 }
-
-
-
-
 
 function uniqueSentences(
+sentences: string[]
+): string[] {
 
-  sentences:string[]
+const memory = new Set<string>();
 
-):string[] {
-
-
-  const memory =
-
-    new Set<string>();
+return sentences.filter(sentence => {
 
 
-  return sentences.filter(
+const key =
+  normalizeSentence(sentence);
 
-    sentence=>{
-
-
-      const key =
-
-        normalizeSentence(
-
-          sentence
-
-        );
-
-
-
-      if(
-
-        !key ||
-
-        memory.has(key)
-
-      ){
-
-        return false;
-
-      }
-
-
-
-      memory.add(key);
-
-
-      return true;
-
-
-    }
-
-  );
-
-
+if (!key || memory.has(key)) {
+  return false;
 }
 
+memory.add(key);
+
+return true;
 
 
+});
 
-
-
-
+}
 
 //////////////////////////////////////////////////////////////
 // PLANET IDENTIFIER
 //////////////////////////////////////////////////////////////
 
 function extractPlanetName(
+text: string
+): string {
 
- text:string
+const match =
+text.match(
+/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\b/i
+);
 
-):string {
-
-
- const match =
-
-   text.match(
-
-    /(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)/i
-
-   );
-
-
-
- return match
-
- ?
-
- match[0]
-
- :
-
- "Planetary";
-
+return match
+? match[0]
+: "Planetary";
 
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // NARRATIVE TRANSITIONS
@@ -223,976 +114,512 @@ function extractPlanetName(
 
 const TRANSITIONS = [
 
+"Together, these influences create a period of awareness, growth and balanced progress.",
 
- "Together, these influences create a period of awareness, growth and balanced progress.",
+"These planetary patterns encourage learning through experience while maintaining clarity and patience.",
 
-
- "These planetary patterns encourage learning through experience while maintaining clarity and patience.",
-
-
- "The combined influence supports thoughtful decisions and meaningful personal development.",
-
+"The combined influence supports thoughtful decisions and meaningful personal development.",
 
 ];
 
+function getTransition(): string {
 
-
-
-
-function getTransition(){
-
-
- return TRANSITIONS[
-
-   new Date().getDate()
-
-   %
-
-   TRANSITIONS.length
-
- ];
-
+return TRANSITIONS[
+new Date().getDate() % TRANSITIONS.length
+];
 
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // DOMINANT PLANET DETECTION
+//
+// PlanetLanguageOutput itself does not contain strengthScore.
+// Therefore dominance is based on output order.
+//
+// The resolver/engine should provide dominant output first.
 //////////////////////////////////////////////////////////////
 
 function selectDominantOutput(
+outputs: PlanetLanguageOutput[]
+): PlanetLanguageOutput | undefined {
 
- outputs:PlanetLanguageOutput[]
-
-){
-
-
- if(
-
-  outputs.length===0
-
- ){
-
-  return undefined;
-
- }
-
-
-
-
- return outputs
-
- .slice()
-
- .sort(
-
-  (a:any,b:any)=>{
-
-
-    const aScore =
-
-      a.strengthScore ?? 0;
-
-
-
-    const bScore =
-
-      b.strengthScore ?? 0;
-
-
-
-    return bScore-aScore;
-
-
-  }
-
- )
-
- [0];
-
+return outputs[0];
 
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // MEMORY CONTROL
 //////////////////////////////////////////////////////////////
 
 function addStatement(
+context: NarrativeContext | undefined,
+text: string
+) {
 
- context:NarrativeContext | undefined,
-
- text:string
-
-):
-
-{
-
- text:string;
-
- context:NarrativeContext | undefined;
-
+if (!context) {
+return {
+text,
+context,
+};
 }
 
-{
+if (
+hasUsedStatement(
+context,
+text
+)
+) {
 
 
- if(
-
-  !context
-
- ){
-
-  return {
-
-    text,
-
-    context,
-
-  };
-
- }
-
-
-
- if(
-
-  hasUsedStatement(
-
-    context,
-
-    text
-
-  )
-
- ){
-
-  return {
-
-    text:"",
-
-    context,
-
-  };
-
- }
-
-
-
- return {
-
-  text,
-
-  context:
-
-    rememberStatement(
-
-      context,
-
-      text
-
-    ),
-
- };
+return {
+  text: "",
+  context,
+};
 
 
 }
 
+return {
+text,
+context:
+rememberStatement(
+context,
+text
+),
+};
 
-
-
-
-
+}
 
 function addExplanation(
+context: NarrativeContext | undefined,
+text: string
+) {
 
- context:NarrativeContext | undefined,
+if (!context) {
+return {
+text,
+context,
+};
+}
 
- text:string
-
-){
-
-
-
-
- if(
-
-  !context
-
- ){
-
-  return {
-
-    text,
-
-    context,
-
-  };
-
- }
+if (
+hasUsedExplanation(
+context,
+text
+)
+) {
 
 
-
- if(
-
-  hasUsedExplanation(
-
-    context,
-
-    text
-
-  )
-
- ){
-
-  return {
-
-    text:"",
-
-    context,
-
-  };
-
- }
-
-
-
- return {
-
-  text,
-
-  context:
-
-    rememberExplanation(
-
-      context,
-
-      text
-
-    ),
-
- };
+return {
+  text: "",
+  context,
+};
 
 
 }
 
+return {
+text,
+context:
+rememberExplanation(
+context,
+text
+),
+};
 
-
-
-
-
+}
 
 function addAdvice(
+context: NarrativeContext | undefined,
+text: string
+) {
 
- context:NarrativeContext | undefined,
+if (!context) {
+return {
+text,
+context,
+};
+}
 
- text:string
-
-){
-
-
-
- if(
-
-  !context
-
- ){
-
-  return {
-
-    text,
-
-    context,
-
-  };
-
- }
+if (
+hasUsedAdvice(
+context,
+text
+)
+) {
 
 
-
- if(
-
-  hasUsedAdvice(
-
-    context,
-
-    text
-
-  )
-
- ){
-
-  return {
-
-    text:"",
-
-    context,
-
-  };
-
- }
-
-
-
- return {
-
-  text,
-
-  context:
-
-    rememberAdvice(
-
-      context,
-
-      text
-
-    ),
-
- };
+return {
+  text: "",
+  context,
+};
 
 
 }
 
+return {
+text,
+context:
+rememberAdvice(
+context,
+text
+),
+};
 
-
-
-
-
-
-
+}
 
 //////////////////////////////////////////////////////////////
 // HEADLINE BUILDER
 //////////////////////////////////////////////////////////////
 
 function buildHeadline(
+outputs: PlanetLanguageOutput[],
+context?: NarrativeContext
+): string {
 
- outputs:PlanetLanguageOutput[],
+const dominant =
+selectDominantOutput(
+outputs
+);
 
- context?:NarrativeContext
-
-){
-
-
- const dominant =
-
- selectDominantOutput(
-
-  outputs
-
- );
+if (!dominant) {
 
 
-
- if(!dominant){
-
-
-  return (
-
-   "Your planetary influences reveal important patterns for growth and awareness."
-
-  );
-
-
- }
-
-
-
- const planet =
-
- extractPlanetName(
-
-  dominant.statement
-
- );
-
-
-
-
- const result =
-
- addStatement(
-
-  context,
-
-  dominant.statement
-
- );
-
-
-
- return (
-
- `${planet} creates the primary influence for this phase. ${cleanText(result.text || dominant.statement)}`
-
- );
+return "Your planetary influences reveal important patterns for growth and awareness.";
 
 
 }
 
+const planet =
+extractPlanetName(
+dominant.statement
+);
 
+const result =
+addStatement(
+context,
+dominant.statement
+);
 
+return cleanText(
+`${planet} creates the primary influence for this phase. ${result.text || dominant.statement}`
+);
 
-
-
-
-
+}
 
 //////////////////////////////////////////////////////////////
 // DESCRIPTION BUILDER
 //////////////////////////////////////////////////////////////
 
 function buildDescription(
+outputs: PlanetLanguageOutput[],
+context?: NarrativeContext
+): string {
 
- outputs:PlanetLanguageOutput[],
+if (!outputs.length) {
 
- context?:NarrativeContext
 
-):string {
-
-
- if(outputs.length===0){
-
-  return (
-
-   "Planetary influences create a phase of reflection, learning and balanced progress."
-
-  );
-
- }
-
-
-
- let memoryContext = context;
-
-
-
- const sentences:string[]=[];
-
-
-
- const dominant =
-
- selectDominantOutput(
-
-  outputs
-
- );
-
-
-
-
- const items = [
-
-
-  dominant,
-
-
-  ...outputs.filter(
-
-   item => item !== dominant
-
-  ).slice(
-
-   0,
-
-   3
-
-  ),
-
-
- ];
-
-
-
-
- items.forEach(
-
-  item=>{
-
-
-   if(!item){
-
-    return;
-
-   }
-
-
-
-   const result =
-
-    addStatement(
-
-      memoryContext,
-
-      item.statement
-
-    );
-
-
-
-   memoryContext =
-
-    result.context;
-
-
-
-   if(result.text){
-
-    sentences.push(
-
-     result.text
-
-    );
-
-   }
-
-
-
-  }
-
- );
-
-
-
-
- sentences.push(
-
-  getTransition()
-
- );
-
-
-
-
- return cleanText(
-
-  uniqueSentences(
-
-   sentences
-
-  )
-
-  .join(" ")
-
- );
+return "Planetary influences create a phase of reflection, learning and balanced progress.";
 
 
 }
 
+let memoryContext =
+context;
+
+const sentences: string[] = [];
+
+const dominant =
+selectDominantOutput(
+outputs
+);
+
+const items = [
 
 
+dominant,
+
+...outputs.filter(
+  item => item !== dominant
+).slice(0, 3),
 
 
+];
+
+items.forEach(item => {
 
 
+if (!item) {
+  return;
+}
 
+const result =
+  addStatement(
+    memoryContext,
+    item.statement
+  );
+
+memoryContext =
+  result.context;
+
+if (result.text) {
+
+  sentences.push(
+    result.text
+  );
+
+}
+
+
+});
+
+if (sentences.length) {
+
+
+sentences.push(
+  getTransition()
+);
+
+
+}
+
+return cleanText(
+uniqueSentences(
+sentences
+).join(" ")
+);
+
+}
 
 //////////////////////////////////////////////////////////////
 // GUIDANCE BUILDER
 //////////////////////////////////////////////////////////////
 
 function buildGuidance(
+outputs: PlanetLanguageOutput[],
+context?: NarrativeContext
+): string {
 
- outputs:PlanetLanguageOutput[],
+let memoryContext =
+context;
 
- context?:NarrativeContext
+const guidance: string[] = [];
 
-):string {
-
-
-
- let memoryContext=context;
-
-
-
- const guidance:string[]=[];
+outputs.forEach(item => {
 
 
+if (!item.advice) {
+  return;
+}
 
- outputs.forEach(
-
- item=>{
-
-
-  if(!item.advice){
-
-   return;
-
-  }
-
-
-
-  const result =
-
-   addAdvice(
-
+const result =
+  addAdvice(
     memoryContext,
-
     item.advice
+  );
 
-   );
+memoryContext =
+  result.context;
 
+if (
+  result.text &&
+  !result.text
+    .toLowerCase()
+    .includes("represents")
+) {
 
-
-  memoryContext =
-
-    result.context;
-
-
-
-  if(
-
-   result.text &&
-
-   !result.text
-
-   .toLowerCase()
-
-   .includes("represents")
-
-  ){
-
-   guidance.push(
-
+  guidance.push(
     result.text
-
-   );
-
-  }
-
-
- }
-
- );
-
-
-
-
- return cleanText(
-
-  uniqueSentences(
-
-   guidance
-
-  )
-
-  .slice(
-
-   0,
-
-   4
-
-  )
-
-  .join(" ")
-
- );
-
+  );
 
 }
 
 
+});
 
+return cleanText(
+uniqueSentences(
+guidance
+)
+.slice(0, 4)
+.join(" ")
+);
 
-
-
-
-
+}
 
 //////////////////////////////////////////////////////////////
 // METADATA BUILDER
 //////////////////////////////////////////////////////////////
 
 function buildMetadata(
+outputs: PlanetLanguageOutput[],
+area: LanguageLifeArea,
+context?: NarrativeContext
+) {
 
- outputs:PlanetLanguageOutput[],
+let memoryContext =
+context;
 
- area:LanguageLifeArea,
+const explanations: string[] = [];
 
- context?:NarrativeContext
-
-){
-
-
- let memoryContext=context;
-
-
-
- const explanations:string[]=[];
+outputs.forEach(item => {
 
 
+if (!item.explanation) {
+  return;
+}
 
- outputs.forEach(
-
- item=>{
-
-
-  if(!item.explanation){
-
-   return;
-
-  }
-
-
-
-  const result =
-
-   addExplanation(
-
+const result =
+  addExplanation(
     memoryContext,
-
     item.explanation
+  );
 
-   );
+memoryContext =
+  result.context;
 
+if (result.text) {
 
-
-  memoryContext =
-
-    result.context;
-
-
-
-  if(result.text){
-
-   explanations.push(
-
+  explanations.push(
     result.text
-
-   );
-
-  }
-
-
- }
-
- );
-
-
-
-
-
- const tone:LanguageTone="neutral";
-
-
-
- return {
-
-
-  planet:
-
-
-   uniqueSentences(
-
-    explanations
-
-   )
-
-   .slice(
-
-    0,
-
-    4
-
-   )
-
-   .join(" "),
-
-
-
-  area,
-
-
-  tone,
-
-
- };
-
+  );
 
 }
 
 
+});
+
+const dominant =
+selectDominantOutput(
+outputs
+);
+
+const planet =
+dominant
+? extractPlanetName(
+dominant.statement
+)
+: "Planetary";
+
+return {
 
 
+planet,
+
+area,
+
+tone:
+  "neutral" as LanguageTone,
+
+explanation:
+  uniqueSentences(
+    explanations
+  )
+    .slice(0, 4)
+    .join(" "),
 
 
+};
 
-
+}
 
 //////////////////////////////////////////////////////////////
 // MAIN COMPOSER
 //////////////////////////////////////////////////////////////
 
 export function composeLanguage(
+outputs: PlanetLanguageOutput[],
+area: LanguageLifeArea = "overall",
+context?: NarrativeContext
+): LanguageComposition {
 
- outputs:PlanetLanguageOutput[],
+const validOutputs =
+outputs.filter(Boolean);
 
- area:LanguageLifeArea="overall",
-
- context?:NarrativeContext
-
-):LanguageComposition {
-
-
-
- const validOutputs =
-
- outputs.filter(Boolean);
+return {
 
 
-
- return {
-
-
-  headline:
-
-   buildHeadline(
-
+headline:
+  buildHeadline(
     validOutputs,
-
     context
+  ),
 
-   ),
-
-
-
-  description:
-
-   buildDescription(
-
+description:
+  buildDescription(
     validOutputs,
-
     context
+  ),
 
-   ),
-
-
-
-  guidance:
-
-   buildGuidance(
-
+guidance:
+  buildGuidance(
     validOutputs,
-
     context
+  ),
 
-   ),
-
-
-
-  metadata:
-
-   buildMetadata(
-
+metadata:
+  buildMetadata(
     validOutputs,
-
     area,
-
     context
-
-   ),
-
+  ),
 
 
- };
-
+};
 
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // SINGLE PLANET COMPOSER
 //////////////////////////////////////////////////////////////
 
 export function composeSingleLanguage(
+output: PlanetLanguageOutput,
+area: LanguageLifeArea = "overall"
+): LanguageComposition {
 
- output:PlanetLanguageOutput,
+const planet =
+extractPlanetName(
+output.statement
+);
 
- area:LanguageLifeArea="overall"
-
-):LanguageComposition {
-
-
-
- const tone:LanguageTone="neutral";
-
-
-
- return {
+return {
 
 
-  headline:
+headline:
+  `${planet} influence during this phase.`,
 
-   `${extractPlanetName(output.statement)} influence during this phase.`,
-
-
-
-  description:
-
-   cleanText(
-
+description:
+  cleanText(
     output.statement
+  ),
 
-   ),
-
-
-
-  guidance:
-
-   cleanText(
-
+guidance:
+  cleanText(
     output.advice
+  ),
 
-   ),
+metadata: {
 
+  planet,
 
+  area,
 
-  metadata:{
+  tone:
+    "neutral" as LanguageTone,
 
-
-   planet:
-
+  explanation:
     cleanText(
-
-     output.explanation
-
+      output.explanation
     ),
 
+},
 
 
-   area,
-
-
-
-   tone,
-
-
-  },
-
-
- };
-
+};
 
 }
+
+//////////////////////////////////////////////////////////////
+// END OF COMPOSER
+//////////////////////////////////////////////////////////////

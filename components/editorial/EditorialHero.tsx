@@ -4,9 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
+
 interface EditorialHeroProps {
   articles: any[];
 }
+
+/* =====================================================
+   IMAGE
+===================================================== */
 
 function getImage(article: any) {
   const gallery = Array.isArray(article?.imageGallery)
@@ -21,19 +27,49 @@ function getImage(article: any) {
   );
 }
 
+/* =====================================================
+   OPTIMIZED IMAGE
+===================================================== */
+
+function getOptimizedImage(
+  article: any,
+  width: number
+) {
+  const image = getImage(article);
+
+  if (!image) {
+    return null;
+  }
+
+  return cloudinaryImageUrl(image, width);
+}
+
+/* =====================================================
+   DATE
+===================================================== */
+
 function getDate(article: any) {
-  const date = article?.publishedAt || article?.createdAt;
+  const date =
+    article?.publishedAt ||
+    article?.createdAt;
 
   if (!date) {
     return "";
   }
 
-  return new Date(date).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(date).toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
+
+/* =====================================================
+   COMPONENT
+===================================================== */
 
 export default function EditorialHero({
   articles,
@@ -43,16 +79,31 @@ export default function EditorialHero({
   }
 
   const featured = articles[0];
-  const secondary = articles.slice(1, 4);
 
-  const featuredImage = getImage(featured);
+  const secondary =
+    articles.slice(1, 4);
+
+  const featuredImage =
+    getOptimizedImage(
+      featured,
+      1200
+    );
 
   return (
     <section className="space-y-6">
-      {/* SECTION LABEL */}
+      {/* =================================================
+          SECTION LABEL
+      ================================================= */}
 
       <div className="flex items-center gap-3">
-        <span className="h-1 w-8 rounded-full bg-[#EA661B]" />
+        <span
+          className="
+            h-1
+            w-8
+            rounded-full
+            bg-[#EA661B]
+          "
+        />
 
         <h2
           className="
@@ -67,7 +118,9 @@ export default function EditorialHero({
         </h2>
       </div>
 
-      {/* FEATURED STORY */}
+      {/* =================================================
+          FEATURED STORY
+      ================================================= */}
 
       <motion.article
         initial={{
@@ -104,9 +157,17 @@ export default function EditorialHero({
             >
               <Image
                 src={featuredImage}
-                alt={featured.title}
+                alt={
+                  featured.title ||
+                  "NationPath Insight"
+                }
                 fill
                 priority
+                sizes="
+                  (max-width: 768px) 100vw,
+                  (max-width: 1280px) 66vw,
+                  800px
+                "
                 className="
                   object-cover
                   transition
@@ -190,7 +251,8 @@ export default function EditorialHero({
                 {getDate(featured)}
               </span>
 
-              {typeof featured.views === "number" &&
+              {typeof featured.views ===
+                "number" &&
                 featured.views > 0 && (
                   <>
                     <span className="text-gray-300">
@@ -198,7 +260,10 @@ export default function EditorialHero({
                     </span>
 
                     <span>
-                      {featured.views.toLocaleString("en-IN")} views
+                      {featured.views.toLocaleString(
+                        "en-IN"
+                      )}{" "}
+                      views
                     </span>
                   </>
                 )}
@@ -207,7 +272,9 @@ export default function EditorialHero({
         </Link>
       </motion.article>
 
-      {/* SECONDARY STORIES */}
+      {/* =================================================
+          SECONDARY STORIES
+      ================================================= */}
 
       {secondary.length > 0 && (
         <div
@@ -219,100 +286,115 @@ export default function EditorialHero({
             lg:grid-cols-3
           "
         >
-          {secondary.map((article, index) => {
-            const image = getImage(article);
+          {secondary.map(
+            (article, index) => {
+              const image =
+                getOptimizedImage(
+                  article,
+                  700
+                );
 
-            return (
-              <motion.article
-                key={article.id}
-                initial={{
-                  opacity: 0,
-                  y: 15,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.4,
-                  delay: index * 0.05,
-                }}
-                className="
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-black/10
-                  bg-white
-                "
-              >
-                <Link
-                  href={`/editorial/${article.slug}`}
-                  className="group block"
+              return (
+                <motion.article
+                  key={article.id}
+                  initial={{
+                    opacity: 0,
+                    y: 15,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    delay:
+                      index * 0.05,
+                  }}
+                  className="
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    border-black/10
+                    bg-white
+                  "
                 >
-                  {image && (
-                    <div
-                      className="
-                        relative
-                        aspect-[16/9]
-                        overflow-hidden
-                        bg-gray-100
-                      "
-                    >
-                      <Image
-                        src={image}
-                        alt={article.title}
-                        fill
+                  <Link
+                    href={`/editorial/${article.slug}`}
+                    className="group block"
+                  >
+                    {image && (
+                      <div
                         className="
-                          object-cover
-                          transition
-                          duration-500
-                          group-hover:scale-[1.03]
+                          relative
+                          aspect-[16/9]
+                          overflow-hidden
+                          bg-gray-100
                         "
-                      />
+                      >
+                        <Image
+                          src={image}
+                          alt={
+                            article.title ||
+                            "NationPath Insight"
+                          }
+                          fill
+                          sizes="
+                            (max-width: 640px) 100vw,
+                            (max-width: 1024px) 50vw,
+                            33vw
+                          "
+                          className="
+                            object-cover
+                            transition
+                            duration-500
+                            group-hover:scale-[1.03]
+                          "
+                        />
+                      </div>
+                    )}
+
+                    <div className="p-4">
+                      <p
+                        className="
+                          mb-2
+                          text-[10px]
+                          font-bold
+                          uppercase
+                          tracking-[0.18em]
+                          text-[#EA661B]
+                        "
+                      >
+                        Insight
+                      </p>
+
+                      <h3
+                        className="
+                          text-base
+                          font-bold
+                          leading-snug
+                          text-gray-950
+                          transition
+                          group-hover:text-[#163C80]
+                        "
+                      >
+                        {article.title}
+                      </h3>
+
+                      <div
+                        className="
+                          mt-3
+                          text-xs
+                          text-gray-500
+                        "
+                      >
+                        {getDate(article)}
+                      </div>
                     </div>
-                  )}
-
-                  <div className="p-4">
-                    <p
-                      className="
-                        mb-2
-                        text-[10px]
-                        font-bold
-                        uppercase
-                        tracking-[0.18em]
-                        text-[#EA661B]
-                      "
-                    >
-                      Insight
-                    </p>
-
-                    <h3
-                      className="
-                        text-base
-                        font-bold
-                        leading-snug
-                        text-gray-950
-                        transition
-                        group-hover:text-[#163C80]
-                      "
-                    >
-                      {article.title}
-                    </h3>
-
-                    <div
-                      className="
-                        mt-3
-                        text-xs
-                        text-gray-500
-                      "
-                    >
-                      {getDate(article)}
-                    </div>
-                  </div>
-                </Link>
-              </motion.article>
-            );
-          })}
+                  </Link>
+                </motion.article>
+              );
+            }
+          )}
         </div>
       )}
     </section>

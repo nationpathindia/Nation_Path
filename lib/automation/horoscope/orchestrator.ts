@@ -4,53 +4,50 @@
 //
 // HOROSCOPE AUTOMATION ORCHESTRATOR
 //
-// PRODUCTION LIFECYCLE
+// LOCKED PRODUCTION VERSION
 //
-// Existing Published Horoscope
-//          ↓
-// Archive Previous Active Version
-//          ↓
-// Horoscope Generator
-//          ↓
-// CMS Transformation
-//          ↓
-// Duplicate Protection
-//          ↓
-// Create New Published Horoscope
-//          ↓
-// MongoDB CMS
+// Flow:
 //
-//
+// Scheduler / Ensure
+//        ↓
+// Orchestrator
+//        ↓
+// Zodiac Master
+//        ↓
+// Generator
+//        ↓
+// Mapper
+//        ↓
+// Publisher
+//        ↓
+// Horoscope CMS
 //
 // Responsibility:
-//
-// Automation workflow controller
-//
-//
+// ONLY workflow orchestration.
 //
 // NO:
-//
 // - Astrology calculation
 // - Swiss Ephemeris
 // - Planet calculation
-// - Prediction generation
+// - Prediction modification
 // - AI generation
+// - Duplicate CMS transformation
 //
 //////////////////////////////////////////////////////////////
 
-
 import Horoscope from "@/app/models/Horoscope";
 
-import connectDB from "@/lib/mongodb";
+import Zodiac from "@/app/models/Zodiac";
 
+import connectDB from "@/lib/mongodb";
 
 import {
   generateAutomatedHoroscope,
 } from "./generator";
 
-
-
-
+import {
+  publishHoroscope,
+} from "./publisher";
 
 //////////////////////////////////////////////////////////////
 // INPUT
@@ -58,17 +55,13 @@ import {
 
 export interface HoroscopeAutomationInput {
 
-
   period?:
-
     | "daily"
     | "weekly"
     | "monthly"
     | "yearly";
 
-
   language?:
-
     | "english"
     | "hindi"
     | "marathi"
@@ -76,31 +69,71 @@ export interface HoroscopeAutomationInput {
     | "telugu"
     | "nepali";
 
+  startDate: Date;
 
-  startDate:Date;
-
-
-  endDate:Date;
-
+  endDate: Date;
 
 }
 
+//////////////////////////////////////////////////////////////
+// LOAD ZODIAC MASTER
+//
+// SINGLE SOURCE OF STATIC ZODIAC DATA.
+//
+// Scheduler does NOT access DB.
+//
+// Ensure does NOT need to duplicate this logic.
+//
+// Orchestrator owns the automation snapshot.
+//
+//////////////////////////////////////////////////////////////
 
+async function getAutomationZodiacList() {
 
+  const zodiacList =
 
+    await Zodiac.find({
 
+      status: "published",
 
+    })
+
+      .select({
+
+        zodiac: 1,
+
+        slug: 1,
+
+        names: 1,
+
+        symbol: 1,
+
+        element: 1,
+
+        rulingPlanet: 1,
+
+        identity: 1,
+
+        nameInitials: 1,
+
+        media: 1,
+
+      })
+
+      .lean();
+
+  return zodiacList;
+}
 
 //////////////////////////////////////////////////////////////
-// ARCHIVE ACTIVE HOROSCOPE SET
+// ARCHIVE PREVIOUS ACTIVE HOROSCOPES
 //////////////////////////////////////////////////////////////
 
 async function archivePreviousHoroscopes(
 
-  input:HoroscopeAutomationInput
+  input: HoroscopeAutomationInput
 
-){
-
+) {
 
   const currentSlugDate =
 
@@ -109,331 +142,56 @@ async function archivePreviousHoroscopes(
       "en-CA",
 
       {
-        timeZone:"Asia/Kolkata"
+
+        timeZone: "Asia/Kolkata",
+
       }
 
     ).format(input.startDate);
-
-
-
-
 
   const result =
 
     await Horoscope.updateMany(
 
-
       {
 
-
         "meta.period":
-
           input.period || "daily",
 
-
-
         "meta.language":
-
           input.language || "english",
 
-
-
         "meta.status":
-
           "published",
 
-
-
         "meta.slugDate":
-
           {
-            $ne:currentSlugDate
-          }
-
-
-      },
-
-
-      {
-
-
-        $set:{
-
-
-          "meta.status":
-
-            "archived",
-
-
-
-          "meta.archivedAt":
-
-            new Date(),
-
-
-
-          updatedBy:
-
-            "nationpath-ai",
-
-
-        }
-
-
-      }
-
-
-    );
-
-
-
-
-
-  console.log(
-
-    "📦 Previous horoscope set archived",
-
-    {
-
-
-      archived:
-
-        result.modifiedCount,
-
-
-      protectedDate:
-
-        currentSlugDate,
-
-
-    }
-
-  );
-
-
-
-
-
-  return result;
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// CREATE NEW HOROSCOPE
-//
-// Atomic Upsert
-//
-// Prevent duplicate:
-// zodiac + period + language + date
-//
-//////////////////////////////////////////////////////////////
-
-async function createNewHoroscope(
-
-  data:any
-
-){
-
-
-  const {
-
-
-    createdBy,
-
-    updatedBy,
-
-
-    ...cleanData
-
-
-  } = data;
-
-
-
-
-
-  const created =
-
-
-    await Horoscope.findOneAndUpdate(
-
-
-      {
-
-
-        zodiac:
-
-          cleanData.zodiac,
-
-
-        "meta.period":
-
-          cleanData.meta?.period,
-
-
-        "meta.language":
-
-          cleanData.meta?.language,
-
-
-        "meta.startDate":
-
-          cleanData.meta?.startDate,
-
-
-        "meta.endDate":
-
-          cleanData.meta?.endDate,
-
-
-      },
-
-
-      {
-
-
-        $set:{
-
-
-          ...cleanData,
-
-
-
-          meta:{
-
-
-            ...cleanData.meta,
-
-
-            status:
-
-              "published",
-
-
-
-            publishedAt:
-
-              new Date(),
-
-
+            $ne: currentSlugDate,
           },
 
+      },
 
+      {
+
+        $set: {
+
+          "meta.status":
+            "archived",
+
+          "meta.archivedAt":
+            new Date(),
 
           updatedBy:
-
             "nationpath-ai",
-
 
         },
 
-
-
-        $setOnInsert:{
-
-
-          createdBy:
-
-            "nationpath-ai",
-
-
-        }
-
-
-      },
-
-
-      {
-
-
-        new:true,
-
-
-        upsert:true,
-
-
       }
-
 
     );
 
-
-
-
-
-
-  console.log(
-
-    `✅ Horoscope published: ${created.slug}`
-
-  );
-
-
-
-
-
-
-  return {
-
-
-    status:
-
-      "generated",
-
-
-
-    document:
-
-      created,
-
-
-  };
-
-
+  return result;
 }
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// SAVE CMS DOCUMENT
-//////////////////////////////////////////////////////////////
-
-async function saveHoroscopeCMS(
-
-  data:any
-
-){
-
-
-  return await createNewHoroscope(
-
-    data
-
-  );
-
-
-}
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // MAIN AUTOMATION
@@ -441,87 +199,36 @@ async function saveHoroscopeCMS(
 
 export async function runHoroscopeAutomation(
 
+  input: HoroscopeAutomationInput
 
-  zodiacList:any[],
-
-
-  input:HoroscopeAutomationInput
-
-
-){
-
-
+) {
 
   await connectDB();
 
-
-
-
-
-  const documents:any[] = [];
-
-
-
-  let generated = 0;
-
-
-
-  let failed = 0;
-
-
-
-
-
-
-
-  console.log(
-
-    "🚀 Horoscope automation started",
-
-    {
-
-
-      total:
-
-        zodiacList.length,
-
-
-
-      period:
-
-        input.period || "daily",
-
-
-
-      language:
-
-        input.language || "english",
-
-
-
-      date:
-
-        input.startDate,
-
-
-    }
-
-  );
-
-
-
-
-
-
-
-
-
   ////////////////////////////////////////////////////////////
-  //
   // STEP 0
   //
-  // ARCHIVE CURRENT LIVE HOROSCOPE
+  // LOAD CANONICAL ZODIAC MASTER
+  ////////////////////////////////////////////////////////////
+
+  const zodiacList =
+
+    await getAutomationZodiacList();
+
+  if (!zodiacList.length) {
+
+    throw new Error(
+
+      "No published Zodiac Master records found"
+
+    );
+
+  }
+
+  ////////////////////////////////////////////////////////////
+  // STEP 1
   //
+  // ARCHIVE PREVIOUS ACTIVE CONTENT
   ////////////////////////////////////////////////////////////
 
   await archivePreviousHoroscopes(
@@ -530,233 +237,189 @@ export async function runHoroscopeAutomation(
 
   );
 
-
-
-
-
-
-
-
-
   ////////////////////////////////////////////////////////////
+  // STEP 2
   //
-  // STEP 1
-  //
-  // GENERATE NEW ZODIAC CONTENT
-  //
+  // GENERATE → MAP → PUBLISH
   ////////////////////////////////////////////////////////////
 
-  for(const zodiac of zodiacList){
+  const documents: any[] = [];
 
+  let generated = 0;
 
-    
+  let failed = 0;
+
+  for (const zodiacMaster of zodiacList) {
 
     try {
 
+      const zodiac =
+        zodiacMaster.zodiac;
 
+      if (!zodiac) {
 
-      console.log(
+        throw new Error(
 
-        `🔮 Generating horoscope: ${zodiac.zodiac}`
+          "Zodiac Master record missing zodiac"
 
-      );
+        );
 
+      }
 
+      ////////////////////////////////////////////////////////
+      // MASTER SNAPSHOT
+      //
+      // nameInitials comes directly from Zodiac Master.
+      //
+      ////////////////////////////////////////////////////////
 
+      const masterSnapshot = {
 
+        ...zodiacMaster,
 
+        nameInitials:
 
+          Array.isArray(
+            zodiacMaster.nameInitials
+          )
+
+            ? zodiacMaster.nameInitials
+
+            : [],
+
+      };
+
+      ////////////////////////////////////////////////////////
+      // GENERATOR
+      ////////////////////////////////////////////////////////
 
       const automationResult =
 
         await generateAutomatedHoroscope({
 
-
-
-          zodiac:
-
-            zodiac.zodiac,
-
-
+          zodiac,
 
           zodiacMaster:
-
-            zodiac,
-
-
+            masterSnapshot,
 
           date:
-
             input.startDate,
 
-
-
           period:
-
             input.period || "daily",
 
-
-
           language:
-
             input.language || "english",
-
 
         });
 
+      ////////////////////////////////////////////////////////
+      // PUBLISH
+      //
+      // Mapper output goes directly to publisher.
+      //
+      // NO SECOND TRANSFORMATION.
+      // NO SECOND nameInitials injection.
+      //
+      ////////////////////////////////////////////////////////
 
+      const published =
 
-
-
-
-
-      const result =
-
-
-        await saveHoroscopeCMS(
-
+        await publishHoroscope(
 
           automationResult.cms
 
-
         );
-
-
-
-
-
-
 
       documents.push(
 
-        result.document
+        published
 
       );
 
-
-
-
-
       generated++;
 
+      console.log(
 
+        "✅ HOROSCOPE AUTOMATION COMPLETE",
 
+        {
 
+          zodiac,
+
+          period:
+            input.period || "daily",
+
+          language:
+            input.language || "english",
+
+          nameInitialsCount:
+
+            Array.isArray(
+              published?.nameInitials
+            )
+
+              ? published.nameInitials.length
+
+              : 0,
+
+        }
+
+      );
 
     }
 
-
-    catch(error){
-
-
+    catch(error) {
 
       failed++;
 
-
-
-
       console.error(
 
-        `❌ Horoscope failed: ${zodiac.zodiac}`,
+        `❌ HOROSCOPE AUTOMATION FAILED: ${
+          zodiacMaster?.zodiac || "unknown"
+        }`,
 
         error
 
       );
 
-
     }
-
-
 
   }
 
-
-
-
-
-
-
-
-
-  console.log(
-
-    "🏁 Horoscope automation completed",
-
-    {
-
-
-      generated,
-
-
-      failed,
-
-
-    }
-
-  );
-
-
-
-
-
-
+  ////////////////////////////////////////////////////////////
+  // RESULT
+  ////////////////////////////////////////////////////////////
 
   return {
 
-
     success:
-
       failed === 0,
 
-
-
     total:
-
       zodiacList.length,
-
-
 
     generated,
 
-
-
     failed,
 
-
-
     data:
-
       documents,
 
-
-
     completedAt:
-
       new Date(),
-
 
   };
 
-
-
 }
 
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////
-// EXPORT
+// DEFAULT EXPORT
 //////////////////////////////////////////////////////////////
 
 export default {
 
-
   runHoroscopeAutomation,
 
-
 };
+

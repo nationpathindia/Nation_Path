@@ -83,29 +83,14 @@ process.env.NEXT_PUBLIC_SITE_URL ||
 "https://nationpathindia.com";
 
 
-
-function publishedFilter(){
-
+function publishedFilter() {
   return {
-
-    OR:[
-
-      {
-        publishedAt:null
-      },
-
-      {
-        publishedAt:{
-          lte:new Date()
-        }
-      }
-
-    ]
-
+    publishedAt: {
+      not: null,
+      lte: new Date(),
+    },
   };
-
 }
-
 
 
 /*

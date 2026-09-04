@@ -6,27 +6,29 @@
 //
 // POST
 //      ↓
-// Load Published Zodiac Masters
-//      ↓
 // Run Horoscope Automation
+//      ↓
+// Orchestrator
+//      ↓
+// Load Published Zodiac Masters
 //      ↓
 // Generate / Update CMS Entries
 //      ↓
 // Return Batch Result
 //
+// IMPORTANT:
+//
+// Zodiac Master loading is owned by the orchestrator.
+// This route only triggers the automation pipeline.
+//
+//
 //////////////////////////////////////////////////////////////
 
 import { NextResponse } from "next/server";
 
-import connectDB from "@/lib/mongodb";
-
-import Zodiac from "@/app/models/Zodiac";
-
 import {
   runHoroscopeAutomation,
 } from "@/lib/automation/horoscope";
-
-
 
 
 
@@ -36,71 +38,9 @@ import {
 
 export async function POST() {
 
-
   const startedAt = new Date();
 
-
-
   try {
-
-
-    //////////////////////////////////////////////////////////
-    // DATABASE
-    //////////////////////////////////////////////////////////
-
-    await connectDB();
-
-
-
-
-    //////////////////////////////////////////////////////////
-    // LOAD ZODIAC MASTER
-    //////////////////////////////////////////////////////////
-
-    const zodiacList = await Zodiac.find({
-
-      status:"published",
-
-    }).lean();
-
-
-
-
-
-    if(!zodiacList.length){
-
-
-      return NextResponse.json(
-
-        {
-
-          success:false,
-
-          generated:0,
-
-          failed:0,
-
-          message:
-            "No published zodiac masters found.",
-
-
-        },
-
-
-        {
-
-          status:404,
-
-        }
-
-      );
-
-
-    }
-
-
-
-
 
     //////////////////////////////////////////////////////////
     // AUTOMATION DATE
@@ -110,34 +50,30 @@ export async function POST() {
 
 
 
-
-
     //////////////////////////////////////////////////////////
     // RUN AUTOMATION
+    //
+    // Orchestrator owns:
+    // - DB connection
+    // - Zodiac Master loading
+    // - Archive handling
+    // - Generation
+    // - Publishing
+    //
     //////////////////////////////////////////////////////////
 
-    const result = await runHoroscopeAutomation(
+    const result =
+      await runHoroscopeAutomation({
 
-      zodiacList,
+        period: "daily",
 
+        language: "english",
 
-      {
+        startDate: today,
 
-        period:"daily",
+        endDate: today,
 
-        language:"english",
-
-        startDate:today,
-
-        endDate:today,
-
-
-      }
-
-    );
-
-
-
+      });
 
 
 
@@ -145,54 +81,41 @@ export async function POST() {
     // SUCCESS RESPONSE
     //////////////////////////////////////////////////////////
 
-    return NextResponse.json(
+    return NextResponse.json({
 
-      {
+      success:
+        result.success,
 
+      period:
+        "daily",
 
-        success:true,
-
-
-        period:"daily",
-
-
-        generated:
-
+      generated:
         result.generated || 0,
 
+      failed:
+        result.failed || 0,
 
-        failed:
+      total:
+        result.total || 0,
 
-          result.failed || 0,
+      startedAt,
 
+      completedAt:
+        result.completedAt ||
+        new Date(),
 
+      data:
+        result.data || [],
 
-        startedAt,
-
-
-        completedAt:
-
-          new Date(),
-
-
-
-        data:
-
-          result.data || [],
-
-
-
-      }
-
-    );
-
-
+    });
 
   }
 
-  catch(error:any){
+  catch (error: any) {
 
-
+    //////////////////////////////////////////////////////////
+    // ERROR LOG
+    //////////////////////////////////////////////////////////
 
     console.error(
 
@@ -204,58 +127,48 @@ export async function POST() {
 
 
 
-
     //////////////////////////////////////////////////////////
     // SAFE ERROR RESPONSE
     //////////////////////////////////////////////////////////
-
 
     return NextResponse.json(
 
       {
 
+        success: false,
 
-        success:false,
+        period: "daily",
 
+        generated: 0,
 
-        generated:0,
-
-
-        failed:1,
-
+        failed: 1,
 
         startedAt,
 
-
         completedAt:
-
           new Date(),
 
-
-
         error:
-
           error?.message ||
-
           "Horoscope automation failed",
-
-
 
       },
 
-
       {
 
-
-        status:500,
-
+        status: 500,
 
       }
 
     );
 
-
   }
 
-
 }
+
+
+
+//////////////////////////////////////////////////////////////
+// END OF HOROSCOPE AUTOMATION TRIGGER API
+//////////////////////////////////////////////////////////////
+

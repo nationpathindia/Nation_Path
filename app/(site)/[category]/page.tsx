@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-
 import AdRenderer from "@/components/ads/AdRendererClient";
 
 import CategoryHeader from "@/components/category/CategoryHeader";
@@ -11,7 +9,7 @@ import CategoryLatest from "@/components/category/CategoryLatest";
 import CategoryAISummary from "@/components/category/CategoryAISummary";
 import CategoryAstroPreview from "@/components/category/CategoryAstroPreview";
 import CategorySidebar from "@/components/category/CategorySidebar";
-
+import ArticleAnalyticsTracker from "@/components/analytics/ArticleAnalyticsTracker";
 export const dynamic = "force-dynamic";
 
 export const revalidate = 0;
@@ -40,77 +38,6 @@ async function getCategory(slug: string) {
       slug,
     },
   });
-}
-
-/* =====================================================
-   CATEGORY ANALYTICS TRACKER
-===================================================== */
-
-async function trackCategoryView(categoryId: string) {
-  try {
-    const requestHeaders = await headers();
-
-    const userAgent =
-      requestHeaders.get("user-agent") || undefined;
-
-    const referrer =
-      requestHeaders.get("referer") || undefined;
-
-    const forwardedFor =
-      requestHeaders.get("x-forwarded-for");
-
-    const ip =
-      forwardedFor?.split(",")[0]?.trim() ||
-      requestHeaders.get("x-real-ip") ||
-      undefined;
-
-    const host =
-      requestHeaders.get("host");
-
-    const protocol =
-      requestHeaders.get("x-forwarded-proto") || "https";
-
-    const path =
-      host
-        ? `${protocol}://${host}`
-        : undefined;
-
-    await prisma.categoryAnalyticsEvent.create({
-      data: {
-        categoryId,
-
-        eventType: "view",
-
-        userId: undefined,
-
-        sessionId: undefined,
-
-        ip,
-
-        userAgent,
-
-        referrer,
-
-        path,
-
-        source: "category_page",
-
-        campaign: undefined,
-
-        metadata: {
-          trackedAt: new Date().toISOString(),
-        },
-      },
-    });
-  } catch (error) {
-    /*
-     * Analytics must NEVER break the category page.
-     */
-    console.error(
-      "[Category Analytics] View tracking failed:",
-      error
-    );
-  }
 }
 
 /* =====================================================
@@ -210,8 +137,6 @@ export default async function CategoryPage({
   /* =====================================================
      CATEGORY VIEW ANALYTICS
   ===================================================== */
-
-  await trackCategoryView(category.id);
 
   /* =====================================================
      ARTICLES
@@ -413,7 +338,15 @@ export default async function CategoryPage({
   ===================================================== */
 
   return (
-    <>
+    <> 
+      {/* =================================================
+        ANALYTICS TRACKER
+    ================================================= */}
+<ArticleAnalyticsTracker
+  type="category"
+  categoryId={category.id}
+  categoryUrl={`/${category.slug}`}
+/>
       {/* =================================================
           COLLECTION PAGE SCHEMA
       ================================================= */}

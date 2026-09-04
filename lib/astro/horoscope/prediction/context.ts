@@ -1,30 +1,32 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
-// Prediction Context Intelligence Layer
-// Future Proof Shared Prediction State v2
+//
+// Prediction Context Intelligence Layer v3
+//
+// Shared Prediction State
+//
+// Responsibilities:
+// - Preserve real astro snapshot
+// - Preserve prediction outputs
+// - Route context between intelligence layers
+// - Support future astro context
+//
+// NO calculations.
+// NO ephemeris.
+// NO planetary mathematics.
+// NO artificial zodiac scoring.
 //////////////////////////////////////////////////////////////
 
-
 import type {
-
   HoroscopePlanet,
-
   HoroscopeLanguage,
-
 } from "../types";
 
-
 import type {
-
   PlanetPrediction,
-
   LifePrediction,
-
   PredictionInsight,
-
 } from "./types";
-
-
 
 
 
@@ -33,10 +35,7 @@ import type {
 //////////////////////////////////////////////////////////////
 
 export const PREDICTION_CONTEXT_VERSION =
-
-"v2-intelligence";
-
-
+  "v3-intelligence";
 
 
 
@@ -45,20 +44,12 @@ export const PREDICTION_CONTEXT_VERSION =
 //////////////////////////////////////////////////////////////
 
 export type PredictionPhase =
-
   | "initialized"
-
   | "analysis"
-
   | "ranking"
-
   | "language"
-
   | "quality"
-
   | "completed";
-
-
 
 
 
@@ -68,52 +59,55 @@ export type PredictionPhase =
 
 export interface PredictionContext {
 
-
   ////////////////////////////////////////////////////////////
   // META
   ////////////////////////////////////////////////////////////
 
   version:
-
     string;
 
-
   phase:
-
     PredictionPhase;
 
 
-
   ////////////////////////////////////////////////////////////
-  // LANGUAGE
+  // REQUEST LANGUAGE
   ////////////////////////////////////////////////////////////
 
   language:
-
     HoroscopeLanguage;
 
-    
-zodiacSign?:
-  string;
+
+  ////////////////////////////////////////////////////////////
+  // ZODIAC CONTEXT
+  //
+  // Context only.
+  // Never used as an artificial score modifier.
+  ////////////////////////////////////////////////////////////
+
+  zodiacSign?:
+    string;
 
 
   ////////////////////////////////////////////////////////////
   // PLANET DATA
+  //
+  // This remains the source snapshot received from the
+  // external astrology/calculation layer.
   ////////////////////////////////////////////////////////////
 
   planets:
-
     HoroscopePlanet[];
 
 
-    
-
+  ////////////////////////////////////////////////////////////
+  // DOMINANT PLANETS
+  //
+  // Selected by the prediction engine.
+  ////////////////////////////////////////////////////////////
 
   dominantPlanets:
-
     HoroscopePlanet[];
-
-
 
 
   ////////////////////////////////////////////////////////////
@@ -121,16 +115,11 @@ zodiacSign?:
   ////////////////////////////////////////////////////////////
 
   activePlanetCount:
-
     number;
 
 
-
   dominantPlanetNames:
-
     string[];
-
-
 
 
   ////////////////////////////////////////////////////////////
@@ -138,16 +127,11 @@ zodiacSign?:
   ////////////////////////////////////////////////////////////
 
   planetaryPredictions:
-
     PlanetPrediction[];
 
 
-
   lifePredictions:
-
     LifePrediction[];
-
-
 
 
   ////////////////////////////////////////////////////////////
@@ -155,67 +139,96 @@ zodiacSign?:
   ////////////////////////////////////////////////////////////
 
   opportunities:
-
     PredictionInsight[];
-
 
 
   cautions:
-
     PredictionInsight[];
 
 
-
   guidance:
-
     string[];
 
 
-
-
-
   ////////////////////////////////////////////////////////////
-  // FUTURE EXTENSIONS
+  // FUTURE REAL ASTRO CONTEXT
+  //
+  // These are intentionally context containers.
+  // They must only be populated when the actual
+  // calculation/astro layer provides the data.
+  //
+  // No calculation belongs here.
   ////////////////////////////////////////////////////////////
 
   transitData?:
-
     unknown;
-
 
 
   dashaData?:
-
     unknown;
-
 
 
   yogaData?:
-
     unknown;
-
 
 
   nakshatraData?:
-
     unknown;
 
-
-
-
-    
 
   houseData?:
-
     unknown;
 
+
+  aspectData?:
+    unknown;
+
+
+  retrogradeData?:
+    unknown;
 
 
 }
 
 
 
+//////////////////////////////////////////////////////////////
+// CONTEXT BUILDER INPUT
+//////////////////////////////////////////////////////////////
 
+export type PredictionContextInput =
+  Omit<
+    PredictionContext,
+    | "version"
+    | "activePlanetCount"
+    | "dominantPlanetNames"
+  >;
+
+
+
+//////////////////////////////////////////////////////////////
+// SAFE PLANET NAME
+//////////////////////////////////////////////////////////////
+
+function getContextPlanetName(
+  planet: HoroscopePlanet
+): string {
+
+  const name =
+    planet?.strength?.planet;
+
+  if (
+    typeof name === "string" &&
+    name.trim().length > 0
+  ) {
+
+    return name.trim();
+
+  }
+
+  return "Unknown";
+
+}
 
 
 
@@ -226,66 +239,54 @@ zodiacSign?:
 export function createPredictionContext(
 
   input:
-
-  Omit<
-
-    PredictionContext,
-
-    "version"
-
-    |
-
-    "activePlanetCount"
-
-    |
-
-    "dominantPlanetNames"
-
-  >
+    PredictionContextInput
 
 ): PredictionContext {
+
+  const planets =
+    Array.isArray(input.planets)
+      ? input.planets.filter(Boolean)
+      : [];
+
+
+  const dominantPlanets =
+    Array.isArray(input.dominantPlanets)
+      ? input.dominantPlanets.filter(Boolean)
+      : [];
 
 
   return {
 
-
     ...input,
 
-
     version:
-
       PREDICTION_CONTEXT_VERSION,
 
 
+    planets,
+
+
+    dominantPlanets,
+
+
     activePlanetCount:
-
-      input.planets.length,
-
+      planets.length,
 
 
     dominantPlanetNames:
 
-      input.dominantPlanets.map(
-
-        planet =>
-
-        String(
-
-          planet.strength.planet
-
+      dominantPlanets
+        .map(
+          getContextPlanetName
         )
-
-      ),
-
+        .filter(
+          name =>
+            name !== "Unknown"
+        ),
 
   };
 
-
 }
-
-
-
-
 
 
 
@@ -295,59 +296,107 @@ export function createPredictionContext(
 
 export function validatePredictionContext(
 
-  context:PredictionContext
+  context:
+    PredictionContext
 
-):boolean {
+): boolean {
+
+  if (!context) {
+
+    return false;
+
+  }
 
 
-  return Boolean(
+  if (
+    !context.language
+  ) {
 
-    context
+    return false;
 
-    &&
+  }
 
-    context.language
 
-    &&
-
-    Array.isArray(
-
+  if (
+    !Array.isArray(
       context.planets
-
     )
+  ) {
 
-    &&
+    return false;
 
-    Array.isArray(
+  }
 
+
+  if (
+    !Array.isArray(
       context.dominantPlanets
-
     )
+  ) {
 
-    &&
+    return false;
 
-    Array.isArray(
+  }
 
+
+  if (
+    !Array.isArray(
       context.planetaryPredictions
-
     )
+  ) {
 
-    &&
+    return false;
 
-    Array.isArray(
+  }
 
+
+  if (
+    !Array.isArray(
       context.lifePredictions
-
     )
+  ) {
 
-  );
+    return false;
 
+  }
+
+
+  if (
+    !Array.isArray(
+      context.opportunities
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      context.cautions
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      context.guidance
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
 
 }
-
-
-
-
 
 
 
@@ -357,23 +406,177 @@ export function validatePredictionContext(
 
 export function updatePredictionPhase(
 
-  context:PredictionContext,
+  context:
+    PredictionContext,
 
-  phase:PredictionPhase
+  phase:
+    PredictionPhase
 
-):PredictionContext {
+): PredictionContext {
+
+  return {
+
+    ...context,
+
+    phase,
+
+  };
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTEXT ZODIAC UPDATE
+//
+// Context setter only.
+// No scoring.
+// No prediction modification.
+//////////////////////////////////////////////////////////////
+
+export function updatePredictionZodiac(
+
+  context:
+    PredictionContext,
+
+  zodiacSign?:
+    string
+
+): PredictionContext {
+
+  return {
+
+    ...context,
+
+    zodiacSign:
+
+      zodiacSign?.trim() || undefined,
+
+  };
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTEXT PLANET UPDATE
+//
+// Useful when a later intelligence layer receives an
+// enriched real astro snapshot.
+//
+// No calculation is performed here.
+//////////////////////////////////////////////////////////////
+
+export function updatePredictionPlanets(
+
+  context:
+    PredictionContext,
+
+  planets:
+    HoroscopePlanet[]
+
+): PredictionContext {
+
+  const safePlanets =
+    Array.isArray(planets)
+      ? planets.filter(Boolean)
+      : [];
 
 
   return {
 
-
     ...context,
 
+    planets:
+      safePlanets,
 
-    phase,
 
+    activePlanetCount:
+      safePlanets.length,
 
   };
 
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTEXT DOMINANT PLANET UPDATE
+//////////////////////////////////////////////////////////////
+
+export function updateDominantPlanets(
+
+  context:
+    PredictionContext,
+
+  dominantPlanets:
+    HoroscopePlanet[]
+
+): PredictionContext {
+
+  const safeDominantPlanets =
+    Array.isArray(
+      dominantPlanets
+    )
+      ? dominantPlanets.filter(Boolean)
+      : [];
+
+
+  return {
+
+    ...context,
+
+    dominantPlanets:
+      safeDominantPlanets,
+
+
+    dominantPlanetNames:
+
+      safeDominantPlanets
+        .map(
+          getContextPlanetName
+        )
+        .filter(
+          name =>
+            name !== "Unknown"
+        ),
+
+  };
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CONTEXT COMPLETION CHECK
+//////////////////////////////////////////////////////////////
+
+export function isPredictionContextReady(
+
+  context:
+    PredictionContext
+
+): boolean {
+
+  if (
+    !validatePredictionContext(
+      context
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  return (
+
+    context.planets.length > 0
+
+    &&
+
+    context.planetaryPredictions.length > 0
+
+  );
 
 }

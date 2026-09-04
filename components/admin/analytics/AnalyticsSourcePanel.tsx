@@ -7,596 +7,480 @@ import {
   Search,
   Share2,
   TrendingUp,
-  Users,
+  Activity,
 } from "lucide-react";
 
 export interface AnalyticsSourceItem {
-  id?: string;
-  name: string;
-
-  type?:
-    | "direct"
-    | "search"
-    | "social"
-    | "referral"
-    | string;
-
-  users?: number;
-  sessions?: number;
+  source: string;
   views?: number;
-  percentage?: number;
+  sessions?: number;
+  share?: number;
+}
+
+export interface AnalyticsMediumItem {
+  medium: string;
+  views?: number;
+  sessions?: number;
+  share?: number;
+}
+
+export interface AnalyticsCampaignItem {
+  campaign: string;
+  views?: number;
+  sessions?: number;
+  share?: number;
 }
 
 interface AnalyticsSourcePanelProps {
   sources?: AnalyticsSourceItem[];
+  mediums?: AnalyticsMediumItem[];
+  campaigns?: AnalyticsCampaignItem[];
 }
 
-
-function number(value?:number){
-  return Number(value)||0;
+function number(value?: number) {
+  return Number.isFinite(value) ? Number(value) : 0;
 }
 
+function compact(value: number) {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
 
-function compact(value:number){
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
 
- if(value>=1000000)
-  return `${(value/1000000).toFixed(1)}M`;
-
- if(value>=1000)
-  return `${(value/1000).toFixed(1)}K`;
-
- return value.toLocaleString("en-IN");
+  return value.toLocaleString("en-IN");
 }
 
+function percentage(value?: number) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
 
+  return Math.max(0, Math.min(100, Number(value)));
+}
 
-function icon(type?:string){
+function sourceIcon(name: string) {
+  const value = name.toLowerCase();
 
- switch(type){
+  if (value === "google" || value.includes("search")) {
+    return Search;
+  }
 
- case "search":
-  return Search;
+  if (
+    value.includes("facebook") ||
+    value.includes("instagram") ||
+    value.includes("youtube") ||
+    value.includes("whatsapp") ||
+    value.includes("twitter") ||
+    value.includes("linkedin") ||
+    value.includes("social")
+  ) {
+    return Share2;
+  }
 
- case "social":
-  return Share2;
+  if (
+    value === "direct"
+  ) {
+    return Globe2;
+  }
 
- case "referral":
   return Link2;
-
- default:
-  return Globe2;
-
- }
-
 }
 
+function sourceBadge(name: string) {
+  const value = name.toLowerCase();
 
+  if (
+    value === "google" ||
+    value.includes("search")
+  ) {
+    return "bg-blue-500/10 text-blue-300";
+  }
 
-function label(type?:string){
+  if (
+    value.includes("facebook") ||
+    value.includes("instagram") ||
+    value.includes("youtube") ||
+    value.includes("whatsapp") ||
+    value.includes("twitter") ||
+    value.includes("linkedin") ||
+    value.includes("social")
+  ) {
+    return "bg-orange-500/10 text-orange-400";
+  }
 
- switch(type){
+  if (value === "direct") {
+    return "bg-white/[0.06] text-gray-300";
+  }
 
- case "search":
-  return "Search";
-
- case "social":
-  return "Social";
-
- case "referral":
-  return "Referral";
-
- case "direct":
-  return "Direct";
-
- default:
-  return "Other";
-
- }
-
+  return "bg-emerald-500/10 text-emerald-400";
 }
 
+function SourceMetric({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: typeof Activity;
+}) {
+  return (
+    <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-2.5 py-2">
+      <div className="flex items-center gap-1.5">
+        <Icon
+          size={10}
+          strokeWidth={1.8}
+          className="text-gray-600"
+        />
 
+        <span className="text-[8px] uppercase tracking-wide text-gray-600">
+          {label}
+        </span>
+      </div>
 
-function badge(type?:string){
-
- switch(type){
-
- case "search":
- return "bg-blue-500/10 text-blue-300";
-
-
- case "social":
- return "bg-orange-500/10 text-orange-400";
-
-
- case "referral":
- return "bg-emerald-500/10 text-emerald-400";
-
-
- default:
- return "bg-white/[0.06] text-gray-400";
-
- }
-
+      <p className="mt-1 text-xs font-semibold tabular-nums text-gray-300">
+        {compact(value)}
+      </p>
+    </div>
+  );
 }
-
-
 
 function SourceRow({
-source,
-index,
-totalViews
-}:{
-source:AnalyticsSourceItem;
-index:number;
-totalViews:number;
-}){
+  name,
+  type,
+  views,
+  sessions,
+  share,
+  index,
+}: {
+  name: string;
+  type: "Source" | "Medium" | "Campaign";
+  views?: number;
+  sessions?: number;
+  share?: number;
+  index: number;
+}) {
+  const Icon =
+    type === "Source"
+      ? sourceIcon(name)
+      : type === "Medium"
+        ? Activity
+        : Link2;
 
+  const safeViews = number(views);
+  const safeSessions = number(sessions);
+  const safeShare = percentage(share);
 
-const Icon=icon(source.type);
+  const isFirst = index === 0;
 
-const views=number(source.views);
-const users=number(source.users);
-const sessions=number(source.sessions);
+  return (
+    <div
+      className={[
+        "group relative px-4 py-4 sm:px-5",
+        "transition-colors duration-200",
+        "hover:bg-white/[0.025]",
+        isFirst ? "bg-white/[0.012]" : "",
+      ].join(" ")}
+    >
+      {isFirst && (
+        <div className="absolute inset-y-0 left-0 w-[2px] bg-orange-500" />
+      )}
 
+      <div className="flex gap-3">
+        {/* RANK */}
 
-const share=
-totalViews
-?
-Math.round((views/totalViews)*100)
-:
-0;
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.025]">
+          <span
+            className={
+              isFirst
+                ? "font-mono text-[10px] font-bold text-orange-400"
+                : "font-mono text-[10px] font-semibold text-gray-600"
+            }
+          >
+            {String(index + 1).padStart(2, "0")}
+          </span>
+        </div>
 
+        <div className="min-w-0 flex-1">
+          {/* HEADER */}
 
-const quality=
-sessions
-?
-Math.round(
-(users/sessions)*100
-)
-:
-0;
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <Icon
+                  size={13}
+                  strokeWidth={1.8}
+                  className="shrink-0 text-orange-400"
+                />
 
+                <p className="truncate text-sm font-semibold text-gray-200 transition group-hover:text-white">
+                  {name}
+                </p>
 
+                <ArrowUpRight
+                  size={10}
+                  className="hidden shrink-0 text-gray-700 group-hover:text-gray-400 sm:block"
+                />
+              </div>
 
-return(
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span
+                  className={[
+                    "rounded-md px-1.5 py-0.5",
+                    "text-[8px] font-medium uppercase tracking-[0.05em]",
+                    type === "Source"
+                      ? sourceBadge(name)
+                      : "bg-white/[0.05] text-gray-400",
+                  ].join(" ")}
+                >
+                  {type}
+                </span>
 
-<div
-className="
-group
-px-5
-py-4
-transition
-hover:bg-white/[0.025]
-"
->
+                {isFirst && (
+                  <span className="rounded-md bg-orange-500/10 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-[0.05em] text-orange-400">
+                    Top
+                  </span>
+                )}
+              </div>
+            </div>
 
+            {/* VIEWS */}
 
-<div className="flex gap-4">
+            <div className="shrink-0 text-right">
+              <p className="text-sm font-semibold tabular-nums text-white">
+                {compact(safeViews)}
+              </p>
 
+              <p className="text-[8px] uppercase tracking-wide text-gray-700">
+                Views
+              </p>
+            </div>
+          </div>
 
-{/* RANK */}
+          {/* API SHARE */}
 
-<div
-className={`
-flex
-h-8
-w-8
-shrink-0
-items-center
-justify-center
-rounded-lg
-text-xs
-font-bold
+          {safeShare !== null && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[8px] uppercase tracking-[0.08em] text-gray-700">
+                  Traffic Share
+                </span>
 
-${
-index===0
-?
-"bg-orange-500/15 text-orange-400"
-:
-"bg-white/[0.04] text-gray-500"
+                <span className="text-[9px] font-medium tabular-nums text-gray-500">
+                  {safeShare}%
+                </span>
+              </div>
+
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/[0.05]">
+                <div
+                  className="h-full rounded-full bg-orange-500"
+                  style={{
+                    width: `${safeShare}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* METRICS */}
+
+          <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-2">
+            <SourceMetric
+              label="Sessions"
+              value={safeSessions}
+              icon={Activity}
+            />
+
+            <SourceMetric
+              label="Views"
+              value={safeViews}
+              icon={Globe2}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-`}
->
+function AcquisitionGroup({
+  title,
+  items,
+  type,
+}: {
+  title: string;
+  items: Array<{
+    name: string;
+    views?: number;
+    sessions?: number;
+    share?: number;
+  }>;
+  type: "Source" | "Medium" | "Campaign";
+}) {
+  const data = items.slice(0, 10);
 
-{index+1}
+  return (
+    <div>
+      <div className="flex items-center justify-between border-b border-white/[0.045] px-4 py-2.5 sm:px-5">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-500">
+          {title}
+        </span>
 
-</div>
+        <span className="text-[8px] uppercase tracking-wide text-gray-700">
+          Top {data.length}
+        </span>
+      </div>
 
-
-
-<div className="flex-1 min-w-0">
-
-
-<div
-className="
-flex
-justify-between
-gap-4
-"
->
-
-
-<div className="min-w-0">
-
-
-<div
-className="
-flex
-items-center
-gap-2
-"
->
-
-<Icon
-size={15}
-className="text-orange-400"
-/>
-
-
-<p
-className="
-truncate
-text-sm
-font-semibold
-text-gray-100
-group-hover:text-white
-"
->
-
-{source.name}
-
-</p>
-
-
-</div>
-
-
-<div className="mt-2 flex items-center gap-2">
-
-<span
-className={`
-rounded-md
-px-2
-py-0.5
-text-[10px]
-font-medium
-${badge(source.type)}
-`}
->
-
-{label(source.type)}
-
-</span>
-
-
-{
-index===0 &&
-<span
-className="
-rounded-md
-bg-orange-500/10
-px-2
-py-0.5
-text-[10px]
-text-orange-400
-"
->
-Top Source
-</span>
+      {data.length === 0 ? (
+        <div className="px-5 py-6 text-center">
+          <p className="text-[10px] text-gray-700">
+            No {title.toLowerCase()} data available
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/[0.045]">
+          {data.map((item, index) => (
+            <SourceRow
+              key={`${type}-${item.name}-${index}`}
+              name={item.name}
+              type={type}
+              views={item.views}
+              sessions={item.sessions}
+              share={item.share}
+              index={index}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
-
-
-</div>
-
-
-</div>
-
-
-
-<div className="text-right">
-
-<p className="text-sm font-bold text-white">
-{compact(views)}
-</p>
-
-<p className="text-[10px] text-gray-600">
-views
-</p>
-
-</div>
-
-
-</div>
-
-
-
-
-{/* SHARE BAR */}
-
-
-<div className="mt-4">
-
-
-<div
-className="
-flex
-justify-between
-text-[10px]
-uppercase
-tracking-wider
-text-gray-600
-"
->
-
-<span>
-Traffic Share
-</span>
-
-
-<span>
-{share}%
-</span>
-
-
-</div>
-
-
-<div
-className="
-mt-1.5
-h-1.5
-overflow-hidden
-rounded-full
-bg-white/[0.06]
-"
->
-
-<div
-className="
-h-full
-rounded-full
-bg-orange-500
-"
-style={{
-width:`${share}%`
-}}
-/>
-
-
-</div>
-
-
-</div>
-
-
-
-
-{/* METRICS */}
-
-
-<div
-className="
-mt-4
-grid
-grid-cols-3
-gap-3
-"
->
-
-
-<div>
-
-<p className="text-[10px] text-gray-600">
-USERS
-</p>
-
-<p className="mt-1 text-xs font-semibold text-gray-300">
-{compact(users)}
-</p>
-
-</div>
-
-
-
-<div>
-
-<p className="text-[10px] text-gray-600">
-SESSIONS
-</p>
-
-<p className="mt-1 text-xs font-semibold text-gray-300">
-{compact(sessions)}
-</p>
-
-</div>
-
-
-
-<div>
-
-<p className="text-[10px] text-gray-600">
-QUALITY
-</p>
-
-<p className="mt-1 text-xs font-semibold text-gray-300">
-{quality}%
-</p>
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-)
-
-}
-
-
 
 export default function AnalyticsSourcePanel({
-sources=[]
-}:AnalyticsSourcePanelProps){
+  sources = [],
+  mediums = [],
+  campaigns = [],
+}: AnalyticsSourcePanelProps) {
+  const hasData =
+    sources.length > 0 ||
+    mediums.length > 0 ||
+    campaigns.length > 0;
 
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/25 backdrop-blur-xl">
+      {/* HEADER */}
 
-const data=sources.slice(0,10);
+      <header className="flex items-center justify-between gap-4 border-b border-white/[0.06] px-4 py-4 sm:px-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10">
+              <Globe2
+                size={13}
+                strokeWidth={1.8}
+                className="text-orange-400"
+              />
+            </div>
 
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-white">
+                Acquisition Intelligence
+              </h2>
 
-const totalViews=
-data.reduce(
-(sum,item)=>
-sum+number(item.views),
-0
-);
+              <p className="mt-0.5 hidden text-[10px] text-gray-600 sm:block">
+                Sources, mediums and campaigns driving audience traffic.
+              </p>
+            </div>
+          </div>
+        </div>
 
+        <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.025] px-2.5 py-1.5">
+          <TrendingUp
+            size={10}
+            strokeWidth={1.8}
+            className="text-orange-400"
+          />
 
+          <span className="text-[8px] uppercase tracking-[0.08em] text-gray-600">
+            Acquisition
+          </span>
+        </div>
+      </header>
 
-return(
+      {/* CONTENT */}
 
-<section
-className="
-overflow-hidden
-rounded-2xl
-border
-border-white/[0.08]
-bg-white/[0.035]
-"
->
+      {!hasData ? (
+        <div className="flex min-h-[170px] items-center justify-center px-5 text-center">
+          <div>
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.025]">
+              <Globe2
+                size={17}
+                strokeWidth={1.7}
+                className="text-gray-600"
+              />
+            </div>
 
+            <p className="mt-3 text-xs font-medium text-gray-400">
+              No acquisition data available
+            </p>
 
-<div
-className="
-flex
-items-center
-justify-between
-border-b
-border-white/[0.06]
-px-5
-py-5
-"
->
+            <p className="mt-1 text-[10px] text-gray-700">
+              Traffic acquisition data will appear as analytics accumulate.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <AcquisitionGroup
+            title="Sources"
+            type="Source"
+            items={sources.map(item => ({
+              name: item.source,
+              views: item.views,
+              sessions: item.sessions,
+              share: item.share,
+            }))}
+          />
 
+          <AcquisitionGroup
+            title="Mediums"
+            type="Medium"
+            items={mediums.map(item => ({
+              name: item.medium,
+              views: item.views,
+              sessions: item.sessions,
+              share: item.share,
+            }))}
+          />
 
-<div>
+          <AcquisitionGroup
+            title="Campaigns"
+            type="Campaign"
+            items={campaigns.map(item => ({
+              name: item.campaign,
+              views: item.views,
+              sessions: item.sessions,
+              share: item.share,
+            }))}
+          />
+        </div>
+      )}
 
-<div className="flex items-center gap-2">
+      {/* FOOTER */}
 
-<Globe2
-size={17}
-className="text-orange-400"
-/>
+      {hasData && (
+        <footer className="flex items-center justify-between gap-3 border-t border-white/[0.05] px-4 py-2.5 sm:px-5">
+          <span className="text-[9px] uppercase tracking-[0.07em] text-gray-700">
+            API-ranked acquisition data
+          </span>
 
-<h2 className="text-lg font-semibold text-white">
-Traffic Intelligence
-</h2>
-
-
-</div>
-
-
-<p className="mt-1 text-sm text-gray-500">
-Audience acquisition performance.
-</p>
-
-
-</div>
-
-
-<TrendingUp
-size={18}
-className="text-orange-400"
-/>
-
-
-</div>
-
-
-
-
-{
-data.length===0 ?
-
-
-<div
-className="
-h-48
-flex
-items-center
-justify-center
-text-sm
-text-gray-500
-"
->
-No source data available
-</div>
-
-
-:
-
-
-<div className="divide-y divide-white/[0.06]">
-
-{
-data.map(
-(source,index)=>(
-
-<SourceRow
-
-key={
-source.id ||
-index
-}
-
-source={source}
-
-index={index}
-
-totalViews={totalViews}
-
-/>
-
-)
-
-)
-
-}
-
-</div>
-
-
-}
-
-
-
-
-<div
-className="
-border-t
-border-white/[0.06]
-px-5
-py-3
-text-xs
-text-gray-600
-"
->
-
-Direct • Search • Social • Referral acquisition
-
-</div>
-
-
-</section>
-
-)
-
+          <span className="text-[9px] text-gray-700">
+            Source · Medium · Campaign
+          </span>
+        </footer>
+      )}
+    </section>
+  );
 }

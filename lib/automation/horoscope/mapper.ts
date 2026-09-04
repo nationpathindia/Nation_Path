@@ -1,38 +1,52 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH AI AUTOMATION
 //
-// ASTRO HOROSCOPE CMS MAPPER v2
+// ASTRO HOROSCOPE CMS MAPPER v4
 //
 // Engine Result
 //        ↓
 // Prediction Result
+//        ↓
+// Remedy Intelligence
 //        ↓
 // Zodiac Master Snapshot
 //        ↓
 // CMS Horoscope Document
 //
 // RESPONSIBILITY:
+//
 // ONLY TRANSFORMATION
 //
 // LOCKED:
+//
 // NO calculation
 // NO prediction modification
 // NO AI generation
+// NO remedy generation
+// NO remedy knowledge invention
+// NO CMS/database access
+//
+// IMPORTANT:
+//
+// Engine output is the source of truth.
+// Prediction output is the source of prediction intelligence.
+// Remedy Intelligence is the source of resolved remedy data.
+// Zodiac Master is the source of static zodiac identity.
+//
 //////////////////////////////////////////////////////////////
 
-
 import type {
-  HoroscopeResult,
+
+HoroscopeResult,
+
 } from "@/lib/astro/horoscope/types";
 
-
 import {
-  generateLuckyData,
+
+generateLuckyData,
+
 } from "./lucky";
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // ZODIAC MASTER SNAPSHOT
@@ -40,110 +54,154 @@ import {
 
 interface ZodiacMasterSnapshot {
 
-
-  zodiac:string;
-
-
-  names?:{
-
-    english:string;
-
-    hindi?:string;
-
-    sanskrit?:string;
-
-    gujarati?:string;
-
-    nepali?:string;
-
-  };
+zodiac:
 
 
-
-  identity?:{
-
-    rashi?:string;
-
-    sanskritName?:string;
-
-    dates?:string;
-
-    description?:string;
-
-    energy?:string;
-
-  };
+string;
 
 
-
-  symbol?:string;
-
+names?: {
 
 
-  element?:string;
+english:
+
+  string;
+
+hindi?:
+
+  string;
+
+sanskrit?:
+
+  string;
+
+gujarati?:
+
+  string;
+
+nepali?:
+
+  string;
 
 
+};
 
-  rulingPlanet?:string;
+identity?: {
 
 
+rashi?:
 
-  media?:{
+  string;
 
-    icon?:string;
+sanskritName?:
 
-    banner?:string;
+  string;
 
-  };
+dates?:
 
+  string;
+
+description?:
+
+  string;
+
+energy?:
+
+  string;
+
+
+};
+
+////////////////////////////////////////////////////////////
+// NAME INITIALS
+//
+// SOURCE:
+// Zodiac Master TOP LEVEL nameInitials
+//
+// NEVER CALCULATE
+// NEVER GENERATE
+////////////////////////////////////////////////////////////
+
+nameInitials?:
+
+
+string[];
+
+
+symbol?:
+
+
+string;
+
+
+element?:
+
+
+string;
+
+
+rulingPlanet?:
+
+
+string;
+
+
+media?: {
+
+
+icon?:
+
+  string;
+
+banner?:
+
+  string;
+
+
+};
 
 }
 
-
-
-
-
-
-
+//////////////////////////////////////////////////////////////
+// MAPPER INPUT
+//////////////////////////////////////////////////////////////
 
 interface MapperInput {
 
-
-  horoscope:HoroscopeResult;
-
-
-  zodiac:string;
+horoscope:
 
 
-
-  zodiacMaster?:ZodiacMasterSnapshot;
-
+HoroscopeResult;
 
 
-  period:
-
-  | "daily"
-
-  | "weekly"
-
-  | "monthly"
-
-  | "yearly";
+zodiac:
 
 
+string;
 
-  date:Date;
+
+zodiacMaster?:
+
+
+ZodiacMasterSnapshot;
+
+
+period:
+
+
+| "daily"
+| "weekly"
+| "monthly"
+| "yearly";
+
+
+date:
+
+
+Date;
 
 
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // INDIA TIME DATE RANGE
@@ -151,227 +209,379 @@ interface MapperInput {
 
 function buildDateRange(
 
-date:Date,
+date:
 
-period:string
 
-){
+Date,
 
+
+period:
+
+
+string
+
+
+) {
 
 const IST_OFFSET =
-5.5 * 60 * 60 * 1000;
 
+
+5.5 *
+60 *
+60 *
+1000;
 
 
 const istDate =
-new Date(
-date.getTime()+IST_OFFSET
-);
 
+
+new Date(
+
+  date.getTime()
+  +
+  IST_OFFSET
+
+);
 
 
 const startIST =
+
+
 new Date(
-Date.UTC(
 
-istDate.getUTCFullYear(),
+  Date.UTC(
 
-istDate.getUTCMonth(),
+    istDate.getUTCFullYear(),
 
-istDate.getUTCDate(),
+    istDate.getUTCMonth(),
 
-0,
+    istDate.getUTCDate(),
 
-0,
+    0,
 
-0,
+    0,
 
-0
+    0,
 
-)
+    0
+
+  )
 
 );
-
 
 
 const endIST =
-new Date(startIST);
 
 
+new Date(
 
-if(period==="daily")
+  startIST
 
-endIST.setUTCDate(
-endIST.getUTCDate()+1
 );
 
 
+if (
 
-if(period==="weekly")
+
+period === "daily"
+
+
+) {
+
 
 endIST.setUTCDate(
-endIST.getUTCDate()+7
+
+  endIST.getUTCDate()
+  +
+  1
+
 );
 
 
+}
 
-if(period==="monthly")
+if (
+
+
+period === "weekly"
+
+
+) {
+
+
+endIST.setUTCDate(
+
+  endIST.getUTCDate()
+  +
+  7
+
+);
+
+
+}
+
+if (
+
+
+period === "monthly"
+
+
+) {
+
 
 endIST.setUTCMonth(
-endIST.getUTCMonth()+1
+
+  endIST.getUTCMonth()
+  +
+  1
+
 );
 
 
+}
 
-if(period==="yearly")
+if (
+
+
+period === "yearly"
+
+
+) {
+
 
 endIST.setUTCFullYear(
-endIST.getUTCFullYear()+1
+
+  endIST.getUTCFullYear()
+  +
+  1
+
 );
 
 
-
+}
 
 return {
 
 
 startDate:
 
-new Date(
-startIST.getTime()-IST_OFFSET
-),
+  new Date(
 
+    startIST.getTime()
+    -
+    IST_OFFSET
+
+  ),
 
 
 endDate:
 
-new Date(
-endIST.getTime()-IST_OFFSET
-)
+  new Date(
+
+    endIST.getTime()
+    -
+    IST_OFFSET
+
+  ),
 
 
 };
 
-
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // PLANET INTELLIGENCE
 //
-// Prediction source only
+// SINGLE SOURCE:
+//
+// prediction.planetaryPredictions
+//
+// DO NOT rebuild from:
+//
+// opportunities
+// cautions
+// ranking
 //////////////////////////////////////////////////////////////
 
 function mapPlanets(
 
-prediction:any
-
-){
+planetaryPredictions:
 
 
-return (
-
-prediction.opportunities || []
-
-).map(
-
-(planet:any)=>(
+any[] = []
 
 
-{
+) {
+
+return planetaryPredictions.map(
 
 
-planetKey:
+(
 
-planet.title
-?.split(" ")[0]
-?.toLowerCase()
-||
-"planet",
+  planet:
 
+    any
 
+) => ({
 
-name:
+  planetKey:
 
-planet.title
-||
-"Planet",
-
+    planet.planet
+      ?.toLowerCase()
+      ||
+      "planet",
 
 
-title:
+  name:
 
-"Planetary Influence",
-
-
-
-message:
-
-planet.description
-||
-"",
+    planet.planet
+    ||
+    "Planet",
 
 
+  title:
 
-strength:
+    `${
 
-planet.priority >=80
-?
-"High"
-:
-"Balanced",
+      planet.planet
+      ||
+      "Planet"
 
-
-
-energyLevel:
-
-planet.priority >=80
-?
-"Strong"
-:
-"Balanced"
+    } Influence`,
 
 
-}
+  message:
+
+    planet.message
+    ||
+    "",
 
 
-)
+  strength:
+
+    planet.strengthScore >= 80
+
+      ? "High"
+
+      : planet.strengthScore >= 50
+
+        ? "Balanced"
+
+        : "Low",
+
+
+  energyLevel:
+
+    planet.strengthScore >= 80
+
+      ? "Strong"
+
+      : planet.strengthScore >= 50
+
+        ? "Balanced"
+
+        : "Challenging",
+
+
+  strengthScore:
+
+    planet.strengthScore
+    ??
+    0,
+
+
+  dignity:
+
+    planet.dignity
+    ||
+    "",
+
+
+  positive:
+
+    planet.positive
+    ||
+    [],
+
+
+  caution:
+
+    planet.caution
+    ||
+    [],
+
+
+  keywords:
+
+    planet.keywords
+    ||
+    [],
+
+
+  confidence:
+
+    planet.confidence
+    ??
+    0,
+
+
+  influenceScore:
+
+    planet.influenceScore
+    ??
+    0,
+
+})
+
 
 );
 
-
 }
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 // LIFE INTELLIGENCE
+//
+// SINGLE SOURCE:
+//
+// prediction.lifePredictions
+//
+// DO NOT rebuild from predictionRanking.
 //////////////////////////////////////////////////////////////
 
 function mapLife(
 
-prediction:any
-
-){
+lifePredictions:
 
 
-const ranking =
+any[] = []
 
-prediction.predictionRanking || [];
 
+) {
+
+const findArea =
+
+
+(
+
+  area:
+
+    string
+
+) =>
+
+  lifePredictions.find(
+
+    (
+
+      item:
+
+        any
+
+    ) =>
+
+      item.area === area
+
+  );
 
 
 return {
@@ -379,72 +589,261 @@ return {
 
 career:
 
-ranking.find(
+  findArea(
 
-(x:any)=>
+    "career"
 
-x.category==="career"
-
-)?.reason
-||
-"",
+  )
+    ?.summary
+    ||
+    "",
 
 
 
 love:
 
-ranking.find(
+  findArea(
 
-(x:any)=>
+    "relationship"
 
-x.category==="relationship"
-
-)?.reason
-||
-"",
+  )
+    ?.summary
+    ||
+    "",
 
 
 
 finance:
 
-ranking.find(
+  findArea(
 
-(x:any)=>
+    "finance"
 
-x.category==="wealth"
-
-)?.reason
-||
-"",
+  )
+    ?.summary
+    ||
+    "",
 
 
 
 health:
 
-ranking.find(
+  findArea(
 
-(x:any)=>
+    "health"
 
-x.category==="health"
+  )
+    ?.summary
+    ||
+    "",
 
-)?.reason
+
+};
+
+}
+
+//////////////////////////////////////////////////////////////
+// REMEDY INTELLIGENCE MAPPER
+//
+// SOURCE:
+//
+// horoscope.remedyIntelligence
+//
+// This function ONLY transforms an already-resolved
+// remedy into the CMS horoscope document.
+//
+// It does NOT:
+//
+// - select a remedy
+// - calculate a remedy
+// - generate a remedy
+// - generate a mantra
+// - invent a reason
+// - access MongoDB
+// - access CMS
+//
+//////////////////////////////////////////////////////////////
+
+function mapRemedy(
+
+horoscope:
+
+
+HoroscopeResult
+
+
+) {
+
+const intelligence =
+
+
+horoscope.remedyIntelligence;
+
+
+////////////////////////////////////////////////////////////
+// NO RESOLVED REMEDY
+////////////////////////////////////////////////////////////
+
+if (
+
+
+!intelligence?.available
 ||
-"",
+!intelligence.remedy
 
 
+) {
+
+
+return {
+
+  available:
+
+    false,
 
 };
 
 
 }
 
+////////////////////////////////////////////////////////////
+// RESOLVED REMEDY
+//
+// Every remedy-specific field comes directly from
+// RemedyKnowledge through the resolver.
+////////////////////////////////////////////////////////////
+
+const remedy =
+
+
+intelligence.remedy;
+
+
+return {
+
+
+available:
+
+  true,
 
 
 
+category:
+
+  remedy.category,
 
 
 
+title:
 
+  remedy.title,
+
+
+
+practice:
+
+  remedy.practice,
+
+
+
+guidance:
+
+  remedy.guidance,
+
+
+
+reason:
+
+  remedy.reason,
+
+
+
+mantra:
+
+  remedy.mantra,
+
+
+
+benefits:
+
+  remedy.benefits,
+
+
+
+precautions:
+
+  remedy.precautions,
+
+
+
+avoidFor:
+
+  remedy.avoidFor,
+
+
+
+suitableFor:
+
+  remedy.suitableFor,
+
+
+
+materials:
+
+  remedy.materials,
+
+
+
+duration:
+
+  remedy.duration,
+
+
+
+gemstone:
+
+  remedy.gemstone,
+
+
+
+metal:
+
+  remedy.metal,
+
+
+
+day:
+
+  remedy.day,
+
+
+
+color:
+
+  remedy.color,
+
+
+
+media:
+
+  remedy.media,
+
+
+
+source:
+
+  remedy.source,
+
+
+
+context:
+
+  intelligence.context,
+
+
+};
+
+}
 
 //////////////////////////////////////////////////////////////
 // MAIN CMS MAPPER
@@ -452,11 +851,13 @@ x.category==="health"
 
 export function mapHoroscopeToCms(
 
-input:MapperInput
-
-){
+input:
 
 
+MapperInput
+
+
+) {
 
 const {
 
@@ -469,750 +870,844 @@ period,
 
 date,
 
-zodiacMaster
+zodiacMaster,
 
 
-}=input;
+} = input;
+
+////////////////////////////////////////////////////////////
+// ENGINE RESULT
+//
+// HoroscopeResult is the source.
+//
+////////////////////////////////////////////////////////////
+
+const engine:
 
 
+any =
+
+  horoscope as any;
 
 
+const prediction:
 
 
+any =
 
-//////////////////////////////////////////////////////////////
-// LOCKED PREDICTION SOURCE
-//////////////////////////////////////////////////////////////
-
-const prediction:any =
-
-(horoscope as any).prediction
-
-||
-
-{};
-
-
-
-
-
+  engine?.prediction;
 
 
 console.log(
 
-"🔥 FINAL HOROSCOPE CMS MAPPER",
+
+"🔥 FINAL HOROSCOPE CMS MAPPER v4",
 
 {
 
-zodiac,
+  zodiac,
 
-headline:
 
-prediction.headline,
 
-summary:
+  headline:
 
-prediction.naturalSummary
+    prediction?.headline,
+
+
+
+  planetaryCount:
+
+    prediction
+      ?.planetaryPredictions
+      ?.length
+    ||
+    0,
+
+
+
+  lifeAreaCount:
+
+    prediction
+      ?.lifePredictions
+      ?.length
+    ||
+    0,
+
+
+
+  remedyAvailable:
+
+    horoscope
+      ?.remedyIntelligence
+      ?.available
+    ||
+    false,
+
+
+
+  remedyPlanet:
+
+    horoscope
+      ?.remedyIntelligence
+      ?.context
+      ?.planet
+    ||
+    null,
+
+
+
+  remedyTitle:
+
+    horoscope
+      ?.remedyIntelligence
+      ?.remedy
+      ?.title
+    ||
+    null,
+
+
+
+  remedySlug:
+
+    horoscope
+      ?.remedyIntelligence
+      ?.remedy
+      ?.source
+      ?.slug
+    ||
+    null,
+
+
+
+  nameInitials:
+
+    zodiacMaster?.nameInitials
+    ||
+    [],
 
 }
 
+
 );
 
-
-
-
-
-
+////////////////////////////////////////////////////////////
+// DATE RANGE
+////////////////////////////////////////////////////////////
 
 const range =
 
+
 buildDateRange(
 
-date,
+  date,
 
-period
+  period
 
 );
 
 
+////////////////////////////////////////////////////////////
+// ZODIAC ENGLISH NAME
+////////////////////////////////////////////////////////////
+
+const englishName =
 
 
+zodiacMaster?.names?.english
+||
+zodiac;
 
 
-
-
+////////////////////////////////////////////////////////////
+// CMS DOCUMENT
+////////////////////////////////////////////////////////////
 
 return {
 
 
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // BASIC
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 zodiac,
 
 
-
 slug:
 
-`${zodiac}-${period}`,
+  `${zodiac}-${period}`,
 
 
 
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // ZODIAC IDENTITY SNAPSHOT
 //
-// Static master data only
-//////////////////////////////////////////////////////////////
+// STATIC MASTER DATA ONLY
+////////////////////////////////////////////////////////////
 
-identity:{
-
-
-rashi:
-
-zodiacMaster?.identity?.rashi
-||
-"",
+identity: {
 
 
+  rashi:
 
-sanskritName:
-
-zodiacMaster?.identity?.sanskritName
-||
-zodiacMaster?.names?.sanskrit
-||
-"",
-
+    zodiacMaster
+      ?.identity
+      ?.rashi
+    ||
+    "",
 
 
-dates:
+  sanskritName:
 
-zodiacMaster?.identity?.dates
-||
-"",
+    zodiacMaster
+      ?.identity
+      ?.sanskritName
+    ||
 
+    zodiacMaster
+      ?.names
+      ?.sanskrit
+    ||
 
-
-description:
-
-zodiacMaster?.identity?.description
-||
-"",
-
-
-
-energy:
-
-zodiacMaster?.identity?.energy
-||
-"",
+    "",
 
 
+  dates:
 
-element:
-
-zodiacMaster?.element
-||
-"",
-
-
-
-rulingPlanet:
-
-zodiacMaster?.rulingPlanet
-||
-"",
+    zodiacMaster
+      ?.identity
+      ?.dates
+    ||
+    "",
 
 
+  description:
 
-symbol:
+    zodiacMaster
+      ?.identity
+      ?.description
+    ||
+    "",
 
-zodiacMaster?.symbol
-||
-"",
 
+  energy:
+
+    zodiacMaster
+      ?.identity
+      ?.energy
+    ||
+    "",
+
+
+  element:
+
+    zodiacMaster
+      ?.element
+    ||
+    "",
+
+
+  rulingPlanet:
+
+    zodiacMaster
+      ?.rulingPlanet
+    ||
+    "",
+
+
+  symbol:
+
+    zodiacMaster
+      ?.symbol
+    ||
+    "",
 
 },
 
 
 
+////////////////////////////////////////////////////////////
+// NAME INITIALS
+//
+// SINGLE CANONICAL SOURCE:
+// Zodiac Master TOP LEVEL nameInitials
+//
+// NEVER CALCULATE
+// NEVER GENERATE
+////////////////////////////////////////////////////////////
+
+nameInitials:
+
+  zodiacMaster?.nameInitials
+  ||
+  [],
 
 
 
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // META
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-meta:{
-
-
-period,
+meta: {
 
 
-language:
-
-horoscope.language
-||
-"english",
+  period,
 
 
 
-status:
+  language:
 
-"approved",
-
-
-
-startDate:
-
-range.startDate,
+    prediction.language
+    ||
+    "english",
 
 
 
-endDate:
+  status:
 
-range.endDate,
-
-
-
-scheduledAt:
-
-new Date(),
+    "approved",
 
 
 
-slugDate:
+  startDate:
 
-new Intl.DateTimeFormat(
-
-"en-CA",
-
-{
-
-timeZone:"Asia/Kolkata"
-
-}
-
-).format(date),
+    range.startDate,
 
 
 
-version:
+  endDate:
 
-"1.0",
-
-
-
-contentVersion:
-
-1,
-
-
-priority:
-
-1,
+    range.endDate,
 
 
 
-featured:{
+  scheduledAt:
+
+    new Date(),
 
 
-homepage:true,
 
-trending:false,
+  slugDate:
 
-seo:true
+    new Intl.DateTimeFormat(
 
+      "en-CA",
+
+      {
+
+        timeZone:
+
+          "Asia/Kolkata",
+
+      }
+
+    ).format(
+
+      date
+
+    ),
+
+
+
+  version:
+
+    "1.0",
+
+
+
+  contentVersion:
+
+    1,
+
+
+
+  priority:
+
+    1,
+
+
+
+  featured: {
+
+    homepage:
+
+      true,
+
+    trending:
+
+      false,
+
+    seo:
+
+      true,
+
+  },
+
+
+
+  visibility: {
+
+    public:
+
+      true,
+
+    premium:
+
+      false,
+
+    featured:
+
+      true,
+
+  },
 
 },
 
 
 
-visibility:{
-
-
-public:true,
-
-premium:false,
-
-featured:true
-
-
-}
-
-
-},
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // HERO
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-hero:{
-
-
-badge:
-
-`${period} Horoscope`,
+hero: {
 
 
+  badge:
 
-title:
-
-`${zodiacMaster?.names?.english || zodiac} ${period} Horoscope`,
-
-
-subtitle:
-
-prediction.narrative?.opening
-||
-prediction.naturalSummary
-||
-"",
+    `${period} Horoscope`,
 
 
 
-description:
+  title:
 
-prediction.narrative?.development
-||
-prediction.naturalSummary
-||
-"",
+    `${englishName} ${period} Horoscope`,
 
 
 
-cosmicLabel:
+  subtitle:
 
-"NationPath Astro Intelligence",
+    prediction
+      ?.experience
+      ?.primaryTheme
+      ?.summary
+
+    ||
+
+    prediction?.headline
+
+    ||
+
+    prediction?.overview
+
+    ||
+
+    "",
 
 
 
-theme:
+  description:
 
-"cosmic",
+    prediction?.overview
+
+    ||
+
+    prediction
+      ?.experience
+      ?.primaryTheme
+      ?.summary
+
+    ||
+
+    "",
 
 
 
-image:
+  cosmicLabel:
 
-zodiacMaster?.media?.banner
-||
-zodiacMaster?.media?.icon
-||
-"",
+    "NationPath Astro Intelligence",
 
+
+
+  theme:
+
+    "cosmic",
+
+
+
+  image:
+
+    zodiacMaster
+      ?.media
+      ?.banner
+
+    ||
+
+    zodiacMaster
+      ?.media
+      ?.icon
+
+    ||
+
+    "",
 
 },
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // EDITORIAL
-//////////////////////////////////////////////////////////////
+//
+// DIRECT ENGINE / PREDICTION OUTPUT
+////////////////////////////////////////////////////////////
 
-editorial:{
-
-
-headline:
-
-prediction.headline
-||
-"",
+editorial: {
 
 
+  headline:
 
-overview:
-
-prediction.naturalSummary
-||
-"",
+    prediction?.headline
+    ||
+    "",
 
 
 
-prediction:
+  overview:
 
-prediction.narrative?.development
-||
-"",
+    prediction?.overview
+    ||
+    "",
 
 
 
-quote:
+  prediction:
 
-prediction.narrative?.closing
-||
+    prediction
+      ?.experience
+      ?.primaryTheme
+      ?.summary
 
-"Your cosmic journey unfolds through awareness and wisdom.",
+    ||
 
+    prediction?.overview
+
+    ||
+
+    "",
+
+
+
+  quote:
+
+    prediction
+      ?.experience
+      ?.primaryTheme
+      ?.summary
+
+    ||
+
+    "Your cosmic journey unfolds through awareness and wisdom.",
 
 },
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // LIFE
-//////////////////////////////////////////////////////////////
+//
+// SOURCE:
+// lifePredictions
+////////////////////////////////////////////////////////////
 
 life:
 
-mapLife(
+  mapLife(
 
-prediction
+    prediction
+      ?.lifePredictions
+    ||
+    []
 
-),
-
-
-
-
-
+  ),
 
 
 
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // INSIGHTS
-//////////////////////////////////////////////////////////////
+//
+// DIRECT PREDICTION OUTPUT
+////////////////////////////////////////////////////////////
 
-insights:{
-
-
-energy:
-
-prediction.predictionConfidence
-
-?
-
-`Confidence ${prediction.predictionConfidence}%`
-
-:
-
-"Balanced",
+insights: {
 
 
+  energy:
 
-guidance:
+    prediction
+      ?.predictionConfidence
+      !=
+      null
 
-prediction.guidance?.join(" ")
+      ? `Confidence ${prediction.predictionConfidence}%`
 
-||
-
-"",
+      : "Balanced",
 
 
 
-strengths:
+  guidance:
 
-prediction.opportunities
-?.map(
+    Array.isArray(
 
-(x:any)=>
+      prediction?.guidance
 
-x.title
+    )
 
-)
+      ? prediction.guidance.join(
 
-||
+          " "
 
-[],
+        )
+
+      : "",
 
 
 
-challenges:
+  strengths:
 
-prediction.cautions
-?.map(
+    (
 
-(x:any)=>
+      prediction?.opportunities
 
-x.title
+      ||
+      []
 
-)
+    )
 
-||
+      .map(
 
-[],
+        (
 
+          item:
+
+            any
+
+        ) =>
+
+          item.title
+
+      ),
+
+
+
+  challenges:
+
+    (
+
+      prediction?.cautions
+
+      ||
+      []
+
+    )
+
+      .map(
+
+        (
+
+          item:
+
+            any
+
+        ) =>
+
+          item.title
+
+      ),
 
 },
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // PLANETS
-//////////////////////////////////////////////////////////////
+//
+// SINGLE SOURCE:
+// planetaryPredictions
+////////////////////////////////////////////////////////////
 
 planets:
 
-mapPlanets(
+  mapPlanets(
 
-prediction
+    prediction
+      ?.planetaryPredictions
+    ||
+    []
 
-),
-
-
-
-
-
+  ),
 
 
 
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // LUCK
 //
-// LOCKED ENGINE OUTPUT
-//////////////////////////////////////////////////////////////
+// ENGINE OUTPUT FIRST.
+//
+// Existing lucky fallback retained.
+////////////////////////////////////////////////////////////
 
 lucky:
 
-prediction.lucky
+  prediction?.lucky
 
-||
+  ||
 
-generateLuckyData(
+  generateLuckyData(
 
-zodiac
+    zodiac
 
-),
-
-
+  ),
 
 
 
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // REMEDY
 //
-// LOCKED PREDICTION GUIDANCE
-//////////////////////////////////////////////////////////////
+// SINGLE SOURCE:
+//
+// horoscope.remedyIntelligence
+//
+// NO hardcoded remedy.
+// NO prediction guidance fallback.
+// NO manual remedy.
+////////////////////////////////////////////////////////////
 
-remedy:{
+remedy:
 
+  mapRemedy(
 
-category:
+    horoscope
 
-"Planetary Guidance",
-
-
-
-title:
-
-"Astro Balance Practice",
-
-
-
-practice:
-
-prediction.guidance?.[0]
-||
-"",
+  ),
 
 
 
-guidance:
-
-prediction.guidance?.join(" ")
-||
-"",
-
-
-
-reason:
-
-"Follow positive planetary guidance for balance.",
-
-
-},
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // PREMIUM
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-premium:{
-
-
-title:
-
-"Unlock Personal Astro Intelligence",
+premium: {
 
 
+  title:
 
-description:
-
-"Detailed birth chart and personalized planetary insights.",
+    "Unlock Personal Astro Intelligence",
 
 
 
-features:[
+  description:
 
-"Birth Chart",
+    "Detailed birth chart and personalized planetary insights.",
 
-"Life Intelligence",
 
-"AI Astro Reports"
 
-],
+  features: [
 
+    "Birth Chart",
+
+    "Life Intelligence",
+
+    "AI Astro Reports",
+
+  ],
 
 },
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // SEO
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-seo:{
-
-
-title:
-
-`${zodiacMaster?.names?.english || zodiac} ${period} Horoscope Today | NationPath Astro`,
+seo: {
 
 
+  title:
 
-description:
-
-`Read ${zodiacMaster?.names?.english || zodiac} horoscope with planetary insights, life guidance and Vedic astrology predictions.`,
+    `${englishName} ${period} Horoscope Today | NationPath Astro`,
 
 
 
-keywords:[
+  description:
 
-
-`${zodiac} horoscope`,
-
-
-`${period} horoscope`,
-
-
-`${zodiac} rashifal`,
-
-
-"Vedic Astrology",
-
-
-"NationPath Astro"
-
-
-],
+    `Read ${englishName} horoscope with planetary insights, life guidance and Vedic astrology predictions.`,
 
 
 
-canonical:
+  keywords: [
 
-`/astro/horoscope/${zodiac}`
+    `${zodiac} horoscope`,
 
+    `${period} horoscope`,
+
+    `${zodiac} rashifal`,
+
+    "Vedic Astrology",
+
+    "NationPath Astro",
+
+  ],
+
+
+
+  canonical:
+
+    `/astro/horoscope/${zodiac}`,
 
 },
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // VERSION TRACKING
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-intelligence:{
-
-
-mapperVersion:
-
-"2.0",
+intelligence: {
 
 
+  mapperVersion:
 
-source:
-
-"nationpath-ai",
+    "4.0",
 
 
 
-generatedAt:
+  source:
 
-new Date()
+    "nationpath-ai",
 
+
+
+  generatedAt:
+
+    new Date(),
 
 },
 
 
 
-
-
-
-
-
+////////////////////////////////////////////////////////////
+// AUDIT
+////////////////////////////////////////////////////////////
 
 createdBy:
 
-"nationpath-ai",
+  "nationpath-ai",
 
 
 
 updatedBy:
 
-"nationpath-ai"
-
-
-
+  "nationpath-ai",
 
 
 };
-
 
 }

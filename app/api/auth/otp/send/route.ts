@@ -6,19 +6,44 @@
 // Supports:
 // - Phone OTP
 // - Email OTP
+// - Email signup OTP + verification link
 // - Canonical Prisma User
+// - Canonical MongoDB collection = users
 // - Secure OTP hash storage
-// - Resend email delivery
-// - Email OTP + verification link
+// - Secure verification token hash storage
+//
+// EMAIL SIGNUP ARCHITECTURE:
+//
+//   /send
+//      ↓
+//   Find/Create canonical User
+//      ↓
+//   UserEmail(isVerified=false)
+//      ↓
+//   OTP
+//      ↓
+//   EmailVerificationToken
+//      ↓
+//   ONE EMAIL:
+//      - 6 digit OTP
+//      - Verify Email Address link
+//      ↓
+//   /verify
+//      ↓
+//   SAME canonical User
+//      ↓
+//   UserEmail.isVerified=true
 //
 // IMPORTANT:
-// - Canonical User collection = "users"
-// - Prisma is the only DB access layer
-// - Never use Mongoose User
-// - Never store plaintext OTP in MongoDB
-// - Never store plaintext verification token
-// - Development may log/return OTP temporarily
-// - Production NEVER returns/logs plaintext OTP
+// - Prisma is the only DB access layer.
+// - Never use Mongoose User.
+// - Never store plaintext OTP.
+// - Never store plaintext verification token.
+// - Production never returns/logs plaintext OTP.
+// - Phone flow remains unchanged.
+// - Existing email login remains unchanged.
+// - Email signup NEVER creates a second User.
+// - Verification link NEVER creates another User.
 //////////////////////////////////////////////////////////////
 
 import { NextResponse } from "next/server";
@@ -33,7 +58,6 @@ import {
 } from "@/lib/auth/otp";
 
 import { sendOtpEmail } from "@/lib/auth/email";
-
 import { prisma } from "@/lib/prisma";
 
 
@@ -53,11 +77,6 @@ const OTP_PURPOSES: readonly OtpPurpose[] = [
 
 const EMAIL_VERIFICATION_EXPIRY_MS =
   24 * 60 * 60 * 1000;
-
-
-//////////////////////////////////////////////////////////////
-// DEVELOPMENT
-//////////////////////////////////////////////////////////////
 
 const isDevelopment =
   process.env.NODE_ENV !== "production";
@@ -84,13 +103,49 @@ function jsonError(
 
 
 //////////////////////////////////////////////////////////////
-// CREATE EMAIL VERIFICATION TOKEN
+// APPLICATION BASE URL
+//////////////////////////////////////////////////////////////
+
+function getApplicationBaseUrl(
+  request: Request
+) {
+  const configuredBaseUrl =
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (configuredBaseUrl) {
+    return new URL(
+      configuredBaseUrl
+    ).origin;
+  }
+
+  return new URL(
+    request.url
+  ).origin;
+}
+
+
+//////////////////////////////////////////////////////////////
+// CREATE EMAIL VERIFICATION URL
 //
 // IMPORTANT:
-// - Raw token is sent only inside the email URL.
-// - Database stores only SHA-256 hash.
-// - Existing unused tokens for the same user/email
-//   are invalidated before creating a new one.
+//
+// EmailVerificationToken.user is REQUIRED in Prisma.
+//
+// Therefore the token MUST always be connected to the
+// canonical User.
+//
+// For NEW email signup, /send creates a provisional
+// canonical User first.
+//
+// The User is NOT created again during /verify.
+//
+// Database stores only:
+// - tokenHash
+// - email
+// - user relation
+// - expiresAt
 //////////////////////////////////////////////////////////////
 
 async function createEmailVerificationUrl({
@@ -104,7 +159,7 @@ async function createEmailVerificationUrl({
 }) {
 
   //////////////////////////////////////////////////////////
-  // GENERATE SECURE TOKEN
+  // GENERATE SECURE RANDOM TOKEN
   //////////////////////////////////////////////////////////
 
   const rawToken =
@@ -134,79 +189,63 @@ async function createEmailVerificationUrl({
 
 
   //////////////////////////////////////////////////////////
-  // INVALIDATE OLD UNUSED TOKENS
+  // INVALIDATE PREVIOUS ACTIVE TOKENS
   //////////////////////////////////////////////////////////
 
   await prisma.emailVerificationToken.updateMany({
-
     where: {
-
       userId,
-
       email,
-
-      consumedAt:
-        null,
-
+      consumedAt: null,
     },
 
     data: {
-
-      consumedAt:
-        new Date(),
-
+      consumedAt: new Date(),
     },
-
   });
 
 
   //////////////////////////////////////////////////////////
   // CREATE NEW TOKEN
+  //
+  // IMPORTANT:
+  //
+  // DO NOT use:
+  //
+  // userId
+  //
+  // Prisma requires the User relation here.
   //////////////////////////////////////////////////////////
 
   await prisma.emailVerificationToken.create({
-
     data: {
-
       tokenHash,
-
-      userId,
-
       email,
-
       expiresAt,
 
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
     },
-
   });
-
-
-  //////////////////////////////////////////////////////////
-  // APPLICATION BASE URL
-  //////////////////////////////////////////////////////////
-
-  const configuredBaseUrl =
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL;
-
-
-  const baseUrl =
-    configuredBaseUrl
-      ? new URL(configuredBaseUrl).origin
-      : new URL(request.url).origin;
 
 
   //////////////////////////////////////////////////////////
   // BUILD VERIFICATION URL
   //////////////////////////////////////////////////////////
 
+  const baseUrl =
+    getApplicationBaseUrl(
+      request
+    );
+
   const verificationUrl =
     new URL(
       "/api/auth/otp/verify",
       baseUrl
     );
-
 
   verificationUrl.searchParams.set(
     "token",
@@ -215,14 +254,259 @@ async function createEmailVerificationUrl({
 
 
   return {
-
     url:
       verificationUrl.toString(),
 
     expiresAt,
-
   };
+}
 
+
+//////////////////////////////////////////////////////////////
+// GET OR CREATE EMAIL SIGNUP USER
+//
+// CANONICAL FLOW:
+//
+// 1. Find UserEmail WITHOUT joining User.
+// 2. Manually resolve User.
+// 3. Remove orphan UserEmail if necessary.
+// 4. Check canonical users.email.
+// 5. If existing canonical User exists:
+//      - do NOT create another User
+//      - create missing UserEmail if necessary
+// 6. If no User exists:
+//      - create provisional canonical User
+//      - create UserEmail(isVerified=false)
+//
+// IMPORTANT:
+//
+// This keeps ONE canonical User system.
+//
+// No Mongoose User.
+// No duplicate User collection.
+// No second account during verification.
+//////////////////////////////////////////////////////////////
+
+async function getOrCreateEmailSignupUser({
+  email,
+}: {
+  email: string;
+}) {
+
+  //////////////////////////////////////////////////////////
+  // FIND EMAIL IDENTITY
+  //
+  // DO NOT include user here.
+  //
+  // This protects against legacy/orphan UserEmail
+  // records where the required Prisma relation points
+  // to a missing User.
+  //////////////////////////////////////////////////////////
+
+  let emailRecord =
+    await prisma.userEmail.findUnique({
+      where: {
+        email,
+      },
+    });
+
+
+  //////////////////////////////////////////////////////////
+  // EXISTING EMAIL IDENTITY
+  //////////////////////////////////////////////////////////
+
+  if (emailRecord) {
+
+    ////////////////////////////////////////////////////////
+    // RESOLVE USER MANUALLY
+    ////////////////////////////////////////////////////////
+
+    const linkedUser =
+      await prisma.user.findUnique({
+        where: {
+          id:
+            emailRecord.userId,
+        },
+      });
+
+
+    ////////////////////////////////////////////////////////
+    // VALID USER EXISTS
+    ////////////////////////////////////////////////////////
+
+    if (linkedUser) {
+
+      return {
+        user:
+          linkedUser,
+
+        emailRecord,
+
+        created:
+          false,
+      };
+
+    }
+
+
+    ////////////////////////////////////////////////////////
+    // ORPHAN USEREMAIL
+    ////////////////////////////////////////////////////////
+
+    console.warn(
+      "NATIONPATH: Removing orphan UserEmail during email signup",
+      {
+        email,
+        userId:
+          emailRecord.userId,
+        emailRecordId:
+          emailRecord.id,
+      }
+    );
+
+
+    await prisma.userEmail.delete({
+      where: {
+        id:
+          emailRecord.id,
+      },
+    });
+
+
+    emailRecord =
+      null;
+  }
+
+
+  //////////////////////////////////////////////////////////
+  // CHECK CANONICAL USER.EMAIL
+  //////////////////////////////////////////////////////////
+
+  const canonicalUser =
+    await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+
+  //////////////////////////////////////////////////////////
+  // EXISTING CANONICAL USER
+  //////////////////////////////////////////////////////////
+
+  if (canonicalUser) {
+
+    ////////////////////////////////////////////////////////
+    // CREATE MISSING EMAIL IDENTITY
+    ////////////////////////////////////////////////////////
+
+    const createdEmailRecord =
+      await prisma.userEmail.create({
+        data: {
+          email,
+          userId:
+            canonicalUser.id,
+          isVerified:
+            false,
+        },
+      });
+
+
+    return {
+      user:
+        canonicalUser,
+
+      emailRecord:
+        createdEmailRecord,
+
+      created:
+        false,
+    };
+
+  }
+
+
+  //////////////////////////////////////////////////////////
+  // CREATE PROVISIONAL CANONICAL USER
+  //////////////////////////////////////////////////////////
+
+  const user =
+    await prisma.user.create({
+      data: {
+        email,
+        provider: "otp",
+        role: "user",
+        status: "active",
+        isActive: true,
+      },
+    });
+
+
+  //////////////////////////////////////////////////////////
+  // CREATE UNVERIFIED EMAIL IDENTITY
+  //////////////////////////////////////////////////////////
+
+  const createdEmailRecord =
+    await prisma.userEmail.create({
+      data: {
+        email,
+        userId:
+          user.id,
+        isVerified:
+          false,
+      },
+    });
+
+
+  return {
+    user,
+
+    emailRecord:
+      createdEmailRecord,
+
+    created:
+      true,
+  };
+}
+
+
+//////////////////////////////////////////////////////////////
+// ACCOUNT STATUS
+//////////////////////////////////////////////////////////////
+
+function validateAccountStatus(
+  user: {
+    isActive: boolean | null;
+    status: string;
+  }
+) {
+
+  if (
+    user.isActive === false
+  ) {
+
+    return jsonError(
+      "Account is inactive",
+      403
+    );
+
+  }
+
+
+  if (
+    user.status &&
+    user.status !== "active"
+  ) {
+
+    return jsonError(
+      "Account is not active",
+      403
+    );
+
+  }
+
+
+  return null;
 }
 
 
@@ -344,7 +628,9 @@ export async function POST(
       try {
 
         normalizedPhone =
-          normalizePhone(phone);
+          normalizePhone(
+            phone
+          );
 
       } catch {
 
@@ -362,25 +648,20 @@ export async function POST(
 
       const phoneRecord =
         await prisma.userPhone.findUnique({
-
           where: {
-
             phone:
               normalizedPhone,
-
           },
 
           include: {
-
             user: true,
-
           },
-
         });
 
 
       const existingUser =
-        phoneRecord?.user || null;
+        phoneRecord?.user ||
+        null;
 
 
       ////////////////////////////////////////////////////////
@@ -401,7 +682,7 @@ export async function POST(
 
 
       ////////////////////////////////////////////////////////
-      // SIGNUP REQUIRES NEW USER
+      // SIGNUP REQUIRES NEW PHONE
       ////////////////////////////////////////////////////////
 
       if (
@@ -423,28 +704,13 @@ export async function POST(
 
       if (existingUser) {
 
-        if (
-          existingUser.isActive === false
-        ) {
-
-          return jsonError(
-            "Account is inactive",
-            403
+        const statusError =
+          validateAccountStatus(
+            existingUser
           );
 
-        }
-
-
-        if (
-          existingUser.status &&
-          existingUser.status !== "active"
-        ) {
-
-          return jsonError(
-            "Account is not active",
-            403
-          );
-
+        if (statusError) {
+          return statusError;
         }
 
       }
@@ -456,7 +722,6 @@ export async function POST(
 
       const otpRecord =
         await createOtpRecord({
-
           channel:
             "phone",
 
@@ -467,7 +732,6 @@ export async function POST(
 
           userId:
             existingUser?.id,
-
         });
 
 
@@ -476,45 +740,6 @@ export async function POST(
       ////////////////////////////////////////////////////////
 
       if (isDevelopment) {
-
-        const dbRecord =
-          await prisma.userOtp.findUnique({
-
-            where: {
-
-              id:
-                otpRecord.id,
-
-            },
-
-            select: {
-
-              id: true,
-
-              channel: true,
-
-              phone: true,
-
-              email: true,
-
-              purpose: true,
-
-              expiresAt: true,
-
-              consumedAt: true,
-
-              attempts: true,
-
-              maxAttempts: true,
-
-              userId: true,
-
-              createdAt: true,
-
-            },
-
-          });
-
 
         console.log(
           [
@@ -526,28 +751,8 @@ export async function POST(
             `📱 Phone    : ${otpRecord.phone}`,
             `🎯 Purpose  : ${otpRecord.purpose}`,
             `🔢 OTP      : ${otpRecord.otp}`,
-            `💾 DB Found : ${dbRecord ? "YES" : "NO"}`,
-            `🔒 Consumed : ${
-              dbRecord?.consumedAt
-                ? dbRecord.consumedAt.toISOString()
-                : "null"
-            }`,
-            `🔢 Attempts : ${
-              dbRecord
-                ? `${dbRecord.attempts}/${dbRecord.maxAttempts}`
-                : "N/A"
-            }`,
-            `👤 User ID  : ${
-              dbRecord?.userId || "null"
-            }`,
-            `⏳ Expires  : ${
-              otpRecord.expiresAt.toISOString()
-            }`,
-            `🕐 Created  : ${
-              dbRecord?.createdAt
-                ? dbRecord.createdAt.toISOString()
-                : "unknown"
-            }`,
+            `👤 User ID  : ${existingUser?.id || "null"}`,
+            `⏳ Expires  : ${otpRecord.expiresAt.toISOString()}`,
             "==================================================",
             "",
           ].join("\n")
@@ -557,14 +762,11 @@ export async function POST(
 
 
       ////////////////////////////////////////////////////////
-      // PHONE SMS
-      //
-      // SMS provider will be connected later.
+      // SMS PROVIDER LATER
       ////////////////////////////////////////////////////////
 
       return NextResponse.json(
         {
-
           success:
             true,
 
@@ -582,16 +784,13 @@ export async function POST(
 
           ...(isDevelopment
             ? {
-
                 developmentOtp:
                   otpRecord.otp,
 
                 developmentOtpId:
                   otpRecord.id,
-
               }
             : {}),
-
         },
         {
           status: 200,
@@ -603,7 +802,7 @@ export async function POST(
 
     //////////////////////////////////////////////////////////
     // ======================================================
-    // EMAIL OTP
+    // EMAIL
     // ======================================================
     //////////////////////////////////////////////////////////
 
@@ -622,7 +821,9 @@ export async function POST(
     try {
 
       normalizedEmail =
-        normalizeEmail(email);
+        normalizeEmail(
+          email
+        );
 
     } catch {
 
@@ -645,30 +846,394 @@ export async function POST(
 
 
     //////////////////////////////////////////////////////////
-    // FIND EMAIL OWNER
+    // ======================================================
+    // EMAIL SIGNUP
+    // ======================================================
+    //
+    // NEW EMAIL SIGNUP:
+    //
+    // User is provisionally created HERE.
+    //
+    // This is required because:
+    //
+    // EmailVerificationToken.user
+    // is required by Prisma.
+    //
     //////////////////////////////////////////////////////////
 
-    const emailRecord =
-      await prisma.userEmail.findUnique({
+    if (
+      purpose === "signup"
+    ) {
 
-        where: {
+      ////////////////////////////////////////////////////////
+      // GET OR CREATE CANONICAL USER
+      ////////////////////////////////////////////////////////
+
+      const signupUser =
+        await getOrCreateEmailSignupUser({
+          email:
+            normalizedEmail,
+        });
+
+
+      const existingUser =
+        signupUser.user;
+
+
+      const emailRecord =
+        signupUser.emailRecord;
+
+
+      const provisionalUserCreated =
+        signupUser.created;
+
+
+      ////////////////////////////////////////////////////////
+      // ACCOUNT STATUS
+      ////////////////////////////////////////////////////////
+
+      const statusError =
+        validateAccountStatus(
+          existingUser
+        );
+
+      if (statusError) {
+        return statusError;
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // ALREADY VERIFIED
+      ////////////////////////////////////////////////////////
+
+      if (
+        emailRecord.isVerified === true
+      ) {
+
+        return jsonError(
+          "An account already exists with this email address",
+          409
+        );
+
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // CREATE OTP
+      ////////////////////////////////////////////////////////
+
+      const otpRecord =
+        await createOtpRecord({
+          channel:
+            "email",
 
           email:
             normalizedEmail,
 
+          purpose:
+            "signup",
+
+          userId:
+            existingUser.id,
+        });
+
+
+      ////////////////////////////////////////////////////////
+      // CREATE VERIFICATION LINK
+      ////////////////////////////////////////////////////////
+
+      const verification =
+        await createEmailVerificationUrl({
+          userId:
+            existingUser.id,
+
+          email:
+            normalizedEmail,
+
+          request,
+        });
+
+
+      ////////////////////////////////////////////////////////
+      // DEVELOPMENT DEBUG
+      ////////////////////////////////////////////////////////
+
+      if (isDevelopment) {
+
+        console.log(
+          [
+            "",
+            "==================================================",
+            "🧪 NATIONPATH EMAIL SIGNUP OTP CREATED",
+            "==================================================",
+            `🆔 OTP ID   : ${otpRecord.id}`,
+            `📧 Email    : ${otpRecord.email}`,
+            `🎯 Purpose  : ${otpRecord.purpose}`,
+            `🔢 OTP      : ${otpRecord.otp}`,
+            `👤 User ID  : ${existingUser.id}`,
+            `🆕 Provisional User Created: ${
+              provisionalUserCreated
+                ? "YES"
+                : "NO"
+            }`,
+            `🔗 Verification Link: CREATED`,
+            `⏳ OTP Expires: ${otpRecord.expiresAt.toISOString()}`,
+            `⏳ Link Expires: ${verification.expiresAt.toISOString()}`,
+            "==================================================",
+            "",
+          ].join("\n")
+        );
+
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // SEND ONE EMAIL
+      ////////////////////////////////////////////////////////
+
+      try {
+
+        await sendOtpEmail({
+          email:
+            normalizedEmail,
+
+          otp:
+            otpRecord.otp,
+
+          expiresInMinutes:
+            5,
+
+          verificationUrl:
+            verification.url,
+        });
+
+      } catch (error) {
+
+        console.error(
+          "NATIONPATH OTP EMAIL DELIVERY ERROR:",
+          error
+        );
+
+
+        //////////////////////////////////////////////////////
+        // CONSUME OTP
+        //////////////////////////////////////////////////////
+
+        try {
+
+          await prisma.userOtp.update({
+            where: {
+              id:
+                otpRecord.id,
+            },
+
+            data: {
+              consumedAt:
+                new Date(),
+            },
+          });
+
+        } catch (
+          cleanupError
+        ) {
+
+          console.error(
+            "NATIONPATH OTP CLEANUP ERROR:",
+            cleanupError
+          );
+
+        }
+
+
+        //////////////////////////////////////////////////////
+        // INVALIDATE VERIFICATION TOKEN
+        //////////////////////////////////////////////////////
+
+        try {
+
+          await prisma.emailVerificationToken.updateMany({
+            where: {
+              userId:
+                existingUser.id,
+
+              email:
+                normalizedEmail,
+
+              consumedAt:
+                null,
+            },
+
+            data: {
+              consumedAt:
+                new Date(),
+            },
+          });
+
+        } catch (
+          verificationCleanupError
+        ) {
+
+          console.error(
+            "NATIONPATH VERIFICATION TOKEN CLEANUP ERROR:",
+            verificationCleanupError
+          );
+
+        }
+
+
+        return jsonError(
+          "Unable to send OTP email",
+          500
+        );
+
+      }
+
+
+      ////////////////////////////////////////////////////////
+      // SUCCESS
+      ////////////////////////////////////////////////////////
+
+      return NextResponse.json(
+        {
+          success:
+            true,
+
+          message:
+            "OTP and verification link sent successfully",
+
+          channel:
+            "email",
+
+          email:
+            normalizedEmail,
+
+          expiresAt:
+            otpRecord.expiresAt,
+
+          verificationRequired:
+            true,
+
+          verificationExpiresAt:
+            verification.expiresAt,
+
+          provisionalUserCreated:
+            provisionalUserCreated,
+
+          ...(isDevelopment
+            ? {
+                developmentOtp:
+                  otpRecord.otp,
+
+                developmentOtpId:
+                  otpRecord.id,
+              }
+            : {}),
         },
+        {
+          status: 200,
+        }
+      );
 
-        include: {
+    }
 
-          user: true,
 
+    //////////////////////////////////////////////////////////
+    // ======================================================
+    // NON-SIGNUP EMAIL FLOW
+    // ======================================================
+    //////////////////////////////////////////////////////////
+
+    let emailRecord =
+      await prisma.userEmail.findUnique({
+        where: {
+          email:
+            normalizedEmail,
         },
-
       });
 
 
-    const existingUser =
-      emailRecord?.user || null;
+    //////////////////////////////////////////////////////////
+    // RESOLVE USER MANUALLY
+    //////////////////////////////////////////////////////////
+
+    let existingUser:
+      Awaited<
+        ReturnType<
+          typeof prisma.user.findUnique
+        >
+      > = null;
+
+
+    if (
+      emailRecord
+    ) {
+
+      const linkedUser =
+        await prisma.user.findUnique({
+          where: {
+            id:
+              emailRecord.userId,
+          },
+        });
+
+
+      if (linkedUser) {
+
+        existingUser =
+          linkedUser;
+
+      } else {
+
+        //////////////////////////////////////////////////////
+        // ORPHAN EMAIL IDENTITY
+        //////////////////////////////////////////////////////
+
+        console.warn(
+          "NATIONPATH: Removing orphan UserEmail during email OTP flow",
+          {
+            email:
+              normalizedEmail,
+
+            userId:
+              emailRecord.userId,
+
+            emailRecordId:
+              emailRecord.id,
+          }
+        );
+
+
+        await prisma.userEmail.delete({
+          where: {
+            id:
+              emailRecord.id,
+          },
+        });
+
+
+        emailRecord =
+          null;
+
+      }
+
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // FALLBACK CANONICAL EMAIL
+    //////////////////////////////////////////////////////////
+
+    if (!existingUser) {
+
+      existingUser =
+        await prisma.user.findUnique({
+          where: {
+            email:
+              normalizedEmail,
+          },
+        });
+
+    }
 
 
     //////////////////////////////////////////////////////////
@@ -689,17 +1254,16 @@ export async function POST(
 
 
     //////////////////////////////////////////////////////////
-    // SIGNUP REQUIRES NEW USER
+    // OTHER PURPOSES REQUIRE USER
     //////////////////////////////////////////////////////////
 
     if (
-      purpose === "signup" &&
-      existingUser
+      !existingUser
     ) {
 
       return jsonError(
-        "An account already exists with this email address",
-        409
+        "No account found with this email address",
+        404
       );
 
     }
@@ -709,31 +1273,37 @@ export async function POST(
     // ACCOUNT STATUS
     //////////////////////////////////////////////////////////
 
-    if (existingUser) {
+    const statusError =
+      validateAccountStatus(
+        existingUser
+      );
 
-      if (
-        existingUser.isActive === false
-      ) {
-
-        return jsonError(
-          "Account is inactive",
-          403
-        );
-
-      }
+    if (statusError) {
+      return statusError;
+    }
 
 
-      if (
-        existingUser.status &&
-        existingUser.status !== "active"
-      ) {
+    //////////////////////////////////////////////////////////
+    // CREATE MISSING EMAIL IDENTITY
+    //////////////////////////////////////////////////////////
 
-        return jsonError(
-          "Account is not active",
-          403
-        );
+    if (
+      !emailRecord
+    ) {
 
-      }
+      emailRecord =
+        await prisma.userEmail.create({
+          data: {
+            email:
+              normalizedEmail,
+
+            userId:
+              existingUser.id,
+
+            isVerified:
+              false,
+          },
+        });
 
     }
 
@@ -744,7 +1314,6 @@ export async function POST(
 
     const otpRecord =
       await createOtpRecord({
-
         channel:
           "email",
 
@@ -754,41 +1323,35 @@ export async function POST(
         purpose,
 
         userId:
-          existingUser?.id,
-
+          existingUser.id,
       });
 
 
     //////////////////////////////////////////////////////////
-    // EMAIL VERIFICATION URL
-    //
-    // If a canonical User exists and the email identity
-    // is not verified, create a verification token.
-    //
-    // This means the same email can receive:
-    //
-    // 1. OTP
-    // 2. Verification link
-    //
-    // in ONE email.
+    // VERIFICATION LINK
     //////////////////////////////////////////////////////////
 
     let verificationUrl:
       string | undefined;
 
-
     let verificationExpiresAt:
       Date | undefined;
 
 
+    const shouldCreateVerificationLink =
+      emailRecord.isVerified !== true &&
+      (
+        purpose === "verify_email" ||
+        purpose === "change_email"
+      );
+
+
     if (
-      existingUser &&
-      emailRecord?.isVerified !== true
+      shouldCreateVerificationLink
     ) {
 
       const verification =
         await createEmailVerificationUrl({
-
           userId:
             existingUser.id,
 
@@ -796,7 +1359,6 @@ export async function POST(
             normalizedEmail,
 
           request,
-
         });
 
 
@@ -810,49 +1372,10 @@ export async function POST(
 
 
     //////////////////////////////////////////////////////////
-    // DEVELOPMENT DB VERIFICATION
+    // DEVELOPMENT DEBUG
     //////////////////////////////////////////////////////////
 
     if (isDevelopment) {
-
-      const dbRecord =
-        await prisma.userOtp.findUnique({
-
-          where: {
-
-            id:
-              otpRecord.id,
-
-          },
-
-          select: {
-
-            id: true,
-
-            channel: true,
-
-            phone: true,
-
-            email: true,
-
-            purpose: true,
-
-            expiresAt: true,
-
-            consumedAt: true,
-
-            attempts: true,
-
-            maxAttempts: true,
-
-            userId: true,
-
-            createdAt: true,
-
-          },
-
-        });
-
 
       console.log(
         [
@@ -864,32 +1387,17 @@ export async function POST(
           `📧 Email    : ${otpRecord.email}`,
           `🎯 Purpose  : ${otpRecord.purpose}`,
           `🔢 OTP      : ${otpRecord.otp}`,
-          `💾 DB Found : ${dbRecord ? "YES" : "NO"}`,
-          `🔒 Consumed : ${
-            dbRecord?.consumedAt
-              ? dbRecord.consumedAt.toISOString()
-              : "null"
-          }`,
-          `🔢 Attempts : ${
-            dbRecord
-              ? `${dbRecord.attempts}/${dbRecord.maxAttempts}`
-              : "N/A"
-          }`,
-          `👤 User ID  : ${
-            dbRecord?.userId || "null"
-          }`,
-          `⏳ Expires  : ${
-            otpRecord.expiresAt.toISOString()
-          }`,
-          `🕐 Created  : ${
-            dbRecord?.createdAt
-              ? dbRecord.createdAt.toISOString()
-              : "unknown"
-          }`,
+          `👤 User ID  : ${existingUser.id}`,
           `🔗 Verification Link: ${
             verificationUrl
               ? "CREATED"
               : "NOT REQUIRED"
+          }`,
+          `⏳ OTP Expires: ${otpRecord.expiresAt.toISOString()}`,
+          `⏳ Link Expires: ${
+            verificationExpiresAt
+              ? verificationExpiresAt.toISOString()
+              : "N/A"
           }`,
           "==================================================",
           "",
@@ -901,14 +1409,11 @@ export async function POST(
 
     //////////////////////////////////////////////////////////
     // SEND EMAIL
-    //
-    // OTP + verificationUrl are now sent together.
     //////////////////////////////////////////////////////////
 
     try {
 
       await sendOtpEmail({
-
         email:
           normalizedEmail,
 
@@ -919,7 +1424,6 @@ export async function POST(
           5,
 
         verificationUrl,
-
       });
 
     } catch (error) {
@@ -930,31 +1434,27 @@ export async function POST(
       );
 
 
-      ////////////////////////////////////////////////////////
-      // CONSUME OTP AFTER DELIVERY FAILURE
-      ////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////
+      // CONSUME OTP
+      //////////////////////////////////////////////////////
 
       try {
 
         await prisma.userOtp.update({
-
           where: {
-
             id:
               otpRecord.id,
-
           },
 
           data: {
-
             consumedAt:
               new Date(),
-
           },
-
         });
 
-      } catch (cleanupError) {
+      } catch (
+        cleanupError
+      ) {
 
         console.error(
           "NATIONPATH OTP CLEANUP ERROR:",
@@ -964,21 +1464,18 @@ export async function POST(
       }
 
 
-      ////////////////////////////////////////////////////////
-      // ALSO INVALIDATE VERIFICATION TOKEN
-      ////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////
+      // INVALIDATE VERIFICATION TOKEN
+      //////////////////////////////////////////////////////
 
       if (
-        existingUser &&
         verificationUrl
       ) {
 
         try {
 
           await prisma.emailVerificationToken.updateMany({
-
             where: {
-
               userId:
                 existingUser.id,
 
@@ -987,19 +1484,17 @@ export async function POST(
 
               consumedAt:
                 null,
-
             },
 
             data: {
-
               consumedAt:
                 new Date(),
-
             },
-
           });
 
-        } catch (verificationCleanupError) {
+        } catch (
+          verificationCleanupError
+        ) {
 
           console.error(
             "NATIONPATH VERIFICATION TOKEN CLEANUP ERROR:",
@@ -1025,7 +1520,6 @@ export async function POST(
 
     return NextResponse.json(
       {
-
         success:
           true,
 
@@ -1044,23 +1538,26 @@ export async function POST(
           otpRecord.expiresAt,
 
         verificationRequired:
-          Boolean(verificationUrl),
+          Boolean(
+            verificationUrl
+          ),
 
         verificationExpiresAt:
-          verificationExpiresAt || null,
+          verificationExpiresAt ||
+          null,
+
+        provisionalUserCreated:
+          false,
 
         ...(isDevelopment
           ? {
-
               developmentOtp:
                 otpRecord.otp,
 
               developmentOtpId:
                 otpRecord.id,
-
             }
           : {}),
-
       },
       {
         status: 200,
@@ -1070,9 +1567,9 @@ export async function POST(
   }
 
 
-  ////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
   // GLOBAL ERROR
-  ////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
 
   catch (error) {
 
@@ -1090,3 +1587,4 @@ export async function POST(
   }
 
 }
+

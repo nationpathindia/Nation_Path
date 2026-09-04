@@ -1,87 +1,248 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
-// Prediction Confidence Intelligence Layer
-// Production Future Proof Version
+//
+// Prediction Confidence Intelligence Layer v2
+//
+// Production Intelligence
+//
+// IMPORTANT:
+//
+// Confidence measures the reliability / completeness of the
+// available prediction evidence.
+//
+// Confidence is NOT:
+// - positivity score
+// - planetary strength score
+// - prediction outcome
+// - favorable/unfavorable result
+//
+// No calculations.
+// No ephemeris.
+// No planetary mathematics.
+// No artificial zodiac scoring.
 //////////////////////////////////////////////////////////////
 
-
 import type {
-
   HoroscopePlanet,
-
 } from "../types";
 
-
 import type {
-
   PredictionContext,
-
 } from "./context";
-
-
 
 
 
 //////////////////////////////////////////////////////////////
 // CONFIDENCE WEIGHTS
+//
+// Total = 100
+//
+// These weights measure evidence quality, not whether the
+// horoscope is positive or negative.
 //////////////////////////////////////////////////////////////
 
 const CONFIDENCE_WEIGHTS = {
 
-
-  strength:
-
-    30,
-
-
-  dignity:
-
+  strengthEvidence:
     25,
 
-
-  support:
-
-    20,
-
-
-  consistency:
-
+  dignityEvidence:
     15,
 
+  astroDataCoverage:
+    25,
 
-  dataQuality:
+  predictionConsistency:
+    20,
 
-    10,
-
+  outputCoverage:
+    15,
 
 };
 
 
 
-
-
 //////////////////////////////////////////////////////////////
-// SCORE NORMALIZER
+// SCORE UTILITIES
 //////////////////////////////////////////////////////////////
 
 function clamp(
+  value: number
+): number {
 
-  value:number
-
-):number {
-
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
 
   return Math.max(
-
     0,
-
     Math.min(
-
       100,
-
       Math.round(value)
-
     )
+  );
+
+}
+
+
+
+function safeArrayLength(
+  value: unknown
+): number {
+
+  return Array.isArray(value)
+    ? value.length
+    : 0;
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// VALID PLANET CHECK
+//////////////////////////////////////////////////////////////
+
+function isValidPlanet(
+  planet: HoroscopePlanet
+): boolean {
+
+  return Boolean(
+    planet &&
+    planet.strength &&
+    typeof planet.strength.score === "number" &&
+    Number.isFinite(
+      planet.strength.score
+    )
+  );
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// PLANET STRENGTH EVIDENCE
+//
+// This does NOT reward high strength.
+//
+// A score of 90 is not automatically more "certain" than 40.
+//
+// We only check whether the strength signal exists, is valid,
+// and is within a meaningful range.
+//////////////////////////////////////////////////////////////
+
+function calculateStrengthEvidence(
+  planets: HoroscopePlanet[]
+): number {
+
+  if (
+    !Array.isArray(planets) ||
+    planets.length === 0
+  ) {
+
+    return 0;
+
+  }
+
+
+  const validPlanets =
+    planets.filter(
+      isValidPlanet
+    );
+
+
+  if (
+    validPlanets.length === 0
+  ) {
+
+    return 0;
+
+  }
+
+
+  const coverage =
+    (
+      validPlanets.length /
+      planets.length
+    ) * 100;
+
+
+  return clamp(
+    coverage
+  );
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// DIGNITY EVIDENCE
+//
+// Dignity quality is about whether the astro calculation
+// layer actually supplied a usable dignity signal.
+//
+// Exalted / own / friendly / enemy / debilitated are NOT
+// treated as confidence bonuses.
+//
+// They describe planetary condition, not certainty.
+//////////////////////////////////////////////////////////////
+
+function calculateDignityEvidence(
+  planets: HoroscopePlanet[]
+): number {
+
+  if (
+    !Array.isArray(planets) ||
+    planets.length === 0
+  ) {
+
+    return 0;
+
+  }
+
+
+  const validDignities = [
+
+    "exalted",
+    "own",
+    "friendly",
+    "neutral",
+    "enemy",
+    "debilitated",
+
+  ];
+
+
+  let available = 0;
+
+
+  for (
+    const planet of planets
+  ) {
+
+    const dignity =
+      planet?.strength?.dignity;
+
+
+    if (
+      typeof dignity === "string" &&
+      validDignities.includes(
+        dignity.toLowerCase()
+      )
+    ) {
+
+      available += 1;
+
+    }
+
+  }
+
+
+  return clamp(
+
+    (
+      available /
+      planets.length
+    ) * 100
 
   );
 
@@ -89,393 +250,581 @@ function clamp(
 
 
 
-
-
-
 //////////////////////////////////////////////////////////////
-// PLANET STRENGTH ANALYSIS
+// ASTRO DATA COVERAGE
+//
+// Measures whether the planet snapshot contains meaningful
+// astro-engine information.
+//
+// Current required evidence:
+//
+// - planet identity
+// - strength
+// - dignity
+//
+// Future evidence can be added here when the actual
+// calculation layer exposes:
+//
+// - house
+// - aspect
+// - retrograde
+// - nakshatra
+// - transit
+// - dasha
+// - yoga
+//
+// We intentionally DO NOT invent those values here.
 //////////////////////////////////////////////////////////////
 
-function calculateStrengthScore(
+function calculateAstroDataCoverage(
+  planets: HoroscopePlanet[]
+): number {
 
-  planets:
+  if (
+    !Array.isArray(planets) ||
+    planets.length === 0
+  ) {
 
-    HoroscopePlanet[]
+    return 0;
 
-):number {
+  }
+
+
+  let totalSignals = 0;
+
+  let availableSignals = 0;
+
+
+  for (
+    const planet of planets
+  ) {
+
+    //////////////////////////////////////////////////////////
+    // Planet identity
+    //////////////////////////////////////////////////////////
+
+    totalSignals += 1;
+
+    if (
+      typeof planet?.strength?.planet === "string" &&
+      planet.strength.planet.trim()
+    ) {
+
+      availableSignals += 1;
+
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // Strength
+    //////////////////////////////////////////////////////////
+
+    totalSignals += 1;
+
+    if (
+      typeof planet?.strength?.score === "number" &&
+      Number.isFinite(
+        planet.strength.score
+      )
+    ) {
+
+      availableSignals += 1;
+
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // Dignity
+    //////////////////////////////////////////////////////////
+
+    totalSignals += 1;
+
+    if (
+      typeof planet?.strength?.dignity === "string" &&
+      planet.strength.dignity.trim()
+    ) {
+
+      availableSignals += 1;
+
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // Optional intelligence layer
+    //
+    // Only count it when it actually exists.
+    //////////////////////////////////////////////////////////
+
+    if (
+      planet?.intelligence
+    ) {
+
+      totalSignals += 1;
+
+      availableSignals += 1;
+
+    }
+
+  }
 
 
   if (
-
-    planets.length === 0
-
+    totalSignals === 0
   ) {
 
-    return 50;
+    return 0;
 
   }
 
 
+  return clamp(
 
-  const total =
+    (
+      availableSignals /
+      totalSignals
+    ) * 100
 
-    planets.reduce(
-
-      (
-
-        sum,
-
-        planet
-
-      ) => {
-
-
-        return (
-
-          sum +
-
-          (
-
-            planet.strength?.score
-
-            ??
-
-            50
-
-          )
-
-        );
-
-
-      },
-
-      0
-
-    );
-
-
-
-
-  return total / planets.length;
-
+  );
 
 }
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// DIGNITY INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-function calculateDignityScore(
-
-  planets:
-
-    HoroscopePlanet[]
-
-):number {
-
-
-  let score = 50;
-
-
-
-  for (
-
-    const planet of planets
-
-  ) {
-
-
-    const dignity =
-
-      planet.strength?.dignity;
-
-
-
-    switch(dignity) {
-
-
-      case "exalted":
-
-        score += 15;
-
-        break;
-
-
-
-      case "own":
-
-        score += 10;
-
-        break;
-
-
-
-      case "friendly":
-
-        score += 5;
-
-        break;
-
-
-
-      case "enemy":
-
-        score -= 5;
-
-        break;
-
-
-
-      case "debilitated":
-
-        score -= 15;
-
-        break;
-
-
-
-      default:
-
-        break;
-
-
-    }
-
-
-  }
-
-
-
-
-  return clamp(score);
-
-
-}
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// NATURAL SUPPORT ANALYSIS
-//////////////////////////////////////////////////////////////
-
-function calculateSupportScore(
-
-  planets:
-
-    HoroscopePlanet[]
-
-):number {
-
-
-  let score = 50;
-
-
-
-  for (
-
-    const planet of planets
-
-  ) {
-
-
-
-    if (
-  planet.intelligence.nature === "benefic"
-) {
-
-
-      score += 5;
-
-
-    }
-
-
-
-   if (
-  planet.intelligence.nature === "malefic"
-) {
-
-      score -= 3;
-
-
-    }
-
-
-  }
-
-
-
-  return clamp(score);
-
-
-}
-
-
-
-
 
 
 
 //////////////////////////////////////////////////////////////
 // PREDICTION CONSISTENCY
+//
+// Measures whether the engine has produced coherent output.
+//
+// Presence of both opportunity and caution is NOT inherently
+// better. We check structural consistency instead.
 //////////////////////////////////////////////////////////////
 
-function calculateConsistencyScore(
+function calculatePredictionConsistency(
+  context: PredictionContext
+): number {
 
-  context:
-
-    PredictionContext
-
-):number {
+  let score = 0;
 
 
-  let score = 60;
+  ////////////////////////////////////////////////////////////
+  // Planetary predictions
+  ////////////////////////////////////////////////////////////
 
-
+  const planetaryCount =
+    safeArrayLength(
+      context.planetaryPredictions
+    );
 
 
   if (
-
-    context.opportunities.length >
-
-    0
-
+    planetaryCount > 0
   ) {
 
-
-    score += 10;
-
+    score += 30;
 
   }
 
 
+  ////////////////////////////////////////////////////////////
+  // Life predictions
+  ////////////////////////////////////////////////////////////
+
+  const lifeCount =
+    safeArrayLength(
+      context.lifePredictions
+    );
 
 
   if (
-
-    context.cautions.length >
-
-    0
-
+    lifeCount > 0
   ) {
 
-
-    score += 10;
-
+    score += 25;
 
   }
 
 
-
+  ////////////////////////////////////////////////////////////
+  // Opportunities
+  ////////////////////////////////////////////////////////////
 
   if (
-
-    context.guidance.length >
-
-    0
-
+    Array.isArray(
+      context.opportunities
+    )
   ) {
 
-
     score += 10;
-
 
   }
 
 
+  ////////////////////////////////////////////////////////////
+  // Cautions
+  ////////////////////////////////////////////////////////////
 
-  return clamp(score);
+  if (
+    Array.isArray(
+      context.cautions
+    )
+  ) {
 
+    score += 10;
+
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  // Guidance
+  ////////////////////////////////////////////////////////////
+
+  if (
+    Array.isArray(
+      context.guidance
+    ) &&
+    context.guidance.length > 0
+  ) {
+
+    score += 15;
+
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  // Dominant planets
+  ////////////////////////////////////////////////////////////
+
+  if (
+    Array.isArray(
+      context.dominantPlanets
+    ) &&
+    context.dominantPlanets.length > 0
+  ) {
+
+    score += 10;
+
+  }
+
+
+  return clamp(
+    score
+  );
 
 }
 
 
 
-
-
-
-
 //////////////////////////////////////////////////////////////
-// DATA QUALITY ANALYSIS
+// OUTPUT COVERAGE
+//
+// Measures whether the generated prediction structure has
+// enough usable content.
+//
+// This is output completeness, not prediction correctness.
 //////////////////////////////////////////////////////////////
 
-function calculateDataQualityScore(
+function calculateOutputCoverage(
+  context: PredictionContext
+): number {
 
-  context:
+  const checks = [
 
-    PredictionContext
+    context.planets.length > 0,
 
-):number {
+    context.dominantPlanets.length > 0,
 
+    context.planetaryPredictions.length > 0,
 
-  let score = 50;
+    context.lifePredictions.length > 0,
 
+    context.opportunities.length >= 0,
 
+    context.cautions.length >= 0,
 
-  if (
+    context.guidance.length > 0,
 
-    context.planets.length >= 7
-
-  ) {
-
-
-    score += 20;
-
-
-  }
+  ];
 
 
-
-  if (
-
-    context.planetaryPredictions.length >
-
-    0
-
-  ) {
+  const passed =
+    checks.filter(
+      Boolean
+    ).length;
 
 
-    score += 15;
+  return clamp(
 
+    (
+      passed /
+      checks.length
+    ) * 100
 
-  }
-
-
-
-  if (
-
-    context.lifePredictions.length >
-
-    0
-
-  ) {
-
-
-    score += 15;
-
-
-  }
-
-
-
-  return clamp(score);
-
+  );
 
 }
 
 
 
+//////////////////////////////////////////////////////////////
+// CONTEXT QUALITY FLOOR
+//
+// Prevents a large amount of generated text from producing
+// an artificially high confidence score when the underlying
+// astro snapshot is incomplete.
+//////////////////////////////////////////////////////////////
 
+function calculateContextFloor(
+  context: PredictionContext
+): number {
+
+  if (
+    !context ||
+    !Array.isArray(
+      context.planets
+    )
+  ) {
+
+    return 0;
+
+  }
+
+
+  if (
+    context.planets.length === 0
+  ) {
+
+    return 0;
+
+  }
+
+
+  const validPlanets =
+    context.planets.filter(
+      isValidPlanet
+    );
+
+
+  if (
+    validPlanets.length === 0
+  ) {
+
+    return 20;
+
+  }
+
+
+  if (
+    validPlanets.length <
+    context.planets.length
+  ) {
+
+    return 70;
+
+  }
+
+
+  return 100;
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CONFIDENCE BREAKDOWN
+//
+// Internal helper.
+// Useful later for diagnostics, premium reports and
+// engine observability.
+//////////////////////////////////////////////////////////////
+
+export interface PredictionConfidenceBreakdown {
+
+  strengthEvidence:
+    number;
+
+  dignityEvidence:
+    number;
+
+  astroDataCoverage:
+    number;
+
+  predictionConsistency:
+    number;
+
+  outputCoverage:
+    number;
+
+  contextFloor:
+    number;
+
+  finalScore:
+    number;
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// CALCULATE CONFIDENCE BREAKDOWN
+//////////////////////////////////////////////////////////////
+
+export function calculatePredictionConfidenceBreakdown(
+
+  context:
+    PredictionContext
+
+): PredictionConfidenceBreakdown {
+
+  if (
+    !context
+  ) {
+
+    return {
+
+      strengthEvidence: 0,
+
+      dignityEvidence: 0,
+
+      astroDataCoverage: 0,
+
+      predictionConsistency: 0,
+
+      outputCoverage: 0,
+
+      contextFloor: 0,
+
+      finalScore: 0,
+
+    };
+
+  }
+
+
+  const planets =
+    Array.isArray(
+      context.planets
+    )
+      ? context.planets
+      : [];
+
+
+  const strengthEvidence =
+    calculateStrengthEvidence(
+      planets
+    );
+
+
+  const dignityEvidence =
+    calculateDignityEvidence(
+      planets
+    );
+
+
+  const astroDataCoverage =
+    calculateAstroDataCoverage(
+      planets
+    );
+
+
+  const predictionConsistency =
+    calculatePredictionConsistency(
+      context
+    );
+
+
+  const outputCoverage =
+    calculateOutputCoverage(
+      context
+    );
+
+
+  const contextFloor =
+    calculateContextFloor(
+      context
+    );
+
+
+  ////////////////////////////////////////////////////////////
+  // WEIGHTED EVIDENCE SCORE
+  ////////////////////////////////////////////////////////////
+
+  const weightedScore =
+
+    (
+      strengthEvidence *
+      CONFIDENCE_WEIGHTS.strengthEvidence
+      / 100
+    )
+
+    +
+
+    (
+      dignityEvidence *
+      CONFIDENCE_WEIGHTS.dignityEvidence
+      / 100
+    )
+
+    +
+
+    (
+      astroDataCoverage *
+      CONFIDENCE_WEIGHTS.astroDataCoverage
+      / 100
+    )
+
+    +
+
+    (
+      predictionConsistency *
+      CONFIDENCE_WEIGHTS.predictionConsistency
+      / 100
+    )
+
+    +
+
+    (
+      outputCoverage *
+      CONFIDENCE_WEIGHTS.outputCoverage
+      / 100
+    );
+
+
+  ////////////////////////////////////////////////////////////
+  // APPLY DATA QUALITY FLOOR
+  //
+  // Generated narrative cannot compensate for missing
+  // underlying astro data.
+  ////////////////////////////////////////////////////////////
+
+  const finalScore =
+    Math.min(
+      weightedScore,
+      contextFloor
+    );
+
+
+  return {
+
+    strengthEvidence,
+
+    dignityEvidence,
+
+    astroDataCoverage,
+
+    predictionConsistency,
+
+    outputCoverage,
+
+    contextFloor,
+
+    finalScore:
+      clamp(
+        finalScore
+      ),
+
+  };
+
+}
 
 
 
@@ -486,169 +835,78 @@ function calculateDataQualityScore(
 export function calculatePredictionConfidence(
 
   context:
+    PredictionContext
 
-    PredictionContext,
+): number {
 
-):number {
-
-
-
-  const strength =
-
-    calculateStrengthScore(
-
-      context.planets
-
-    );
-
-
-
-
-  const dignity =
-
-    calculateDignityScore(
-
-      context.planets
-
-    );
-
-
-
-
-  const support =
-
-    calculateSupportScore(
-
-      context.planets
-
-    );
-
-
-
-
-  const consistency =
-
-    calculateConsistencyScore(
-
+  const breakdown =
+    calculatePredictionConfidenceBreakdown(
       context
-
     );
 
 
-
-
-  const dataQuality =
-
-    calculateDataQualityScore(
-
-      context
-
-    );
-
-
-
-
-
-
-  const finalScore =
-
-
-
-    (
-
-      strength *
-
-      CONFIDENCE_WEIGHTS.strength
-
-      /
-
-      100
-
-    )
-
-
-
-    +
-
-
-
-    (
-
-      dignity *
-
-      CONFIDENCE_WEIGHTS.dignity
-
-      /
-
-      100
-
-    )
-
-
-
-    +
-
-
-
-    (
-
-      support *
-
-      CONFIDENCE_WEIGHTS.support
-
-      /
-
-      100
-
-    )
-
-
-
-    +
-
-
-
-    (
-
-      consistency *
-
-      CONFIDENCE_WEIGHTS.consistency
-
-      /
-
-      100
-
-    )
-
-
-
-    +
-
-
-
-    (
-
-      dataQuality *
-
-      CONFIDENCE_WEIGHTS.dataQuality
-
-      /
-
-      100
-
-    );
-
-
-
-
-
-
-
-  return clamp(
-
-    finalScore
-
-  );
-
+  return breakdown.finalScore;
 
 }
+
+
+
+//////////////////////////////////////////////////////////////
+// CONFIDENCE LEVEL
+//
+// Useful for UI / API / premium reports.
+//////////////////////////////////////////////////////////////
+
+export type PredictionConfidenceLevel =
+  | "low"
+  | "moderate"
+  | "high";
+
+
+
+export function getPredictionConfidenceLevel(
+
+  confidence:
+    number
+
+): PredictionConfidenceLevel {
+
+  const score =
+    clamp(
+      confidence
+    );
+
+
+  if (
+    score < 50
+  ) {
+
+    return "low";
+
+  }
+
+
+  if (
+    score < 75
+  ) {
+
+    return "moderate";
+
+  }
+
+
+  return "high";
+
+}
+
+
+
+//////////////////////////////////////////////////////////////
+// EXPORT WEIGHTS
+//
+// Kept available for diagnostics/testing.
+//////////////////////////////////////////////////////////////
+
+export {
+  CONFIDENCE_WEIGHTS,
+};

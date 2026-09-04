@@ -388,43 +388,6 @@ export default async function ArticlePage({
   const primaryImage =
     getOptimizedPrimaryImage(article);
 
-/*
-|--------------------------------------------------------------------------
-| VIEW TRACKING
-|--------------------------------------------------------------------------
-*/
-
-  try {
-    await prisma.article.update({
-      where: {
-        id: article.id,
-      },
-
-      data: {
-        views: {
-          increment: 1,
-        },
-
-        lastViewAt: new Date(),
-
-        trendingScore: {
-          increment: 1,
-        },
-      },
-    });
-  } catch (error) {
-    console.error(
-      "ARTICLE VIEW UPDATE ERROR:",
-      error
-    );
-  }
-
-/*
-|--------------------------------------------------------------------------
-| MOST READ ARTICLES
-|--------------------------------------------------------------------------
-*/
-
   const mostRead =
     await prisma.article.findMany({
       where: {
@@ -797,7 +760,8 @@ export default async function ArticlePage({
           {/* READING PROGRESS */}
 
           <ArticleReadingProgress />
-<ArticleAnalyticsTracker
+ <ArticleAnalyticsTracker
+  type="article"
   articleId={article.id}
   articleUrl={articleUrl}
 />

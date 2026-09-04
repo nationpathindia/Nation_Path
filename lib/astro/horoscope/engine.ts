@@ -1,6 +1,31 @@
 //////////////////////////////////////////////////////////////
+//
 // NATIONPATH ASTRO HOROSCOPE ENGINE
+//
 // Production Horoscope Calculation Engine
+//
+// LOCKED
+//
+// Calculation
+// Astronomy
+// Rashi
+// Nakshatra
+// Houses
+// Dasha
+// D1 / D9
+// Yoga
+// Dosha
+// Analysis
+// Influence
+// Interpretation
+// Language Intelligence
+// Prediction
+// Compatibility
+//
+// No CMS logic.
+// No AI generation.
+// No UI logic.
+//
 //////////////////////////////////////////////////////////////
 
 import { Planet } from "../client";
@@ -49,40 +74,33 @@ import {
   predictHoroscope,
 } from "./prediction";
 
-
 import type {
   HoroscopeRequest,
   HoroscopeResult,
   HoroscopePlanet,
 } from "./types";
 
-
 import {
   calculateBirthHouses,
   getPlanetHouse,
 } from "../calculations/houses";
 
-
 import type {
   BirthHouseData,
 } from "../calculations/houses";
 
-
 import {
   getNakshatra,
 } from "../calculations/nakshatra";
-
 
 import {
   calculateVimshottariMahadasha,
   getCurrentDasha,
 } from "../dasha/vimshottari";
 
-
 import {
   calculateNavamsa,
 } from "../charts/navamsa";
-
 
 import {
   analyzeYogas,
@@ -92,7 +110,6 @@ import {
   analyzeDoshas,
 } from "../dosha";
 
-
 import {
   analyzeD1D9,
 } from "./d9Analysis";
@@ -100,6 +117,22 @@ import {
 import {
   analyzeMarriage,
 } from "../analysis/marriage";
+
+import {
+  resolvePlanetLanguage,
+  createLanguageContext,
+  composeLanguage,
+} from "./intelligence";
+
+
+import {
+  getCompatibility,
+} from "../compatibility";
+
+import type {
+  ZodiacSign,
+} from "../constants";
+
 
 
 
@@ -109,28 +142,17 @@ import {
 
 const RAHU_SWISS_ID = 11 as Planet;
 
-
-
 const CORE_PLANETS = Object.freeze([
 
   Planet.Sun,
-
   Planet.Moon,
-
   Planet.Mars,
-
   Planet.Mercury,
-
   Planet.Jupiter,
-
   Planet.Venus,
-
   Planet.Saturn,
 
 ] as const);
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -138,56 +160,45 @@ const CORE_PLANETS = Object.freeze([
 //////////////////////////////////////////////////////////////
 
 function normalizeLongitude(
-  longitude:number
-):number {
-
+  longitude: number
+): number {
 
   let value =
     longitude % 360;
 
-
-  if(value < 0){
+  if (value < 0) {
 
     value += 360;
 
   }
-
 
   return value;
 
 }
 
 
-
-
-
 function createRashi(
-  longitude:number
+  longitude: number
 ) {
-
 
   const normalized =
     normalizeLongitude(
       longitude
     );
 
-
   const index =
     getRashiIndex(
       normalized
     );
 
-
   return {
 
     index,
-
 
     name:
       getRashiName(
         index
       ),
-
 
     longitude:
       normalized,
@@ -197,7 +208,50 @@ function createRashi(
 }
 
 
+//////////////////////////////////////////////////////////////
+// ZODIAC NORMALIZATION
+//////////////////////////////////////////////////////////////
 
+function normalizeZodiacSign(
+  value?: string
+): ZodiacSign | undefined {
+
+  if (!value) {
+
+    return undefined;
+
+  }
+
+  const normalized =
+    value
+      .trim()
+      .toLowerCase();
+
+  const signs: ZodiacSign[] = [
+
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+
+  ];
+
+  return signs.find(
+
+    sign =>
+      sign.toLowerCase() === normalized
+
+  );
+
+}
 
 
 //////////////////////////////////////////////////////////////
@@ -205,10 +259,9 @@ function createRashi(
 //////////////////////////////////////////////////////////////
 
 function buildPlanet(
-  date:Date,
-  planet:Planet
-):HoroscopePlanet {
-
+  date: Date,
+  planet: Planet
+): HoroscopePlanet {
 
   const position =
     getPlanetPosition(
@@ -216,33 +269,26 @@ function buildPlanet(
       planet
     );
 
-
   const longitude =
     normalizeLongitude(
       position.siderealLongitude
     );
-
 
   const planetName =
     getEnumPlanetName(
       planet
     );
 
-
   const rashi =
     createRashi(
       longitude
     );
 
-
   return {
-
 
     planet,
 
-
     longitude,
-
 
     retrograde:
       isRetrograde(
@@ -250,22 +296,17 @@ function buildPlanet(
         planet
       ),
 
-
     rashi,
 
-
     nakshatra:
-  getNakshatra(
-    longitude
-  ),
-
-
+      getNakshatra(
+        longitude
+      ),
 
     intelligence:
       getPlanetMetadata(
         planetName
       ),
-
 
     strength:
       calculatePlanetStrength(
@@ -273,14 +314,9 @@ function buildPlanet(
         rashi.name
       ),
 
-
   };
 
-
 }
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -288,50 +324,42 @@ function buildPlanet(
 //////////////////////////////////////////////////////////////
 
 function buildNode(
-  name:"Rahu"|"Ketu",
-  longitude:number
-):HoroscopePlanet {
-
+  name: "Rahu" | "Ketu",
+  longitude: number
+): HoroscopePlanet {
 
   const normalized =
     normalizeLongitude(
       longitude
     );
 
-
   const rashi =
     createRashi(
       normalized
     );
 
-
   return {
 
-
-    planet:name,
-
+    planet:
+      name,
 
     longitude:
       normalized,
 
-
-    retrograde:true,
-
+    retrograde:
+      true,
 
     rashi,
 
-nakshatra:
-  getNakshatra(
-    normalized
-  ),
-
-
+    nakshatra:
+      getNakshatra(
+        normalized
+      ),
 
     intelligence:
       getPlanetMetadata(
         name
       ),
-
 
     strength:
       calculatePlanetStrength(
@@ -339,13 +367,9 @@ nakshatra:
         rashi.name
       ),
 
-
   };
 
 }
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -353,8 +377,8 @@ nakshatra:
 //////////////////////////////////////////////////////////////
 
 function buildNodes(
-  date:Date
-){
+  date: Date
+) {
 
   const rahuPosition =
     getPlanetPosition(
@@ -362,27 +386,20 @@ function buildNodes(
       RAHU_SWISS_ID
     );
 
-
   const rahuLongitude =
     normalizeLongitude(
       rahuPosition.siderealLongitude
     );
 
-
   return {
 
-
     rahu:
-
       buildNode(
         "Rahu",
         rahuLongitude
       ),
 
-
-
     ketu:
-
       buildNode(
         "Ketu",
         normalizeLongitude(
@@ -390,13 +407,9 @@ function buildNodes(
         )
       ),
 
-
   };
 
 }
-
-
-
 
 
 //////////////////////////////////////////////////////////////
@@ -404,654 +417,651 @@ function buildNodes(
 //////////////////////////////////////////////////////////////
 
 export function calculateHoroscope(
-  request:HoroscopeRequest
-):HoroscopeResult {
-
+  request: HoroscopeRequest
+): HoroscopeResult {
 
   const {
 
     date,
 
-    language="en",
+    language = "en",
 
   } = request;
+
+
   //////////////////////////////////////////////////////////////
-// PLANET BUILD
-//////////////////////////////////////////////////////////////
+  // ZODIAC CONTEXT
+  //////////////////////////////////////////////////////////////
 
-const planetMap =
-new Map<
-  Planet,
-  HoroscopePlanet
->();
+  const zodiacSign =
+    normalizeZodiacSign(
+      request.zodiacSign
+    );
 
 
-for(
-  const planet of CORE_PLANETS
-){
+  //////////////////////////////////////////////////////////////
+  // PLANET BUILD
+  //////////////////////////////////////////////////////////////
 
-  planetMap.set(
+  const planetMap =
+    new Map<
+      Planet,
+      HoroscopePlanet
+    >();
 
-    planet,
+  for (
+    const planet of CORE_PLANETS
+  ) {
 
-    buildPlanet(
+    planetMap.set(
+
+      planet,
+
+      buildPlanet(
+        date,
+        planet
+      )
+
+    );
+
+  }
+
+
+  //////////////////////////////////////////////////////////////
+  // PLANET EXTRACTION
+  //////////////////////////////////////////////////////////////
+
+  const sun =
+    planetMap.get(
+      Planet.Sun
+    )!;
+
+  const moon =
+    planetMap.get(
+      Planet.Moon
+    )!;
+
+  const mars =
+    planetMap.get(
+      Planet.Mars
+    )!;
+
+  const mercury =
+    planetMap.get(
+      Planet.Mercury
+    )!;
+
+  const jupiter =
+    planetMap.get(
+      Planet.Jupiter
+    )!;
+
+  const venus =
+    planetMap.get(
+      Planet.Venus
+    )!;
+
+  const saturn =
+    planetMap.get(
+      Planet.Saturn
+    )!;
+
+
+  //////////////////////////////////////////////////////////////
+  // NODES
+  //////////////////////////////////////////////////////////////
+
+  const {
+    rahu,
+    ketu,
+  } =
+    buildNodes(
+      date
+    );
+
+
+  //////////////////////////////////////////////////////////////
+  // SUN & MOON SIGN
+  //////////////////////////////////////////////////////////////
+
+  const sunSign =
+    getSunRashi(
+      date
+    );
+
+  const moonSign =
+    getMoonRashi(
+      date
+    );
+
+
+  //////////////////////////////////////////////////////////////
+  // PLANETARY COLLECTION
+  //////////////////////////////////////////////////////////////
+
+  const planetCollection = {
+
+    sun,
+
+    moon,
+
+    mars,
+
+    mercury,
+
+    jupiter,
+
+    venus,
+
+    saturn,
+
+    rahu,
+
+    ketu,
+
+  };
+
+
+  //////////////////////////////////////////////////////////////
+  // VIMSHOTTARI DASHA
+  //////////////////////////////////////////////////////////////
+
+  const vimshottari =
+
+    moon.nakshatra
+
+      ?
+
+    calculateVimshottariMahadasha(
+
       date,
-      planet
+
+      moon.nakshatra.lord
+
     )
 
-  );
+      :
 
-}
+    [];
 
+  const currentDasha =
+    getCurrentDasha(
+      vimshottari
+    );
 
 
+  //////////////////////////////////////////////////////////////
+  // BIRTH CHART HOUSE ENGINE
+  //////////////////////////////////////////////////////////////
 
+  let houseData:
+    BirthHouseData | undefined;
 
-//////////////////////////////////////////////////////////////
-// PLANET EXTRACTION
-//////////////////////////////////////////////////////////////
 
-const sun =
-planetMap.get(
-  Planet.Sun
-)!;
+  if (
+    request.birthDetails
+  ) {
 
+    houseData =
+      calculateBirthHouses(
 
-const moon =
-planetMap.get(
-  Planet.Moon
-)!;
+        request.birthDetails.date,
 
-//////////////////////////////////////////////////////////////
-// VIMSHOTTARI DASHA CALCULATION
-//////////////////////////////////////////////////////////////
+        request.birthDetails.latitude,
 
-const vimshottari =
+        request.birthDetails.longitude
 
-moon.nakshatra
+      );
 
-?
 
-calculateVimshottariMahadasha(
+    Object
+      .values(
+        planetCollection
+      )
+      .forEach(
 
-  date,
+        planet => {
 
-  moon.nakshatra.lord
+          planet.house = {
 
-)
+            number:
+              getPlanetHouse(
 
-:
+                planet.longitude,
 
-[];
+                houseData!
 
-const currentDasha =
+              ),
 
-getCurrentDasha(
+          };
 
-  vimshottari
+        }
 
-);
+      );
 
+  }
 
 
-const mars =
-planetMap.get(
-  Planet.Mars
-)!;
+  //////////////////////////////////////////////////////////////
+  // ASCENDANT / LAGNA
+  //////////////////////////////////////////////////////////////
 
+  const ascendant =
 
-const mercury =
-planetMap.get(
-  Planet.Mercury
-)!;
+    houseData
 
+      ?
 
-const jupiter =
-planetMap.get(
-  Planet.Jupiter
-)!;
+    {
 
+      longitude:
+        houseData.ascendant,
 
-const venus =
-planetMap.get(
-  Planet.Venus
-)!;
+      rashi:
+        createRashi(
+          houseData.ascendant
+        ),
 
+    }
 
-const saturn =
-planetMap.get(
-  Planet.Saturn
-)!;
+      :
 
+    undefined;
 
 
+  //////////////////////////////////////////////////////////////
+  // HOUSES OUTPUT
+  //////////////////////////////////////////////////////////////
 
+  const houses =
 
-//////////////////////////////////////////////////////////////
-// NODES
-//////////////////////////////////////////////////////////////
+    houseData
 
-const {
+      ?
 
-  rahu,
+    {
 
-  ketu,
+      ascendant:
+        houseData.ascendant,
 
-}
-=
-buildNodes(
-  date
-);
+      mc:
+        houseData.mc,
 
+      cusps:
+        houseData.cusps,
 
+      houseSystem:
+        "Placidus",
 
+    }
 
+      :
 
-//////////////////////////////////////////////////////////////
-// SUN & MOON SIGN
-//////////////////////////////////////////////////////////////
+    undefined;
 
-const sunSign =
-getSunRashi(
-  date
-);
 
+  //////////////////////////////////////////////////////////////
+  // PLANETARY SNAPSHOT
+  //////////////////////////////////////////////////////////////
 
-const moonSign =
-getMoonRashi(
-  date
-);
+  const planets =
+    Object.freeze(
+      planetCollection
+    );
 
 
+  //////////////////////////////////////////////////////////////
+  // D1 / D9
+  //////////////////////////////////////////////////////////////
 
+  const navamsa =
+    calculateNavamsa(
 
-
-//////////////////////////////////////////////////////////////
-// BIRTH CHART HOUSE ENGINE
-//////////////////////////////////////////////////////////////
-
-let houseData:
-BirthHouseData | undefined;
-
-
-
-const planetCollection = {
-
-
-  sun,
-
-
-  moon,
-
-
-  mars,
-
-
-  mercury,
-
-
-  jupiter,
-
-
-  venus,
-
-
-  saturn,
-
-
-  rahu,
-
-
-  ketu,
-
-
-};
-
-
-
-
-
-if(
-  request.birthDetails
-){
-
-  houseData =
-    calculateBirthHouses(
-
-      request.birthDetails.date,
-
-      request.birthDetails.latitude,
-
-      request.birthDetails.longitude
+      Object.values(
+        planets
+      )
 
     );
 
 
-
-  Object
-  .values(
-    planetCollection
-  )
-  .forEach(
-
-    planet => {
-
-
-      planet.house = {
-
-        number:
-
-          getPlanetHouse(
-
-            planet.longitude,
-
-            houseData
-
-          ),
-
-      };
-
-
-    }
-
-  );
-
-
-}
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// ASCENDANT / LAGNA
-//////////////////////////////////////////////////////////////
-
-const ascendant =
-
-houseData
-
-?
-
-{
-
-  longitude:
-
-    houseData.ascendant,
-
-
-  rashi:
-
-    createRashi(
-
-      houseData.ascendant
-
-    ),
-
-}
-
-:
-
-undefined;
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// HOUSES OUTPUT
-//////////////////////////////////////////////////////////////
-
-const houses =
-
-houseData
-
-?
-
-{
-
-  ascendant:
-
-    houseData.ascendant,
-
-
-  mc:
-
-    houseData.mc,
-
-
-  cusps:
-
-    houseData.cusps,
-
-
-  houseSystem:
-
-    "Placidus",
-
-}
-
-:
-
-undefined;
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PLANETARY SNAPSHOT
-//////////////////////////////////////////////////////////////
-
-const planets =
-
-Object.freeze(
-
-  planetCollection
-
-);
-
-
-
-
-//////////////////////////////////////////////////////////////
-// DIVISIONAL CHARTS
-//////////////////////////////////////////////////////////////
-
-const navamsa =
-
-calculateNavamsa(
-
-  Object.values(
-    planets
-  )
-
-);
-
-//////////////////////////////////////////////////////////////
-// YOGA ANALYSIS
-//////////////////////////////////////////////////////////////
-
-const yogaAnalysis =
-
-analyzeYogas(
-
-  planets
-
-);
-
-
-//////////////////////////////////////////////////////////////
-// DOSHA ANALYSIS
-//////////////////////////////////////////////////////////////
-
-const doshaAnalysis =
-
-analyzeDoshas(
-
-  planets
-
-);
-//////////////////////////////////////////////////////////////
-// D1 + D9 COMBINED INTELLIGENCE
-//////////////////////////////////////////////////////////////
-
-const d9Analysis =
-
-analyzeD1D9(
-
-  navamsa.planets
-
-);
-
-//////////////////////////////////////////////////////////////
-// ANALYSIS PIPELINE
-//////////////////////////////////////////////////////////////
-
-const analysis =
-
-analyzeHoroscope(
-
-  planets
-
-);
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// INFLUENCE PIPELINE
-//////////////////////////////////////////////////////////////
-
-const influences =
-
-Object
-
-.values(
-
-  planets
-
-)
-
-.map(
-
-  planet =>
-
-    buildPlanetInfluence(
-
-      planet,
-
-      language
-
-    )
-
-);
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// INTERPRETATION PIPELINE
-//////////////////////////////////////////////////////////////
-
-const interpretation =
-
-interpretHoroscope(
-
-  planets,
-
-  language
-
-);
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////
-// PREDICTION PIPELINE
-//////////////////////////////////////////////////////////////
-const prediction =
-
-predictHoroscope(
-
-  planets,
-
-  language,
-
-  request.zodiacSign
-
-);
-
-//////////////////////////////////////////////////////////////
-// MARRIAGE INTELLIGENCE ENGINE
-//////////////////////////////////////////////////////////////
-
-const marriageAnalysis =
-
-analyzeMarriage({
-
-  planets:
-    Object.values(
+  //////////////////////////////////////////////////////////////
+  // YOGA ANALYSIS
+  //////////////////////////////////////////////////////////////
+
+  const yogaAnalysis =
+    analyzeYogas(
       planets
-    ),
-
-  ascendantSign:
-    ascendant?.rashi.name,
+    );
 
 
-  d9:
-    navamsa,
+  //////////////////////////////////////////////////////////////
+  // DOSHA ANALYSIS
+  //////////////////////////////////////////////////////////////
 
-});
-
-//////////////////////////////////////////////////////////////
-// FINAL HOROSCOPE RESULT
-//////////////////////////////////////////////////////////////
-
-return {
+  const doshaAnalysis =
+    analyzeDoshas(
+      planets
+    );
 
 
-  date,
+  //////////////////////////////////////////////////////////////
+  // D1 + D9 ANALYSIS
+  //////////////////////////////////////////////////////////////
+
+  const d9Analysis =
+    analyzeD1D9(
+      navamsa.planets
+    );
 
 
-  language,
+  //////////////////////////////////////////////////////////////
+  // ANALYSIS PIPELINE
+  //////////////////////////////////////////////////////////////
+
+  const analysis =
+    analyzeHoroscope(
+      planets
+    );
 
 
+  //////////////////////////////////////////////////////////////
+  // INFLUENCE PIPELINE
+  //////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////
-  // SIGNS
-  ////////////////////////////////////////////////////////////
+  const influences =
 
-  sunSign,
+    Object
+      .values(
+        planets
+      )
+      .map(
 
+        planet =>
 
-  moonSign,
+          buildPlanetInfluence(
+            planet,
+            language
+          )
 
-
-
-
-  ////////////////////////////////////////////////////////////
-  // BIRTH CHART CORE
-  ////////////////////////////////////////////////////////////
-
-  ascendant,
-
-
-  houses,
-
+      );
 
 
+  //////////////////////////////////////////////////////////////
+  // INTERPRETATION PIPELINE
+  //////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////
-  // PLANETS
-  ////////////////////////////////////////////////////////////
+  const interpretation =
+    interpretHoroscope(
+      planets,
+      language
+    );
 
-  planets,
+
+  //////////////////////////////////////////////////////////////
+  // LANGUAGE INTELLIGENCE
+  //////////////////////////////////////////////////////////////
+
+  const languageOutputs =
+
+    Object
+      .values(
+        planets
+      )
+      .map(
+
+        planet => {
+
+          const planetName =
+            String(
+              planet.planet
+            );
+
+          const strengthScore =
+            planet.strength?.score ?? 50;
+
+          const context =
+            createLanguageContext(
+
+              planetName,
+
+              strengthScore,
+
+              "overall",
+
+              zodiacSign
+
+            );
+
+          return resolvePlanetLanguage(
+            context
+          );
+
+        }
+
+      );
 
 
+  const languageComposition =
+    composeLanguage(
 
-//////////////////////////////////////////////////////////////
-// DIVISIONAL CHARTS
-//////////////////////////////////////////////////////////////
+      languageOutputs,
 
-charts:{
+      "overall"
 
-  d1:{
+    );
 
-    planets,
+  //////////////////////////////////////////////////////////////
+  // PREDICTION ENGINE
+  //////////////////////////////////////////////////////////////
+
+  const prediction =
+    predictHoroscope(
+
+      planets,
+
+      language,
+
+      zodiacSign
+
+    );
+
+
+  //////////////////////////////////////////////////////////////
+  // MARRIAGE INTELLIGENCE
+  //////////////////////////////////////////////////////////////
+
+  const marriageAnalysis =
+    analyzeMarriage({
+
+      planets:
+        Object.values(
+          planets
+        ),
+
+      ascendantSign:
+        ascendant?.rashi.name,
+
+      d9:
+        navamsa,
+
+    });
+
+
+  //////////////////////////////////////////////////////////////
+  // BASIC RASHI COMPATIBILITY
+  //////////////////////////////////////////////////////////////
+
+  const compatibility =
+    zodiacSign
+      ? getCompatibility(
+          zodiacSign
+        )
+      : undefined;
+
+
+  //////////////////////////////////////////////////////////////
+  // FINAL HOROSCOPE RESULT
+  //////////////////////////////////////////////////////////////
+
+  return {
+
+    date,
+
+    language,
+
+
+    //////////////////////////////////////////////////////////////
+    // SIGNS
+    //////////////////////////////////////////////////////////////
+
+    sunSign,
+
+    moonSign,
+
+
+    //////////////////////////////////////////////////////////////
+    // BIRTH CHART
+    //////////////////////////////////////////////////////////////
+
+    ascendant,
 
     houses,
 
-  },
+
+    //////////////////////////////////////////////////////////////
+    // PLANETS
+    //////////////////////////////////////////////////////////////
+
+    planets,
 
 
-  d9:
+    //////////////////////////////////////////////////////////////
+    // DIVISIONAL CHARTS
+    //////////////////////////////////////////////////////////////
 
-    navamsa,
+    charts: {
 
-},
+      d1: {
 
-d9Analysis,
+        planets,
 
+        houses,
 
-yogas:
+      },
 
-  yogaAnalysis,
+      d9:
+        navamsa,
 
-
-doshas:
-
-  doshaAnalysis,
-  
-
-  analysis,
+    },
 
 
-  influences,
+    //////////////////////////////////////////////////////////////
+    // D1 + D9
+    //////////////////////////////////////////////////////////////
+
+    d9Analysis,
 
 
-  interpretation,
+    //////////////////////////////////////////////////////////////
+    // YOGA / DOSHA
+    //////////////////////////////////////////////////////////////
+
+    yogas:
+      yogaAnalysis,
+
+    doshas:
+      doshaAnalysis,
 
 
- prediction,
+    //////////////////////////////////////////////////////////////
+    // ANALYSIS
+    //////////////////////////////////////////////////////////////
+
+    analysis,
 
 
-//////////////////////////////////////////////////////////////
-// ADVANCED PREDICTIONS
-//////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    // INFLUENCES
+    //////////////////////////////////////////////////////////////
 
-predictions: {
-
-  marriage:
-    marriageAnalysis,
-
-},
+    influences,
 
 
+    //////////////////////////////////////////////////////////////
+    // INTERPRETATION
+    //////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-// DASHA
-//////////////////////////////////////////////////////////////
-
-dasha: {
-
-  current: currentDasha,
-
-  vimshottari,
-
-},
-
-  ////////////////////////////////////////////////////////////
-  // SUMMARY
-  ////////////////////////////////////////////////////////////
-
-  summary:
-
-    getLocalizedSummary(
-
-      "Daily Horoscope",
-
-      "Planetary calculations generated from NationPath Vedic astrology engine.",
-
-      language
-
-    ),
+    interpretation,
 
 
-};
+    //////////////////////////////////////////////////////////////
+    // LANGUAGE INTELLIGENCE
+    //////////////////////////////////////////////////////////////
 
+    languageIntelligence:
+      languageComposition,
+
+
+    //////////////////////////////////////////////////////////////
+    // PREDICTION
+    //////////////////////////////////////////////////////////////
+
+    prediction,
+
+
+    //////////////////////////////////////////////////////////////
+    // COMPATIBILITY
+    //////////////////////////////////////////////////////////////
+
+    compatibility,
+
+
+    //////////////////////////////////////////////////////////////
+    // ADVANCED PREDICTIONS
+    //////////////////////////////////////////////////////////////
+
+    predictions: {
+
+      marriage:
+        marriageAnalysis,
+
+    },
+
+
+    //////////////////////////////////////////////////////////////
+    // DASHA
+    //////////////////////////////////////////////////////////////
+
+    dasha: {
+
+      current:
+        currentDasha,
+
+      vimshottari,
+
+    },
+
+
+    //////////////////////////////////////////////////////////////
+    // SUMMARY
+    //////////////////////////////////////////////////////////////
+
+    summary:
+
+      getLocalizedSummary(
+
+        "Daily Horoscope",
+
+        "Planetary calculations generated from NationPath Vedic astrology engine.",
+
+        language
+
+      ),
+
+  };
 
 }
+
 
 //////////////////////////////////////////////////////////////
 // END OF ENGINE

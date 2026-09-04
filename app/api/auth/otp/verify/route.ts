@@ -1,54 +1,44 @@
 //////////////////////////////////////////////////////////////
-// NATIONPATH OTP VERIFY API
 //
-// LOCK ONE
+// NATIONPATH OTP VERIFY API
 //
 // POST /api/auth/otp/verify
 //
 // GET  /api/auth/otp/verify?token=TOKEN
 //
-// POST responsibilities:
-// - Verify phone OTP
-// - Verify email OTP
-// - Consume OTP
-// - Resolve canonical Prisma User
-// - Create/link UserPhone
-// - Create/link UserEmail
-// - Login
-// - Signup
-// - Phone/email verification
-// - Change phone/email
-// - Reset password using OTP
+// Supports:
+// - Phone OTP login
+// - Email OTP login
+// - Phone signup
+// - Email signup
+// - Email verification
+// - Change email
+// - Change phone
+// - Reset password
+// - Email verification link
 //
-// GET responsibilities:
-// - Verify email verification link
-// - Hash verification token
-// - Resolve EmailVerificationToken
-// - Check expiry
-// - Resolve canonical Prisma User
-// - Mark UserEmail verified
-// - Sync User.email when empty
-// - Consume verification token
-//
-// IMPORTANT:
-// - Canonical User = Prisma User
-// - MongoDB collection = "users"
+// CANONICAL AUTH:
+// - Prisma only
+// - MongoDB collection = users
 // - Never use Mongoose User
-// - Never store plaintext OTP
-// - Never store plaintext password
-// - OTP plaintext is NEVER logged by this API
-// - Verification token plaintext is NEVER stored
 //
-// VERIFICATION LINK:
-// - Uses EmailVerificationToken
-// - Same API route
-// - No separate verification API
+// SECURITY:
+// - OTP is verified through verifyOtp()
+// - Verification tokens are SHA-256 hashed
+// - Passwords are bcrypt hashed
+// - No plaintext OTP/password/token is stored
+// - Email verification NEVER creates a second User
 //
-// RESET PASSWORD:
-// - purpose = "reset_password"
-// - OTP must already belong to target User
-// - OTP is consumed only after successful verification
-// - New password is bcrypt hashed before storage
+// IMPORTANT ORPHAN PROTECTION:
+// NEVER use:
+//
+//   include: { user: true }
+//
+// on UserEmail / UserPhone lookups.
+//
+// Therefore identity records are always resolved first,
+// then canonical User is loaded manually.
+//
 //////////////////////////////////////////////////////////////
 
 import { NextResponse } from "next/server";
@@ -62,9 +52,9 @@ import {
 } from "@/lib/auth/otp";
 
 import { prisma } from "@/lib/prisma";
+import { signToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
-
 
 //////////////////////////////////////////////////////////////
 // CONFIG
@@ -73,7 +63,6 @@ export const dynamic = "force-dynamic";
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 128;
 const PASSWORD_HASH_ROUNDS = 12;
-
 
 //////////////////////////////////////////////////////////////
 // OTP PURPOSES
@@ -92,9 +81,8 @@ const OTP_PURPOSES = [
 type OtpPurpose =
   (typeof OTP_PURPOSES)[number];
 
-
 //////////////////////////////////////////////////////////////
-// CHANNELS
+// OTP CHANNELS
 //////////////////////////////////////////////////////////////
 
 const OTP_CHANNELS = [
@@ -105,6 +93,54 @@ const OTP_CHANNELS = [
 type OtpChannel =
   (typeof OTP_CHANNELS)[number];
 
+//////////////////////////////////////////////////////////////
+// HELPERS
+//////////////////////////////////////////////////////////////
+
+function jsonError(
+  error: string,
+  status: number
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error,
+    },
+    {
+      status,
+    }
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// ACCOUNT STATUS
+//////////////////////////////////////////////////////////////
+
+function validateAccountStatus(
+  user: {
+    isActive: boolean | null;
+    status: string;
+  }
+) {
+  if (user.isActive === false) {
+    return jsonError(
+      "Account is inactive",
+      403
+    );
+  }
+
+  if (
+    user.status &&
+    user.status !== "active"
+  ) {
+    return jsonError(
+      "Account is not active",
+      403
+    );
+  }
+
+  return null;
+}
 
 //////////////////////////////////////////////////////////////
 // PASSWORD VALIDATION
@@ -113,425 +149,475 @@ type OtpChannel =
 function validateNewPassword(
   value: unknown
 ): string {
-
   const password =
     String(value || "");
 
   if (!password) {
-
     throw new Error(
-      "New password is required"
+      "Password is required"
     );
-
   }
 
   if (
     password.length <
     PASSWORD_MIN_LENGTH
   ) {
-
     throw new Error(
       `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
     );
-
   }
 
   if (
     password.length >
     PASSWORD_MAX_LENGTH
   ) {
-
     throw new Error(
       `Password must not exceed ${PASSWORD_MAX_LENGTH} characters`
     );
-
   }
 
   return password;
 }
 
+//////////////////////////////////////////////////////////////
+// AUTH COOKIE
+//////////////////////////////////////////////////////////////
+
+function setAuthCookie(
+  response: NextResponse,
+  token: string
+) {
+  response.cookies.set(
+    "token",
+    token,
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite: "strict",
+
+      path: "/",
+
+      maxAge:
+        60 * 60 * 24 * 7,
+    }
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// LOGIN RESPONSE
+//////////////////////////////////////////////////////////////
+
+function createLoginResponse(
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    avatar: string | null;
+    role: string;
+    phone?: string | null;
+    provider?: string | null;
+  }
+) {
+  const token =
+    signToken({
+      id: user.id,
+      role: user.role,
+    });
+
+  const response =
+    NextResponse.json(
+      {
+        success: true,
+
+        message:
+          "OTP login successful",
+
+        token,
+
+        user: {
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          avatar:
+            user.avatar,
+
+          role:
+            user.role,
+
+          ...(user.phone
+            ? {
+                phone:
+                  user.phone,
+              }
+            : {}),
+
+          ...(user.provider
+            ? {
+                provider:
+                  user.provider,
+              }
+            : {}),
+        },
+      },
+      {
+        status: 200,
+      }
+    );
+
+  setAuthCookie(
+    response,
+    token
+  );
+
+  return response;
+}
+
+//////////////////////////////////////////////////////////////
+// SAFE USER EMAIL RESOLUTION
+//////////////////////////////////////////////////////////////
+
+async function resolveEmailIdentity(
+  email: string
+) {
+  const emailRecord =
+    await prisma.userEmail.findUnique({
+      where: {
+        email,
+      },
+    });
+
+  if (!emailRecord) {
+    return {
+      emailRecord: null,
+      user: null,
+    };
+  }
+
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id:
+          emailRecord.userId,
+      },
+    });
+
+  //////////////////////////////////////////////////////////
+  // ORPHAN USEREMAIL
+  //////////////////////////////////////////////////////////
+
+  if (!user) {
+    console.warn(
+      "NATIONPATH: Removing orphan UserEmail during verification",
+      {
+        email,
+        userId:
+          emailRecord.userId,
+        emailRecordId:
+          emailRecord.id,
+      }
+    );
+
+    try {
+      await prisma.userEmail.delete({
+        where: {
+          id:
+            emailRecord.id,
+        },
+      });
+    } catch (error) {
+      console.error(
+        "NATIONPATH: Failed to remove orphan UserEmail",
+        error instanceof Error
+          ? error.message
+          : "Unknown error"
+      );
+    }
+
+    return {
+      emailRecord: null,
+      user: null,
+    };
+  }
+
+  return {
+    emailRecord,
+    user,
+  };
+}
 
 //////////////////////////////////////////////////////////////
 // GET
-//
 // EMAIL VERIFICATION LINK
-//
-// /api/auth/otp/verify?token=TOKEN
 //////////////////////////////////////////////////////////////
 
 export async function GET(
   request: Request
 ) {
-
   try {
-
-    //////////////////////////////////////////////////////////
-    // READ TOKEN
-    //////////////////////////////////////////////////////////
-
     const url =
       new URL(request.url);
 
-    const token =
+    const rawToken =
       url.searchParams
         .get("token")
         ?.trim() || "";
 
-
-    //////////////////////////////////////////////////////////
-    // TOKEN REQUIRED
-    //////////////////////////////////////////////////////////
-
-    if (!token) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Verification token is required",
-        },
-        {
-          status: 400,
-        }
+    if (!rawToken) {
+      return jsonError(
+        "Verification token is required",
+        400
       );
-
     }
-
-
-    //////////////////////////////////////////////////////////
-    // HASH TOKEN
-    //
-    // Raw token is never stored in MongoDB.
-    //////////////////////////////////////////////////////////
 
     const tokenHash =
       crypto
         .createHash("sha256")
-        .update(token)
+        .update(rawToken)
         .digest("hex");
-
-
-    //////////////////////////////////////////////////////////
-    // FIND VERIFICATION TOKEN
-    //////////////////////////////////////////////////////////
 
     const verificationToken =
       await prisma.emailVerificationToken.findUnique({
-
         where: {
           tokenHash,
         },
-
-        include: {
-          user: true,
-        },
-
       });
 
-
-    //////////////////////////////////////////////////////////
-    // INVALID TOKEN
-    //////////////////////////////////////////////////////////
-
     if (!verificationToken) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Invalid or expired verification link",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "Invalid or expired verification link",
+        400
       );
-
     }
 
-
-    //////////////////////////////////////////////////////////
-    // EXPIRY CHECK
-    //////////////////////////////////////////////////////////
+    if (
+      verificationToken.consumedAt
+    ) {
+      return jsonError(
+        "This verification link has already been used",
+        400
+      );
+    }
 
     if (
       verificationToken.expiresAt <=
       new Date()
     ) {
-
-      ////////////////////////////////////////////////////////
-      // Remove expired token
-      ////////////////////////////////////////////////////////
-
       try {
-
         await prisma.emailVerificationToken.delete({
+          where: {
+            id:
+              verificationToken.id,
+          },
+        });
+      } catch {
+        // Already removed.
+      }
 
+      return jsonError(
+        "Verification link has expired",
+        400
+      );
+    }
+
+    const user =
+      await prisma.user.findUnique({
+        where: {
+          id:
+            verificationToken.userId,
+        },
+      });
+
+    if (!user) {
+      try {
+        await prisma.emailVerificationToken.update({
           where: {
             id:
               verificationToken.id,
           },
 
+          data: {
+            consumedAt:
+              new Date(),
+          },
         });
-
       } catch {
-        // Token may already have been removed.
+        // Ignore cleanup failure.
       }
 
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Verification link has expired",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "User account not found",
+        404
       );
-
     }
 
+    const statusError =
+      validateAccountStatus(user);
 
-    //////////////////////////////////////////////////////////
-    // USER
-    //////////////////////////////////////////////////////////
-
-    const user =
-      verificationToken.user;
-
-
-    //////////////////////////////////////////////////////////
-    // USER NOT FOUND
-    //////////////////////////////////////////////////////////
-
-    if (!user) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "User account not found",
-        },
-        {
-          status: 404,
-        }
-      );
-
+    if (statusError) {
+      return statusError;
     }
-
-
-    //////////////////////////////////////////////////////////
-    // ACCOUNT STATUS
-    //////////////////////////////////////////////////////////
-
-    if (
-      user.isActive === false
-    ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Account is inactive",
-        },
-        {
-          status: 403,
-        }
-      );
-
-    }
-
-
-    if (
-      user.status &&
-      user.status !== "active"
-    ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Account is not active",
-        },
-        {
-          status: 403,
-        }
-      );
-
-    }
-
-
-    //////////////////////////////////////////////////////////
-    // NORMALIZE EMAIL
-    //////////////////////////////////////////////////////////
 
     let normalizedEmail: string;
 
     try {
-
       normalizedEmail =
         normalizeEmail(
           verificationToken.email
         );
-
     } catch {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Invalid verification email",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "Invalid verification email",
+        400
       );
-
     }
 
+    const verifiedUser =
+      await prisma.$transaction(
+        async (tx) => {
+          const currentToken =
+            await tx.emailVerificationToken.findUnique({
+              where: {
+                id:
+                  verificationToken.id,
+              },
+            });
 
-    //////////////////////////////////////////////////////////
-    // FIND EXISTING EMAIL IDENTITY
-    //////////////////////////////////////////////////////////
+          if (
+            !currentToken ||
+            currentToken.consumedAt ||
+            currentToken.expiresAt <=
+              new Date()
+          ) {
+            throw new Error(
+              "VERIFICATION_TOKEN_INVALID"
+            );
+          }
 
-    const existingEmail =
-      await prisma.userEmail.findUnique({
+          const emailRecord =
+            await tx.userEmail.findUnique({
+              where: {
+                email:
+                  normalizedEmail,
+              },
+            });
 
-        where: {
-          email:
-            normalizedEmail,
-        },
+          if (
+            emailRecord &&
+            emailRecord.userId !==
+              user.id
+          ) {
+            throw new Error(
+              "EMAIL_BELONGS_TO_ANOTHER_USER"
+            );
+          }
 
-      });
+          if (emailRecord) {
+            await tx.userEmail.update({
+              where: {
+                id:
+                  emailRecord.id,
+              },
 
+              data: {
+                isVerified:
+                  true,
 
-    //////////////////////////////////////////////////////////
-    // EMAIL BELONGS TO ANOTHER USER
-    //////////////////////////////////////////////////////////
+                verifiedAt:
+                  new Date(),
+              },
+            });
+          } else {
+            await tx.userEmail.create({
+              data: {
+                email:
+                  normalizedEmail,
 
-    if (
-      existingEmail &&
-      existingEmail.userId !== user.id
-    ) {
+                userId:
+                  user.id,
 
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "This email address belongs to another account",
-        },
-        {
-          status: 409,
-        }
-      );
+                isVerified:
+                  true,
 
-    }
+                verifiedAt:
+                  new Date(),
+              },
+            });
+          }
 
+          const updatedUser =
+            await tx.user.update({
+              where: {
+                id:
+                  user.id,
+              },
 
-    //////////////////////////////////////////////////////////
-    // VERIFY EMAIL + CONSUME TOKEN
-    //
-    // Keep these operations together.
-    //////////////////////////////////////////////////////////
+              data: {
+                ...(user.email
+                  ? {}
+                  : {
+                      email:
+                        normalizedEmail,
+                    }),
+              },
 
-    await prisma.$transaction(
-      async (tx) => {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+                role: true,
+                provider: true,
+              },
+            });
 
-        //////////////////////////////////////////////////////
-        // CREATE / UPDATE EMAIL IDENTITY
-        //////////////////////////////////////////////////////
-
-        if (existingEmail) {
-
-          await tx.userEmail.update({
-
+          await tx.emailVerificationToken.update({
             where: {
               id:
-                existingEmail.id,
+                verificationToken.id,
             },
 
             data: {
-
-              isVerified:
-                true,
-
-              verifiedAt:
+              consumedAt:
                 new Date(),
-
             },
-
           });
 
-        } else {
-
-          await tx.userEmail.create({
-
-            data: {
-
-              email:
-                normalizedEmail,
-
+          await tx.emailVerificationToken.updateMany({
+            where: {
               userId:
                 user.id,
 
-              isVerified:
-                true,
+              email:
+                normalizedEmail,
 
-              verifiedAt:
-                new Date(),
+              consumedAt:
+                null,
 
-            },
-
-          });
-
-        }
-
-
-        //////////////////////////////////////////////////////
-        // SYNC CANONICAL USER EMAIL
-        //
-        // Only fill User.email if currently empty.
-        //////////////////////////////////////////////////////
-
-        if (!user.email) {
-
-          await tx.user.update({
-
-            where: {
-              id:
-                user.id,
+              id: {
+                not:
+                  verificationToken.id,
+              },
             },
 
             data: {
-              email:
-                normalizedEmail,
+              consumedAt:
+                new Date(),
             },
-
           });
 
+          return updatedUser;
         }
-
-
-        //////////////////////////////////////////////////////
-        // CONSUME VERIFICATION TOKEN
-        //////////////////////////////////////////////////////
-
-        await tx.emailVerificationToken.delete({
-
-          where: {
-            id:
-              verificationToken.id,
-          },
-
-        });
-
-      }
-    );
-
-
-    //////////////////////////////////////////////////////////
-    // SUCCESS
-    //////////////////////////////////////////////////////////
+      );
 
     return NextResponse.json(
       {
@@ -540,55 +626,70 @@ export async function GET(
         message:
           "Email verified successfully",
 
-        user: {
+        verificationMethod:
+          "link",
 
+        user: {
           id:
-            user.id,
+            verifiedUser.id,
 
           name:
-            user.name,
+            verifiedUser.name,
 
           email:
-            normalizedEmail,
+            verifiedUser.email,
 
           avatar:
-            user.avatar,
+            verifiedUser.avatar,
 
           role:
-            user.role,
+            verifiedUser.role,
 
+          provider:
+            verifiedUser.provider,
         },
-
       },
       {
         status: 200,
       }
     );
-
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error";
+
+    if (
+      message ===
+      "VERIFICATION_TOKEN_INVALID"
+    ) {
+      return jsonError(
+        "Invalid or expired verification link",
+        400
+      );
+    }
+
+    if (
+      message ===
+      "EMAIL_BELONGS_TO_ANOTHER_USER"
+    ) {
+      return jsonError(
+        "This email address belongs to another account",
+        409
+      );
+    }
 
     console.error(
       "NATIONPATH EMAIL VERIFICATION LINK ERROR:",
-      error instanceof Error
-        ? error.message
-        : "Unknown error"
+      message
     );
 
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Unable to verify email",
-      },
-      {
-        status: 500,
-      }
+    return jsonError(
+      "Unable to verify email",
+      500
     );
-
   }
-
 }
-
 
 //////////////////////////////////////////////////////////////
 // POST
@@ -597,144 +698,79 @@ export async function GET(
 export async function POST(
   request: Request
 ) {
-
   try {
-
-    ////////////////////////////////////////////////////////////
-    // READ REQUEST
-    ////////////////////////////////////////////////////////////
-
-    let body: any;
+    let body: unknown;
 
     try {
-
       body =
         await request.json();
-
     } catch {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid request body",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "Invalid request body",
+        400
       );
-
     }
 
-
-    ////////////////////////////////////////////////////////////
-    // BASIC REQUEST DATA
-    ////////////////////////////////////////////////////////////
+    const data =
+      body &&
+      typeof body === "object"
+        ? body as Record<string, unknown>
+        : {};
 
     const channel =
       String(
-        body?.channel || "phone"
+        data.channel || "phone"
       ) as OtpChannel;
 
     const purpose =
       String(
-        body?.purpose || "login"
+        data.purpose || "login"
       ) as OtpPurpose;
 
     const otp =
       String(
-        body?.otp || ""
+        data.otp || ""
       ).trim();
-
-
-    ////////////////////////////////////////////////////////////
-    // DESTINATIONS
-    ////////////////////////////////////////////////////////////
 
     const rawPhone =
       String(
-        body?.phone || ""
+        data.phone || ""
       ).trim();
 
     const rawEmail =
       String(
-        body?.email || ""
+        data.email || ""
       ).trim();
 
-
-    ////////////////////////////////////////////////////////////
-    // RESET PASSWORD INPUT
-    ////////////////////////////////////////////////////////////
-
     const rawNewPassword =
-      body?.newPassword;
-
-
-    ////////////////////////////////////////////////////////////
-    // VALIDATE CHANNEL
-    ////////////////////////////////////////////////////////////
+      data.newPassword;
 
     if (
       !OTP_CHANNELS.includes(channel)
     ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid OTP channel",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "Invalid OTP channel",
+        400
       );
-
     }
-
-
-    ////////////////////////////////////////////////////////////
-    // VALIDATE PURPOSE
-    ////////////////////////////////////////////////////////////
 
     if (
       !OTP_PURPOSES.includes(purpose)
     ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid OTP purpose",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "Invalid OTP purpose",
+        400
       );
-
     }
-
-
-    ////////////////////////////////////////////////////////////
-    // VALIDATE OTP
-    ////////////////////////////////////////////////////////////
 
     if (
       !/^\d{6}$/.test(otp)
     ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "OTP must contain 6 digits",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        "OTP must contain 6 digits",
+        400
       );
-
     }
-
-
-    ////////////////////////////////////////////////////////////
-    // NORMALIZE DESTINATION
-    ////////////////////////////////////////////////////////////
 
     let normalizedPhone:
       string | null = null;
@@ -743,93 +779,56 @@ export async function POST(
       string | null = null;
 
     try {
-
       if (
         channel === "phone"
       ) {
-
         normalizedPhone =
           normalizePhone(
             rawPhone
           );
-
       } else {
-
         normalizedEmail =
           normalizeEmail(
             rawEmail
           );
-
       }
-
     } catch {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            channel === "phone"
-              ? "Enter a valid international phone number with country code"
-              : "Enter a valid email address",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        channel === "phone"
+          ? "Enter a valid international phone number with country code"
+          : "Enter a valid email address",
+        400
       );
-
     }
 
-
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
     // RESET PASSWORD
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
 
     if (
       purpose === "reset_password"
     ) {
-
-      //////////////////////////////////////////////////////////
-      // NEW PASSWORD REQUIRED
-      //////////////////////////////////////////////////////////
-
       let newPassword: string;
 
       try {
-
         newPassword =
           validateNewPassword(
             rawNewPassword
           );
-
       } catch (error) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : "Invalid new password",
-          },
-          {
-            status: 400,
-          }
+        return jsonError(
+          error instanceof Error
+            ? error.message
+            : "Invalid new password",
+          400
         );
-
       }
-
-
-      //////////////////////////////////////////////////////////
-      // VERIFY OTP
-      //////////////////////////////////////////////////////////
 
       let verification;
 
       try {
-
         verification =
           await verifyOtp({
-
             channel,
 
             phone:
@@ -844,58 +843,27 @@ export async function POST(
 
             purpose:
               "reset_password",
-
           });
-
       } catch (error) {
-
-        const message =
+        return jsonError(
           error instanceof Error
             ? error.message
-            : "OTP verification failed";
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: message,
-          },
-          {
-            status: 400,
-          }
+            : "OTP verification failed",
+          400
         );
-
       }
-
-
-      //////////////////////////////////////////////////////////
-      // USER MUST BE RESOLVED
-      //////////////////////////////////////////////////////////
 
       if (
         !verification.userId
       ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Unable to resolve user account",
-          },
-          {
-            status: 400,
-          }
+        return jsonError(
+          "Unable to resolve user account",
+          400
         );
-
       }
-
-
-      //////////////////////////////////////////////////////////
-      // LOAD CANONICAL USER
-      //////////////////////////////////////////////////////////
 
       const user =
         await prisma.user.findUnique({
-
           where: {
             id:
               verification.userId,
@@ -912,73 +880,21 @@ export async function POST(
             status: true,
             isActive: true,
           },
-
         });
 
-
-      //////////////////////////////////////////////////////////
-      // USER NOT FOUND
-      //////////////////////////////////////////////////////////
-
       if (!user) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "User account not found",
-          },
-          {
-            status: 404,
-          }
+        return jsonError(
+          "User account not found",
+          404
         );
-
       }
 
+      const statusError =
+        validateAccountStatus(user);
 
-      //////////////////////////////////////////////////////////
-      // ACCOUNT STATUS
-      //////////////////////////////////////////////////////////
-
-      if (
-        user.isActive === false
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is inactive",
-          },
-          {
-            status: 403,
-          }
-        );
-
+      if (statusError) {
+        return statusError;
       }
-
-      if (
-        user.status &&
-        user.status !== "active"
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is not active",
-          },
-          {
-            status: 403,
-          }
-        );
-
-      }
-
-
-      //////////////////////////////////////////////////////////
-      // HASH NEW PASSWORD
-      //////////////////////////////////////////////////////////
 
       const passwordHash =
         await bcrypt.hash(
@@ -986,14 +902,8 @@ export async function POST(
           PASSWORD_HASH_ROUNDS
         );
 
-
-      //////////////////////////////////////////////////////////
-      // UPDATE PASSWORD
-      //////////////////////////////////////////////////////////
-
       const updatedUser =
         await prisma.user.update({
-
           where: {
             id:
               user.id,
@@ -1016,16 +926,8 @@ export async function POST(
             avatar: true,
             role: true,
             provider: true,
-            status: true,
-            isActive: true,
           },
-
         });
-
-
-      //////////////////////////////////////////////////////////
-      // SUCCESS
-      //////////////////////////////////////////////////////////
 
       return NextResponse.json(
         {
@@ -1034,54 +936,31 @@ export async function POST(
           message:
             "Password reset successfully",
 
-          user: {
-
-            id:
-              updatedUser.id,
-
-            name:
-              updatedUser.name,
-
-            email:
-              updatedUser.email,
-
-            avatar:
-              updatedUser.avatar,
-
-            role:
-              updatedUser.role,
-
-            provider:
-              updatedUser.provider,
-          },
+          user:
+            updatedUser,
         },
         {
           status: 200,
         }
       );
-
     }
 
-
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
     // SIGNUP
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
 
     if (
       purpose === "signup"
     ) {
-
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
       // PHONE SIGNUP
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
 
       if (
         channel === "phone"
       ) {
-
         const existingPhone =
           await prisma.userPhone.findUnique({
-
             where: {
               phone:
                 normalizedPhone!,
@@ -1091,78 +970,46 @@ export async function POST(
               id: true,
               userId: true,
             },
-
           });
 
-
-        if (
-          existingPhone
-        ) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                "This phone number is already registered",
-            },
-            {
-              status: 409,
-            }
+        if (existingPhone) {
+          return jsonError(
+            "This phone number is already registered",
+            409
           );
-
         }
 
-
-        ////////////////////////////////////////////////////////
-        // VERIFY OTP
-        ////////////////////////////////////////////////////////
+        let verification;
 
         try {
+          verification =
+            await verifyOtp({
+              channel:
+                "phone",
 
-          await verifyOtp({
+              phone:
+                normalizedPhone!,
 
-            channel: "phone",
+              otp,
 
-            phone:
-              normalizedPhone!,
-
-            otp,
-
-            purpose: "signup",
-
-          });
-
+              purpose:
+                "signup",
+            });
         } catch (error) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "OTP verification failed",
-            },
-            {
-              status: 400,
-            }
+          return jsonError(
+            error instanceof Error
+              ? error.message
+              : "OTP verification failed",
+            400
           );
-
         }
 
-
-        ////////////////////////////////////////////////////////
-        // CREATE USER + PHONE
-        ////////////////////////////////////////////////////////
-
         try {
-
           const result =
             await prisma.$transaction(
               async (tx) => {
-
                 const phoneUser =
                   await tx.userPhone.findUnique({
-
                     where: {
                       phone:
                         normalizedPhone!,
@@ -1172,92 +1019,55 @@ export async function POST(
                       id: true,
                       userId: true,
                     },
-
                   });
 
-
-                if (
-                  phoneUser
-                ) {
-
+                if (phoneUser) {
                   throw new Error(
                     "PHONE_ALREADY_EXISTS"
                   );
-
                 }
-
 
                 const newUser =
                   await tx.user.create({
-
                     data: {
-
                       name: null,
-
                       email: null,
-
                       password: null,
-
                       provider: "otp",
-
                       role: "user",
-
                       status: "active",
-
                       isActive: true,
-
                     },
 
                     select: {
-
                       id: true,
-
                       name: true,
-
                       email: true,
-
                       avatar: true,
-
                       role: true,
-
                       provider: true,
-
-                      status: true,
-
-                      isActive: true,
-
-                      createdAt: true,
-
                     },
-
                   });
 
-
                 await tx.userPhone.create({
-
                   data: {
-
                     phone:
                       normalizedPhone!,
 
-                    isVerified: true,
+                    isVerified:
+                      true,
 
                     verifiedAt:
                       new Date(),
 
                     userId:
                       newUser.id,
-
                   },
-
                 });
 
-
                 return newUser;
-
               }
             );
-
 
           return NextResponse.json(
             {
@@ -1267,7 +1077,6 @@ export async function POST(
                 "Phone verified successfully",
 
               user: {
-
                 id:
                   result.id,
 
@@ -1288,564 +1097,388 @@ export async function POST(
 
                 provider:
                   result.provider,
-
               },
             },
             {
               status: 200,
             }
           );
-
-
         } catch (error) {
-
           if (
             error instanceof Error &&
             error.message ===
               "PHONE_ALREADY_EXISTS"
           ) {
-
-            return NextResponse.json(
-              {
-                success: false,
-                error:
-                  "This phone number is already registered",
-              },
-              {
-                status: 409,
-              }
+            return jsonError(
+              "This phone number is already registered",
+              409
             );
-
           }
 
           throw error;
-
         }
-
       }
 
-
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
       // EMAIL SIGNUP
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
 
       if (
         channel === "email"
       ) {
-
-        const existingEmail =
-          await prisma.userEmail.findUnique({
-
-            where: {
-              email:
-                normalizedEmail!,
-            },
-
-            select: {
-              id: true,
-              userId: true,
-            },
-
-          });
-
-
-        if (
-          existingEmail
-        ) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                "This email address is already registered",
-            },
-            {
-              status: 409,
-            }
+        const resolved =
+          await resolveEmailIdentity(
+            normalizedEmail!
           );
 
-        }
+        const emailRecord =
+          resolved.emailRecord;
 
-
-        const existingUser =
-          await prisma.user.findUnique({
-
-            where: {
-              email:
-                normalizedEmail!,
-            },
-
-            select: {
-              id: true,
-            },
-
-          });
-
+        const user =
+          resolved.user;
 
         if (
-          existingUser
+          !emailRecord ||
+          !user
         ) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                "An account already exists with this email address",
-            },
-            {
-              status: 409,
-            }
+          return jsonError(
+            "Signup session not found. Please request a new OTP.",
+            404
           );
-
         }
 
+        const statusError =
+          validateAccountStatus(user);
 
-        ////////////////////////////////////////////////////////
-        // VERIFY EMAIL OTP
-        ////////////////////////////////////////////////////////
+        if (statusError) {
+          return statusError;
+        }
+
+        if (
+          emailRecord.isVerified === true
+        ) {
+          return jsonError(
+            "This email address has already been verified",
+            409
+          );
+        }
+
+        let verification;
 
         try {
+          verification =
+            await verifyOtp({
+              channel:
+                "email",
 
-          await verifyOtp({
+              email:
+                normalizedEmail!,
 
-            channel: "email",
+              otp,
 
-            email:
-              normalizedEmail!,
-
-            otp,
-
-            purpose: "signup",
-
-          });
-
+              purpose:
+                "signup",
+            });
         } catch (error) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "OTP verification failed",
-            },
-            {
-              status: 400,
-            }
+          return jsonError(
+            error instanceof Error
+              ? error.message
+              : "OTP verification failed",
+            400
           );
-
         }
 
+        if (
+          verification.userId &&
+          verification.userId !==
+            user.id
+        ) {
+          return jsonError(
+            "OTP does not belong to this account",
+            409
+          );
+        }
 
-        ////////////////////////////////////////////////////////
-        // CREATE USER + EMAIL
-        ////////////////////////////////////////////////////////
+        let passwordHash:
+          string | undefined;
 
-        try {
+        if (
+          rawNewPassword !==
+            undefined &&
+          rawNewPassword !==
+            null &&
+          String(rawNewPassword).length > 0
+        ) {
+          let newPassword: string;
 
-          const result =
-            await prisma.$transaction(
-              async (tx) => {
+          try {
+            newPassword =
+              validateNewPassword(
+                rawNewPassword
+              );
+          } catch (error) {
+            return jsonError(
+              error instanceof Error
+                ? error.message
+                : "Invalid password",
+              400
+            );
+          }
 
-                const emailRecord =
-                  await tx.userEmail.findUnique({
+          passwordHash =
+            await bcrypt.hash(
+              newPassword,
+              PASSWORD_HASH_ROUNDS
+            );
+        }
 
-                    where: {
-                      email:
-                        normalizedEmail!,
-                    },
+        const verifiedUser =
+          await prisma.$transaction(
+            async (tx) => {
+              const currentEmail =
+                await tx.userEmail.findUnique({
+                  where: {
+                    email:
+                      normalizedEmail!,
+                  },
+                });
 
-                    select: {
-                      id: true,
-                      userId: true,
-                    },
+              if (
+                !currentEmail ||
+                currentEmail.userId !==
+                  user.id
+              ) {
+                throw new Error(
+                  "EMAIL_IDENTITY_CHANGED"
+                );
+              }
 
-                  });
+              if (
+                currentEmail.isVerified
+              ) {
+                throw new Error(
+                  "EMAIL_ALREADY_VERIFIED"
+                );
+              }
 
+              await tx.userEmail.update({
+                where: {
+                  id:
+                    currentEmail.id,
+                },
 
-                if (
-                  emailRecord
-                ) {
+                data: {
+                  isVerified:
+                    true,
 
-                  throw new Error(
-                    "EMAIL_ALREADY_EXISTS"
-                  );
+                  verifiedAt:
+                    new Date(),
+                },
+              });
 
-                }
-
-
-                const emailUser =
-                  await tx.user.findUnique({
-
-                    where: {
-                      email:
-                        normalizedEmail!,
-                    },
-
-                    select: {
-                      id: true,
-                    },
-
-                  });
-
-
-                if (
-                  emailUser
-                ) {
-
-                  throw new Error(
-                    "EMAIL_ALREADY_EXISTS"
-                  );
-
-                }
-
-
-                const newUser =
-                  await tx.user.create({
-
-                    data: {
-
-                      name: null,
-
-                      email: null,
-
-                      password: null,
-
-                      provider: "otp",
-
-                      role: "user",
-
-                      status: "active",
-
-                      isActive: true,
-
-                    },
-
-                    select: {
-
-                      id: true,
-
-                      name: true,
-
-                      email: true,
-
-                      avatar: true,
-
-                      role: true,
-
-                      provider: true,
-
-                      status: true,
-
-                      isActive: true,
-
-                      createdAt: true,
-
-                    },
-
-                  });
-
-
-                await tx.userEmail.create({
+              const updatedUser =
+                await tx.user.update({
+                  where: {
+                    id:
+                      user.id,
+                  },
 
                   data: {
-
                     email:
                       normalizedEmail!,
 
-                    userId:
-                      newUser.id,
+                    ...(passwordHash
+                      ? {
+                          password:
+                            passwordHash,
 
-                    isVerified: true,
-
-                    verifiedAt:
-                      new Date(),
-
+                          provider:
+                            "credentials",
+                        }
+                      : {}),
                   },
 
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    avatar: true,
+                    role: true,
+                    provider: true,
+                  },
                 });
 
+              await tx.emailVerificationToken.updateMany({
+                where: {
+                  userId:
+                    user.id,
 
-                return newUser;
+                  email:
+                    normalizedEmail!,
 
-              }
-            );
+                  consumedAt:
+                    null,
+                },
 
+                data: {
+                  consumedAt:
+                    new Date(),
+                },
+              });
 
-          return NextResponse.json(
-            {
-              success: true,
-
-              message:
-                "Email verified successfully",
-
-              user: {
-
-                id:
-                  result.id,
-
-                name:
-                  result.name,
-
-                email:
-                  result.email,
-
-                avatar:
-                  result.avatar,
-
-                role:
-                  result.role,
-
-                provider:
-                  result.provider,
-
-              },
-            },
-            {
-              status: 200,
+              return updatedUser;
             }
           );
 
+        return NextResponse.json(
+          {
+            success: true,
 
-        } catch (error) {
+            message:
+              "Email signup verified successfully",
 
-          if (
-            error instanceof Error &&
-            error.message ===
-              "EMAIL_ALREADY_EXISTS"
-          ) {
+            verificationMethod:
+              "otp",
 
-            return NextResponse.json(
-              {
-                success: false,
-                error:
-                  "This email address is already registered",
-              },
-              {
-                status: 409,
-              }
-            );
+            passwordConfigured:
+              Boolean(passwordHash),
 
+            user: {
+              id:
+                verifiedUser.id,
+
+              name:
+                verifiedUser.name,
+
+              email:
+                verifiedUser.email,
+
+              avatar:
+                verifiedUser.avatar,
+
+              role:
+                verifiedUser.role,
+
+              provider:
+                verifiedUser.provider,
+            },
+          },
+          {
+            status: 200,
           }
-
-          throw error;
-
-        }
-
+        );
       }
-
     }
 
-
-    ////////////////////////////////////////////////////////////
-    // EMAIL VERIFICATION / CHANGE EMAIL
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // EMAIL LOGIN
+    //////////////////////////////////////////////////////////
 
     if (
       channel === "email" &&
-      (
-        purpose === "verify_email" ||
-        purpose === "change_email"
-      )
+      purpose === "login"
     ) {
-
       let verification;
 
       try {
-
         verification =
           await verifyOtp({
-
-            channel: "email",
+            channel:
+              "email",
 
             email:
               normalizedEmail!,
 
             otp,
 
-            purpose,
-
+            purpose:
+              "login",
           });
-
       } catch (error) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : "OTP verification failed",
-          },
-          {
-            status: 400,
-          }
+        return jsonError(
+          error instanceof Error
+            ? error.message
+            : "OTP verification failed",
+          400
         );
-
       }
 
-
-      //////////////////////////////////////////////////////////
-      // USER REQUIRED
-      //////////////////////////////////////////////////////////
-
-      if (
-        !verification.userId
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Unable to resolve user account",
-          },
-          {
-            status: 400,
-          }
+      const resolved =
+        await resolveEmailIdentity(
+          normalizedEmail!
         );
 
+      const emailRecord =
+        resolved.emailRecord;
+
+      let user =
+        resolved.user;
+
+      const userId =
+        emailRecord?.userId ||
+        verification.userId ||
+        null;
+
+      if (!userId) {
+        return jsonError(
+          "Unable to resolve user account",
+          400
+        );
       }
-
-
-      //////////////////////////////////////////////////////////
-      // LOAD USER
-      //////////////////////////////////////////////////////////
-
-      const user =
-        await prisma.user.findUnique({
-
-          where: {
-            id:
-              verification.userId,
-          },
-
-        });
-
 
       if (!user) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "User account not found",
-          },
-          {
-            status: 404,
-          }
-        );
-
+        user =
+          await prisma.user.findUnique({
+            where: {
+              id:
+                userId,
+            },
+          });
       }
 
-
-      //////////////////////////////////////////////////////////
-      // ACCOUNT STATUS
-      //////////////////////////////////////////////////////////
-
-      if (
-        user.isActive === false
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is inactive",
-          },
-          {
-            status: 403,
-          }
+      if (!user) {
+        return jsonError(
+          "User account not found",
+          404
         );
-
       }
 
-
       if (
-        user.status &&
-        user.status !== "active"
+        emailRecord &&
+        emailRecord.userId !==
+          user.id
       ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is not active",
-          },
-          {
-            status: 403,
-          }
+        return jsonError(
+          "This email address belongs to another account",
+          409
         );
-
       }
 
+      const statusError =
+        validateAccountStatus(user);
 
-      //////////////////////////////////////////////////////////
-      // EXISTING EMAIL
-      //////////////////////////////////////////////////////////
-
-      const existingEmail =
-        await prisma.userEmail.findUnique({
-
-          where: {
-            email:
-              normalizedEmail!,
-          },
-
-        });
-
-
-      if (
-        existingEmail &&
-        existingEmail.userId !== user.id
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Email address is already linked to another account",
-          },
-          {
-            status: 409,
-          }
-        );
-
+      if (statusError) {
+        return statusError;
       }
 
-
-      //////////////////////////////////////////////////////////
-      // CREATE / UPDATE
-      //////////////////////////////////////////////////////////
-
-      if (
-        existingEmail
-      ) {
-
+      if (emailRecord) {
         await prisma.userEmail.update({
-
           where: {
             id:
-              existingEmail.id,
+              emailRecord.id,
           },
 
           data: {
-
             isVerified:
               true,
 
             verifiedAt:
               new Date(),
-
           },
-
         });
-
       } else {
-
         await prisma.userEmail.create({
-
           data: {
-
             email:
               normalizedEmail!,
 
@@ -1857,91 +1490,90 @@ export async function POST(
 
             verifiedAt:
               new Date(),
-
           },
-
         });
-
       }
 
+      ////////////////////////////////////////////////////////
+      // IMPORTANT:
+      // Do NOT reassign `user` here.
+      //
+      // `user` is the full Prisma User.
+      // `loginUser` is the intentionally selected
+      // lightweight response object.
+      ////////////////////////////////////////////////////////
 
-      //////////////////////////////////////////////////////////
-      // SYNC USER.EMAIL
-      //////////////////////////////////////////////////////////
-
-      if (!user.email) {
-
+      const loginUser =
         await prisma.user.update({
-
           where: {
             id:
               user.id,
           },
 
           data: {
-            email:
-              normalizedEmail!,
+            ...(user.email
+              ? {}
+              : {
+                  email:
+                    normalizedEmail!,
+                }),
+
+            lastLoginAt:
+              new Date(),
+
+            provider:
+              user.provider ===
+              "credentials"
+                ? "otp"
+                : user.provider,
           },
 
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            role: true,
+            provider: true,
+          },
         });
 
-      }
+      return createLoginResponse({
+        id:
+          loginUser.id,
 
+        name:
+          loginUser.name,
 
-      //////////////////////////////////////////////////////////
-      // RESPONSE
-      //////////////////////////////////////////////////////////
+        email:
+          loginUser.email ||
+          normalizedEmail,
 
-      return NextResponse.json(
-        {
-          success: true,
+        avatar:
+          loginUser.avatar,
 
-          message:
-            "Email verified successfully",
+        role:
+          loginUser.role,
 
-          user: {
-
-            id:
-              user.id,
-
-            name:
-              user.name,
-
-            email:
-              normalizedEmail,
-
-            avatar:
-              user.avatar,
-
-            role:
-              user.role,
-
-          },
-        },
-        {
-          status: 200,
-        }
-      );
-
+        provider:
+          loginUser.provider,
+      });
     }
 
-
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
     // PHONE LOGIN / VERIFY / CHANGE
-    ////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
 
     if (
       channel === "phone"
     ) {
-
       let verification;
 
       try {
-
         verification =
           await verifyOtp({
-
-            channel: "phone",
+            channel:
+              "phone",
 
             phone:
               normalizedPhone!,
@@ -1949,170 +1581,113 @@ export async function POST(
             otp,
 
             purpose,
-
           });
-
       } catch (error) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : "OTP verification failed",
-          },
-          {
-            status: 400,
-          }
+        return jsonError(
+          error instanceof Error
+            ? error.message
+            : "OTP verification failed",
+          400
         );
-
       }
 
-
-      //////////////////////////////////////////////////////////
-      // FIND PHONE OWNER
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
+      // IMPORTANT LOCK:
+      // Never include { user: true }.
+      ////////////////////////////////////////////////////////
 
       let phoneRecord =
         await prisma.userPhone.findUnique({
-
           where: {
             phone:
               normalizedPhone!,
           },
 
-          include: {
-            user: true,
+          select: {
+            id: true,
+            userId: true,
+            phone: true,
+            isVerified: true,
           },
-
         });
 
+      ////////////////////////////////////////////////////////
+      // LOAD CANONICAL USER MANUALLY
+      ////////////////////////////////////////////////////////
 
-      //////////////////////////////////////////////////////////
-      // RESOLVE USER
-      //////////////////////////////////////////////////////////
+      let user = null as Awaited<
+        ReturnType<
+          typeof prisma.user.findUnique
+        >
+      >;
 
-      let user =
-        phoneRecord?.user ||
-        null;
+      if (phoneRecord?.userId) {
+        user =
+          await prisma.user.findUnique({
+            where: {
+              id:
+                phoneRecord.userId,
+            },
+          });
+      }
 
+      ////////////////////////////////////////////////////////
+      // FALLBACK OTP USER
+      ////////////////////////////////////////////////////////
 
       if (
         !user &&
         verification.userId
       ) {
-
         user =
           await prisma.user.findUnique({
-
             where: {
               id:
                 verification.userId,
             },
-
           });
-
       }
 
-
-      //////////////////////////////////////////////////////////
-      // LOGIN MUST HAVE USER
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
+      // LOGIN REQUIRES USER
+      ////////////////////////////////////////////////////////
 
       if (
         purpose === "login" &&
         !user
       ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "No account is associated with this phone number",
-          },
-          {
-            status: 404,
-          }
+        return jsonError(
+          "No account is associated with this phone number",
+          404
         );
-
       }
-
-
-      //////////////////////////////////////////////////////////
-      // USER REQUIRED
-      //////////////////////////////////////////////////////////
 
       if (!user) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Unable to resolve user account",
-          },
-          {
-            status: 400,
-          }
+        return jsonError(
+          "Unable to resolve user account",
+          400
         );
-
       }
 
-
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
       // ACCOUNT STATUS
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
 
-      if (
-        user.isActive === false
-      ) {
+      const statusError =
+        validateAccountStatus(user);
 
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is inactive",
-          },
-          {
-            status: 403,
-          }
-        );
-
+      if (statusError) {
+        return statusError;
       }
 
-
-      if (
-        user.status &&
-        user.status !== "active"
-      ) {
-
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Account is not active",
-          },
-          {
-            status: 403,
-          }
-        );
-
-      }
-
-
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
       // CREATE / LINK PHONE
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
 
-      if (
-        !phoneRecord
-      ) {
-
+      if (!phoneRecord) {
         phoneRecord =
           await prisma.userPhone.create({
-
             data: {
-
               phone:
                 normalizedPhone!,
 
@@ -2124,95 +1699,82 @@ export async function POST(
 
               userId:
                 user.id,
-
             },
 
-            include: {
-              user: true,
+            select: {
+              id: true,
+              userId: true,
+              phone: true,
+              isVerified: true,
             },
-
           });
-
       } else {
-
-        ////////////////////////////////////////////////////////
-        // SECURITY CHECK
-        ////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////
+        // SECURITY
+        //////////////////////////////////////////////////////
 
         if (
           phoneRecord.userId !==
           user.id
         ) {
-
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                "This phone number belongs to another account",
-            },
-            {
-              status: 409,
-            }
+          return jsonError(
+            "This phone number belongs to another account",
+            409
           );
-
         }
 
-
-        ////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////
         // MARK VERIFIED
-        ////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////
 
         if (
           !phoneRecord.isVerified
         ) {
-
           phoneRecord =
             await prisma.userPhone.update({
-
               where: {
                 id:
                   phoneRecord.id,
               },
 
               data: {
-
                 isVerified:
                   true,
 
                 verifiedAt:
                   new Date(),
-
               },
 
-              include: {
-                user: true,
+              select: {
+                id: true,
+                userId: true,
+                phone: true,
+                isVerified: true,
               },
-
             });
-
         }
-
       }
 
-
-      //////////////////////////////////////////////////////////
-      // UPDATE LAST LOGIN
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
+      // PHONE LOGIN
+      ////////////////////////////////////////////////////////
 
       if (
         purpose === "login"
       ) {
+        //////////////////////////////////////////////////////
+        // IMPORTANT:
+        // Do NOT assign selected result back to `user`.
+        //////////////////////////////////////////////////////
 
-        user =
+        const loginUser =
           await prisma.user.update({
-
             where: {
               id:
                 user.id,
             },
 
             data: {
-
               lastLoginAt:
                 new Date(),
 
@@ -2221,29 +1783,54 @@ export async function POST(
                 "credentials"
                   ? "otp"
                   : user.provider,
-
             },
 
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+              role: true,
+              provider: true,
+            },
           });
 
+        return createLoginResponse({
+          id:
+            loginUser.id,
+
+          name:
+            loginUser.name,
+
+          email:
+            loginUser.email,
+
+          avatar:
+            loginUser.avatar,
+
+          role:
+            loginUser.role,
+
+          phone:
+            normalizedPhone,
+
+          provider:
+            loginUser.provider,
+        });
       }
 
-
-      //////////////////////////////////////////////////////////
-      // RESPONSE
-      //////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////
+      // NON-LOGIN PHONE FLOW
+      ////////////////////////////////////////////////////////
 
       return NextResponse.json(
         {
           success: true,
 
           message:
-            purpose === "login"
-              ? "OTP verified successfully"
-              : "Phone verified successfully",
+            "Phone verified successfully",
 
           user: {
-
             id:
               user.id,
 
@@ -2261,59 +1848,214 @@ export async function POST(
 
             phone:
               normalizedPhone,
-
           },
         },
         {
           status: 200,
         }
       );
-
     }
 
+    //////////////////////////////////////////////////////////
+    // EMAIL VERIFICATION / CHANGE EMAIL
+    //////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////
-    // UNSUPPORTED FLOW
-    ////////////////////////////////////////////////////////////
+    if (
+      channel === "email" &&
+      (
+        purpose === "verify_email" ||
+        purpose === "change_email"
+      )
+    ) {
+      let verification;
 
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Unsupported OTP verification flow",
-      },
-      {
-        status: 400,
+      try {
+        verification =
+          await verifyOtp({
+            channel:
+              "email",
+
+            email:
+              normalizedEmail!,
+
+            otp,
+
+            purpose,
+          });
+      } catch (error) {
+        return jsonError(
+          error instanceof Error
+            ? error.message
+            : "OTP verification failed",
+          400
+        );
       }
+
+      if (
+        !verification.userId
+      ) {
+        return jsonError(
+          "Unable to resolve user account",
+          400
+        );
+      }
+
+      const user =
+        await prisma.user.findUnique({
+          where: {
+            id:
+              verification.userId,
+          },
+        });
+
+      if (!user) {
+        return jsonError(
+          "User account not found",
+          404
+        );
+      }
+
+      const statusError =
+        validateAccountStatus(user);
+
+      if (statusError) {
+        return statusError;
+      }
+
+      const resolved =
+        await resolveEmailIdentity(
+          normalizedEmail!
+        );
+
+      const existingEmail =
+        resolved.emailRecord;
+
+      if (
+        existingEmail &&
+        existingEmail.userId !==
+          user.id
+      ) {
+        return jsonError(
+          "Email address is already linked to another account",
+          409
+        );
+      }
+
+      if (existingEmail) {
+        await prisma.userEmail.update({
+          where: {
+            id:
+              existingEmail.id,
+          },
+
+          data: {
+            isVerified:
+              true,
+
+            verifiedAt:
+              new Date(),
+          },
+        });
+      } else {
+        await prisma.userEmail.create({
+          data: {
+            email:
+              normalizedEmail!,
+
+            userId:
+              user.id,
+
+            isVerified:
+              true,
+
+            verifiedAt:
+              new Date(),
+          },
+        });
+      }
+
+      await prisma.user.update({
+        where: {
+          id:
+            user.id,
+        },
+
+        data: {
+          email:
+            normalizedEmail!,
+        },
+      });
+
+      await prisma.emailVerificationToken.updateMany({
+        where: {
+          userId:
+            user.id,
+
+          email:
+            normalizedEmail!,
+
+          consumedAt:
+            null,
+        },
+
+        data: {
+          consumedAt:
+            new Date(),
+        },
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+
+          message:
+            "Email verified successfully",
+
+          verificationMethod:
+            "otp",
+
+          user: {
+            id:
+              user.id,
+
+            name:
+              user.name,
+
+            email:
+              normalizedEmail,
+
+            avatar:
+              user.avatar,
+
+            role:
+              user.role,
+          },
+        },
+        {
+          status: 200,
+        }
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+    // UNSUPPORTED
+    //////////////////////////////////////////////////////////
+
+    return jsonError(
+      "Unsupported OTP verification flow",
+      400
     );
-
-  }
-
-
-  //////////////////////////////////////////////////////////////
-  // UNEXPECTED ERROR
-  //////////////////////////////////////////////////////////////
-
-  catch (error) {
-
+  } catch (error) {
     console.error(
-      "OTP VERIFY ERROR:",
+      "NATIONPATH OTP VERIFY ERROR:",
       error instanceof Error
         ? error.message
         : "Unknown error"
     );
 
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Unable to verify OTP",
-      },
-      {
-        status: 500,
-      }
+    return jsonError(
+      "Unable to verify OTP",
+      500
     );
-
   }
-
 }

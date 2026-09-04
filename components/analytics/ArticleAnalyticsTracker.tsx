@@ -1,29 +1,96 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+} from "react";
 
-type ArticleAnalyticsTrackerProps = {
-  articleId: string;
-  articleUrl: string;
-};
+//////////////////////////////////////////////////////////////
+//
+// NATIONPATH ANALYTICS
+// MASTER ANALYTICS TRACKER
+//
+// Supports:
+// - Article
+// - Editorial
+// - Astro
+// - Category
+//
+// Backend:
+// - Content  → /api/analytics/event
+// - Category → /api/analytics/category-event
+//
+// IMPORTANT:
+// - One reusable tracker
+// - No Prisma
+// - No analytics calculations
+// - SPA navigation safe
+// - StrictMode safe
+// - Analytics must never break UI
+//
+//////////////////////////////////////////////////////////////
 
-const SESSION_KEY = "nationpath_analytics_session";
+type ArticleEventType =
+  | "view"
+  | "read"
+  | "like"
+  | "reaction"
+  | "share"
+  | "video_play"
+  | "video_complete";
 
-const READ_TIME_MS = 30_000;
+type CategoryEventType =
+  | "view"
+  | "open"
+  | "read"
+  | "scroll";
 
-const SCROLL_MILESTONES = [25, 50, 75, 100];
+type ContentType =
+  | "article"
+  | "editorial"
+  | "astro";
+
+type AnalyticsTrackerProps =
+  | {
+      type: ContentType;
+      articleId: string;
+      articleUrl?: string;
+    }
+  | {
+      type: "category";
+      categoryId: string;
+      categoryUrl?: string;
+    };
+
+const SESSION_KEY =
+  "nationpath_analytics_session";
+
+const READ_TIME_MS =
+  15_000;
+
+const READ_SCROLL_PERCENTAGE =
+  50;
+
+//////////////////////////////////////////////////////////////
+// SESSION
+//////////////////////////////////////////////////////////////
 
 function getSessionId(): string {
   try {
-    const existing = sessionStorage.getItem(SESSION_KEY);
+    const existing =
+      sessionStorage.getItem(
+        SESSION_KEY
+      );
 
     if (existing) {
       return existing;
     }
 
     const id =
-      typeof crypto !== "undefined" &&
-      typeof crypto.randomUUID === "function"
+      typeof crypto !==
+        "undefined" &&
+      typeof crypto.randomUUID ===
+        "function"
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random()
             .toString(36)
@@ -42,53 +109,43 @@ function getSessionId(): string {
   }
 }
 
-function sendEvent(
-  articleId: string,
-  eventType: string,
-  articleUrl: string,
-  metadata?: Record<string, unknown>
+//////////////////////////////////////////////////////////////
+// EVENT SENDER
+//////////////////////////////////////////////////////////////
+
+function sendAnalyticsEvent(
+  endpoint: string,
+  payload: Record<
+    string,
+    unknown
+  >
 ) {
   try {
-    const payload = JSON.stringify({
-      eventType,
-      articleId,
+    const body =
+      JSON.stringify(payload);
 
-      sessionId: getSessionId(),
+    const blob =
+      new Blob(
+        [body],
+        {
+          type:
+            "application/json",
+        }
+      );
 
-      path:
-        typeof window !== "undefined"
-          ? window.location.pathname
-          : undefined,
-
-      source:
-        typeof document !== "undefined" &&
-        document.referrer
-          ? "referral"
-          : "direct",
-
-      referrer:
-        typeof document !== "undefined"
-          ? document.referrer || undefined
-          : undefined,
-
-      metadata: {
-        articleUrl,
-        ...metadata,
-      },
-    });
-
-    const blob = new Blob([payload], {
-      type: "application/json",
-    });
+    //////////////////////////////////////////////////////////
+    // BEACON
+    //////////////////////////////////////////////////////////
 
     if (
-      typeof navigator !== "undefined" &&
+      typeof navigator !==
+        "undefined" &&
       typeof navigator.sendBeacon ===
         "function"
     ) {
       const sent =
         navigator.sendBeacon(
-          "/api/analytics/event",
+          endpoint,
           blob
         );
 
@@ -97,8 +154,12 @@ function sendEvent(
       }
     }
 
+    //////////////////////////////////////////////////////////
+    // FETCH FALLBACK
+    //////////////////////////////////////////////////////////
+
     void fetch(
-      "/api/analytics/event",
+      endpoint,
       {
         method: "POST",
 
@@ -107,18 +168,167 @@ function sendEvent(
             "application/json",
         },
 
-        body: payload,
+        body,
 
         keepalive: true,
+
+        credentials: "same-origin",
       }
     ).catch(() => {});
   } catch {
-    // Analytics must never break the article page.
+    //////////////////////////////////////////////////////////
+    // Analytics is intentionally fail-safe.
+    //////////////////////////////////////////////////////////
   }
 }
 
+//////////////////////////////////////////////////////////////
+// CURRENT PATH
+//////////////////////////////////////////////////////////////
+
+function getCurrentPath():
+  | string
+  | undefined {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return undefined;
+  }
+
+  return window.location.pathname;
+}
+
+//////////////////////////////////////////////////////////////
+// REFERRER
+//////////////////////////////////////////////////////////////
+
+function getReferrer():
+  | string
+  | undefined {
+  if (
+    typeof document ===
+    "undefined"
+  ) {
+    return undefined;
+  }
+
+  return (
+    document.referrer ||
+    undefined
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// SOURCE
+//////////////////////////////////////////////////////////////
+
+function getSource(): string {
+  if (
+    typeof document ===
+      "undefined" ||
+    !document.referrer
+  ) {
+    return "direct";
+  }
+
+  return "referral";
+}
+
+//////////////////////////////////////////////////////////////
+// CONTENT EVENT
+//////////////////////////////////////////////////////////////
+
+function sendContentEvent(
+  contentType: ContentType,
+  articleId: string,
+  eventType: ArticleEventType,
+  articleUrl?: string,
+  metadata?: Record<
+    string,
+    unknown
+  >
+) {
+  sendAnalyticsEvent(
+    "/api/analytics/event",
+    {
+      eventType,
+
+      articleId,
+
+      sessionId:
+        getSessionId(),
+
+      path:
+        getCurrentPath(),
+
+      source:
+        getSource(),
+
+      referrer:
+        getReferrer(),
+
+      metadata: {
+        contentType,
+
+        articleUrl,
+
+        ...metadata,
+      },
+    }
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// CATEGORY EVENT
+//////////////////////////////////////////////////////////////
+
+function sendCategoryEvent(
+  categoryId: string,
+  eventType: CategoryEventType,
+  categoryUrl?: string,
+  metadata?: Record<
+    string,
+    unknown
+  >
+) {
+  sendAnalyticsEvent(
+    "/api/analytics/category-event",
+    {
+      eventType,
+
+      categoryId,
+
+      sessionId:
+        getSessionId(),
+
+      path:
+        getCurrentPath(),
+
+      source:
+        getSource(),
+
+      referrer:
+        getReferrer(),
+
+      metadata: {
+        categoryUrl,
+
+        ...metadata,
+      },
+    }
+  );
+}
+
+//////////////////////////////////////////////////////////////
+// SCROLL %
+//////////////////////////////////////////////////////////////
+
 function getScrollPercentage(): number {
-  if (typeof window === "undefined") {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return 0;
   }
 
@@ -133,7 +343,9 @@ function getScrollPercentage(): number {
     documentHeight -
     viewportHeight;
 
-  if (scrollableHeight <= 0) {
+  if (
+    scrollableHeight <= 0
+  ) {
     return 100;
   }
 
@@ -146,192 +358,264 @@ function getScrollPercentage(): number {
     100,
     Math.max(
       0,
-      Math.round(percentage)
+      Math.round(
+        percentage
+      )
     )
   );
 }
 
-export default function ArticleAnalyticsTracker({
-  articleId,
-  articleUrl,
-}: ArticleAnalyticsTrackerProps) {
-  const startedAt = useRef<number>(
-    Date.now()
-  );
+//////////////////////////////////////////////////////////////
+// MASTER TRACKER
+//////////////////////////////////////////////////////////////
+
+export default function AnalyticsTracker(
+  props: AnalyticsTrackerProps
+) {
+  ////////////////////////////////////////////////////////////
+  // CONTENT STATE
+  ////////////////////////////////////////////////////////////
 
   const accumulatedActiveMs =
     useRef<number>(0);
 
   const activeStartedAt =
-    useRef<number>(Date.now());
+    useRef<number>(0);
 
   const isActive =
-    useRef<boolean>(true);
+    useRef<boolean>(false);
 
   const maxScroll =
     useRef<number>(0);
 
-  const sentRead =
-    useRef<boolean>(false);
-
-  const sentOpen =
-    useRef<boolean>(false);
-
   const sentView =
     useRef<boolean>(false);
 
-  const sentMilestones =
-    useRef<Set<number>>(
-      new Set()
-    );
+  const sentRead =
+    useRef<boolean>(false);
+
+  ////////////////////////////////////////////////////////////
+  // TRACKING EFFECT
+  ////////////////////////////////////////////////////////////
 
   useEffect(() => {
-    /*
-    |--------------------------------------------------------------------------
-    | PREVENT DUPLICATE INITIAL EVENTS
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // RESET TRACKER STATE
+    //
+    // Critical for SPA navigation.
+    //////////////////////////////////////////////////////////
 
-    if (!sentOpen.current) {
-      sentOpen.current = true;
+    accumulatedActiveMs.current =
+      0;
 
-      sendEvent(
-        articleId,
-        "open",
-        articleUrl
+    activeStartedAt.current =
+      Date.now();
+
+    isActive.current =
+      document.visibilityState ===
+      "visible";
+
+    maxScroll.current =
+      0;
+
+    sentView.current =
+      false;
+
+    sentRead.current =
+      false;
+
+    //////////////////////////////////////////////////////////
+    // CATEGORY
+    //////////////////////////////////////////////////////////
+
+    if (
+      props.type ===
+      "category"
+    ) {
+      sendCategoryEvent(
+        props.categoryId,
+        "view",
+        props.categoryUrl
       );
+
+      ////////////////////////////////////////////////////////
+      // CATEGORY SCROLL
+      //
+      // One scroll event once the user reaches 50%.
+      ////////////////////////////////////////////////////////
+
+      let sentCategoryScroll =
+        false;
+
+      const handleCategoryScroll =
+        () => {
+          const percentage =
+            getScrollPercentage();
+
+          if (
+            percentage >=
+              READ_SCROLL_PERCENTAGE &&
+            !sentCategoryScroll
+          ) {
+            sentCategoryScroll =
+              true;
+
+            sendCategoryEvent(
+              props.categoryId,
+              "scroll",
+              props.categoryUrl,
+              {
+                scrollPercentage:
+                  percentage,
+              }
+            );
+          }
+        };
+
+      window.addEventListener(
+        "scroll",
+        handleCategoryScroll,
+        {
+          passive: true,
+        }
+      );
+
+      return () => {
+        window.removeEventListener(
+          "scroll",
+          handleCategoryScroll
+        );
+      };
     }
 
-    if (!sentView.current) {
-      sentView.current = true;
+    //////////////////////////////////////////////////////////
+    // CONTENT
+    //////////////////////////////////////////////////////////
 
-      sendEvent(
+    const {
+      type,
+      articleId,
+      articleUrl,
+    } = props;
+
+    //////////////////////////////////////////////////////////
+    // VIEW
+    //////////////////////////////////////////////////////////
+
+    if (
+      !sentView.current
+    ) {
+      sentView.current =
+        true;
+
+      sendContentEvent(
+        type,
         articleId,
         "view",
         articleUrl
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACTIVE TIME
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // ACTIVE TIME
+    //////////////////////////////////////////////////////////
 
     const updateActiveTime =
       () => {
-        if (!isActive.current) {
+        if (
+          !isActive.current
+        ) {
           return;
         }
 
-        const now = Date.now();
+        const now =
+          Date.now();
 
-        accumulatedActiveMs.current +=
-          now -
-          activeStartedAt.current;
+        if (
+          activeStartedAt.current >
+          0
+        ) {
+          accumulatedActiveMs.current +=
+            now -
+            activeStartedAt.current;
+        }
 
         activeStartedAt.current =
           now;
       };
 
-    /*
-    |--------------------------------------------------------------------------
-    | READ EVENT
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // READ
+    //////////////////////////////////////////////////////////
 
-    const sendReadEvent = () => {
-      if (sentRead.current) {
-        return;
-      }
-
-      updateActiveTime();
-
-      sentRead.current = true;
-
-      sendEvent(
-        articleId,
-        "read",
-        articleUrl,
-        {
-          readPercentage:
-            maxScroll.current,
-
-          durationSeconds: Math.round(
-            accumulatedActiveMs.current /
-              1000
-          ),
-        }
-      );
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | SCROLL
-    |--------------------------------------------------------------------------
-    */
-
-    const handleScroll = () => {
-      const percentage =
-        getScrollPercentage();
-
-      if (
-        percentage >
-        maxScroll.current
-      ) {
-        maxScroll.current =
-          percentage;
-      }
-
-      /*
-      |--------------------------------------------------------------------------
-      | SCROLL MILESTONES
-      |--------------------------------------------------------------------------
-      */
-
-      for (const milestone of SCROLL_MILESTONES) {
+    const sendReadEvent =
+      (
+        trigger:
+          | "time"
+          | "scroll"
+      ) => {
         if (
-          percentage >= milestone &&
-          !sentMilestones.current.has(
-            milestone
-          )
+          sentRead.current
         ) {
-          sentMilestones.current.add(
-            milestone
-          );
+          return;
+        }
 
-          sendEvent(
-            articleId,
-            "scroll",
-            articleUrl,
-            {
-              percentage: milestone,
-              maxScroll:
-                maxScroll.current,
-            }
+        updateActiveTime();
+
+        sentRead.current =
+          true;
+
+        sendContentEvent(
+          type,
+          articleId,
+          "read",
+          articleUrl,
+          {
+            readPercentage:
+              maxScroll.current,
+
+            durationSeconds:
+              Math.round(
+                accumulatedActiveMs.current /
+                  1000
+              ),
+
+            trigger,
+          }
+        );
+      };
+
+    //////////////////////////////////////////////////////////
+    // SCROLL
+    //////////////////////////////////////////////////////////
+
+    const handleScroll =
+      () => {
+        const percentage =
+          getScrollPercentage();
+
+        if (
+          percentage >
+          maxScroll.current
+        ) {
+          maxScroll.current =
+            percentage;
+        }
+
+        if (
+          percentage >=
+            READ_SCROLL_PERCENTAGE &&
+          !sentRead.current
+        ) {
+          sendReadEvent(
+            "scroll"
           );
         }
-      }
+      };
 
-      /*
-      |--------------------------------------------------------------------------
-      | READ AT 75%
-      |--------------------------------------------------------------------------
-      */
-
-      if (
-        percentage >= 75 &&
-        !sentRead.current
-      ) {
-        sendReadEvent();
-      }
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | VISIBILITY
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // VISIBILITY
+    //////////////////////////////////////////////////////////
 
     const handleVisibilityChange =
       () => {
@@ -341,7 +625,8 @@ export default function ArticleAnalyticsTracker({
         ) {
           updateActiveTime();
 
-          isActive.current = false;
+          isActive.current =
+            false;
 
           return;
         }
@@ -350,40 +635,45 @@ export default function ArticleAnalyticsTracker({
           document.visibilityState ===
           "visible"
         ) {
-          isActive.current = true;
+          isActive.current =
+            true;
 
           activeStartedAt.current =
             Date.now();
         }
       };
 
-    /*
-    |--------------------------------------------------------------------------
-    | 30 SECOND READ CHECK
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // ACTIVE READING TIMER
+    //////////////////////////////////////////////////////////
 
     const interval =
-      window.setInterval(() => {
-        if (sentRead.current) {
-          return;
-        }
+      window.setInterval(
+        () => {
+          if (
+            sentRead.current ||
+            !isActive.current
+          ) {
+            return;
+          }
 
-        updateActiveTime();
+          updateActiveTime();
 
-        if (
-          accumulatedActiveMs.current >=
-          READ_TIME_MS
-        ) {
-          sendReadEvent();
-        }
-      }, 5_000);
+          if (
+            accumulatedActiveMs.current >=
+            READ_TIME_MS
+          ) {
+            sendReadEvent(
+              "time"
+            );
+          }
+        },
+        1_000
+      );
 
-    /*
-    |--------------------------------------------------------------------------
-    | EVENT LISTENERS
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // LISTENERS
+    //////////////////////////////////////////////////////////
 
     window.addEventListener(
       "scroll",
@@ -398,11 +688,9 @@ export default function ArticleAnalyticsTracker({
       handleVisibilityChange
     );
 
-    /*
-    |--------------------------------------------------------------------------
-    | CLEANUP
-    |--------------------------------------------------------------------------
-    */
+    //////////////////////////////////////////////////////////
+    // CLEANUP
+    //////////////////////////////////////////////////////////
 
     return () => {
       updateActiveTime();
@@ -421,7 +709,17 @@ export default function ArticleAnalyticsTracker({
         interval
       );
     };
-  }, [articleId, articleUrl]);
+  }, [
+    props.type,
+    props.type ===
+    "category"
+      ? props.categoryId
+      : props.articleId,
+    props.type ===
+    "category"
+      ? props.categoryUrl
+      : props.articleUrl,
+  ]);
 
   return null;
 }

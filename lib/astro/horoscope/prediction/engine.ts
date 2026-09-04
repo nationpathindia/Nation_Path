@@ -1,13 +1,19 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
 //
-// HOROSCOPE PREDICTION INTELLIGENCE ENGINE v4.1 LOCK
+// HOROSCOPE PREDICTION INTELLIGENCE ENGINE v4.2
 //
 // Prediction Intelligence
 // +
 // Language Context Routing
 // +
+// Confidence Intelligence
+// +
+// Prediction Prioritization
+// +
 // Premium Narrative Foundation
+// +
+// Quality Intelligence
 //
 // NO calculations.
 // NO ephemeris.
@@ -113,6 +119,8 @@ import {
 
   createPredictionContext,
 
+  updatePredictionPhase,
+
 } from "./context";
 
 
@@ -133,11 +141,9 @@ import {
 function normalizePlanets(
 
   snapshot:
-
     Record<string, HoroscopePlanet>
 
 ): HoroscopePlanet[] {
-
 
   return Object.values(
 
@@ -145,11 +151,7 @@ function normalizePlanets(
 
   )
 
-  .filter(
-
-    Boolean
-
-  );
+  .filter(Boolean);
 
 }
 
@@ -167,7 +169,6 @@ function getTemplateMessage(
 
 ): string {
 
-
   const planetName =
 
     getPredictionPlanetId(
@@ -177,7 +178,6 @@ function getTemplateMessage(
     );
 
 
-
   const template =
 
     PLANET_PREDICTION_TEMPLATES[
@@ -185,7 +185,6 @@ function getTemplateMessage(
       planetName
 
     ];
-
 
 
   if(!template){
@@ -199,7 +198,6 @@ function getTemplateMessage(
   }
 
 
-
   if(
 
     planet.strength.score >= 70
@@ -211,7 +209,6 @@ function getTemplateMessage(
   }
 
 
-
   if(
 
     planet.strength.score <= 40
@@ -221,7 +218,6 @@ function getTemplateMessage(
     return template.weak;
 
   }
-
 
 
   return template.neutral;
@@ -242,7 +238,6 @@ function getDominantPlanets(
 
 ): HoroscopePlanet[] {
 
-
   return [
 
     ...planets,
@@ -252,7 +247,6 @@ function getDominantPlanets(
   .sort(
 
     (a,b)=>{
-
 
       const scoreDifference =
 
@@ -293,6 +287,11 @@ function getDominantPlanets(
   );
 
 }
+
+
+
+
+
 //////////////////////////////////////////////////////////////
 // HEADLINE INTELLIGENCE
 //////////////////////////////////////////////////////////////
@@ -305,11 +304,9 @@ function generateHeadline(
 
 ): string {
 
-
   const strongest =
 
     planets[0];
-
 
 
   if(!strongest){
@@ -321,7 +318,6 @@ function generateHeadline(
     );
 
   }
-
 
 
   const language =
@@ -337,7 +333,6 @@ function generateHeadline(
     );
 
 
-
   return (
 
     `${getPredictionPlanetId(
@@ -347,7 +342,6 @@ function generateHeadline(
     )} creates the primary influence for this phase. ${language.statement}`
 
   );
-
 
 }
 
@@ -367,11 +361,9 @@ function generateOverview(
 
 ): string {
 
-
   const strongest =
 
     planets[0];
-
 
 
   if(!strongest){
@@ -383,7 +375,6 @@ function generateOverview(
     );
 
   }
-
 
 
   const language =
@@ -399,13 +390,11 @@ function generateOverview(
     );
 
 
-
   return (
 
     `${language.statement} ${language.explanation}`
 
   );
-
 
 }
 
@@ -425,7 +414,6 @@ function generatePlanetGuidance(
 
 ): string[] {
 
-
   const language =
 
     generatePlanetPredictionLanguage(
@@ -439,7 +427,6 @@ function generatePlanetGuidance(
     );
 
 
-
   return [
 
     language.advice,
@@ -447,7 +434,6 @@ function generatePlanetGuidance(
     language.explanation,
 
   ];
-
 
 }
 
@@ -462,8 +448,6 @@ function generateGuidance(
   zodiacSign?: string
 
 ): string[] {
-
-
 
   const guidance =
 
@@ -502,7 +486,6 @@ function generateGuidance(
     );
 
 
-
   return guidance
 
     .filter(
@@ -528,9 +511,11 @@ function generateGuidance(
 
 
 //////////////////////////////////////////////////////////////
-// PLANET PREDICTION BUILDER v4.1
+// PLANET PREDICTION BUILDER v4.2
 //
-// Zodiac Context Routed
+// Language Intelligence
+// +
+// Planet Strength
 //////////////////////////////////////////////////////////////
 
 function buildPlanetPrediction(
@@ -540,8 +525,6 @@ function buildPlanetPrediction(
   zodiacSign?: string
 
 ): PlanetPrediction {
-
-
 
   const language =
 
@@ -556,9 +539,12 @@ function buildPlanetPrediction(
     );
 
 
+  const strengthScore =
+
+    planet.strength.score;
+
 
   return {
-
 
     planet:
 
@@ -569,11 +555,7 @@ function buildPlanetPrediction(
       ),
 
 
-
-    strengthScore:
-
-      planet.strength.score,
-
+    strengthScore,
 
 
     dignity:
@@ -581,11 +563,9 @@ function buildPlanetPrediction(
       planet.strength.dignity,
 
 
-
     message:
 
       language.statement,
-
 
 
     positive:
@@ -609,7 +589,6 @@ function buildPlanetPrediction(
       [],
 
 
-
     caution:
 
       isWeakPredictionPlanet(
@@ -631,7 +610,6 @@ function buildPlanetPrediction(
       [],
 
 
-
     keywords:
 
       getPlanetKeywords(
@@ -641,22 +619,23 @@ function buildPlanetPrediction(
       ),
 
 
-
     confidence:
 
-      planet.strength.score,
-
+      strengthScore,
 
 
     influenceScore:
 
-      planet.strength.score,
+      strengthScore,
 
 
   };
 
-
 }
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 // LIFE AREA SCORE CONTEXT
@@ -672,12 +651,17 @@ function calculateLifeAreaScore(
 
 ): number {
 
-
   let score =
 
     planet.strength.score;
 
 
+  //
+  // Zodiac context remains a lightweight
+  // deterministic context modifier.
+  //
+  // No planetary calculation is performed here.
+  //
 
   if(zodiacSign){
 
@@ -691,12 +675,13 @@ function calculateLifeAreaScore(
 
         (sum,char)=>
 
-          sum + char.charCodeAt(0),
+          sum +
+
+          char.charCodeAt(0),
 
         0
 
       ) % 11;
-
 
 
     score +=
@@ -704,7 +689,6 @@ function calculateLifeAreaScore(
       zodiacFactor - 5;
 
   }
-
 
 
   return Math.max(
@@ -715,13 +699,14 @@ function calculateLifeAreaScore(
 
       100,
 
-      score
+      Math.round(score)
 
     )
 
   );
 
 }
+
 
 
 
@@ -736,13 +721,11 @@ function calculateLifeScore(
 
 ): number {
 
-
   if(messages.length === 0){
 
     return 0;
 
   }
-
 
 
   const total =
@@ -758,7 +741,6 @@ function calculateLifeScore(
     );
 
 
-
   return Math.round(
 
     total /
@@ -767,17 +749,14 @@ function calculateLifeScore(
 
   );
 
-
 }
 
 
 
 
 
-
-
 //////////////////////////////////////////////////////////////
-// LIFE PREDICTION BUILDER v4.1
+// LIFE PREDICTION BUILDER v4.2
 //
 // Planet Intelligence
 // +
@@ -794,7 +773,6 @@ function buildLifePredictions(
 
 ): LifePrediction[] {
 
-
   const areaMap =
 
     new Map<
@@ -804,9 +782,6 @@ function buildLifePredictions(
       PredictionMessage[]
 
     >();
-
-
-
 
 
   const sortedPlanets =
@@ -828,15 +803,11 @@ function buildLifePredictions(
     );
 
 
-
-
-
   for(
 
     const planet of sortedPlanets
 
   ){
-
 
     const planetName =
 
@@ -845,7 +816,6 @@ function buildLifePredictions(
         planet
 
       );
-
 
 
     const areas =
@@ -861,15 +831,11 @@ function buildLifePredictions(
       [];
 
 
-
-
-
     for(
 
       const area of areas
 
     ){
-
 
       const messages =
 
@@ -884,9 +850,6 @@ function buildLifePredictions(
         [];
 
 
-
-
-
       const language =
 
         generatePlanetPredictionLanguage(
@@ -898,9 +861,6 @@ function buildLifePredictions(
           zodiacSign
 
         );
-
-
-
 
 
       const keywords =
@@ -928,31 +888,26 @@ function buildLifePredictions(
         );
 
 
+      const score =
 
+        calculateLifeAreaScore(
 
-const score =
+          planet,
 
-  calculateLifeAreaScore(
+          area,
 
-    planet,
+          zodiacSign
 
-    area,
-
-    zodiacSign
-
-  );
-
+        );
 
 
       const predictionMessage:
 
         PredictionMessage = {
 
-
         category:
 
           area,
-
 
 
         title:
@@ -960,11 +915,9 @@ const score =
           `${planetName} influence in ${area}`,
 
 
-
         prediction:
 
           language.statement,
-
 
 
         explanation:
@@ -972,11 +925,9 @@ const score =
           language.explanation,
 
 
-
         guidance:
 
           language.advice,
-
 
 
         recommendation:
@@ -984,21 +935,17 @@ const score =
           language.advice,
 
 
-
         summary:
 
           language.explanation,
 
 
-
         keywords,
-
 
 
         priority:
 
           score,
-
 
 
         source:
@@ -1010,17 +957,14 @@ const score =
           ),
 
 
-
         confidence:
 
           score,
 
 
-
         influenceScore:
 
           score,
-
 
 
         severity:
@@ -1044,7 +988,6 @@ const score =
             "medium",
 
 
-
         tags:
 
           [
@@ -1055,11 +998,7 @@ const score =
 
           ],
 
-
       };
-
-
-
 
 
       messages.push(
@@ -1067,9 +1006,6 @@ const score =
         predictionMessage
 
       );
-
-
-
 
 
       areaMap.set(
@@ -1080,30 +1016,66 @@ const score =
 
       );
 
-
     }
-
 
   }
 
 
-console.log("🔥 LIFE BUILD CHECK", {
+  console.log(
 
-  zodiac: zodiacSign,
+    "🔥 LIFE BUILD CHECK",
 
-  planets: sortedPlanets.map(p => ({
-    planet: getPredictionPlanetId(p),
-    strength: p.strength.score
-  })),
+    {
 
-  areas: Array.from(areaMap.entries()).map(
-    ([area, messages]) => ({
-      area,
-      scores: messages.map(m => m.priority)
-    })
-  )
+      zodiac:
 
-});
+        zodiacSign,
+
+      planets:
+
+        sortedPlanets.map(
+
+          p => ({
+
+            planet:
+
+              getPredictionPlanetId(p),
+
+            strength:
+
+              p.strength.score,
+
+          })
+
+        ),
+
+      areas:
+
+        Array.from(
+
+          areaMap.entries()
+
+        ).map(
+
+          ([area,messages]) => ({
+
+            area,
+
+            scores:
+
+              messages.map(
+
+                m => m.priority
+
+              ),
+
+          })
+
+        ),
+
+    }
+
+  );
 
 
   return Array.from(
@@ -1114,8 +1086,7 @@ console.log("🔥 LIFE BUILD CHECK", {
 
   .map(
 
-    ([area,messages])=>{
-
+    ([area,messages]) => {
 
       const score =
 
@@ -1126,10 +1097,13 @@ console.log("🔥 LIFE BUILD CHECK", {
         );
 
 
-
       const sortedMessages =
 
-        messages.sort(
+        [
+
+          ...messages,
+
+        ].sort(
 
           (a,b)=>
 
@@ -1138,9 +1112,6 @@ console.log("🔥 LIFE BUILD CHECK", {
             a.priority
 
         );
-
-
-
 
 
       const trend:
@@ -1155,7 +1126,6 @@ console.log("🔥 LIFE BUILD CHECK", {
 
         "balanced" =
 
-
         score >= 70
 
           ?
@@ -1164,7 +1134,7 @@ console.log("🔥 LIFE BUILD CHECK", {
 
           :
 
-        score <=40
+        score <= 40
 
           ?
 
@@ -1175,18 +1145,12 @@ console.log("🔥 LIFE BUILD CHECK", {
           "balanced";
 
 
-
-
-
       return {
-
 
         area,
 
 
-
         score,
-
 
 
         messages:
@@ -1194,17 +1158,14 @@ console.log("🔥 LIFE BUILD CHECK", {
           sortedMessages,
 
 
-
         confidence:
 
           score,
 
 
-
         dominantPlanet:
 
           sortedMessages[0]?.title,
-
 
 
         summary:
@@ -1230,12 +1191,9 @@ console.log("🔥 LIFE BUILD CHECK", {
           .join(" "),
 
 
-
         trend,
 
-
       };
-
 
     }
 
@@ -1252,9 +1210,6 @@ console.log("🔥 LIFE BUILD CHECK", {
   );
 
 }
-
-
-
 
 
 
@@ -1282,7 +1237,6 @@ function buildInsights(
 
 ): PredictionInsight[] {
 
-
   const result:
 
     PredictionInsight[]
@@ -1290,16 +1244,11 @@ function buildInsights(
     = [];
 
 
-
-
-
   for(
 
     const planet of planets
 
   ){
-
-
 
     const active =
 
@@ -1322,17 +1271,11 @@ function buildInsights(
       );
 
 
-
-
-
     if(!active){
 
       continue;
 
     }
-
-
-
 
 
     const language =
@@ -1348,12 +1291,7 @@ function buildInsights(
       );
 
 
-
-
-
     result.push({
-
-
 
       title:
 
@@ -1362,7 +1300,6 @@ function buildInsights(
           planet
 
         )} influence`,
-
 
 
       description:
@@ -1378,7 +1315,6 @@ function buildInsights(
         language.explanation,
 
 
-
       keywords:
 
         getPlanetKeywords(
@@ -1388,11 +1324,9 @@ function buildInsights(
         ),
 
 
-
       priority:
 
         planet.strength.score,
-
 
 
       confidence:
@@ -1400,14 +1334,17 @@ function buildInsights(
         planet.strength.score,
 
 
+      source:
+
+        getPredictionSources(
+
+          planet
+
+        ),
+
     });
 
-
-
   }
-
-
-
 
 
   return result.sort(
@@ -1420,12 +1357,14 @@ function buildInsights(
 
   );
 
-
 }
+
+
+
+
+
 //////////////////////////////////////////////////////////////
 // DOMINANT PLANET PREMIUM SUMMARY
-//
-// Future Premium Report Foundation
 //////////////////////////////////////////////////////////////
 
 function buildDominantPlanetSummary(
@@ -1436,11 +1375,9 @@ function buildDominantPlanetSummary(
 
 ){
 
-
   return planets.map(
 
     planet => {
-
 
       const language =
 
@@ -1455,9 +1392,7 @@ function buildDominantPlanetSummary(
         );
 
 
-
       return {
-
 
         planet:
 
@@ -1468,11 +1403,9 @@ function buildDominantPlanetSummary(
           ),
 
 
-
         strength:
 
           planet.strength.score,
-
 
 
         dignity:
@@ -1480,11 +1413,9 @@ function buildDominantPlanetSummary(
           planet.strength.dignity,
 
 
-
         statement:
 
           language.statement,
-
 
 
         explanation:
@@ -1492,23 +1423,17 @@ function buildDominantPlanetSummary(
           language.explanation,
 
 
-
         advice:
 
           language.advice,
 
-
       };
-
 
     }
 
   );
 
-
 }
-
-
 
 
 
@@ -1526,13 +1451,11 @@ function buildLifeAreaNarrative(
 
 ){
 
-
   return lifePredictions
 
     .map(
 
       area => {
-
 
         if(
 
@@ -1543,9 +1466,6 @@ function buildLifeAreaNarrative(
           return null;
 
         }
-
-
-
 
 
         const topMessages =
@@ -1559,22 +1479,16 @@ function buildLifeAreaNarrative(
           );
 
 
-
-
-
         return {
-
 
           area:
 
             area.area,
 
 
-
           score:
 
             area.score,
-
 
 
           headline:
@@ -1584,7 +1498,6 @@ function buildLifeAreaNarrative(
             ??
 
             "",
-
 
 
           summary:
@@ -1602,7 +1515,6 @@ function buildLifeAreaNarrative(
             .join(" "),
 
 
-
           guidance:
 
             topMessages
@@ -1615,8 +1527,9 @@ function buildLifeAreaNarrative(
 
             )
 
-            .join(" "),
+            .filter(Boolean)
 
+            .join(" "),
 
 
           planets:
@@ -1633,9 +1546,7 @@ function buildLifeAreaNarrative(
 
             .filter(Boolean),
 
-
         };
-
 
       }
 
@@ -1643,10 +1554,7 @@ function buildLifeAreaNarrative(
 
     .filter(Boolean);
 
-
 }
-
-
 
 
 
@@ -1668,7 +1576,6 @@ function calculatePredictionBalance(
 
 ){
 
-
   const positiveScore =
 
     opportunities.reduce(
@@ -1680,9 +1587,6 @@ function calculatePredictionBalance(
       0
 
     );
-
-
-
 
 
   const cautionScore =
@@ -1698,18 +1602,12 @@ function calculatePredictionBalance(
     );
 
 
-
-
-
   return {
-
 
     positiveScore,
 
 
-
     cautionScore,
-
 
 
     balance:
@@ -1717,7 +1615,6 @@ function calculatePredictionBalance(
       positiveScore -
 
       cautionScore,
-
 
 
     trend:
@@ -1740,13 +1637,9 @@ function calculatePredictionBalance(
 
         "balanced",
 
-
   };
 
-
 }
-
-
 
 
 
@@ -1758,20 +1651,16 @@ function calculatePredictionBalance(
 
 function buildEngineMetadata(){
 
-
   return {
-
 
     engine:
 
       "NationPath Astro Horoscope Intelligence Engine",
 
 
-
     version:
 
-      "4.1",
-
+      "4.2",
 
 
     layers:
@@ -1784,6 +1673,10 @@ function buildEngineMetadata(){
 
         "Language Context Routing",
 
+        "Confidence Intelligence",
+
+        "Prediction Prioritization",
+
         "Narrative Intelligence",
 
         "Quality Intelligence",
@@ -1791,11 +1684,9 @@ function buildEngineMetadata(){
       ],
 
 
-
     calculation:
 
       "External Astro Calculation Layer",
-
 
 
     predictionMode:
@@ -1803,18 +1694,13 @@ function buildEngineMetadata(){
       "Deterministic Intelligence",
 
 
-
     premiumReady:
 
       true,
 
-
   };
 
-
 }
-
-
 
 
 
@@ -1829,7 +1715,6 @@ function normalizePredictionText(
   value:string
 
 ):string {
-
 
   if(
 
@@ -1848,7 +1733,6 @@ function normalizePredictionText(
   }
 
 
-
   return value;
 
 }
@@ -1857,11 +1741,8 @@ function normalizePredictionText(
 
 
 
-
-
-
 //////////////////////////////////////////////////////////////
-// MAIN HOROSCOPE PREDICTION ENGINE v4.1
+// MAIN HOROSCOPE PREDICTION ENGINE v4.2
 //////////////////////////////////////////////////////////////
 
 export function predictHoroscope(
@@ -1886,15 +1767,11 @@ export function predictHoroscope(
 
     string
 
-
 ): HoroscopePrediction {
 
 
-
-
-
   ////////////////////////////////////////////////////////////
-  // PLANET NORMALIZATION
+  // 1. PLANET NORMALIZATION
   ////////////////////////////////////////////////////////////
 
   const planets =
@@ -1906,11 +1783,8 @@ export function predictHoroscope(
     );
 
 
-
-
-
   ////////////////////////////////////////////////////////////
-  // DOMINANT PLANETS
+  // 2. DOMINANT PLANETS
   ////////////////////////////////////////////////////////////
 
   const dominantPlanets =
@@ -1920,43 +1794,55 @@ export function predictHoroscope(
       planets
 
     );
-const narrativePlanets = [
-
-  ...planets,
-
-].sort(
-
-  (a,b) =>
-
-    b.strength.score -
-
-    a.strength.score
-
-);
-
-
 
 
   ////////////////////////////////////////////////////////////
-  // CORE PREDICTIONS
+  // 3. NARRATIVE PLANET ORDER
   ////////////////////////////////////////////////////////////
-const planetaryPredictions =
 
-  narrativePlanets.map(
+  const narrativePlanets =
 
-    planet =>
+    [
 
-      buildPlanetPrediction(
+      ...planets,
 
-        planet,
+    ]
 
-        zodiacSign
+    .sort(
 
-      )
+      (a,b) =>
 
-  );
+        b.strength.score -
+
+        a.strength.score
+
+    );
 
 
+  ////////////////////////////////////////////////////////////
+  // 4. CORE PLANET PREDICTIONS
+  ////////////////////////////////////////////////////////////
+
+  const planetaryPredictions =
+
+    narrativePlanets.map(
+
+      planet =>
+
+        buildPlanetPrediction(
+
+          planet,
+
+          zodiacSign
+
+        )
+
+    );
+
+
+  ////////////////////////////////////////////////////////////
+  // 5. LIFE PREDICTIONS
+  ////////////////////////////////////////////////////////////
 
   const lifePredictions =
 
@@ -1969,8 +1855,9 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 6. OPPORTUNITIES
+  ////////////////////////////////////////////////////////////
 
   const opportunities =
 
@@ -1985,8 +1872,9 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 7. CAUTIONS
+  ////////////////////////////////////////////////////////////
 
   const cautions =
 
@@ -2001,8 +1889,9 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 8. GUIDANCE
+  ////////////////////////////////////////////////////////////
 
   const guidance =
 
@@ -2015,13 +1904,8 @@ const planetaryPredictions =
     );
 
 
-
-
-
-
-
   ////////////////////////////////////////////////////////////
-  // PREMIUM LAYERS
+  // 9. PREMIUM PLANET SUMMARY
   ////////////////////////////////////////////////////////////
 
   const dominantPlanetSummary =
@@ -2035,8 +1919,9 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 10. PREMIUM LIFE AREA NARRATIVE
+  ////////////////////////////////////////////////////////////
 
   const lifeAreaNarrative =
 
@@ -2047,8 +1932,9 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 11. PREDICTION BALANCE
+  ////////////////////////////////////////////////////////////
 
   const predictionBalance =
 
@@ -2061,109 +1947,96 @@ const planetaryPredictions =
     );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 12. ENGINE METADATA
+  ////////////////////////////////////////////////////////////
 
   const engineMetadata =
 
     buildEngineMetadata();
 
 
-
-
-
-
   ////////////////////////////////////////////////////////////
-  // BASE RESULT
+  // 13. BASE RESULT
   ////////////////////////////////////////////////////////////
 
   const predictionResult:
 
     HoroscopePrediction = {
 
+    version:
 
-      version:
-
-        "4.1",
-
+      "4.2",
 
 
-      language,
+    language,
 
 
+    headline:
 
-      headline:
+      normalizePredictionText(
 
-        normalizePredictionText(
+        generateHeadline(
 
-          generateHeadline(
+          dominantPlanets,
 
-            dominantPlanets,
+          zodiacSign
 
-            zodiacSign
+        )
 
-          )
-
-        ),
-
+      ),
 
 
-      overview:
+    overview:
 
-        normalizePredictionText(
+      normalizePredictionText(
 
-          generateOverview(
+        generateOverview(
 
-            dominantPlanets,
+          dominantPlanets,
 
-            zodiacSign
+          zodiacSign
 
-          )
+        )
 
-        ),
-
-
-
-      planetaryPredictions,
+      ),
 
 
-
-      lifePredictions,
-
+    planetaryPredictions,
 
 
-      opportunities,
+    lifePredictions,
 
 
-
-      cautions,
-
+    opportunities,
 
 
-      guidance,
+    cautions,
 
 
-
-      generatedAt:
-
-        new Date(),
+    guidance,
 
 
-    };
+    zodiacSign,
 
 
+    generatedAt:
 
+      new Date(),
 
+  };
 
 
   ////////////////////////////////////////////////////////////
-  // CONTEXT
+  // 14. SHARED PREDICTION CONTEXT
+  //
+  // Everything below this point uses the same
+  // normalized prediction state.
   ////////////////////////////////////////////////////////////
 
-  const predictionContext =
+  let predictionContext =
 
     createPredictionContext({
-
 
       language,
 
@@ -2176,7 +2049,9 @@ const planetaryPredictions =
         "analysis",
 
 
-      planets: narrativePlanets,
+      planets:
+
+        narrativePlanets,
 
 
       dominantPlanets,
@@ -2196,17 +2071,26 @@ const planetaryPredictions =
 
       guidance,
 
-
     });
 
 
-
-
-
-
   ////////////////////////////////////////////////////////////
-  // QUALITY INTELLIGENCE
+  // 15. CONFIDENCE INTELLIGENCE
+  //
+  // Confidence is calculated from the complete
+  // prediction context.
   ////////////////////////////////////////////////////////////
+
+  predictionContext =
+
+    updatePredictionPhase(
+
+      predictionContext,
+
+      "quality"
+
+    );
+
 
   const predictionConfidence =
 
@@ -2217,7 +2101,23 @@ const planetaryPredictions =
     );
 
 
+  ////////////////////////////////////////////////////////////
+  // 16. PRIORITIZATION INTELLIGENCE
+  //
+  // Ranking uses the same context and therefore
+  // sees planetary predictions, life areas,
+  // confidence inputs and insights together.
+  ////////////////////////////////////////////////////////////
 
+  predictionContext =
+
+    updatePredictionPhase(
+
+      predictionContext,
+
+      "ranking"
+
+    );
 
 
   const predictionRanking =
@@ -2229,8 +2129,19 @@ const planetaryPredictions =
     );
 
 
+  ////////////////////////////////////////////////////////////
+  // 17. LANGUAGE / NATURAL SUMMARY
+  ////////////////////////////////////////////////////////////
 
+  predictionContext =
 
+    updatePredictionPhase(
+
+      predictionContext,
+
+      "language"
+
+    );
 
 
   const naturalSummary =
@@ -2246,12 +2157,11 @@ const planetaryPredictions =
     );
 
 
-
-
-
+  ////////////////////////////////////////////////////////////
+  // 18. PREMIUM NARRATIVE
+  ////////////////////////////////////////////////////////////
 
   const narrative = {
-
 
     opening:
 
@@ -2262,16 +2172,15 @@ const planetaryPredictions =
       ),
 
 
-development:
+    development:
 
-  generateDevelopment(
+      generateDevelopment(
 
-    predictionRanking,
+        predictionRanking,
 
-    zodiacSign
+        zodiacSign
 
-  ),
-
+      ),
 
 
     advice:
@@ -2283,18 +2192,26 @@ development:
       ),
 
 
-
     closing:
 
       generateClosing(),
 
-
   };
 
 
+  ////////////////////////////////////////////////////////////
+  // 19. QUALITY INTELLIGENCE
+  ////////////////////////////////////////////////////////////
 
+  predictionContext =
 
+    updatePredictionPhase(
 
+      predictionContext,
+
+      "quality"
+
+    );
 
 
   const quality =
@@ -2321,54 +2238,56 @@ development:
     );
 
 
+  ////////////////////////////////////////////////////////////
+  // 20. FINAL CONTEXT STATE
+  ////////////////////////////////////////////////////////////
+
+  predictionContext =
+
+    updatePredictionPhase(
+
+      predictionContext,
+
+      "completed"
+
+    );
 
 
-
-
+  ////////////////////////////////////////////////////////////
+  // 21. FINAL ENGINE OUTPUT
+  ////////////////////////////////////////////////////////////
 
   return {
 
-
     ...predictionResult,
-
 
 
     predictionConfidence,
 
 
-
     predictionRanking,
-
 
 
     naturalSummary,
 
 
-
     narrative,
-
 
 
     quality,
 
 
-
     dominantPlanetSummary,
-
 
 
     lifeAreaNarrative,
 
 
-
     predictionBalance,
-
 
 
     engineMetadata,
 
-
   };
-
 
 }

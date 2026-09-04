@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 // NATIONPATH ASTRO HOROSCOPE ENGINE
 //
-// PREDICTION LANGUAGE ADAPTER v3
+// PREDICTION LANGUAGE ADAPTER v4
 //
 // Connects:
 //
@@ -10,57 +10,45 @@
 //        |
 // Language Intelligence Layer
 //
-// Zodiac Context Enabled
+// Supports:
+// - Zodiac narrative context
+// - Real supplied astro context
+// - Planet literature routing
+// - Life-area routing
+// - Tone routing
 //
-// No calculations.
-// No planetary logic changes.
+// LOCKED RULES:
+// - No calculations.
+// - No planetary logic changes.
+// - No artificial zodiac scoring.
+// - No astronomy.
+// - Astro context is pass-through only.
 //////////////////////////////////////////////////////////////
 
-
 import type {
-
   HoroscopePlanet,
-
 } from "../types";
 
-
 import type {
-
   PredictionCategory,
-
   PredictionMessage,
-
 } from "./types";
 
-
 import {
-
   resolvePlanetLanguage,
-
   composeLanguage,
-
   createLanguageContext,
-
 } from "../intelligence/language";
 
-
 import {
-
   getPredictionPlanetId,
-
 } from "./helpers";
 
-
 import type {
-
   PlanetLanguageOutput,
-
   LanguageLifeArea,
-
+  PlanetLanguageContext,
 } from "../intelligence/language";
-
-
-
 
 
 
@@ -100,9 +88,6 @@ const LANGUAGE_AREAS: LanguageLifeArea[] = [
 
 
 
-
-
-
 //////////////////////////////////////////////////////////////
 // LIFE AREA NORMALIZER
 //////////////////////////////////////////////////////////////
@@ -112,7 +97,6 @@ function normalizeArea(
   area: PredictionCategory
 
 ): LanguageLifeArea {
-
 
   return LANGUAGE_AREAS.includes(
 
@@ -128,36 +112,35 @@ function normalizeArea(
 
     "overall";
 
-
 }
-
-
-
 
 
 
 //////////////////////////////////////////////////////////////
 // PLANET LANGUAGE GENERATOR
+//
+// Existing callers remain compatible.
+//
+// Optional astroContext is passed directly to the
+// language intelligence layer.
+//
+// No calculation happens here.
 //////////////////////////////////////////////////////////////
 
 export function generatePlanetPredictionLanguage(
 
-
   planet: HoroscopePlanet,
-
 
   area: PredictionCategory = "overall",
 
+  zodiac?: string,
 
-  zodiac?: string
-
+  astroContext?:
+    PlanetLanguageContext["astroContext"]
 
 ): PlanetLanguageOutput {
 
-
-
   const planetName =
-
 
     getPredictionPlanetId(
 
@@ -166,21 +149,13 @@ export function generatePlanetPredictionLanguage(
     );
 
 
-
-
-
-
   const context =
-
 
     createLanguageContext(
 
-
       planetName,
 
-
       planet.strength.score,
-
 
       normalizeArea(
 
@@ -188,15 +163,11 @@ export function generatePlanetPredictionLanguage(
 
       ),
 
+      zodiac,
 
-      zodiac
-
+      astroContext
 
     );
-
-
-
-
 
 
   return resolvePlanetLanguage(
@@ -205,141 +176,105 @@ export function generatePlanetPredictionLanguage(
 
   );
 
-
 }
-
-
-
-
-
 
 
 
 //////////////////////////////////////////////////////////////
 // PREDICTION MESSAGE ENHANCER
+//
+// Keeps the prediction message structure intact.
+//
+// Only literary fields are replaced.
+//
+// Existing prediction intelligence values remain untouched.
 //////////////////////////////////////////////////////////////
 
 export function enhancePredictionMessage(
 
-
   planet: HoroscopePlanet,
-
 
   message: PredictionMessage,
 
+  zodiac?: string,
 
-  zodiac?: string
-
+  astroContext?:
+    PlanetLanguageContext["astroContext"]
 
 ): PredictionMessage {
 
-
-
   try {
-
-
 
     const language =
 
-
-
       generatePlanetPredictionLanguage(
-
-
 
         planet,
 
-
-
         message.category,
 
+        zodiac,
 
-
-        zodiac
-
-
+        astroContext
 
       );
 
 
-
-
-
-
-
     return {
 
-
       ...message,
-
-
 
       prediction:
 
         language.statement,
 
-
-
       explanation:
 
         language.explanation,
-
-
 
       guidance:
 
         language.advice,
 
-
-
     };
 
-
-
   }
-
 
   catch {
 
-
-
     return message;
 
-
   }
-
 
 }
 
 
 
-
-
-
-
-
 //////////////////////////////////////////////////////////////
 // MULTI PLANET PREMIUM COMPOSER
+//
+// Composes literature from multiple planets.
+//
+// Astro context remains optional and pass-through.
 //////////////////////////////////////////////////////////////
 
 export function composePremiumPrediction(
 
-
   planets: HoroscopePlanet[],
-
 
   area: PredictionCategory = "overall",
 
+  zodiac?: string,
 
-  zodiac?: string
+  astroContexts?:
+    Record<
+      string,
+      PlanetLanguageContext["astroContext"]
+    >
 
-
-){
-
-
+) {
 
   const languageArea =
-
 
     normalizeArea(
 
@@ -348,202 +283,165 @@ export function composePremiumPrediction(
     );
 
 
-
-
-
-
   const outputs =
-
-
 
     planets.map(
 
+      planet => {
+
+        const planetName =
+
+          getPredictionPlanetId(
+
+            planet
+
+          );
 
 
-      planet =>
+        const astroContext =
+
+          astroContexts?.[
+
+            planetName
+
+          ];
 
 
-
-        generatePlanetPredictionLanguage(
-
-
+        return generatePlanetPredictionLanguage(
 
           planet,
 
-
-
           area,
 
+          zodiac,
 
+          astroContext
 
-          zodiac
+        );
 
-
-
-        )
-
-
+      }
 
     );
 
 
-
-
-
-
-
   return composeLanguage(
-
 
     outputs,
 
-
     languageArea
-
 
   );
 
-
 }
-
-
-
-
-
-
 
 
 
 //////////////////////////////////////////////////////////////
 // PLANET SUMMARY BUILDER
 //
-// Future premium sections use this
+// Future premium sections use this.
+//
+// All generated language uses the same optional
+// real astro context.
 //////////////////////////////////////////////////////////////
 
 export function buildPlanetLanguageSummary(
 
-
   planet: HoroscopePlanet,
 
+  zodiac?: string,
 
-  zodiac?: string
+  astroContext?:
+    PlanetLanguageContext["astroContext"]
 
+) {
 
-){
+  const planetName =
 
+    getPredictionPlanetId(
+
+      planet
+
+    );
 
 
   return {
 
-
     planet:
 
-
-      getPredictionPlanetId(
-
-        planet
-
-      ),
-
+      planetName,
 
 
     strength:
 
-
       planet.strength.score,
-
 
 
     zodiac,
 
 
-
     overall:
-
 
       generatePlanetPredictionLanguage(
 
-
         planet,
-
 
         "overall",
 
+        zodiac,
 
-        zodiac
-
+        astroContext
 
       ),
-
 
 
     career:
 
-
       generatePlanetPredictionLanguage(
-
 
         planet,
 
-
         "career",
 
+        zodiac,
 
-        zodiac
-
+        astroContext
 
       ),
-
 
 
     relationship:
 
-
       generatePlanetPredictionLanguage(
-
 
         planet,
 
-
         "relationship",
 
+        zodiac,
 
-        zodiac
-
+        astroContext
 
       ),
-
 
 
     finance:
 
-
       generatePlanetPredictionLanguage(
-
 
         planet,
 
-
         "finance",
 
+        zodiac,
 
-        zodiac
-
+        astroContext
 
       ),
 
-
-
   };
 
-
 }
-
-
-
-
-
-
 
 
 
@@ -553,48 +451,62 @@ export function buildPlanetLanguageSummary(
 
 export function safeLanguageEnhancement(
 
-
   planet: HoroscopePlanet,
-
 
   message: PredictionMessage,
 
+  zodiac?: string,
 
-  zodiac?: string
-
+  astroContext?:
+    PlanetLanguageContext["astroContext"]
 
 ): PredictionMessage {
 
-
-
   try {
-
 
     return enhancePredictionMessage(
 
-
       planet,
-
 
       message,
 
+      zodiac,
 
-      zodiac
-
+      astroContext
 
     );
 
-
   }
-
 
   catch {
 
-
     return message;
-
 
   }
 
-
 }
+
+
+
+//////////////////////////////////////////////////////////////
+// END OF PREDICTION LANGUAGE ADAPTER
+//////////////////////////////////////////////////////////////
+//
+//
+// LOCKED:
+//
+// Prediction intelligence:
+// - remains responsible for scores
+// - remains responsible for prediction meaning
+//
+// Language intelligence:
+// - selects literature
+// - selects tone
+// - selects life-area expression
+// - consumes supplied astro context
+// - consumes zodiac as narrative context
+//
+// No calculations are introduced here.
+//
+//////////////////////////////////////////////////////////////
+

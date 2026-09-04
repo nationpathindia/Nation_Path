@@ -849,55 +849,42 @@ adClicksAgg._sum.clicks ?? 0;
 /* =====================================================
    NEWSROOM
 ===================================================== */
-
 const latest = await prisma.article.findMany({
-
-  where:{
+  where: {
     ...newsFilter,
-    status:"approved"
+    status: "approved"
   },
 
-  orderBy:{
-    createdAt:"desc"
+  orderBy: {
+    createdAt: "desc"
   },
 
-  take:10,
+  take: 30,
 
-  select:{
+  select: {
+    id: true,
+    title: true,
+    slug: true,
+    views: true,
+    status: true,
+    createdAt: true,
+    publishedAt: true,
+    featured: true,
+    breaking: true,
 
-    id:true,
-
-    title:true,
-
-    slug:true, // ADD THIS
-
-    views:true,
-
-    status:true,
-
-    createdAt:true,
-
-    publishedAt:true,
-
-    featured:true,
-
-    breaking:true,
-
-    category:{
-      select:{
-        name:true,
-        slug:true
+    category: {
+      select: {
+        name: true,
+        slug: true
       }
     },
 
-    author:{
-      select:{
-        name:true
+    author: {
+      select: {
+        name: true
       }
     }
-
   }
-
 });
 
 

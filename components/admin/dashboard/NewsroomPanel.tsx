@@ -23,10 +23,7 @@ export default function NewsroomPanel({
   const start = (page - 1) * perPage;
 
   const articles =
-    latest?.slice(
-      start,
-      start + perPage
-    ) || [];
+    latest?.slice(start, start + perPage) || [];
 
   function getArticleUrl(article: any) {
     const articleSlug = article.slug;
@@ -35,8 +32,7 @@ export default function NewsroomPanel({
       return null;
     }
 
-    const categorySlug =
-      article.category?.slug;
+    const categorySlug = article.category?.slug;
 
     if (categorySlug) {
       return `https://www.nationpathindia.com/${categorySlug}/${articleSlug}`;
@@ -49,17 +45,12 @@ export default function NewsroomPanel({
     const articleUrl = getArticleUrl(article);
 
     if (!articleUrl) {
-      console.error(
-        "ARTICLE SLUG MISSING",
-        article
-      );
+      console.error("ARTICLE SLUG MISSING", article);
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(
-        articleUrl
-      );
+      await navigator.clipboard.writeText(articleUrl);
 
       setCopiedId(article.id);
 
@@ -67,10 +58,7 @@ export default function NewsroomPanel({
         setCopiedId(null);
       }, 2000);
     } catch (error) {
-      console.error(
-        "COPY ARTICLE LINK ERROR",
-        error
-      );
+      console.error("COPY ARTICLE LINK ERROR", error);
     }
   }
 
@@ -85,7 +73,6 @@ export default function NewsroomPanel({
         p-6
       "
     >
-
       {/* HEADER */}
 
       <div
@@ -118,7 +105,6 @@ export default function NewsroomPanel({
         </div>
 
         <div className="flex gap-3 items-center">
-
           <span
             className="
               text-xs
@@ -143,10 +129,8 @@ export default function NewsroomPanel({
           >
             + Article
           </Link>
-
         </div>
       </div>
-
 
       {/* TABLE */}
 
@@ -164,7 +148,6 @@ export default function NewsroomPanel({
             text-sm
           "
         >
-
           <thead
             className="
               bg-white/5
@@ -175,7 +158,6 @@ export default function NewsroomPanel({
                 text-gray-400
               "
             >
-
               <th className="text-left px-4 py-3">
                 Article
               </th>
@@ -195,17 +177,12 @@ export default function NewsroomPanel({
               <th className="text-right px-4 py-3">
                 Actions
               </th>
-
             </tr>
           </thead>
 
-
           <tbody>
-
             {articles.map((article: any) => {
-
-              const articleUrl =
-                getArticleUrl(article);
+              const articleUrl = getArticleUrl(article);
 
               return (
                 <tr
@@ -217,7 +194,6 @@ export default function NewsroomPanel({
                     transition
                   "
                 >
-
                   {/* ARTICLE */}
 
                   <td
@@ -227,9 +203,8 @@ export default function NewsroomPanel({
                       max-w-md
                     "
                   >
-
                     <Link
-                      href={`/admin/posts/${article.id}/edit`}
+                      href={`/admin/posts/edit/${article.id}`}
                       className="
                         font-medium
                         line-clamp-1
@@ -241,7 +216,6 @@ export default function NewsroomPanel({
                     </Link>
 
                     <div className="flex gap-2 mt-2">
-
                       {article.breaking && (
                         <span
                           className="
@@ -271,11 +245,8 @@ export default function NewsroomPanel({
                           Featured
                         </span>
                       )}
-
                     </div>
-
                   </td>
-
 
                   {/* CATEGORY */}
 
@@ -288,17 +259,13 @@ export default function NewsroomPanel({
                     {article.category?.name || "News"}
                   </td>
 
-
                   {/* STATUS */}
 
                   <td className="px-4">
-
                     <StatusBadge
                       status={article.status}
                     />
-
                   </td>
-
 
                   {/* VIEWS */}
 
@@ -309,7 +276,6 @@ export default function NewsroomPanel({
                       text-gray-400
                     "
                   >
-
                     <div
                       className="
                         inline-flex
@@ -318,7 +284,6 @@ export default function NewsroomPanel({
                         gap-1.5
                       "
                     >
-
                       <Eye
                         size={14}
                         strokeWidth={1.8}
@@ -330,11 +295,8 @@ export default function NewsroomPanel({
                           article.views || 0
                         ).toLocaleString()}
                       </span>
-
                     </div>
-
                   </td>
-
 
                   {/* ACTIONS */}
 
@@ -344,7 +306,6 @@ export default function NewsroomPanel({
                       text-right
                     "
                   >
-
                     <div
                       className="
                         flex
@@ -353,7 +314,6 @@ export default function NewsroomPanel({
                         gap-1.5
                       "
                     >
-
                       {/* VIEW */}
 
                       {articleUrl && (
@@ -380,15 +340,12 @@ export default function NewsroomPanel({
                             transition
                           "
                         >
-
                           <Eye
                             size={15}
                             strokeWidth={1.8}
                           />
-
                         </a>
                       )}
-
 
                       {/* COPY LINK */}
 
@@ -426,7 +383,6 @@ export default function NewsroomPanel({
                           transition
                         "
                       >
-
                         {copiedId === article.id ? (
                           <Check
                             size={15}
@@ -439,22 +395,15 @@ export default function NewsroomPanel({
                             strokeWidth={1.8}
                           />
                         )}
-
                       </button>
-
                     </div>
-
                   </td>
-
                 </tr>
               );
             })}
-
           </tbody>
-
         </table>
       </div>
-
 
       {/* PAGINATION */}
 
@@ -466,7 +415,6 @@ export default function NewsroomPanel({
           mt-5
         "
       >
-
         <button
           disabled={page === 1}
           onClick={() =>
@@ -487,7 +435,6 @@ export default function NewsroomPanel({
           ← Previous
         </button>
 
-
         <div
           className="
             text-xs
@@ -496,7 +443,6 @@ export default function NewsroomPanel({
         >
           Page {page} / {totalPages || 1}
         </div>
-
 
         <button
           disabled={
@@ -523,22 +469,17 @@ export default function NewsroomPanel({
         >
           Next →
         </button>
-
       </div>
-
     </div>
   );
 }
-
 
 function StatusBadge({
   status,
 }: {
   status: string;
 }) {
-
   const styles: Record<string, string> = {
-
     approved:
       "bg-green-500/20 text-green-400",
 
@@ -550,7 +491,6 @@ function StatusBadge({
 
     rejected:
       "bg-red-500/20 text-red-400",
-
   };
 
   return (

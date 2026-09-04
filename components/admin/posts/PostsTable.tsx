@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import {
+  Eye,
+  Pencil,
+  Link as LinkIcon,
+  Trash2,
+  Check,
+} from "lucide-react";
+
 interface Props {
   posts: any[];
   loading: boolean;
@@ -213,8 +221,11 @@ export default function PostsTable({
             </tr>
           ) : (
             posts.map((post) => {
-              const displayStatus = getDisplayStatus(post);
-              const articleUrl = getArticleUrl(post);
+              const displayStatus =
+                getDisplayStatus(post);
+
+              const articleUrl =
+                getArticleUrl(post);
 
               return (
                 <tr
@@ -255,7 +266,8 @@ export default function PostsTable({
                       "
                     >
                       <span>
-                        {post.category?.name || "General"}
+                        {post.category?.name ||
+                          "General"}
                       </span>
 
                       <span>•</span>
@@ -316,7 +328,10 @@ export default function PostsTable({
                           : displayStatus
                       }
                       onChange={(e) => {
-                        if (e.target.value === "scheduled") {
+                        if (
+                          e.target.value ===
+                          "scheduled"
+                        ) {
                           return;
                         }
 
@@ -333,7 +348,9 @@ export default function PostsTable({
                         border
                         outline-none
                         max-w-[100px]
-                        ${statusStyle(displayStatus)}
+                        ${statusStyle(
+                          displayStatus
+                        )}
                       `}
                     >
                       <option value="pending">
@@ -356,7 +373,8 @@ export default function PostsTable({
                         Archived
                       </option>
 
-                      {displayStatus === "scheduled" && (
+                      {displayStatus ===
+                        "scheduled" && (
                         <option value="scheduled">
                           Scheduled
                         </option>
@@ -376,9 +394,11 @@ export default function PostsTable({
                         whitespace-nowrap
                       "
                     >
-                      <span className="text-[11px]">
-                        👁
-                      </span>
+                      <Eye
+                        size={13}
+                        strokeWidth={2}
+                        className="text-gray-400"
+                      />
 
                       <span>
                         {Number(
@@ -466,96 +486,177 @@ export default function PostsTable({
                     <div
                       className="
                         flex
+                        items-center
                         gap-1
                         whitespace-nowrap
                       "
                     >
+
+                      {/* EDIT */}
                       <Link
                         href={`/admin/posts/edit/${post.id}`}
+                        title="Edit article"
+                        aria-label="Edit article"
                         className="
-                          px-2
-                          py-1
+                          inline-flex
+                          h-7
+                          w-7
+                          items-center
+                          justify-center
                           rounded-md
                           bg-[#163C80]
-                          text-[10px]
-                          font-semibold
+                          text-white
+                          transition
+                          hover:bg-[#1d4d9f]
+                          focus:outline-none
+                          focus:ring-1
+                          focus:ring-blue-400
                         "
                       >
-                        Edit
+                        <Pencil
+                          size={13}
+                          strokeWidth={2}
+                        />
                       </Link>
 
+
+                      {/* VIEW */}
                       {articleUrl ? (
                         <Link
                           href={articleUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          title="View article"
+                          aria-label="View article"
                           className="
-                            px-2
-                            py-1
+                            inline-flex
+                            h-7
+                            w-7
+                            items-center
+                            justify-center
                             rounded-md
                             bg-green-600/80
-                            text-[10px]
-                            font-semibold
+                            text-white
+                            transition
+                            hover:bg-green-600
+                            focus:outline-none
+                            focus:ring-1
+                            focus:ring-green-400
                           "
                         >
-                          View
+                          <Eye
+                            size={14}
+                            strokeWidth={2}
+                          />
                         </Link>
                       ) : (
-                        <span
+                        <button
+                          type="button"
+                          disabled
+                          title="Article URL unavailable"
+                          aria-label="Article URL unavailable"
                           className="
-                            px-2
-                            py-1
+                            inline-flex
+                            h-7
+                            w-7
+                            items-center
+                            justify-center
                             rounded-md
                             bg-gray-600/50
                             text-gray-400
-                            text-[10px]
-                            font-semibold
+                            opacity-60
                             cursor-not-allowed
                           "
                         >
-                          View
-                        </span>
+                          <Eye
+                            size={14}
+                            strokeWidth={2}
+                          />
+                        </button>
                       )}
 
+
+                      {/* COPY LINK */}
                       <button
                         type="button"
                         onClick={() =>
                           copyArticleLink(post)
                         }
                         disabled={!articleUrl}
+                        title={
+                          copiedId === post.id
+                            ? "Link copied"
+                            : "Copy article link"
+                        }
+                        aria-label={
+                          copiedId === post.id
+                            ? "Link copied"
+                            : "Copy article link"
+                        }
                         className="
-                          px-2
-                          py-1
+                          inline-flex
+                          h-7
+                          w-7
+                          items-center
+                          justify-center
                           rounded-md
                           bg-white/10
-                          hover:bg-white/20
-                          text-[10px]
-                          font-semibold
+                          text-gray-200
                           transition
+                          hover:bg-white/20
+                          hover:text-white
+                          focus:outline-none
+                          focus:ring-1
+                          focus:ring-white/30
                           disabled:opacity-40
                           disabled:cursor-not-allowed
                         "
                       >
-                        {copiedId === post.id
-                          ? "Copied ✓"
-                          : "Copy Link"}
+                        {copiedId === post.id ? (
+                          <Check
+                            size={14}
+                            strokeWidth={2.5}
+                            className="text-green-400"
+                          />
+                        ) : (
+                          <LinkIcon
+                            size={14}
+                            strokeWidth={2}
+                          />
+                        )}
                       </button>
 
+
+                      {/* DELETE */}
                       <button
+                        type="button"
                         onClick={() =>
                           deletePost(post.id)
                         }
+                        title="Delete article"
+                        aria-label="Delete article"
                         className="
-                          px-2
-                          py-1
+                          inline-flex
+                          h-7
+                          w-7
+                          items-center
+                          justify-center
                           rounded-md
                           bg-red-600/80
-                          text-[10px]
-                          font-semibold
+                          text-white
+                          transition
+                          hover:bg-red-600
+                          focus:outline-none
+                          focus:ring-1
+                          focus:ring-red-400
                         "
                       >
-                        Delete
+                        <Trash2
+                          size={14}
+                          strokeWidth={2}
+                        />
                       </button>
+
                     </div>
                   </td>
                 </tr>

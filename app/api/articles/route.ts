@@ -84,7 +84,7 @@ async function generateUniqueSlug(
                 NOT: {
                   id: currentId,
                 },
-              }
+              },
             : {}),
         },
         select: {
@@ -650,6 +650,20 @@ export async function POST(req: Request) {
       ) {
         validStatus =
           value as PostStatus;
+
+        /*
+          Publishing now:
+          If CMS sends approved without
+          an explicit publishedAt, stamp
+          the current time automatically.
+        */
+        if (
+          value === PostStatus.approved &&
+          body.publishedAt === undefined
+        ) {
+          publishedAt =
+            new Date();
+        }
       }
     }
 
@@ -1074,7 +1088,24 @@ export async function PATCH(req: Request) {
         )
       ) {
         updateData.status =
-          value;
+          value as PostStatus;
+
+        /*
+          Publishing now:
+          When CMS changes an existing article
+          to approved and does not explicitly send
+          publishedAt, stamp the current time.
+
+          Scheduled publishing remains untouched
+          because an explicit publishedAt is supplied.
+        */
+        if (
+          value === PostStatus.approved &&
+          body.publishedAt === undefined
+        ) {
+          updateData.publishedAt =
+            new Date();
+        }
       }
     }
 
@@ -1483,9 +1514,11 @@ export async function PATCH(req: Request) {
     );
   }
 }
+
 /* =====================================================
    DELETE ARTICLE
    PERMANENT DELETE
+
    - Deletes article analytics events
    - Deletes article permanently
    - No soft delete
@@ -1494,7 +1527,8 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const body = await req.json();
+    const body =
+      await req.json();
 
     if (!body.id) {
       return NextResponse.json(
@@ -1502,11 +1536,14 @@ export async function DELETE(req: Request) {
           success: false,
           error: "ID required",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const articleId = body.id;
+    const articleId =
+      body.id;
 
     await prisma.$transaction([
       // Delete all analytics events belonging to this article
@@ -1528,14 +1565,21 @@ export async function DELETE(req: Request) {
       success: true,
     });
   } catch (error: any) {
-    console.error("DELETE ARTICLE ERROR", error);
+    console.error(
+      "DELETE ARTICLE ERROR",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || "Delete failed",
+        error:
+          error?.message ||
+          "Delete failed",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

@@ -82,16 +82,23 @@ const SITE_URL =
 process.env.NEXT_PUBLIC_SITE_URL ||
 "https://nationpathindia.com";
 
-
 function publishedFilter() {
+  const now = new Date();
+
   return {
-    publishedAt: {
-      not: null,
-      lte: new Date(),
-    },
+    OR: [
+      {
+        publishedAt: {
+          not: null,
+          lte: now,
+        },
+      },
+      {
+        publishedAt: null,
+      },
+    ],
   };
 }
-
 
 /*
 ====================================================
@@ -314,12 +321,8 @@ category:true
 
 
 
-orderBy:{
-
-
-createdAt:"desc"
-
-
+orderBy: {
+  createdAt: "desc",
 },
 
 
@@ -490,9 +493,7 @@ articles.slice(5,10);
 
 
 
-const latest =
-articles.slice(12,24);
-
+const latest = articles.slice(10,22);
 
 
 

@@ -522,21 +522,38 @@ export async function PUT(
         }
       );
     }
+/* =====================================================
+   SLUG
+   Custom slug is accepted when provided.
+   Existing slug is preserved when no slug is supplied.
+===================================================== */
 
-    /* =====================================================
-       SLUG
-       Existing slug remains untouched unless title changes.
-    ===================================================== */
+let slug = existing.slug;
 
-    const slug =
-      body.title !== undefined &&
-      title !== existing.title
-        ? await generateUniqueSlug(
-            title,
-            id
-          )
-        : existing.slug;
+if (body.slug !== undefined) {
+  const requestedSlug = String(body.slug).trim();
 
+  /*
+    If a custom slug is provided, use it.
+    generateUniqueSlug() also normalizes it
+    and guarantees uniqueness.
+  */
+  if (requestedSlug) {
+    slug = await generateUniqueSlug(
+      requestedSlug,
+      id
+    );
+  } else {
+    /*
+      Never allow an empty slug.
+      Fall back to the current title.
+    */
+    slug = await generateUniqueSlug(
+      title,
+      id
+    );
+  }
+}
     /* =====================================================
        IMAGES
     ===================================================== */

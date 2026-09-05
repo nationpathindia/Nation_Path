@@ -372,7 +372,27 @@ export default async function ArticlePage({
   ) {
     return notFound();
   }
+/* =====================================================
+   ARTICLE VIEW COUNT
+===================================================== */
 
+const updatedArticle = await prisma.article.update({
+  where: {
+    id: article.id,
+  },
+
+  data: {
+    views: {
+      increment: 1,
+    },
+  },
+
+  select: {
+    views: true,
+  },
+});
+
+article.views = updatedArticle.views;
 /*
 |--------------------------------------------------------------------------
 | IMAGE DATA

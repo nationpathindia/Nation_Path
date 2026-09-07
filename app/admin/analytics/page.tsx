@@ -348,12 +348,12 @@ export default function AnalyticsPage() {
 
             <div className="grid gap-4 xl:grid-cols-2">
            <AnalyticsAudiencePanel
-  data={data?.overview}
-/>
+    data={data?.audience}
+  />
 
-              <AnalyticsLocationPanel
-                locations={data?.locations || []}
-              />
+  <AnalyticsLocationPanel
+  locations={data?.locations}
+/>
             </div>
           </section>
 

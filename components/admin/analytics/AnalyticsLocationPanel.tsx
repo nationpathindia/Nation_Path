@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
+  ChevronRight,
   Eye,
   Globe2,
   MapPin,
   MousePointerClick,
   Users,
+  X,
 } from "lucide-react";
-
 import {
   Cell,
   Pie,
@@ -18,36 +21,11 @@ import {
   Tooltip,
 } from "recharts";
 
-/* =========================================================
-   NATIONPATH ANALYTICS
-   LOCATION INTELLIGENCE — ENHANCED FINAL
-
-   API SOURCE OF TRUTH:
-
-   locations[]:
-   - country
-   - countryCode
-   - state
-   - city
-   - views
-   - sessions
-   - share
-
-   RULES:
-   - Event based
-   - No fake metrics
-   - No Article.views
-   - No UI-side analytics calculation
-   - API-provided share is used directly
-   - Existing location tracking preserved
-========================================================= */
-
 export interface AnalyticsLocationItem {
   country: string;
   countryCode?: string | null;
   state?: string | null;
   city?: string | null;
-
   views?: number;
   sessions?: number;
   share?: number;
@@ -60,9 +38,13 @@ interface AnalyticsLocationPanelProps {
   live?: boolean;
 }
 
-/* =========================================================
-   HELPERS
-========================================================= */
+const CHART_SEGMENTS = [
+  "#f97316",
+  "#3b82f6",
+  "#8b5cf6",
+  "#10b981",
+  "#f59e0b",
+];
 
 function number(value?: number) {
   return Number.isFinite(value) ? Number(value) : 0;
@@ -83,16 +65,12 @@ function formatNumber(value: number) {
 function formatShare(value?: number) {
   const share = number(value);
 
-  if (share <= 0) {
-    return "0%";
-  }
+  if (share <= 0) return "0%";
 
   return `${share % 1 === 0 ? share.toFixed(0) : share.toFixed(1)}%`;
 }
 
-function getLocationId(
-  location: AnalyticsLocationItem
-) {
+function getLocationId(location: AnalyticsLocationItem) {
   return [
     location.countryCode || location.country || "unknown",
     location.state || "",
@@ -100,9 +78,7 @@ function getLocationId(
   ].join("|");
 }
 
-function getLocationName(
-  location: AnalyticsLocationItem
-) {
+function getLocationName(location: AnalyticsLocationItem) {
   return (
     location.city?.trim() ||
     location.state?.trim() ||
@@ -111,953 +87,686 @@ function getLocationName(
   );
 }
 
-function getSecondaryLocation(
-  location: AnalyticsLocationItem
-) {
+function getSecondaryLocation(location: AnalyticsLocationItem) {
   const primary = getLocationName(location);
 
-  const parts = [
-    location.city,
-    location.state,
-    location.country,
-  ]
+  const parts = [location.city, location.state, location.country]
     .map((value) => value?.trim())
     .filter(Boolean);
 
-  return parts
-    .filter((value) => value !== primary)
-    .join(", ");
+  return parts.filter((value) => value !== primary).join(", ");
 }
 
-/* =========================================================
-   METRIC
-========================================================= */
+function getLocationColor(index: number) {
+  return CHART_SEGMENTS[index % CHART_SEGMENTS.length];
+}
 
 function Metric({
   icon: Icon,
   label,
   value,
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
-  value: number;
+  value: string;
 }) {
   return (
-    <div className="min-w-0">
-      <div className="flex items-center gap-1.5">
-        <Icon
-          size={12}
-          strokeWidth={1.8}
-          className="text-gray-600"
-        />
-
-        <span
-          className="
-            text-[9px]
-            uppercase
-            tracking-[0.08em]
-            text-gray-600
-          "
-        >
-          {label}
-        </span>
+    <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2 backdrop-blur-md">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.035] text-slate-500">
+        <Icon className="h-3.5 w-3.5" />
       </div>
 
-      <p
-        className="
-          mt-1
-          text-sm
-          font-semibold
-          tabular-nums
-          text-gray-200
-        "
-      >
-        {formatNumber(value)}
-      </p>
+      <div className="min-w-0">
+        <p className="text-[8px] font-medium uppercase tracking-[0.14em] text-slate-600">
+          {label}
+        </p>
+
+        <p className="mt-0.5 truncate text-[12px] font-semibold text-slate-300">
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
 
-/* =========================================================
-   TOOLTIP
-========================================================= */
-
-function CustomTooltip({
+function LocationRow({
+  location,
+  index,
   active,
-  payload,
+  onClick,
 }: {
+  location: AnalyticsLocationItem;
+  index: number;
   active?: boolean;
-  payload?: Array<{
-    payload?: {
-      name?: string;
-      views?: number;
-      sessions?: number;
-      share?: number;
-    };
-  }>;
+  onClick?: () => void;
 }) {
-  if (!active || !payload?.length) {
-    return null;
-  }
-
-  const item = payload[0]?.payload;
-
-  if (!item) {
-    return null;
-  }
+  const color = getLocationColor(index);
 
   return (
-    <div
-      className="
-        rounded-lg
-        border
-        border-white/10
-        bg-[#080D18]/95
-        px-3
-        py-2
-        shadow-xl
-        backdrop-blur-xl
-      "
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "group w-full rounded-xl px-2.5 py-2 text-left transition-all",
+        active
+          ? "bg-white/[0.065] ring-1 ring-white/[0.07]"
+          : "hover:bg-white/[0.035]",
+      ].join(" ")}
     >
-      <p className="text-xs font-medium text-white">
-        {item.name || "Unknown"}
-      </p>
+      <div className="flex items-center gap-2.5">
+        {/* RANK */}
+        <span className="w-4 shrink-0 text-center text-[8px] font-bold text-slate-700">
+          {String(index + 1).padStart(2, "0")}
+        </span>
 
-      <p className="mt-1 text-[10px] text-gray-500">
-        {formatNumber(number(item.views))} views
-      </p>
+        {/* COUNTRY CODE */}
+        <div
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-[7px] font-bold uppercase"
+          style={{
+            borderColor: `${color}35`,
+            backgroundColor: `${color}0d`,
+            color,
+          }}
+        >
+          {location.countryCode?.slice(0, 2) || "—"}
+        </div>
 
-      <p className="mt-0.5 text-[10px] text-gray-600">
-        {formatNumber(number(item.sessions))} sessions
-        {" · "}
-        {formatShare(item.share)}
-      </p>
+        {/* LOCATION */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate text-[10px] font-semibold text-slate-300">
+              {getLocationName(location)}
+            </span>
+
+            <span className="shrink-0 text-[8px] font-semibold text-slate-500">
+              {formatShare(location.share)}
+            </span>
+          </div>
+
+          {getSecondaryLocation(location) && (
+            <p className="mt-0.5 truncate text-[8px] text-slate-700">
+              {getSecondaryLocation(location)}
+            </p>
+          )}
+
+          <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-white/[0.05]">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.min(
+                  Math.max(number(location.share), 0),
+                  100,
+                )}%`,
+                backgroundColor: color,
+                boxShadow: `0 0 8px ${color}45`,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* VIEWS */}
+        <div className="w-11 shrink-0 text-right">
+          <p className="text-[9px] font-semibold text-slate-400">
+            {formatNumber(number(location.views))}
+          </p>
+
+          <p className="text-[7px] uppercase tracking-wider text-slate-700">
+            views
+          </p>
+        </div>
+
+        {onClick && (
+          <ChevronRight className="h-3 w-3 shrink-0 text-slate-700 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+        )}
+      </div>
+    </button>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex min-h-[250px] items-center justify-center rounded-xl border border-dashed border-white/[0.07] bg-white/[0.015]">
+      <div className="text-center">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-600">
+          <Globe2 className="h-5 w-5" />
+        </div>
+
+        <p className="mt-3 text-xs font-semibold text-slate-400">
+          No location data
+        </p>
+
+        <p className="mt-1 text-[10px] text-slate-600">
+          Geographic signals will appear here.
+        </p>
+      </div>
     </div>
   );
 }
 
 /* =========================================================
-   COMPONENT
+   ALL LOCATIONS MODAL
+   Rendered through document.body so dashboard stacking/
+   overflow contexts cannot hide the popup.
 ========================================================= */
 
-export default function AnalyticsLocationPanel({
-  locations = [],
-  title = "Audience by Location",
-  description = "Geographic audience intelligence from article view events.",
-  live = false,
-}: AnalyticsLocationPanelProps) {
-  const sorted = useMemo(
-    () =>
-      [...locations].sort(
-        (a, b) =>
-          number(b.views) -
-          number(a.views)
-      ),
-    [locations]
-  );
+function AllLocationsModal({
+  locations,
+  onClose,
+}: {
+  locations: AnalyticsLocationItem[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
 
-  const visibleLocations = sorted.slice(0, 5);
+    document.addEventListener("keydown", handleKeyDown);
 
-  const otherViews = sorted
-    .slice(5)
-    .reduce(
-      (sum, item) =>
-        sum + number(item.views),
-      0
-    );
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
-  const totalViews = sorted.reduce(
-    (sum, item) =>
-      sum + number(item.views),
-    0
-  );
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
 
-  const chartData = [
-    ...visibleLocations.map(
-      (location) => ({
-        id: getLocationId(location),
-        name: getLocationName(location),
-        views: number(location.views),
-        sessions: number(
-          location.sessions
-        ),
-        share: number(location.share),
-      })
-    ),
+    document.body.style.overflow = "hidden";
 
-    ...(otherViews > 0
-      ? [
-          {
-            id: "others",
-            name: "Others",
-            views: otherViews,
-            sessions: sorted
-              .slice(5)
-              .reduce(
-                (sum, item) =>
-                  sum +
-                  number(
-                    item.sessions
-                  ),
-                0
-              ),
-            share:
-              totalViews > 0
-                ? sorted
-                    .slice(5)
-                    .reduce(
-                      (sum, item) =>
-                        sum +
-                        number(
-                          item.share
-                        ),
-                      0
-                    )
-                : 0,
-          },
-        ]
-      : []),
-  ];
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
 
-  const [selectedId, setSelectedId] =
-    useState<string | null>(
-      chartData[0]?.id || null
-    );
+  if (typeof document === "undefined") {
+    return null;
+  }
 
-  /*
-   * If selected location disappears after
-   * range refresh, automatically fall back
-   * to the top location.
-   */
-  const selectedLocation =
-    sorted.find(
-      (location) =>
-        getLocationId(location) ===
-        selectedId
-    ) || sorted[0];
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="All locations"
+    >
+      {/* BACKDROP */}
+      <button
+        type="button"
+        aria-label="Close locations"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/75 backdrop-blur-md"
+      />
 
-  const activeSelectedId =
-    selectedLocation
-      ? getLocationId(selectedLocation)
-      : null;
+      {/* MODAL */}
+      <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/[0.10] bg-[#111318]/95 shadow-[0_30px_100px_rgba(0,0,0,0.75)] backdrop-blur-2xl">
+        {/* GLASS GLOW */}
+        <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-orange-500/[0.08] blur-3xl" />
 
-  const selectedName = selectedLocation
-    ? getLocationName(
-        selectedLocation
-      )
-    : "No location";
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-56 w-56 rounded-full bg-violet-500/[0.07] blur-3xl" />
 
-  const selectedSecondary =
-    selectedLocation
-      ? getSecondaryLocation(
-          selectedLocation
-        )
-      : "";
+        {/* TOP GLASS HIGHLIGHT */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
 
-  const selectedShare =
-    selectedLocation
-      ? number(
-          selectedLocation.share
-        )
-      : 0;
+        {/* HEADER */}
+        <div className="relative flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-4 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/15 bg-orange-500/[0.07] text-orange-400 shadow-[0_0_25px_rgba(249,115,22,0.08)]">
+              <Globe2 className="h-4 w-4" />
+            </div>
 
-  /* =======================================================
-     EMPTY STATE
-  ======================================================= */
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="truncate text-sm font-semibold text-slate-100">
+                  All Locations
+                </h4>
 
-  if (!locations.length) {
-    return (
-      <section
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-white/10
-          bg-white/[0.035]
-        "
-      >
-        <div
-          className="
-            border-b
-            border-white/[0.07]
-            px-5
-            py-4
-          "
-        >
-          <div className="flex items-center gap-2">
-            <Globe2
-              size={16}
-              strokeWidth={1.8}
-              className="text-[#EA661B]"
-            />
+                <span className="hidden rounded-full border border-orange-500/15 bg-orange-500/[0.06] px-2 py-0.5 text-[7px] font-semibold uppercase tracking-[0.12em] text-orange-400 sm:inline-flex">
+                  Intelligence
+                </span>
+              </div>
 
-            <h2 className="text-base font-semibold text-white">
-              {title}
-            </h2>
+              <p className="mt-0.5 truncate text-[10px] text-slate-600">
+                Complete geographic audience distribution
+              </p>
+            </div>
           </div>
 
-          <p className="mt-1 text-xs text-gray-600">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-slate-500 transition hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-slate-200"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* BODY */}
+        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4">
+          {/* SUMMARY STRIP */}
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 backdrop-blur-md">
+              <p className="text-[7px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                Locations
+              </p>
+
+              <p className="mt-1 text-sm font-bold text-slate-200">
+                {locations.length}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 backdrop-blur-md">
+              <p className="text-[7px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                Ranking
+              </p>
+
+              <p className="mt-1 text-sm font-bold text-slate-200">
+                View Events
+              </p>
+            </div>
+          </div>
+
+          {/* INFO */}
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2 backdrop-blur-md">
+            <Activity className="h-3.5 w-3.5 shrink-0 text-orange-400" />
+
+            <span className="text-[9px] font-medium uppercase tracking-[0.13em] text-slate-500">
+              Ranked by view events
+            </span>
+
+            <span className="ml-auto text-[9px] text-slate-600">
+              {locations.length} locations
+            </span>
+          </div>
+
+          {/* ALL LOCATION ROWS */}
+          <div className="space-y-1">
+            {locations.map((location, index) => (
+              <LocationRow
+                key={getLocationId(location)}
+                location={location}
+                index={index}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="relative flex shrink-0 items-center gap-2 border-t border-white/[0.07] px-4 py-3 sm:px-5">
+          <MapPin className="h-3 w-3 shrink-0 text-slate-700" />
+
+          <span className="text-[8px] text-slate-600">
+            Event based geographic telemetry
+          </span>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 text-[9px] font-medium text-slate-500 transition hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-slate-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+export default function AnalyticsLocationPanel({
+  locations,
+  title = "Location Intelligence",
+  description = "Geographic audience signals.",
+  live = true,
+}: AnalyticsLocationPanelProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const sortedLocations = useMemo(() => {
+    return [...(locations || [])].sort(
+      (a, b) => number(b.views) - number(a.views),
+    );
+  }, [locations]);
+
+  const topLocations = sortedLocations.slice(0, 5);
+
+  const selectedLocation = useMemo(() => {
+    if (!selectedId) {
+      return sortedLocations[0];
+    }
+
+    return (
+      sortedLocations.find(
+        (location) => getLocationId(location) === selectedId,
+      ) || sortedLocations[0]
+    );
+  }, [selectedId, sortedLocations]);
+
+  const totalViews = sortedLocations.reduce(
+    (sum, location) => sum + number(location.views),
+    0,
+  );
+
+  const totalSessions = sortedLocations.reduce(
+    (sum, location) => sum + number(location.sessions),
+    0,
+  );
+
+  if (!sortedLocations.length) {
+    return (
+      <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101114] shadow-[0_16px_50px_rgba(0,0,0,0.25)]">
+        <div className="border-b border-white/[0.06] px-4 py-3">
+          <h3 className="text-sm font-semibold text-slate-200">
+            {title}
+          </h3>
+
+          <p className="mt-0.5 text-[10px] text-slate-600">
             {description}
           </p>
         </div>
 
-        <div
-          className="
-            flex
-            h-[180px]
-            flex-col
-            items-center
-            justify-center
-            gap-2
-            text-xs
-            text-gray-600
-          "
-        >
-          <Globe2
-            size={20}
-            strokeWidth={1.5}
-            className="text-gray-700"
-          />
-
-          <span>
-            No location data available
-          </span>
+        <div className="p-4">
+          <EmptyState />
         </div>
       </section>
     );
   }
 
   return (
-    <section
-      className="
-        relative
-        overflow-hidden
-        rounded-2xl
-        border
-        border-white/[0.08]
-        bg-white/[0.025]
-        shadow-[0_20px_70px_rgba(0,0,0,0.18)]
-      "
-    >
-      {/* =====================================================
-          AMBIENT BACKGROUND
-      ===================================================== */}
+    <>
+      <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101114] shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+        {/* AMBIENT GLASS LIGHT */}
+        <div className="pointer-events-none absolute -left-16 -top-20 h-44 w-44 rounded-full bg-orange-500/[0.035] blur-3xl" />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-24
-          -top-24
-          h-64
-          w-64
-          rounded-full
-          bg-orange-500/[0.045]
-          blur-3xl
-        "
-      />
+        <div className="pointer-events-none absolute -bottom-24 -right-20 h-40 w-40 rounded-full bg-violet-500/[0.025] blur-3xl" />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -bottom-32
-          -left-24
-          h-64
-          w-64
-          rounded-full
-          bg-[#163C80]/[0.04]
-          blur-3xl
-        "
-      />
+        {/* TOP GLASS LINE */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+        <div className="relative">
+          {/* HEADER */}
+          <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-orange-500/15 bg-orange-500/[0.07] text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.08)]">
+                <Globe2 className="h-4 w-4" />
 
-      <div
-        className="
-          relative
-          flex
-          items-center
-          justify-between
-          border-b
-          border-white/[0.07]
-          px-5
-          py-4
-          md:px-6
-        "
-      >
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Globe2
-              size={16}
-              strokeWidth={1.8}
-              className="text-[#EA661B]"
+                {live && (
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-[#101114] bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="truncate text-sm font-semibold text-slate-100">
+                    {title}
+                  </h3>
+
+                  {live && (
+                    <span className="hidden items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-emerald-400 sm:flex">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                      Live
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-0.5 truncate text-[10px] text-slate-600">
+                  {description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.025] text-slate-600">
+              <Activity className="h-3.5 w-3.5" />
+            </div>
+          </div>
+
+          {/* METRICS */}
+          <div className="grid grid-cols-2 gap-2 border-b border-white/[0.06] p-3">
+            <Metric
+              icon={Eye}
+              label="View Events"
+              value={formatNumber(totalViews)}
             />
 
-            <h2 className="text-base font-semibold tracking-tight text-white">
-              {title}
-            </h2>
-
-            {live && (
-              <span
-                className="
-                  flex
-                  items-center
-                  gap-1
-                  rounded-full
-                  border
-                  border-emerald-400/20
-                  bg-emerald-400/10
-                  px-2
-                  py-0.5
-                  text-[9px]
-                  font-medium
-                  uppercase
-                  tracking-wide
-                  text-emerald-400
-                "
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Live
-              </span>
-            )}
+            <Metric
+              icon={Users}
+              label="Sessions"
+              value={formatNumber(totalSessions)}
+            />
           </div>
 
-          <p className="mt-1 text-xs text-gray-600">
-            {description}
-          </p>
-        </div>
+          {/* DONUT */}
+          <div className="px-4 pt-4">
+            <div className="relative mx-auto h-[168px] w-[168px]">
+              <div className="pointer-events-none absolute inset-5 rounded-full bg-orange-500/[0.025] blur-xl" />
 
-        <MapPin
-          size={14}
-          strokeWidth={1.8}
-          className="shrink-0 text-gray-600"
-        />
-      </div>
-
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          gap-0
-          md:grid-cols-[42%_58%]
-        "
-      >
-        {/* ===================================================
-            DONUT
-        =================================================== */}
-
-        <div
-          className="
-            relative
-            flex
-            min-h-[280px]
-            items-center
-            justify-center
-            border-b
-            border-white/[0.06]
-            px-4
-            py-5
-            md:border-b-0
-            md:border-r
-          "
-        >
-          <div className="h-[230px] w-full max-w-[280px]">
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  dataKey="views"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={67}
-                  outerRadius={91}
-                  paddingAngle={2}
-                  stroke="rgba(11,15,23,0.95)"
-                  strokeWidth={2}
-                 onClick={(entry) => {
-  const id = (entry as { id?: string | number })?.id;
-
-  if (id !== undefined && id !== null) {
-    setSelectedId(String(id));
-  }
-}}
-                  className="cursor-pointer outline-none"
-                >
-                  {chartData.map(
-                    (entry) => (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={topLocations}
+                    dataKey="views"
+                    nameKey="country"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={76}
+                    paddingAngle={3}
+                    stroke="none"
+                    isAnimationActive
+                  >
+                    {topLocations.map((location, index) => (
                       <Cell
-                        key={entry.id}
-                        opacity={
-                          activeSelectedId ===
-                          entry.id
-                            ? 1
-                            : 0.65
-                        }
+                        key={getLocationId(location)}
+                        fill={getLocationColor(index)}
                       />
-                    )
-                  )}
-                </Pie>
+                    ))}
+                  </Pie>
 
-                <Tooltip
-                  content={
-                    <CustomTooltip />
-                  }
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+                  <Tooltip
+                    formatter={(value) => [
+                      formatNumber(Number(value)),
+                      "Views",
+                    ]}
+                    contentStyle={{
+                      background: "rgba(24,26,31,0.96)",
+                      border: "1px solid rgba(255,255,255,0.09)",
+                      borderRadius: 10,
+                      color: "#e2e8f0",
+                      fontSize: 10,
+                      boxShadow: "0 15px 40px rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(12px)",
+                    }}
+                    labelStyle={{
+                      color: "#94a3b8",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
 
-          {/* CENTER */}
+              {/* CENTER */}
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <div className="mb-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/15 bg-orange-500/[0.07] shadow-[0_0_20px_rgba(249,115,22,0.08)]">
+                  <Globe2 className="h-3.5 w-3.5 text-orange-400" />
+                </div>
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              left-1/2
-              top-1/2
-              flex
-              -translate-x-1/2
-              -translate-y-1/2
-              flex-col
-              items-center
-            "
-          >
-            <span
-              className="
-                text-[9px]
-                uppercase
-                tracking-[0.12em]
-                text-gray-600
-              "
-            >
-              Views
-            </span>
+                <span className="text-[8px] font-medium uppercase tracking-[0.14em] text-slate-600">
+                  Audience
+                </span>
 
-            <span
-              className="
-                mt-1
-                text-xl
-                font-bold
-                tabular-nums
-                text-white
-              "
-            >
-              {formatNumber(totalViews)}
-            </span>
+                <span className="mt-0.5 text-base font-bold text-slate-100">
+                  {formatNumber(totalViews)}
+                </span>
 
-            <span className="mt-0.5 text-[9px] text-gray-600">
-              by location
-            </span>
-          </div>
+                <span className="text-[8px] text-slate-700">
+                  view events
+                </span>
+              </div>
+            </div>
 
-          {/* LEGEND */}
-
-          <div
-            className="
-              absolute
-              bottom-3
-              left-4
-              right-4
-              flex
-              flex-wrap
-              justify-center
-              gap-x-3
-              gap-y-1
-            "
-          >
-            {chartData.map(
-              (location) => (
+            {/* LEGEND */}
+            <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1.5">
+              {topLocations.map((location, index) => (
                 <button
-                  key={location.id}
+                  key={getLocationId(location)}
                   type="button"
                   onClick={() =>
-                    setSelectedId(
-                      location.id
-                    )
+                    setSelectedId(getLocationId(location))
                   }
-                  className={`
-                    text-[9px]
-                    transition
-                    ${
-                      activeSelectedId ===
-                      location.id
-                        ? "font-semibold text-white"
-                        : "text-gray-600 hover:text-gray-400"
-                    }
-                  `}
+                  className="flex max-w-[45%] items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:bg-white/[0.035]"
                 >
-                  {location.name}{" "}
-                  {formatShare(
-                    location.share
-                  )}
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: getLocationColor(index),
+                      boxShadow: `0 0 6px ${getLocationColor(index)}55`,
+                    }}
+                  />
+
+                  <span className="truncate text-[9px] font-medium text-slate-500">
+                    {getLocationName(location)}
+                  </span>
+
+                  <span className="shrink-0 text-[8px] font-semibold text-slate-600">
+                    {formatShare(location.share)}
+                  </span>
                 </button>
-              )
+              ))}
+            </div>
+          </div>
+
+          {/* LEADING LOCATION */}
+          {selectedLocation && (
+            <div className="mx-4 mt-4 overflow-hidden rounded-xl border border-orange-500/10 bg-gradient-to-br from-orange-500/[0.07] via-orange-500/[0.025] to-transparent p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-orange-500/10 bg-orange-500/[0.07] text-orange-400">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-semibold uppercase tracking-[0.14em] text-orange-400">
+                      Leading Location
+                    </p>
+
+                    <p className="mt-0.5 truncate text-xs font-bold text-slate-100">
+                      {getLocationName(selectedLocation)}
+                    </p>
+
+                    {getSecondaryLocation(selectedLocation) && (
+                      <p className="mt-0.5 truncate text-[9px] text-slate-600">
+                        {getSecondaryLocation(selectedLocation)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <p className="text-sm font-bold text-orange-400">
+                    {formatShare(selectedLocation.share)}
+                  </p>
+
+                  <p className="text-[8px] uppercase tracking-wider text-slate-700">
+                    share
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-2.5 grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-white/[0.045] bg-black/10 px-2.5 py-2">
+                  <p className="text-[8px] uppercase tracking-wider text-slate-700">
+                    Views
+                  </p>
+
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-300">
+                    {formatNumber(number(selectedLocation.views))}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-white/[0.045] bg-black/10 px-2.5 py-2">
+                  <p className="text-[8px] uppercase tracking-wider text-slate-700">
+                    Sessions
+                  </p>
+
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-300">
+                    {formatNumber(number(selectedLocation.sessions))}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TOP 5 */}
+          <div className="px-4 pb-4 pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-slate-600">
+                  Top Locations
+                </p>
+
+                <p className="mt-0.5 text-[9px] text-slate-700">
+                  Highest geographic activity
+                </p>
+              </div>
+
+              <MousePointerClick className="h-3 w-3 text-slate-700" />
+            </div>
+
+            <div className="space-y-1">
+              {topLocations.map((location, index) => (
+                <LocationRow
+                  key={getLocationId(location)}
+                  location={location}
+                  index={index}
+                  active={
+                    selectedId === getLocationId(location)
+                  }
+                  onClick={() =>
+                    setSelectedId(getLocationId(location))
+                  }
+                />
+              ))}
+            </div>
+
+            {/* EXPAND */}
+            {sortedLocations.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500 transition hover:border-orange-500/15 hover:bg-orange-500/[0.04] hover:text-orange-400"
+              >
+                <Globe2 className="h-3 w-3" />
+
+                View all {sortedLocations.length} locations
+
+                <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </button>
             )}
           </div>
-        </div>
 
-        {/* ===================================================
-            DETAIL
-        =================================================== */}
+          {/* FOOTER */}
+          <div className="flex items-center gap-2 border-t border-white/[0.06] px-4 py-2.5">
+            <Globe2 className="h-3 w-3 text-slate-700" />
 
-        <div className="min-w-0 p-5 md:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p
-                className="
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.12em]
-                  text-gray-600
-                "
-              >
-                Top / Selected Location
-              </p>
+            <span className="text-[8px] text-slate-700">
+              Geographic intelligence · Event based telemetry
+            </span>
 
-              <div className="mt-1 flex items-center gap-2">
-                <MapPin
-                  size={14}
-                  strokeWidth={1.8}
-                  className="shrink-0 text-[#EA661B]"
-                />
-
-                <h3 className="truncate text-lg font-semibold text-white">
-                  {selectedName}
-                </h3>
-              </div>
-
-              {selectedSecondary && (
-                <p className="mt-0.5 pl-5 text-[10px] text-gray-600">
-                  {selectedSecondary}
-                </p>
-              )}
-
-              {selectedLocation?.countryCode && (
-                <p className="mt-1 pl-5 text-[9px] uppercase tracking-[0.1em] text-gray-700">
-                  {selectedLocation.countryCode}
-                </p>
-              )}
-            </div>
-
-            <div className="shrink-0 text-right">
-              <p className="text-lg font-bold tabular-nums text-white">
-                {formatShare(
-                  selectedShare
-                )}
-              </p>
-
-              <p className="text-[9px] text-gray-600">
-                audience share
-              </p>
-            </div>
-          </div>
-
-          {/* =================================================
-              METRICS
-          ================================================= */}
-
-          {selectedLocation && (
-            <div
-              className="
-                mt-5
-                grid
-                grid-cols-2
-                gap-4
-                border-y
-                border-white/[0.06]
-                py-4
-                sm:grid-cols-3
-              "
-            >
-              <Metric
-                icon={MousePointerClick}
-                label="Sessions"
-                value={number(
-                  selectedLocation.sessions
-                )}
-              />
-
-              <Metric
-                icon={Eye}
-                label="Views"
-                value={number(
-                  selectedLocation.views
-                )}
-              />
-
-              <Metric
-                icon={Users}
-                label="Share"
-                value={number(
-                  selectedLocation.share
-                )}
-              />
-            </div>
-          )}
-
-          {/* =================================================
-              LOCATION BREAKDOWN
-          ================================================= */}
-
-          {selectedLocation && (
-            <div className="mt-5">
-              <p
-                className="
-                  mb-3
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.1em]
-                  text-gray-600
-                "
-              >
-                Geographic Breakdown
-              </p>
-
-              <div className="grid gap-2 sm:grid-cols-3">
-                <LocationDetail
-                  label="Country"
-                  value={
-                    selectedLocation.country ||
-                    "Unknown"
-                  }
-                />
-
-                <LocationDetail
-                  label="State"
-                  value={
-                    selectedLocation.state ||
-                    "Unknown"
-                  }
-                />
-
-                <LocationDetail
-                  label="City"
-                  value={
-                    selectedLocation.city ||
-                    "Unknown"
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          {/* =================================================
-              TOP LOCATIONS
-          ================================================= */}
-
-          <div className="mt-5">
-            <div className="mb-3 flex items-center justify-between">
-              <p
-                className="
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.1em]
-                  text-gray-600
-                "
-              >
-                Location Ranking
-              </p>
-
-              <Globe2
-                size={12}
-                strokeWidth={1.8}
-                className="text-gray-700"
-              />
-            </div>
-
-            <div className="space-y-2.5">
-              {visibleLocations.map(
-                (location, index) => {
-                  const id =
-                    getLocationId(
-                      location
-                    );
-
-                  const isSelected =
-                    id ===
-                    activeSelectedId;
-
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedId(id)
-                      }
-                      className={`
-                        group
-                        flex
-                        w-full
-                        items-center
-                        gap-3
-                        rounded-lg
-                        border
-                        px-3
-                        py-2.5
-                        text-left
-                        transition-all
-                        ${
-                          isSelected
-                            ? "border-white/[0.1] bg-white/[0.045]"
-                            : "border-transparent bg-white/[0.012] hover:border-white/[0.06] hover:bg-white/[0.025]"
-                        }
-                      `}
-                    >
-                      <span
-                        className="
-                          w-4
-                          shrink-0
-                          text-[9px]
-                          font-semibold
-                          tabular-nums
-                          text-gray-700
-                        "
-                      >
-                        {index + 1}
-                      </span>
-
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={`
-                            truncate
-                            text-[11px]
-                            font-medium
-                            ${
-                              isSelected
-                                ? "text-white"
-                                : "text-gray-400"
-                            }
-                          `}
-                        >
-                          {getLocationName(
-                            location
-                          )}
-                        </p>
-
-                        <p className="mt-0.5 truncate text-[9px] text-gray-700">
-                          {getSecondaryLocation(
-                            location
-                          )}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0 text-right">
-                        <p className="text-[10px] font-semibold tabular-nums text-gray-300">
-                          {formatNumber(
-                            number(
-                              location.views
-                            )
-                          )}
-                        </p>
-
-                        <p className="mt-0.5 text-[9px] tabular-nums text-gray-700">
-                          {formatShare(
-                            location.share
-                          )}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                }
-              )}
-            </div>
+            <span className="ml-auto text-[8px] font-medium text-slate-700">
+              {sortedLocations.length} locations
+            </span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* =====================================================
-          FOOTER
-      ===================================================== */}
-
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          border-t
-          border-white/[0.06]
-          px-5
-          py-2.5
-        "
-      >
-        <span
-          className="
-            text-[9px]
-            uppercase
-            tracking-[0.08em]
-            text-gray-700
-          "
-        >
-          {locations.length} locations tracked
-        </span>
-
-        <span className="text-[9px] text-gray-700">
-          Click a location to inspect
-        </span>
-      </div>
-    </section>
+      {/* ALL LOCATIONS POPUP */}
+      {showAll && (
+        <AllLocationsModal
+          locations={sortedLocations}
+          onClose={() => setShowAll(false)}
+        />
+      )}
+    </>
   );
 }
-
-/* =========================================================
-   LOCATION DETAIL
-========================================================= */
-
-function LocationDetail({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div
-      className="
-        rounded-lg
-        border
-        border-white/[0.06]
-        bg-white/[0.018]
-        px-3
-        py-2.5
-      "
-    >
-      <p
-        className="
-          text-[8px]
-          uppercase
-          tracking-[0.1em]
-          text-gray-700
-        "
-      >
-        {label}
-      </p>
-
-      <p
-        className="
-          mt-1
-          truncate
-          text-[11px]
-          font-medium
-          text-gray-400
-        "
-        title={value}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-

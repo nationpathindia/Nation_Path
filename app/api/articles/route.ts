@@ -1530,21 +1530,19 @@ export async function PATCH(req: Request) {
     );
   }
 }
-
 /* =====================================================
    DELETE ARTICLE
    PERMANENT DELETE
 
+   - Disconnects IngestedFeed relation (if exists)
    - Deletes article analytics events
    - Deletes article permanently
    - No soft delete
-   - Archived articles are untouched
 ===================================================== */
 
 export async function DELETE(req: Request) {
   try {
-    const body =
-      await req.json();
+    const body = await req.json();
 
     if (!body.id) {
       return NextResponse.json(
@@ -1558,9 +1556,17 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const articleId =
-      body.id;
+    const articleId = body.id;
 
+    // ✅ STEP 1: Pehle IngestedFeed ka relation disconnect karo (Ye magic karega!)
+    await prisma.article.update({
+            where: { id: articleId },
+      data: {
+        ingestedFeeds: { disconnect: [] } // ✅ Correct: Empty array means disconnect all
+      }
+    });
+
+    // ✅ STEP 2: Ab safely transaction ke through delete karo
     await prisma.$transaction([
       // Delete all analytics events belonging to this article
       prisma.articleAnalyticsEvent.deleteMany({

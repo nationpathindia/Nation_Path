@@ -935,20 +935,7 @@ export default function CmsHoroscopeExperience({
         return null;
       }
 
-      console.log(
-        "NATIONPATH ZODIAC MASTER FULL:",
-        JSON.stringify(
-          master,
-          null,
-          2
-        )
-      );
-
-      console.log(
-        "NATIONPATH ZODIAC MASTER:",
-        master
-      );
-
+    
       return master;
     }, [
       data,

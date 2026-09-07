@@ -121,10 +121,6 @@ model Category {
   @@map("Category")
 }
 
-//////////////////////////////////////////////////////
-// ARTICLE
-//////////////////////////////////////////////////////
-
 model Article {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
@@ -147,6 +143,18 @@ model Article {
   videoPosition  String?
   videoEmbed     String?
   videoThumbnail String?
+
+  //////////////////////////////////////////////////////
+  // ✅ NEW: IMAGE INTELLIGENCE
+  //////////////////////////////////////////////////////
+
+  primaryImage     String?        // Main featured image URL
+  primaryImageAlt  String?        // Accessibility text
+  primaryImageMeta Json?          // { width, height, size, format, optimized }
+  
+  imageSource      String?        // "rss", "unsplash", "pexels", "ai-generated", "manual"
+  imageLicense     String?        // "royalty-free", "creative-commons", "editorial"
+  imageCredit      String?        // "Photo by John Doe on Unsplash"
 
   //////////////////////////////////////////////////////
   // ANALYTICS
@@ -287,21 +295,79 @@ model Article {
   shareUrl         String?
 
   //////////////////////////////////////////////////////
-  // AI
+  // ✅ ENHANCED: AI METADATA
   //////////////////////////////////////////////////////
 
-  aiGenerated Boolean   @default(false)
-  aiVersion   String?
-  aiPrompt    String?
-  generatedAt DateTime?
-  aiSummary   Json?
+  aiGenerated      Boolean   @default(false)
+  aiVersion        String?
+  aiPrompt         String?
+  aiPromptVersion  String?   // "v1", "v2", "v2-legal"
+  aiModel          String?   // "gemini-pro", "gpt-4", etc.
+  aiConfidence     Float?    // 0.0 to 1.0
+  generatedAt      DateTime?
+  aiSummary        Json?
+  wordCount        Int       @default(0)
+
+  //////////////////////////////////////////////////////
+  // ✅ NEW: LEGAL & ATTRIBUTION
+  //////////////////////////////////////////////////////
+
+  sourceAttribution  String?   // "(Source: PIB. NationPath Intelligence Bureau)"
+  originalSourceUrl  String?   // Original RSS article URL
+  factCheckStatus    String?   @default("pending") // "verified", "pending", "flagged"
+  factCheckNotes     String?   // Internal notes for editors
+  copyrightClearance Boolean   @default(false)
+
+  //////////////////////////////////////////////////////
+  // ✅ ENHANCED: SEO INTELLIGENCE
+  //////////////////////////////////////////////////////
+
+  readingTime        Int?
+  metaTitle          String?
+  metaDescription    String?
+  metaKeywords       String?
+  faqItems           Json?
+  canonicalUrl       String?
+  
+  // Open Graph
+  ogImage            String?
+  ogTitle            String?
+  ogDescription      String?
+  ogType             String?   @default("article")
+  
+  // Twitter Card
+  twitterCard        String?   @default("summary_large_image")
+  twitterTitle       String?
+  twitterDescription String?
+  
+  // Structured Data
+  structuredData     Json?     // JSON-LD schema markup
+  schemaValidated    Boolean   @default(false)
+
+  //////////////////////////////////////////////////////
+  // ✅ NEW: CONTENT STRUCTURE
+  //////////////////////////////////////////////////////
+
+  executiveSummary   String?   // 2-3 line summary for homepage
+  relatedTopics      String[]  // For internal linking
+  contentSections    Json?     // [{ heading, content, type }]
+  tableOfContents    Json?     // Auto-generated TOC
 
   //////////////////////////////////////////////////////
   // INTERNAL
   //////////////////////////////////////////////////////
 
-  astrologyVersion Int?      @default(1)
-  lastAstroUpdate  DateTime?
+  astrologyVersion   Int?      @default(1)
+  lastAstroUpdate    DateTime?
+  ingestedFeeds      IngestedFeed[] @relation("FeedToArticle")
+
+  //////////////////////////////////////////////////////
+  // ✅ NEW: VERSION CONTROL
+  //////////////////////////////////////////////////////
+
+  lastEditedAt       DateTime?
+  publishedVersion   Int       @default(1)
+  editHistory        Json?     // Track major edits
 
   //////////////////////////////////////////////////////
   // STATUS
@@ -347,6 +413,14 @@ model Article {
   sourceDesk   Json?
 
   //////////////////////////////////////////////////////
+  // ✅ NEW: MULTI-LANGUAGE SUPPORT
+  //////////////////////////////////////////////////////
+
+  translations       Json?     // { hi: {...}, ta: {...} }
+  primaryLanguage    String?   @default("en")
+  availableLanguages String[]  @default(["en"])
+
+  //////////////////////////////////////////////////////
   // TRENDING
   //////////////////////////////////////////////////////
 
@@ -358,19 +432,6 @@ model Article {
   //////////////////////////////////////////////////////
 
   tags String[]
-
-  //////////////////////////////////////////////////////
-  // SEO
-  //////////////////////////////////////////////////////
-
-  readingTime     Int?
-  metaTitle       String?
-  metaDescription String?
-  faqItems        Json?
-  metaKeywords    String?
-  canonicalUrl    String?
-  ogImage         String?
-  structuredData  String?
 
   //////////////////////////////////////////////////////
   // TIMESTAMPS
@@ -406,10 +467,14 @@ model Article {
   @@index([isEditorial])
   @@index([isAstrology])
   @@index([isDeleted])
+  @@index([factCheckStatus])
+  @@index([wordCount])
+  @@index([readingTime])
+  @@index([imageSource])
+  @@index([aiGenerated])
   @@index([breaking, isDeleted, status, breakingEnd, breakingPriority, createdAt])
   @@map("Article")
 }
-
 //////////////////////////////////////////////////////
 // ARTICLE ANALYTICS EVENT
 //////////////////////////////////////////////////////
@@ -510,6 +575,8 @@ model ArticleAnalyticsEvent {
   @@index([articleId, eventType, createdAt])
   @@map("ArticleAnalyticsEvent")
 }
+
+
 
 //////////////////////////////////////////////////////
 // CATEGORY ANALYTICS EVENT
@@ -1251,4 +1318,58 @@ model PollVote {
   @@index([userId])
   @@index([createdAt])
   @@map("PollVote")
+}
+
+//////////////////////////////////////////////////////
+// NEWS INGESTION ENGINE
+//////////////////////////////////////////////////////
+
+model NewsSource {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  name           String   
+  rssUrl         String   @unique 
+  category       String?  
+  region         String?  
+  priorityWeight Int      @default(5) 
+  isActive       Boolean  @default(true) 
+  
+  feeds          IngestedFeed[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([priorityWeight])
+  @@map("NewsSource")
+}
+
+model IngestedFeed {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  sourceId           String?  @db.ObjectId
+  source             NewsSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  
+  title              String
+  description        String   
+  sourceUrl          String   @unique 
+  
+  imageUrl           String?  
+  priorityScore      Int      @default(0) 
+  keywords           String[] 
+  
+  status             String   @default("pending") 
+  
+  // ✅ FIX: No @unique. Relation name "FeedToArticle"
+  generatedArticleId String?  @db.ObjectId 
+  generatedArticle   Article? @relation("FeedToArticle", fields: [generatedArticleId], references: [id], onDelete: SetNull)
+  
+  publishedAt        DateTime 
+  fetchedAt          DateTime @default(now()) 
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([status, fetchedAt]) 
+  @@index([status, priorityScore]) 
+  @@map("IngestedFeed")
 }

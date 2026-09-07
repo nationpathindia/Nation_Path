@@ -37,20 +37,13 @@ export type PostStatus =
 
 
 export interface ImageGalleryItem {
-
-
-  url:string;
-
-
-  alt:string;
-
-
-  caption:string;
-
-
-  isPrimary:boolean;
-
-
+  url: string;
+  alt: string;
+  caption: string;
+  isPrimary: boolean;
+  source?: string;        // "upload" | "unsplash" | "pexels"
+  license?: string;       // "owned" | "unsplash-license" etc.
+  credit?: string;        // "Photo by John on Unsplash"
 }
 
 

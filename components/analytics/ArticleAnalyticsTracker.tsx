@@ -249,6 +249,7 @@ function sendContentEvent(
     unknown
   >
 ) {
+  
   sendAnalyticsEvent(
     "/api/analytics/event",
     {

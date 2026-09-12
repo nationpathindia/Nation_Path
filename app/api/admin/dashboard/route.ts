@@ -871,6 +871,7 @@ const latest = await prisma.article.findMany({
     publishedAt: true,
     featured: true,
     breaking: true,
+      isEditorial: true,
 
     category: {
       select: {

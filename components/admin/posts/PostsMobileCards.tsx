@@ -49,7 +49,17 @@ export default function PostsMobileCards({
   }
 
   function getArticleUrl(post: any) {
-    if (!post.slug || !post.category?.slug) {
+    if (!post.slug) {
+      return null;
+    }
+
+    // Editorial public URL
+    if (post.isEditorial) {
+      return `https://www.nationpathindia.com/editorial/${post.slug}`;
+    }
+
+    // News public URL
+    if (!post.category?.slug) {
       return null;
     }
 
@@ -63,6 +73,7 @@ export default function PostsMobileCards({
       console.error("ARTICLE URL ERROR", {
         id: post.id,
         slug: post.slug,
+        isEditorial: post.isEditorial,
         category: post.category,
       });
 
@@ -91,6 +102,10 @@ export default function PostsMobileCards({
     >
       {posts.map((post) => {
         const articleUrl = getArticleUrl(post);
+
+        const editUrl = post.isEditorial
+          ? `/admin/posts/editorial/edit/${post.id}`
+          : `/admin/posts/edit/${post.id}`;
 
         return (
           <div
@@ -147,7 +162,9 @@ export default function PostsMobileCards({
               "
             >
               <span>
-                {post.category?.name || "General"}
+                {post.isEditorial
+                  ? "Editorial"
+                  : post.category?.name || "General"}
               </span>
 
               <span>•</span>
@@ -268,8 +285,9 @@ export default function PostsMobileCards({
                 mt-4
               "
             >
+              {/* EDIT */}
               <Link
-                href={`/admin/posts/edit/${post.id}`}
+                href={editUrl}
                 className="
                   px-3
                   py-1.5
@@ -282,6 +300,7 @@ export default function PostsMobileCards({
                 Edit
               </Link>
 
+              {/* VIEW */}
               {articleUrl ? (
                 <Link
                   href={articleUrl}
@@ -315,6 +334,7 @@ export default function PostsMobileCards({
                 </span>
               )}
 
+              {/* COPY LINK */}
               <button
                 type="button"
                 onClick={() =>
@@ -339,7 +359,9 @@ export default function PostsMobileCards({
                   : "Copy Link"}
               </button>
 
+              {/* DELETE */}
               <button
+                type="button"
                 onClick={() =>
                   deletePost(post.id)
                 }
@@ -361,3 +383,4 @@ export default function PostsMobileCards({
     </div>
   );
 }
+

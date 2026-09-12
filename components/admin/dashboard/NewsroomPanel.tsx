@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, Copy, Check } from "lucide-react";
+import { Eye, Copy, Check, FileText } from "lucide-react";
 
 interface Props {
   latest: any[];
@@ -16,36 +16,61 @@ export default function NewsroomPanel({
 
   const perPage = 5;
 
-  const totalPages = Math.ceil(
-    (latest?.length || 0) / perPage
+  const totalArticles = latest?.length || 0;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalArticles / perPage)
   );
 
-  const start = (page - 1) * perPage;
+  const safePage = Math.min(page, totalPages);
+
+  const start = (safePage - 1) * perPage;
 
   const articles =
     latest?.slice(start, start + perPage) || [];
 
   function getArticleUrl(article: any) {
-    const articleSlug = article.slug;
+    const articleSlug = article?.slug;
 
     if (!articleSlug) {
       return null;
     }
 
-    const categorySlug = article.category?.slug;
-
-    if (categorySlug) {
-      return `https://www.nationpathindia.com/${categorySlug}/${articleSlug}`;
+    // Editorial public route
+    if (article?.isEditorial) {
+      return `https://www.nationpathindia.com/editorial/${articleSlug}`;
     }
 
-    return `https://www.nationpathindia.com/${articleSlug}`;
+    // News public route
+    const categorySlug = article?.category?.slug;
+
+    if (!categorySlug) {
+      return null;
+    }
+
+    return `https://www.nationpathindia.com/${categorySlug}/${articleSlug}`;
+  }
+
+  function getEditUrl(article: any) {
+    if (!article?.id) {
+      return "#";
+    }
+
+    // Editorial admin editor
+    if (article?.isEditorial) {
+      return `/admin/posts/editorial/edit/${article.id}`;
+    }
+
+    // News admin editor
+    return `/admin/posts/edit/${article.id}`;
   }
 
   async function copyArticleLink(article: any) {
     const articleUrl = getArticleUrl(article);
 
     if (!articleUrl) {
-      console.error("ARTICLE SLUG MISSING", article);
+      console.error("ARTICLE PUBLIC URL MISSING", article);
       return;
     }
 
@@ -81,17 +106,26 @@ export default function NewsroomPanel({
           justify-between
           items-start
           mb-5
+          gap-4
         "
       >
         <div>
-          <h2
-            className="
-              text-lg
-              font-semibold
-            "
-          >
-            Newsroom Intelligence
-          </h2>
+          <div className="flex items-center gap-2">
+            <FileText
+              size={18}
+              className="text-orange-400"
+              strokeWidth={1.8}
+            />
+
+            <h2
+              className="
+                text-lg
+                font-semibold
+              "
+            >
+              Newsroom Intelligence
+            </h2>
+          </div>
 
           <p
             className="
@@ -109,9 +143,11 @@ export default function NewsroomPanel({
             className="
               text-xs
               text-gray-400
+              whitespace-nowrap
             "
           >
-            {latest?.length || 0} Articles
+            {totalArticles}{" "}
+            {totalArticles === 1 ? "Article" : "Articles"}
           </span>
 
           <Link
@@ -125,6 +161,7 @@ export default function NewsroomPanel({
               font-semibold
               hover:opacity-90
               transition
+              whitespace-nowrap
             "
           >
             + Article
@@ -181,148 +218,253 @@ export default function NewsroomPanel({
           </thead>
 
           <tbody>
-            {articles.map((article: any) => {
-              const articleUrl = getArticleUrl(article);
-
-              return (
-                <tr
-                  key={article.id}
+            {articles.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
                   className="
-                    border-t
-                    border-white/10
-                    hover:bg-white/5
-                    transition
+                    px-4
+                    py-10
+                    text-center
+                    text-sm
+                    text-gray-500
                   "
                 >
-                  {/* ARTICLE */}
+                  No publishing activity found.
+                </td>
+              </tr>
+            ) : (
+              articles.map((article: any) => {
+                const articleUrl =
+                  getArticleUrl(article);
 
-                  <td
+                const editUrl =
+                  getEditUrl(article);
+
+                const isEditorial =
+                  Boolean(article?.isEditorial);
+
+                return (
+                  <tr
+                    key={article.id}
                     className="
-                      px-4
-                      py-4
-                      max-w-md
+                      border-t
+                      border-white/10
+                      hover:bg-white/5
+                      transition
                     "
                   >
-                    <Link
-                      href={`/admin/posts/edit/${article.id}`}
+                    {/* ARTICLE */}
+
+                    <td
                       className="
-                        font-medium
-                        line-clamp-1
-                        hover:text-orange-400
-                        transition
+                        px-4
+                        py-4
+                        max-w-md
                       "
                     >
-                      {article.title}
-                    </Link>
+                      <Link
+                        href={editUrl}
+                        className="
+                          font-medium
+                          line-clamp-1
+                          hover:text-orange-400
+                          transition
+                        "
+                      >
+                        {article.title ||
+                          "Untitled Article"}
+                      </Link>
 
-                    <div className="flex gap-2 mt-2">
-                      {article.breaking && (
-                        <span
-                          className="
-                            text-[11px]
-                            px-2
-                            py-1
-                            rounded-full
-                            bg-red-500/20
-                            text-red-400
-                          "
-                        >
-                          Breaking
-                        </span>
-                      )}
+                      <div
+                        className="
+                          flex
+                          gap-2
+                          mt-2
+                          flex-wrap
+                        "
+                      >
+                        {isEditorial && (
+                          <span
+                            className="
+                              text-[11px]
+                              px-2
+                              py-1
+                              rounded-full
+                              bg-purple-500/20
+                              text-purple-300
+                            "
+                          >
+                            Editorial
+                          </span>
+                        )}
 
-                      {article.featured && (
-                        <span
-                          className="
-                            text-[11px]
-                            px-2
-                            py-1
-                            rounded-full
-                            bg-orange-500/20
-                            text-orange-400
-                          "
-                        >
-                          Featured
-                        </span>
-                      )}
-                    </div>
-                  </td>
+                        {!isEditorial &&
+                          article.breaking && (
+                            <span
+                              className="
+                                text-[11px]
+                                px-2
+                                py-1
+                                rounded-full
+                                bg-red-500/20
+                                text-red-400
+                              "
+                            >
+                              Breaking
+                            </span>
+                          )}
 
-                  {/* CATEGORY */}
+                        {!isEditorial &&
+                          article.featured && (
+                            <span
+                              className="
+                                text-[11px]
+                                px-2
+                                py-1
+                                rounded-full
+                                bg-orange-500/20
+                                text-orange-400
+                              "
+                            >
+                              Featured
+                            </span>
+                          )}
+                      </div>
+                    </td>
 
-                  <td
-                    className="
-                      px-4
-                      text-gray-300
-                    "
-                  >
-                    {article.category?.name || "News"}
-                  </td>
+                    {/* CATEGORY */}
 
-                  {/* STATUS */}
-
-                  <td className="px-4">
-                    <StatusBadge
-                      status={article.status}
-                    />
-                  </td>
-
-                  {/* VIEWS */}
-
-                  <td
-                    className="
-                      px-4
-                      text-right
-                      text-gray-400
-                    "
-                  >
-                    <div
+                    <td
                       className="
-                        inline-flex
-                        items-center
-                        justify-end
-                        gap-1.5
+                        px-4
+                        text-gray-300
                       "
                     >
-                      <Eye
-                        size={14}
-                        strokeWidth={1.8}
-                        className="text-gray-500"
+                      {isEditorial ? (
+                        <span className="text-purple-300">
+                          Editorial
+                        </span>
+                      ) : (
+                        article.category?.name ||
+                        "General"
+                      )}
+                    </td>
+
+                    {/* STATUS */}
+
+                    <td className="px-4">
+                      <StatusBadge
+                        status={article.status}
                       />
+                    </td>
 
-                      <span className="font-medium">
-                        {Number(
-                          article.views || 0
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                  </td>
+                    {/* VIEWS */}
 
-                  {/* ACTIONS */}
-
-                  <td
-                    className="
-                      px-4
-                      text-right
-                    "
-                  >
-                    <div
+                    <td
                       className="
-                        flex
-                        justify-end
-                        items-center
-                        gap-1.5
+                        px-4
+                        text-right
+                        text-gray-400
                       "
                     >
-                      {/* VIEW */}
+                      <div
+                        className="
+                          inline-flex
+                          items-center
+                          justify-end
+                          gap-1.5
+                        "
+                      >
+                        <Eye
+                          size={14}
+                          strokeWidth={1.8}
+                          className="text-gray-500"
+                        />
 
-                      {articleUrl && (
-                        <a
-                          href={articleUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="View article"
-                          aria-label="View article"
+                        <span className="font-medium">
+                          {Number(
+                            article.views || 0
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* ACTIONS */}
+
+                    <td
+                      className="
+                        px-4
+                        text-right
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          justify-end
+                          items-center
+                          gap-1.5
+                        "
+                      >
+                        {/* VIEW */}
+
+                        {articleUrl && (
+                          <a
+                            href={articleUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={
+                              isEditorial
+                                ? "View editorial"
+                                : "View article"
+                            }
+                            aria-label={
+                              isEditorial
+                                ? "View editorial"
+                                : "View article"
+                            }
+                            className="
+                              w-8
+                              h-8
+                              flex
+                              items-center
+                              justify-center
+                              rounded-lg
+                              bg-white/5
+                              border
+                              border-white/10
+                              text-gray-400
+                              hover:text-green-400
+                              hover:bg-green-500/10
+                              hover:border-green-500/20
+                              transition
+                            "
+                          >
+                            <Eye
+                              size={15}
+                              strokeWidth={1.8}
+                            />
+                          </a>
+                        )}
+
+                        {/* COPY LINK */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            copyArticleLink(article)
+                          }
+                          disabled={!articleUrl}
+                          title={
+                            copiedId === article.id
+                              ? "Copied"
+                              : "Copy link"
+                          }
+                          aria-label={
+                            copiedId === article.id
+                              ? "Copied"
+                              : "Copy link"
+                          }
                           className="
                             w-8
                             h-8
@@ -334,73 +476,33 @@ export default function NewsroomPanel({
                             border
                             border-white/10
                             text-gray-400
-                            hover:text-green-400
-                            hover:bg-green-500/10
-                            hover:border-green-500/20
+                            hover:text-blue-400
+                            hover:bg-blue-500/10
+                            hover:border-blue-500/20
+                            disabled:opacity-30
+                            disabled:cursor-not-allowed
                             transition
                           "
                         >
-                          <Eye
-                            size={15}
-                            strokeWidth={1.8}
-                          />
-                        </a>
-                      )}
-
-                      {/* COPY LINK */}
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          copyArticleLink(article)
-                        }
-                        disabled={!articleUrl}
-                        title={
-                          copiedId === article.id
-                            ? "Copied"
-                            : "Copy link"
-                        }
-                        aria-label={
-                          copiedId === article.id
-                            ? "Copied"
-                            : "Copy link"
-                        }
-                        className="
-                          w-8
-                          h-8
-                          flex
-                          items-center
-                          justify-center
-                          rounded-lg
-                          bg-white/5
-                          border
-                          border-white/10
-                          text-gray-400
-                          hover:text-blue-400
-                          hover:bg-blue-500/10
-                          hover:border-blue-500/20
-                          disabled:opacity-30
-                          transition
-                        "
-                      >
-                        {copiedId === article.id ? (
-                          <Check
-                            size={15}
-                            strokeWidth={2}
-                            className="text-green-400"
-                          />
-                        ) : (
-                          <Copy
-                            size={15}
-                            strokeWidth={1.8}
-                          />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                          {copiedId === article.id ? (
+                            <Check
+                              size={15}
+                              strokeWidth={2}
+                              className="text-green-400"
+                            />
+                          ) : (
+                            <Copy
+                              size={15}
+                              strokeWidth={1.8}
+                            />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -416,7 +518,7 @@ export default function NewsroomPanel({
         "
       >
         <button
-          disabled={page === 1}
+          disabled={safePage === 1}
           onClick={() =>
             setPage((current) =>
               Math.max(1, current - 1)
@@ -428,6 +530,7 @@ export default function NewsroomPanel({
             rounded-lg
             bg-white/10
             disabled:opacity-30
+            disabled:cursor-not-allowed
             text-sm
             transition
           "
@@ -441,13 +544,13 @@ export default function NewsroomPanel({
             text-gray-400
           "
         >
-          Page {page} / {totalPages || 1}
+          Page {safePage} / {totalPages}
         </div>
 
         <button
           disabled={
-            page === totalPages ||
-            totalPages === 0
+            safePage === totalPages ||
+            totalArticles === 0
           }
           onClick={() =>
             setPage((current) =>
@@ -463,6 +566,7 @@ export default function NewsroomPanel({
             rounded-lg
             bg-white/10
             disabled:opacity-30
+            disabled:cursor-not-allowed
             text-sm
             transition
           "
@@ -491,6 +595,9 @@ function StatusBadge({
 
     rejected:
       "bg-red-500/20 text-red-400",
+
+    archived:
+      "bg-slate-500/20 text-slate-300",
   };
 
   return (
@@ -503,7 +610,8 @@ function StatusBadge({
         ${styles[status] || styles.draft}
       `}
     >
-      {status}
+      {status || "draft"}
     </span>
   );
 }
+

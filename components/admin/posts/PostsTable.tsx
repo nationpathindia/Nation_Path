@@ -93,7 +93,17 @@ export default function PostsTable({
   }
 
   function getArticleUrl(post: any) {
-    if (!post.slug || !post.category?.slug) {
+    if (!post.slug) {
+      return null;
+    }
+
+    // Editorial public URL
+    if (post.isEditorial) {
+      return `https://www.nationpathindia.com/editorial/${post.slug}`;
+    }
+
+    // News public URL
+    if (!post.category?.slug) {
       return null;
     }
 
@@ -107,6 +117,7 @@ export default function PostsTable({
       console.error("ARTICLE URL ERROR", {
         id: post.id,
         slug: post.slug,
+        isEditorial: post.isEditorial,
         category: post.category,
       });
 
@@ -227,6 +238,10 @@ export default function PostsTable({
               const articleUrl =
                 getArticleUrl(post);
 
+              const editUrl = post.isEditorial
+                ? `/admin/posts/editorial/edit/${post.id}`
+                : `/admin/posts/edit/${post.id}`;
+
               return (
                 <tr
                   key={post.id}
@@ -266,8 +281,9 @@ export default function PostsTable({
                       "
                     >
                       <span>
-                        {post.category?.name ||
-                          "General"}
+                        {post.isEditorial
+                          ? "Editorial"
+                          : post.category?.name || "General"}
                       </span>
 
                       <span>•</span>
@@ -491,12 +507,19 @@ export default function PostsTable({
                         whitespace-nowrap
                       "
                     >
-
                       {/* EDIT */}
                       <Link
-                        href={`/admin/posts/edit/${post.id}`}
-                        title="Edit article"
-                        aria-label="Edit article"
+                        href={editUrl}
+                        title={
+                          post.isEditorial
+                            ? "Edit editorial"
+                            : "Edit article"
+                        }
+                        aria-label={
+                          post.isEditorial
+                            ? "Edit editorial"
+                            : "Edit article"
+                        }
                         className="
                           inline-flex
                           h-7
@@ -519,15 +542,22 @@ export default function PostsTable({
                         />
                       </Link>
 
-
                       {/* VIEW */}
                       {articleUrl ? (
                         <Link
                           href={articleUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title="View article"
-                          aria-label="View article"
+                          title={
+                            post.isEditorial
+                              ? "View editorial"
+                              : "View article"
+                          }
+                          aria-label={
+                            post.isEditorial
+                              ? "View editorial"
+                              : "View article"
+                          }
                           className="
                             inline-flex
                             h-7
@@ -553,8 +583,16 @@ export default function PostsTable({
                         <button
                           type="button"
                           disabled
-                          title="Article URL unavailable"
-                          aria-label="Article URL unavailable"
+                          title={
+                            post.isEditorial
+                              ? "Editorial URL unavailable"
+                              : "Article URL unavailable"
+                          }
+                          aria-label={
+                            post.isEditorial
+                              ? "Editorial URL unavailable"
+                              : "Article URL unavailable"
+                          }
                           className="
                             inline-flex
                             h-7
@@ -575,7 +613,6 @@ export default function PostsTable({
                         </button>
                       )}
 
-
                       {/* COPY LINK */}
                       <button
                         type="button"
@@ -586,12 +623,16 @@ export default function PostsTable({
                         title={
                           copiedId === post.id
                             ? "Link copied"
-                            : "Copy article link"
+                            : post.isEditorial
+                              ? "Copy editorial link"
+                              : "Copy article link"
                         }
                         aria-label={
                           copiedId === post.id
                             ? "Link copied"
-                            : "Copy article link"
+                            : post.isEditorial
+                              ? "Copy editorial link"
+                              : "Copy article link"
                         }
                         className="
                           inline-flex
@@ -626,7 +667,6 @@ export default function PostsTable({
                         )}
                       </button>
 
-
                       {/* DELETE */}
                       <button
                         type="button"
@@ -656,7 +696,6 @@ export default function PostsTable({
                           strokeWidth={2}
                         />
                       </button>
-
                     </div>
                   </td>
                 </tr>
@@ -668,3 +707,4 @@ export default function PostsTable({
     </div>
   );
 }
+

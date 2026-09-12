@@ -3,27 +3,43 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST() {
   try {
-    // 1 ghante (60 minutes) se purani "processed" news ko delete karo
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    console.log('🧹 Running automated ingestion cleanup...');
 
-    const deleted = await prisma.ingestedFeed.deleteMany({
+    // 1. Delete 'processed' feeds that were fetched more than 15 minutes ago
+    // (Meaning: AI has generated the article, raw data is no longer needed)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    
+    const deletedProcessed = await prisma.ingestedFeed.deleteMany({
       where: {
         status: 'processed',
-        updatedAt: { lt: oneHourAgo }
+        fetchedAt: { lt: fifteenMinutesAgo } // ✅ Changed from updatedAt to fetchedAt
       }
     });
 
-    if (deleted.count > 0) {
-      console.log(`🧹 Auto-Cleanup: Deleted ${deleted.count} old processed news items.`);
+    // 2. Delete 'pending' feeds that are older than 24 hours
+    // (Meaning: Stale data that was never processed, no longer relevant)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    const deletedStale = await prisma.ingestedFeed.deleteMany({
+      where: {
+        status: 'pending',
+        fetchedAt: { lt: twentyFourHoursAgo }
+      }
+    });
+
+    const totalDeleted = deletedProcessed.count + deletedStale.count;
+    
+    if (totalDeleted > 0) {
+      console.log(`✅ Cleanup complete: Removed ${deletedProcessed.count} processed & ${deletedStale.count} stale feeds.`);
     }
 
     return NextResponse.json({ 
       success: true, 
-      deleted: deleted.count 
+      deleted: totalDeleted 
     });
 
-  } catch (error) {
-    console.error('Auto-Cleanup failed:', error);
+  } catch (error: any) {
+    console.error('❌ Auto-Cleanup failed:', error);
     return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 });
   }
 }

@@ -2,304 +2,134 @@ import type {
   PostFormData
 } from "./types";
 
-
-
-
-
 export function createDefaultPost(
+  type: "news" | "editorial" = "news"
+): PostFormData {
 
-  type:"news" | "editorial" = "news"
+  const isEditorial = type === "editorial";
 
-):PostFormData {
+  return {
 
+    // ======================
+    // BASIC
+    // ======================
 
+    title: "",
 
+    slug: "",
 
-const isEditorial =
+    content: "",
 
-type === "editorial";
+    categoryId: "",
 
+    postType: isEditorial
+      ? "editorial"
+      : "news",
 
+    isEditorial,
 
+    // ======================
+    // MEDIA
+    // ======================
 
+    imageGallery: [],
 
+    images: [],
 
-return {
+    videoUrl: "",
 
+    videoEmbed: "",
 
+    videoThumbnail: "",
 
+    videoTitle: "",
 
-  // ======================
-  // BASIC
-  // ======================
+    videoPosition: "top",
 
+    // ======================
+    // HOMEPAGE / NEWS CONTROL
+    // ======================
 
-  title:"",
+    breaking: false,
 
+    featured: false,
 
-  slug:"",
+    breakingPriority: 0,
 
+    homepagePriority: 0,
 
-  content:"",
+    breakingDuration: "30",
 
+    featuredDuration: "24",
 
+    // ======================
+    // ARTICLE INTELLIGENCE
+    // ======================
 
+    shortBrief: "",
 
-  categoryId:
+    keyHighlights: [],
 
-    isEditorial
+    whyItMatters: "",
 
-    ?
+    background: "",
 
-    "editorial"
+    timeline: [],
 
-    :
+    expertOpinion: [],
 
-    "",
+    factCheck: [],
 
+    whatsNext: "",
 
+    keyTakeaways: [],
 
+    sourceDesk: "",
 
+    // ======================
+    // FAQ
+    // ======================
 
-  postType:
+    faqItems: [],
 
-    isEditorial
+    // ======================
+    // PUBLISHING
+    // ======================
 
-    ?
+    publishedAt: null,
 
-    "editorial"
+    scheduledAt: null,
 
-    :
+    status: "draft",
 
-    "news",
+    live: false,
 
+    // ======================
+    // SEO
+    // ======================
 
+    metaTitle: "",
 
+    metaDescription: "",
 
-  isEditorial,
+    metaKeywords: "",
 
+    // ======================
+    // AI PIPELINE
+    // ======================
 
+    aiGenerated: false,
 
+    aiVersion: "",
 
+    humanReview: false,
 
+    // ======================
+    // SYSTEM
+    // ======================
 
+    createdAt: "",
 
-
-
-  // ======================
-  // MEDIA
-  // ======================
-
-
-  imageGallery:[],
-
-
-  images:[],
-
-
-
-
-
-  videoUrl:"",
-
-
-  videoEmbed:"",
-
-
-  videoThumbnail:"",
-
-
-  videoTitle:"",
-
-
-
-  videoPosition:"top",
-
-
-
-
-
-
-
-  // ======================
-  // HOMEPAGE / NEWS CONTROL
-  // ======================
-
-
-  breaking:false,
-
-
-  featured:false,
-
-
-
-  breakingPriority:0,
-
-
-  homepagePriority:0,
-
-
-
-  breakingDuration:"30",
-
-
-  featuredDuration:"24",
-
-
-
-
-
-
-
-  // ======================
-  // ARTICLE INTELLIGENCE
-  // ======================
-
-
-  shortBrief:"",
-
-
-
-  keyHighlights:[],
-
-
-
-  whyItMatters:"",
-
-
-
-  background:"",
-
-
-
-  timeline:[],
-
-
-
-  expertOpinion:[],
-
-
-
-  factCheck:[],
-
-
-
-  whatsNext:"",
-
-
-
-  keyTakeaways:[],
-
-
-
-  sourceDesk:"",
-
-
-
-
-
-
-
-  // ======================
-  // FAQ
-  // ======================
-
-
-  faqItems:[],
-
-
-
-
-
-
-
-
-
-  // ======================
-  // PUBLISHING
-  // ======================
-
-
-  publishedAt:null,
-
-
-
-  scheduledAt:null,
-
-
-
-  status:"draft",
-
-
-
-  live:false,
-
-
-
-
-
-
-
-
-
-  // ======================
-  // SEO
-  // ======================
-
-
-  metaTitle:"",
-
-
-
-  metaDescription:"",
-
-
-
-  metaKeywords:"",
-
-
-
-
-
-
-
-  // ======================
-  // AI PIPELINE
-  // ======================
-
-
-  aiGenerated:false,
-
-
-
-  aiVersion:"",
-
-
-
-  humanReview:false,
-
-
-
-
-
-
-
-
-
-  // ======================
-  // SYSTEM
-  // ======================
-
-
-  createdAt:"",
-
-
-
-  updatedAt:""
-
-
-
-
-};
-
+    updatedAt: ""
+  };
 }

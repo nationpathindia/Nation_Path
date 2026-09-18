@@ -31,7 +31,7 @@ export default function CategoryBlock({
      IMAGE INTELLIGENCE
   ===================================================== */
 
-  function getPrimaryImage(article: any) {
+  function getPrimaryImage(article: any): string | null {
     return (
       article?.imageGallery?.find(
         (image: any) =>
@@ -53,26 +53,55 @@ export default function CategoryBlock({
     );
   }
 
-  function getImageAlt(article: any) {
+  function getImageAlt(article: any): string {
     return (
       article?.imageGallery?.find(
         (image: any) =>
           image?.isPrimary &&
-          image?.alt
+          typeof image?.alt === "string" &&
+          image.alt.trim()
       )?.alt ||
       article?.imageGallery?.find(
         (image: any) =>
-          image?.alt
+          typeof image?.alt === "string" &&
+          image.alt.trim()
       )?.alt ||
       `${article?.title || "News article"} - Nation Path India`
     );
   }
 
   /* =====================================================
+     IMAGE DELIVERY
+
+     Cloudinary:
+       cloudinaryImageUrl()
+       → f_auto,q_auto,w_720
+
+     R2:
+       cloudinaryImageUrl()
+       → URL unchanged
+
+     Next/Image:
+       → handles responsive browser delivery
+       → AVIF/WebP according to next.config
+       → no unoptimized bypass
+  ===================================================== */
+
+  function getDeliveryImage(article: any): string | null {
+    const source = getPrimaryImage(article);
+
+    if (!source) {
+      return null;
+    }
+
+    return cloudinaryImageUrl(source, 720);
+  }
+
+  /* =====================================================
      SUMMARY INTELLIGENCE
   ===================================================== */
 
-  function cleanText(value: unknown) {
+  function cleanText(value: unknown): string {
     if (
       typeof value !== "string" ||
       !value
@@ -93,7 +122,7 @@ export default function CategoryBlock({
   function getSummary(
     article: any,
     limit: number = 230
-  ) {
+  ): string {
     const source =
       article?.excerpt ||
       article?.shortBrief ||
@@ -111,7 +140,7 @@ export default function CategoryBlock({
      ARTICLE URL
   ===================================================== */
 
-  const articleUrl = (article: any) => {
+  const articleUrl = (article: any): string => {
     if (
       !article?.category?.slug ||
       !article?.slug
@@ -122,27 +151,7 @@ export default function CategoryBlock({
     return `/${article.category.slug}/${article.slug}`;
   };
 
-  /* =====================================================
-     IMAGE DELIVERY
-     
-     Cloudinary:
-       f_auto,q_auto,w_720
-
-     Non-Cloudinary:
-       original URL
-
-     Next/Vercel image transformations:
-       BYPASSED
-  ===================================================== */
-
-  const mainImage = getPrimaryImage(main);
-
-  const optimizedMainImage = mainImage
-    ? cloudinaryImageUrl(
-        mainImage,
-        720
-      )
-    : null;
+  const mainImage = getDeliveryImage(main);
 
   return (
     <section
@@ -248,16 +257,15 @@ export default function CategoryBlock({
                 mb-6
               "
             >
-              {optimizedMainImage ? (
+              {mainImage ? (
                 <Image
-                  src={optimizedMainImage}
+                  src={mainImage}
                   alt={getImageAlt(main)}
                   fill
                   sizes="
                     (max-width: 768px) 100vw,
-                    720px
+                    58vw
                   "
-                  unoptimized
                   loading="lazy"
                   className="
                     object-cover

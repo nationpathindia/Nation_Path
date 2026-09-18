@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
@@ -14,32 +15,15 @@ interface GalleryImage {
   isPrimary?: boolean;
 }
 
-export default function ArticleRelated({
-  articles,
-}: ArticleRelatedProps) {
-  if (!Array.isArray(articles) || articles.length === 0) {
-    return null;
-  }
+/* =====================================================
+   PRIMARY IMAGE
+===================================================== */
 
-  /*
-   * =====================================================
-   * IMAGE INTELLIGENCE
-   * =====================================================
-   *
-   * Priority:
-   *
-   * 1. Primary imageGallery image
-   * 2. First imageGallery image
-   * 3. Legacy images[0]
-   *
-   * Original database URLs remain untouched.
-   * Cloudinary optimization happens only at delivery time.
-   */
-
-  function getPrimaryImage(article: any): string | null {
-    const gallery: GalleryImage[] = Array.isArray(
-      article?.imageGallery,
-    )
+function getPrimaryImage(
+  article: any,
+): GalleryImage | null {
+  const gallery: GalleryImage[] =
+    Array.isArray(article?.imageGallery)
       ? article.imageGallery.filter(
           (image: GalleryImage) =>
             image &&
@@ -48,46 +32,93 @@ export default function ArticleRelated({
         )
       : [];
 
-    const primary =
-      gallery.find(
-        (image: GalleryImage) =>
-          image.isPrimary === true,
-      ) || gallery[0];
+  const primary =
+    gallery.find(
+      (image) => image.isPrimary === true,
+    ) || gallery[0];
 
-    if (primary?.url) {
-      return primary.url;
+  if (primary?.url) {
+    return primary;
+  }
+
+  if (
+    Array.isArray(article?.images) &&
+    typeof article.images[0] === "string" &&
+    article.images[0].trim().length > 0
+  ) {
+    return {
+      url: article.images[0],
+      alt: article?.title || "NationPath News",
+    };
+  }
+
+  return null;
+}
+
+/* =====================================================
+   IMAGE ALT
+===================================================== */
+
+function getImageAlt(
+  article: any,
+  primaryImage: GalleryImage | null,
+): string {
+  return (
+    primaryImage?.alt?.trim() ||
+    (typeof article?.title === "string"
+      ? article.title
+      : "NationPath News")
+  );
+}
+
+/* =====================================================
+   DATE
+===================================================== */
+
+function getFormattedDate(article: any): string {
+  const date =
+    article?.publishedAt ||
+    article?.createdAt;
+
+  if (!date) {
+    return "";
+  }
+
+  try {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "";
     }
 
-    if (
-      Array.isArray(article?.images) &&
-      typeof article.images[0] === "string"
-    ) {
-      return article.images[0];
-    }
+    return parsedDate.toLocaleDateString(
+      "en-IN",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      },
+    );
+  } catch {
+    return "";
+  }
+}
 
+/* =====================================================
+   COMPONENT
+===================================================== */
+
+export default function ArticleRelated({
+  articles,
+}: ArticleRelatedProps) {
+  if (
+    !Array.isArray(articles) ||
+    articles.length === 0
+  ) {
     return null;
   }
 
-  function getImageAlt(article: any): string {
-    const gallery: GalleryImage[] = Array.isArray(
-      article?.imageGallery,
-    )
-      ? article.imageGallery
-      : [];
-
-    const primary =
-      gallery.find(
-        (image: GalleryImage) =>
-          image?.isPrimary === true,
-      ) || gallery[0];
-
-    return (
-      primary?.alt?.trim() ||
-      (typeof article?.title === "string"
-        ? `${article.title} - Nation Path India`
-        : "NationPath News")
-    );
-  }
+  const relatedArticles = articles.slice(0, 6);
 
   return (
     <section
@@ -98,63 +129,103 @@ export default function ArticleRelated({
         pt-10
       "
     >
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
       <div
         className="
           mb-8
           flex
-          items-center
-          gap-3
+          items-end
+          justify-between
+          gap-4
         "
       >
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="
+              h-1
+              w-8
+              rounded-full
+              bg-[#EA661B]
+            "
+          />
+
+          <div>
+            <h2
+              className="
+                text-[10px]
+                font-bold
+                uppercase
+                tracking-[0.3em]
+                text-[#163C80]
+                sm:text-[11px]
+              "
+            >
+              Related Stories
+            </h2>
+
+            <p
+              className="
+                mt-1.5
+                hidden
+                text-xs
+                text-gray-400
+                sm:block
+              "
+            >
+              More stories you may want to explore
+            </p>
+          </div>
+        </div>
+
         <span
           className="
-            h-[2px]
-            w-8
-            bg-[#EA661B]
-          "
-        />
-
-        <h2
-          className="
-            text-[11px]
-            font-bold
+            text-[9px]
+            font-semibold
             uppercase
-            tracking-[0.35em]
-            text-[#163C80]
+            tracking-[0.15em]
+            text-gray-400
           "
         >
-          Related Stories
-        </h2>
+          {relatedArticles.length} Stories
+        </span>
       </div>
 
-      {/* GRID */}
+      {/* =================================================
+          GRID
+      ================================================= */}
 
       <div
         className="
           grid
-          gap-10
+          gap-x-6
+          gap-y-9
           sm:grid-cols-2
           lg:grid-cols-3
         "
       >
-        {articles
-          .slice(0, 6)
-          .map((article: any) => {
+        {relatedArticles.map(
+          (article: any, index: number) => {
             const primaryImage =
               getPrimaryImage(article);
 
             /*
-             * Cloudinary delivery optimization.
+             * Cloudinary:
+             *   helper adds delivery transformation.
              *
-             * 640px is appropriate for the related-story
-             * card width.
+             * R2:
+             *   URL remains untouched.
+             *
+             * Next/Image:
+             *   handles final delivery optimization.
              */
-            const optimizedImage =
-              primaryImage
+            const imageSrc =
+              primaryImage?.url
                 ? cloudinaryImageUrl(
-                    primaryImage,
+                    primaryImage.url,
                     640,
                   )
                 : null;
@@ -173,57 +244,56 @@ export default function ArticleRelated({
             const articleUrl =
               categorySlug && articleSlug
                 ? `/${categorySlug}/${articleSlug}`
-                : "#";
-
-            const createdAt =
-              article?.createdAt
-                ? new Date(
-                    article.createdAt,
-                  )
                 : null;
 
             const formattedDate =
-              createdAt &&
-              !Number.isNaN(
-                createdAt.getTime(),
-              )
-                ? createdAt.toLocaleDateString(
-                    "en-IN",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    },
-                  )
-                : "";
+              getFormattedDate(article);
+
+            /*
+             * Avoid rendering a broken navigation
+             * card when a valid article URL is missing.
+             */
+            if (!articleUrl) {
+              return null;
+            }
 
             return (
               <article
                 key={
                   article?.id ||
-                  `${article?.slug}-${article?.title}`
+                  `${articleSlug}-${index}`
                 }
-                className="group"
+                className="
+                  group
+                  min-w-0
+                "
               >
                 <Link
                   href={articleUrl}
                   className="block"
                 >
-                  {/* IMAGE */}
+                  {/* =================================================
+                      IMAGE
+                  ================================================= */}
 
-                  {optimizedImage && (
+                  {imageSrc ? (
                     <div
                       className="
                         relative
                         aspect-[16/9]
                         overflow-hidden
                         rounded-xl
-                        bg-[#F5F5F5]
+                        bg-[#F5F4F0]
+                        ring-1
+                        ring-black/5
                       "
                     >
                       <Image
-                        src={optimizedImage}
-                        alt={getImageAlt(article)}
+                        src={imageSrc}
+                        alt={getImageAlt(
+                          article,
+                          primaryImage,
+                        )}
                         fill
                         sizes="
                           (max-width: 640px) 100vw,
@@ -231,79 +301,235 @@ export default function ArticleRelated({
                           33vw
                         "
                         loading="lazy"
-                        /*
-                         * IMPORTANT:
-                         *
-                         * Cloudinary already optimized the
-                         * image. Do not send it through
-                         * Vercel's image optimizer again.
-                         */
-                        unoptimized
                         className="
                           object-cover
                           transition-transform
                           duration-700
-                          group-hover:scale-105
+                          ease-out
+                          group-hover:scale-[1.045]
                         "
                       />
+
+                      {/* Image overlay */}
+                      <div
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          inset-0
+                          bg-gradient-to-t
+                          from-black/35
+                          via-transparent
+                          to-transparent
+                          opacity-70
+                          transition-opacity
+                          duration-300
+                          group-hover:opacity-90
+                        "
+                      />
+
+                      {/* Category badge */}
+                      <span
+                        className="
+                          absolute
+                          left-3
+                          top-3
+                          rounded-full
+                          border
+                          border-white/25
+                          bg-black/30
+                          px-2.5
+                          py-1
+                          text-[8px]
+                          font-bold
+                          uppercase
+                          tracking-[0.15em]
+                          text-white
+                          backdrop-blur-md
+                        "
+                      >
+                        {article?.category?.name ||
+                          "News"}
+                      </span>
+
+                      {/* Hover arrow */}
+                      <span
+                        className="
+                          absolute
+                          right-3
+                          top-3
+                          flex
+                          h-8
+                          w-8
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-white/90
+                          text-[#163C80]
+                          opacity-0
+                          shadow-sm
+                          transition-all
+                          duration-300
+                          group-hover:opacity-100
+                        "
+                      >
+                        <ArrowUpRight
+                          size={14}
+                          strokeWidth={2}
+                        />
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      className="
+                        flex
+                        aspect-[16/9]
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-[#F5F4F0]
+                        ring-1
+                        ring-black/5
+                      "
+                    >
+                      <span
+                        className="
+                          text-center
+                          text-[9px]
+                          font-bold
+                          uppercase
+                          tracking-[0.18em]
+                          text-gray-400
+                        "
+                      >
+                        NationPath
+                        <br />
+                        News
+                      </span>
                     </div>
                   )}
 
-                  {/* CATEGORY */}
+                  {/* =================================================
+                      CONTENT
+                  ================================================= */}
 
-                  <p
-                    className="
-                      mt-5
-                      text-[10px]
-                      font-bold
-                      uppercase
-                      tracking-[0.3em]
-                      text-[#EA661B]
-                    "
-                  >
-                    {article?.category?.name ||
-                      "News"}
-                  </p>
-
-                  {/* TITLE */}
-
-                  <h3
-                    className="
-                      mt-2
-                      font-serif
-                      text-xl
-                      font-bold
-                      leading-snug
-                      tracking-tight
-                      text-[#111]
-                      transition-colors
-                      group-hover:text-[#163C80]
-                    "
-                  >
-                    {article?.title}
-                  </h3>
-
-                  {/* DATE */}
-
-                  {formattedDate && (
-                    <p
+                  <div className="pt-4">
+                    {/* Category */}
+                    <div
                       className="
-                        mt-3
-                        text-[11px]
-                        uppercase
-                        tracking-[0.18em]
-                        text-gray-500
+                        flex
+                        items-center
+                        gap-2
                       "
                     >
-                      {formattedDate}
-                    </p>
-                  )}
+                      <span
+                        aria-hidden="true"
+                        className="
+                          h-1.5
+                          w-1.5
+                          rounded-full
+                          bg-[#EA661B]
+                        "
+                      />
+
+                      <p
+                        className="
+                          text-[9px]
+                          font-bold
+                          uppercase
+                          tracking-[0.25em]
+                          text-[#EA661B]
+                        "
+                      >
+                        {article?.category?.name ||
+                          "News"}
+                      </p>
+                    </div>
+
+                    {/* Title */}
+                    <h3
+                      className="
+                        mt-2.5
+                        line-clamp-3
+                        text-lg
+                        font-bold
+                        leading-snug
+                        tracking-tight
+                        text-gray-950
+                        transition-colors
+                        duration-300
+                        group-hover:text-[#163C80]
+                        sm:text-xl
+                      "
+                    >
+                      {article?.title}
+                    </h3>
+
+                    {/* Excerpt */}
+                    {article?.excerpt && (
+                      <p
+                        className="
+                          mt-2
+                          line-clamp-2
+                          text-sm
+                          leading-6
+                          text-gray-600
+                        "
+                      >
+                        {article.excerpt}
+                      </p>
+                    )}
+
+                    {/* Meta */}
+                    {formattedDate && (
+                      <div
+                        className="
+                          mt-4
+                          flex
+                          items-center
+                          justify-between
+                          gap-3
+                          border-t
+                          border-black/10
+                          pt-3
+                        "
+                      >
+                        <p
+                          className="
+                            text-[10px]
+                            font-medium
+                            uppercase
+                            tracking-[0.15em]
+                            text-gray-400
+                          "
+                        >
+                          {formattedDate}
+                        </p>
+
+                        <span
+                          className="
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.12em]
+                            text-[#163C80]
+                            opacity-0
+                            transition-all
+                            duration-300
+                            group-hover:translate-x-0.5
+                            group-hover:opacity-100
+                          "
+                        >
+                          Read →
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </Link>
               </article>
             );
-          })}
+          },
+        )}
       </div>
     </section>
   );
 }
-

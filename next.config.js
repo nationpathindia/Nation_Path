@@ -15,7 +15,6 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-
         headers: [
           {
             key: "Access-Control-Allow-Origin",
@@ -43,6 +42,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.nationpathindia.com",
       },
     ],
 
@@ -87,3 +90,4 @@ const nextConfig = {
 };
 
 module.exports = withBundleAnalyzer(nextConfig);
+

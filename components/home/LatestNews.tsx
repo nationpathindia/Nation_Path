@@ -5,7 +5,6 @@ import SectionHeader from "@/components/common/SectionHeader";
 
 import {
   cloudinaryImageUrl,
-  isCloudinaryUrl,
 } from "@/lib/cloudinary-image";
 
 interface LatestNewsProps {
@@ -21,6 +20,13 @@ export default function LatestNews({
 
   /* =====================================================
      IMAGE INTELLIGENCE
+     
+     Priority:
+     1. Primary gallery image
+     2. First gallery image
+     3. Legacy images array
+
+     Original database URL is NEVER modified.
   ===================================================== */
 
   function getPrimaryImage(
@@ -30,19 +36,26 @@ export default function LatestNews({
       article?.imageGallery?.find(
         (image: any) =>
           image?.isPrimary &&
-          typeof image?.url === "string",
+          typeof image?.url === "string" &&
+          image.url.trim(),
       )?.url ||
       article?.imageGallery?.find(
         (image: any) =>
-          typeof image?.url === "string",
+          typeof image?.url === "string" &&
+          image.url.trim(),
       )?.url ||
       article?.images?.find(
         (image: any) =>
-          typeof image === "string",
+          typeof image === "string" &&
+          image.trim(),
       ) ||
       null
     );
   }
+
+  /* =====================================================
+     IMAGE ALT
+  ===================================================== */
 
   function getImageAlt(
     article: any,
@@ -51,6 +64,11 @@ export default function LatestNews({
       article?.imageGallery?.find(
         (image: any) =>
           image?.isPrimary &&
+          typeof image?.alt === "string" &&
+          image.alt.trim(),
+      )?.alt?.trim() ||
+      article?.imageGallery?.find(
+        (image: any) =>
           typeof image?.alt === "string" &&
           image.alt.trim(),
       )?.alt?.trim() ||
@@ -63,14 +81,23 @@ export default function LatestNews({
   ===================================================== */
 
   function cleanText(
-    html: string,
+    value: unknown,
   ): string {
-    if (!html) {
+    if (
+      typeof value !== "string" ||
+      !value
+    ) {
       return "";
     }
 
-    return html
-      .replace(/<[^>]*>/g, "")
+    return value
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
       .replace(/\s+/g, " ")
       .trim();
   }
@@ -106,10 +133,26 @@ export default function LatestNews({
   }
 
   /* =====================================================
-     CLOUDINARY DELIVERY OPTIMIZATION
+     IMAGE DELIVERY
+     
+     Existing Cloudinary:
+       cloudinaryImageUrl()
+       → f_auto,q_auto,w_600
+
+     New R2:
+       cloudinaryImageUrl()
+       → URL unchanged
+
+     Next/Image:
+       → responsive optimization
+       → AVIF/WebP according to next.config
+       → browser-sized delivery
+
+     IMPORTANT:
+       No `unoptimized`.
   ===================================================== */
 
-  function getOptimizedImage(
+  function getDeliveryImage(
     article: any,
   ): string | null {
     const image =
@@ -119,13 +162,6 @@ export default function LatestNews({
       return null;
     }
 
-    /*
-     * Cloudinary:
-     * f_auto + q_auto + width
-     *
-     * Non-Cloudinary:
-     * original URL remains untouched.
-     */
     return cloudinaryImageUrl(
       image,
       600,
@@ -156,28 +192,10 @@ export default function LatestNews({
       >
         {articles.map(
           (article: any) => {
-            const optimizedImage =
-              getOptimizedImage(
+            const deliveryImage =
+              getDeliveryImage(
                 article,
               );
-
-            /*
-             * IMPORTANT:
-             *
-             * Cloudinary already performs:
-             * - format optimization
-             * - quality optimization
-             * - width transformation
-             *
-             * Therefore Next/Vercel Image Optimization
-             * must NOT process Cloudinary URLs again.
-             */
-            const cloudinary =
-              optimizedImage
-                ? isCloudinaryUrl(
-                    optimizedImage,
-                  )
-                : false;
 
             return (
               <article
@@ -209,9 +227,12 @@ export default function LatestNews({
                       article,
                     )}
                     className="block"
-                    aria-label={`Read ${article?.title || "news article"}`}
+                    aria-label={`Read ${
+                      article?.title ||
+                      "news article"
+                    }`}
                   >
-                    {optimizedImage ? (
+                    {deliveryImage ? (
                       <div
                         className="
                           relative
@@ -222,31 +243,17 @@ export default function LatestNews({
                         "
                       >
                         <Image
-                          src={
-                            optimizedImage
-                          }
+                          src={deliveryImage}
                           alt={getImageAlt(
                             article,
                           )}
                           fill
                           sizes="
-                            (max-width: 768px) 100vw,
+                            (max-width: 640px) 100vw,
+                            (max-width: 1024px) 40vw,
                             420px
                           "
                           loading="lazy"
-                          /*
-                           * Cloudinary is already optimized.
-                           *
-                           * This prevents the request from
-                           * going through Vercel's Image
-                           * Optimization service.
-                           *
-                           * Non-Cloudinary images continue
-                           * using normal Next/Image optimization.
-                           */
-                          unoptimized={
-                            cloudinary
-                          }
                           className="
                             object-cover
                             transition-transform
@@ -255,6 +262,19 @@ export default function LatestNews({
                             group-hover:scale-[1.04]
                           "
                           itemProp="image"
+                        />
+
+                        <div
+                          className="
+                            pointer-events-none
+                            absolute
+                            inset-0
+                            bg-gradient-to-t
+                            from-black/20
+                            via-transparent
+                            to-transparent
+                            opacity-80
+                          "
                         />
                       </div>
                     ) : null}
@@ -378,20 +398,18 @@ export default function LatestNews({
 
                           <time
                             itemProp="datePublished"
-                            dateTime={
-                              (() => {
-                                const date =
-                                  new Date(
-                                    article.createdAt,
-                                  );
+                            dateTime={(() => {
+                              const date =
+                                new Date(
+                                  article.createdAt,
+                                );
 
-                                return Number.isNaN(
-                                  date.getTime(),
-                                )
-                                  ? undefined
-                                  : date.toISOString();
-                              })()
-                            }
+                              return Number.isNaN(
+                                date.getTime(),
+                              )
+                                ? undefined
+                                : date.toISOString();
+                            })()}
                           >
                             {(() => {
                               const date =
@@ -423,7 +441,9 @@ export default function LatestNews({
                   </Link>
                 </div>
 
-                {/* STRUCTURED DATA */}
+                {/* =================================================
+                    STRUCTURED DATA
+                ================================================= */}
 
                 <meta
                   itemProp="publisher"

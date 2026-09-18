@@ -12,39 +12,41 @@ export default function NewsCard({
   article,
   size = "default",
 }: NewsCardProps) {
-  if (!article) return null;
+  if (!article) {
+    return null;
+  }
 
-  /*
-   * =====================================================
-   * ARTICLE URL
-   * =====================================================
-   */
+  /* =====================================================
+     ARTICLE URL
+  ===================================================== */
 
   const articleUrl =
     article?.category?.slug && article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : "#";
 
-  /*
-   * =====================================================
-   * IMAGE INTELLIGENCE
-   * =====================================================
-   *
-   * Priority:
-   * 1. Primary gallery image
-   * 2. First gallery image
-   * 3. Legacy images array
-   *
-   * Original database URL is never modified.
-   */
+  /* =====================================================
+     IMAGE INTELLIGENCE
+     
+     Priority:
+     1. Primary gallery image
+     2. First gallery image
+     3. Legacy images array
+
+     Original database URL is NEVER modified.
+  ===================================================== */
 
   const primaryImage =
     article?.imageGallery?.find(
       (image: any) =>
-        image?.isPrimary && image?.url
+        image?.isPrimary &&
+        typeof image?.url === "string" &&
+        image.url.trim()
     )?.url ||
     article?.imageGallery?.find(
-      (image: any) => image?.url
+      (image: any) =>
+        typeof image?.url === "string" &&
+        image.url.trim()
     )?.url ||
     article?.images?.find(
       (image: any) =>
@@ -53,27 +55,27 @@ export default function NewsCard({
     ) ||
     null;
 
-  /*
-   * =====================================================
-   * IMAGE ALT
-   * =====================================================
-   */
+  /* =====================================================
+     IMAGE ALT
+  ===================================================== */
 
   const imageAlt =
     article?.imageGallery?.find(
       (image: any) =>
-        image?.isPrimary && image?.alt
+        image?.isPrimary &&
+        typeof image?.alt === "string" &&
+        image.alt.trim()
     )?.alt ||
     article?.imageGallery?.find(
-      (image: any) => image?.alt
+      (image: any) =>
+        typeof image?.alt === "string" &&
+        image.alt.trim()
     )?.alt ||
     `${article?.title || "News article"} - Nation Path India`;
 
-  /*
-   * =====================================================
-   * SUMMARY
-   * =====================================================
-   */
+  /* =====================================================
+     SUMMARY
+  ===================================================== */
 
   function cleanText(value: unknown): string {
     if (
@@ -104,11 +106,9 @@ export default function NewsCard({
   const summary =
     cleanText(summarySource);
 
-  /*
-   * =====================================================
-   * CARD VARIANTS
-   * =====================================================
-   */
+  /* =====================================================
+     CARD VARIANTS
+  ===================================================== */
 
   const cardStyles = {
     large: {
@@ -119,7 +119,7 @@ export default function NewsCard({
       spacing: "mb-6",
       imageWidth: 1200,
       imageSizes:
-        "(max-width: 768px) 100vw, 750px",
+        "(max-width: 768px) 100vw, 58vw",
     },
 
     default: {
@@ -130,7 +130,7 @@ export default function NewsCard({
       spacing: "mb-5",
       imageWidth: 900,
       imageSizes:
-        "(max-width: 768px) 100vw, 600px",
+        "(max-width: 768px) 100vw, 46vw",
     },
 
     compact: {
@@ -141,30 +141,32 @@ export default function NewsCard({
       spacing: "mb-4",
       imageWidth: 600,
       imageSizes:
-        "(max-width: 768px) 100vw, 450px",
+        "(max-width: 768px) 100vw, 38vw",
     },
   };
 
   const style =
     cardStyles[size];
 
-  /*
-   * =====================================================
-   * SAFE IMAGE DELIVERY
-   * =====================================================
-   *
-   * Cloudinary:
-   *   f_auto
-   *   q_auto
-   *   w_<width>
-   *
-   * Non-Cloudinary:
-   *   Original URL remains unchanged.
-   *
-   * unoptimized:
-   *   Prevents Next/Vercel from creating another
-   *   image transformation on top of Cloudinary.
-   */
+  /* =====================================================
+     IMAGE DELIVERY
+     
+     Existing Cloudinary:
+       cloudinaryImageUrl()
+       → f_auto,q_auto,w_<width>
+
+     New R2:
+       cloudinaryImageUrl()
+       → URL unchanged
+
+     Next/Image:
+       → responsive optimization
+       → AVIF/WebP based on next.config
+       → browser-sized delivery
+
+     IMPORTANT:
+       No `unoptimized`.
+  ===================================================== */
 
   const optimizedImage =
     primaryImage
@@ -174,13 +176,14 @@ export default function NewsCard({
         )
       : null;
 
-  /*
-   * =====================================================
-   * SAFE DATE
-   * =====================================================
-   */
+  /* =====================================================
+     SAFE DATE
+  ===================================================== */
 
-  let publishedDate: string | undefined;
+  let publishedDate:
+    | string
+    | undefined;
+
   let displayDate = "";
 
   if (article?.createdAt) {
@@ -208,11 +211,9 @@ export default function NewsCard({
     }
   }
 
-  /*
-   * =====================================================
-   * ABSOLUTE ARTICLE URL
-   * =====================================================
-   */
+  /* =====================================================
+     ABSOLUTE ARTICLE URL
+  ===================================================== */
 
   const absoluteArticleUrl =
     articleUrl !== "#"
@@ -249,7 +250,6 @@ export default function NewsCard({
               alt={imageAlt}
               fill
               sizes={style.imageSizes}
-              unoptimized
               loading="lazy"
               className="
                 object-cover
@@ -289,7 +289,9 @@ export default function NewsCard({
           >
             <span className="category-line" />
 
-            <span itemProp="articleSection">
+            <span
+              itemProp="articleSection"
+            >
               {article.category.name}
             </span>
           </div>
@@ -364,7 +366,9 @@ export default function NewsCard({
           {publishedDate &&
           displayDate ? (
             <>
-              <span aria-hidden="true">
+              <span
+                aria-hidden="true"
+              >
                 •
               </span>
 

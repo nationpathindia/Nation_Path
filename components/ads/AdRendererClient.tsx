@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useEffect,
   useRef,
@@ -74,9 +73,6 @@ export default function AdRenderer({
 
   /*
    * VISIBILITY OBSERVER
-   *
-   * Determines when the ad container
-   * is close enough to the viewport.
    */
   useEffect(() => {
     const element =
@@ -98,7 +94,7 @@ export default function AdRenderer({
         {
           rootMargin: "300px",
           threshold: 0.01,
-        }
+        },
       );
 
     observer.observe(element);
@@ -110,12 +106,6 @@ export default function AdRenderer({
 
   /*
    * FETCH AD
-   *
-   * Ads are deliberately kept outside
-   * the initial homepage critical path.
-   *
-   * homepage_top waits for browser idle
-   * before requesting the ad.
    */
   useEffect(() => {
     if (!visible || !placement) {
@@ -137,18 +127,18 @@ export default function AdRenderer({
         const res =
           await fetch(
             `/api/ads/serve?placement=${encodeURIComponent(
-              placement
+              placement,
             )}`,
             {
               signal:
                 controller.signal,
               cache: "no-store",
-            }
+            },
           );
 
         if (!res.ok) {
           throw new Error(
-            `Ad request failed: ${res.status}`
+            `Ad request failed: ${res.status}`,
           );
         }
 
@@ -168,7 +158,7 @@ export default function AdRenderer({
         ) {
           console.error(
             "Ad loading failed",
-            error
+            error,
           );
         }
       } finally {
@@ -178,9 +168,6 @@ export default function AdRenderer({
 
     /*
      * TOP HOMEPAGE ADS
-     *
-     * Do not compete with initial
-     * homepage rendering.
      */
     if (
       placement ===
@@ -197,7 +184,7 @@ export default function AdRenderer({
           },
           {
             timeout: 4000,
-          }
+          },
         );
     }
 
@@ -206,7 +193,7 @@ export default function AdRenderer({
      */
     else if (
       placement.includes(
-        "header"
+        "header",
       ) &&
       typeof window !==
         "undefined" &&
@@ -220,14 +207,12 @@ export default function AdRenderer({
           },
           {
             timeout: 3000,
-          }
+          },
         );
     }
 
     /*
      * OTHER ADS
-     *
-     * Load during browser idle time.
      */
     else if (
       typeof window !==
@@ -242,7 +227,7 @@ export default function AdRenderer({
           },
           {
             timeout: 2500,
-          }
+          },
         );
     }
 
@@ -256,7 +241,7 @@ export default function AdRenderer({
           placement ===
             "homepage_top"
             ? 4000
-            : 1000
+            : 1000,
         );
     }
 
@@ -267,7 +252,7 @@ export default function AdRenderer({
         timeoutId !== null
       ) {
         clearTimeout(
-          timeoutId
+          timeoutId,
         );
       }
 
@@ -279,7 +264,7 @@ export default function AdRenderer({
           window
       ) {
         window.cancelIdleCallback(
-          idleId
+          idleId,
         );
       }
     };
@@ -326,16 +311,14 @@ export default function AdRenderer({
                         "application/json",
                     },
                     body:
-                      JSON.stringify(
-                        {
-                          adId:
-                            ad.id,
-                        }
-                      ),
+                      JSON.stringify({
+                        adId:
+                          ad.id,
+                      }),
                     keepalive: true,
-                  }
+                  },
                 ).catch(
-                  () => {}
+                  () => {},
                 );
 
                 impressionSent.current =
@@ -351,11 +334,11 @@ export default function AdRenderer({
         },
         {
           threshold: 0.5,
-        }
+        },
       );
 
     observer.observe(
-      containerRef.current
+      containerRef.current,
     );
 
     return () => {
@@ -380,11 +363,6 @@ export default function AdRenderer({
       return;
     }
 
-    /*
-     * Let the ad DOM settle
-     * before asking AdSense
-     * to process it.
-     */
     const timer =
       setTimeout(() => {
         try {
@@ -393,7 +371,7 @@ export default function AdRenderer({
             [];
 
           window.adsbygoogle.push(
-            {}
+            {},
           );
 
           adsenseLoaded.current =
@@ -432,14 +410,14 @@ export default function AdRenderer({
               adId: ad.id,
             }),
           keepalive: true,
-        }
+        },
       );
 
       if (ad.link) {
         window.open(
           ad.link,
           "_blank",
-          "noopener,noreferrer"
+          "noopener,noreferrer",
         );
       }
     } catch {
@@ -451,7 +429,7 @@ export default function AdRenderer({
         window.open(
           ad.link,
           "_blank",
-          "noopener,noreferrer"
+          "noopener,noreferrer",
         );
       }
     }
@@ -516,17 +494,13 @@ export default function AdRenderer({
             "
             aria-label="Advertisement"
           >
-            <Image
+            <img
               src={ad.imageUrl}
               alt="Advertisement"
               width={970}
               height={250}
               loading="lazy"
-              sizes="
-                (max-width: 640px) 100vw,
-                (max-width: 1024px) 90vw,
-                970px
-              "
+              decoding="async"
               className="
                 rounded
                 max-w-full

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
@@ -31,7 +30,8 @@ export default function LeadStory({
      1. Explicit primary gallery image
      2. First gallery image
      3. Legacy images array
-
+     4. primaryImage field
+     
      Original database URL is NEVER modified.
   ============================================================ */
 
@@ -52,6 +52,7 @@ export default function LeadStory({
         typeof image === "string" &&
         image.trim()
     ) ||
+    article?.primaryImage ||
     null;
 
   /* ============================================================
@@ -70,6 +71,7 @@ export default function LeadStory({
         typeof image?.alt === "string" &&
         image.alt.trim()
     )?.alt?.trim() ||
+    article?.primaryImageAlt?.trim() ||
     `${article?.title || "News"} - Nation Path India`;
 
   /* ============================================================
@@ -155,12 +157,13 @@ export default function LeadStory({
      Existing Cloudinary:
        f_auto,q_auto,w_1200
 
-     New R2:
-       original URL unchanged
+     R2:
+       Original URL unchanged.
 
-     Next/Image:
-       responsive optimization
-       AVIF/WebP according to next.config
+     IMPORTANT:
+     We intentionally DO NOT use next/image here.
+     This prevents Vercel Image Optimization and sends
+     R2 images directly from media.nationpathindia.com.
   ============================================================ */
 
   const deliveryImage =
@@ -209,17 +212,17 @@ export default function LeadStory({
               bg-[var(--news-soft)]
             "
           >
-            <Image
+            <img
               src={deliveryImage}
               alt={imageAlt}
-              fill
-              priority
-              sizes="
-                (max-width: 768px) 100vw,
-                (max-width: 1280px) 66vw,
-                1200px
-              "
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="
+                absolute
+                inset-0
+                h-full
+                w-full
                 object-cover
                 transition-transform
                 duration-700

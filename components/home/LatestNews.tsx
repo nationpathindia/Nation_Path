@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import SectionHeader from "@/components/common/SectionHeader";
@@ -20,11 +19,12 @@ export default function LatestNews({
 
   /* =====================================================
      IMAGE INTELLIGENCE
-     
+
      Priority:
      1. Primary gallery image
      2. First gallery image
      3. Legacy images array
+     4. primaryImage fallback
 
      Original database URL is NEVER modified.
   ===================================================== */
@@ -49,6 +49,7 @@ export default function LatestNews({
           typeof image === "string" &&
           image.trim(),
       ) ||
+      article?.primaryImage ||
       null
     );
   }
@@ -72,6 +73,7 @@ export default function LatestNews({
           typeof image?.alt === "string" &&
           image.alt.trim(),
       )?.alt?.trim() ||
+      article?.primaryImageAlt?.trim() ||
       `${article?.title || "News"} - Nation Path India`
     );
   }
@@ -134,22 +136,19 @@ export default function LatestNews({
 
   /* =====================================================
      IMAGE DELIVERY
-     
+
      Existing Cloudinary:
        cloudinaryImageUrl()
-       → f_auto,q_auto,w_600
+       → Cloudinary transformation
 
      New R2:
        cloudinaryImageUrl()
        → URL unchanged
 
-     Next/Image:
-       → responsive optimization
-       → AVIF/WebP according to next.config
-       → browser-sized delivery
-
      IMPORTANT:
-       No `unoptimized`.
+       Native <img> is used.
+       No Next.js Image Optimization.
+       No Vercel transformation request.
   ===================================================== */
 
   function getDeliveryImage(
@@ -242,19 +241,18 @@ export default function LatestNews({
                           bg-[var(--news-soft)]
                         "
                       >
-                        <Image
+                        <img
                           src={deliveryImage}
                           alt={getImageAlt(
                             article,
                           )}
-                          fill
-                          sizes="
-                            (max-width: 640px) 100vw,
-                            (max-width: 1024px) 40vw,
-                            420px
-                          "
                           loading="lazy"
+                          decoding="async"
                           className="
+                            absolute
+                            inset-0
+                            h-full
+                            w-full
                             object-cover
                             transition-transform
                             duration-700

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, ArrowUpRight } from "lucide-react";
@@ -13,6 +12,12 @@ interface EditorialSidebarProps {
 
 /* =====================================================
    IMAGE RESOLVER
+
+   Priority:
+   1. Primary gallery image
+   2. First valid gallery image
+   3. First valid images[] entry
+   4. primaryImage
 ===================================================== */
 
 function getImage(article: any): string | null {
@@ -20,18 +25,56 @@ function getImage(article: any): string | null {
     ? article.imageGallery
     : [];
 
-  return (
-    gallery.find((image: any) => image?.isPrimary)?.url ||
-    gallery[0]?.url ||
-    article?.images?.[0] ||
-    null
+  const primaryGalleryImage = gallery.find(
+    (image: any) =>
+      image?.isPrimary &&
+      typeof image?.url === "string" &&
+      image.url.trim()
   );
+
+  if (primaryGalleryImage?.url) {
+    return primaryGalleryImage.url.trim();
+  }
+
+  const firstGalleryImage = gallery.find(
+    (image: any) =>
+      typeof image?.url === "string" &&
+      image.url.trim()
+  );
+
+  if (firstGalleryImage?.url) {
+    return firstGalleryImage.url.trim();
+  }
+
+  const firstImage = Array.isArray(article?.images)
+    ? article.images.find(
+        (image: any) =>
+          typeof image === "string" &&
+          image.trim()
+      )
+    : null;
+
+  if (firstImage) {
+    return firstImage.trim();
+  }
+
+  if (
+    typeof article?.primaryImage === "string" &&
+    article.primaryImage.trim()
+  ) {
+    return article.primaryImage.trim();
+  }
+
+  return null;
 }
 
 /* =====================================================
    DELIVERY IMAGE
-   - Cloudinary → optimized transformation
-   - R2 → original public URL
+
+   Cloudinary → Cloudinary transformation
+   R2 → original public URL
+
+   Native <img> bypasses Vercel Image Optimization.
 ===================================================== */
 
 function getDeliveryImage(article: any): string | null {
@@ -66,7 +109,10 @@ function getViews(article: any): string | null {
 export default function EditorialSidebar({
   mostRead,
 }: EditorialSidebarProps) {
-  if (!Array.isArray(mostRead) || mostRead.length === 0) {
+  if (
+    !Array.isArray(mostRead) ||
+    mostRead.length === 0
+  ) {
     return null;
   }
 
@@ -148,7 +194,6 @@ export default function EditorialSidebar({
           {mostRead.map((article, index) => {
             const image = getDeliveryImage(article);
             const views = getViews(article);
-
             const isTopStory = index === 0;
 
             return (
@@ -168,7 +213,10 @@ export default function EditorialSidebar({
                 }}
                 transition={{
                   duration: 0.3,
-                  delay: Math.min(index * 0.04, 0.25),
+                  delay: Math.min(
+                    index * 0.04,
+                    0.25
+                  ),
                   ease: "easeOut",
                 }}
                 className="
@@ -239,15 +287,19 @@ export default function EditorialSidebar({
                         ring-black/5
                       "
                     >
-                      <Image
+                      <img
                         src={image}
                         alt={
-                          article.title ||
+                          article?.title ||
                           "NationPath Insight"
                         }
-                        fill
-                        sizes="86px"
+                        loading="lazy"
+                        decoding="async"
                         className="
+                          absolute
+                          inset-0
+                          h-full
+                          w-full
                           object-cover
                           transition-transform
                           duration-500
@@ -310,7 +362,7 @@ export default function EditorialSidebar({
                         group-hover:text-[#163C80]
                       "
                     >
-                      {article.title}
+                      {article?.title}
                     </p>
 
                     {views && (
@@ -330,9 +382,7 @@ export default function EditorialSidebar({
                           aria-hidden="true"
                         />
 
-                        <span>
-                          {views}
-                        </span>
+                        <span>{views}</span>
 
                         <span>views</span>
                       </div>
@@ -402,3 +452,4 @@ export default function EditorialSidebar({
     </aside>
   );
 }
+

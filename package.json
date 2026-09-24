@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-   "build": "prisma generate && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push:mongo": "prisma db push --schema=prisma/schema.prisma",
@@ -36,6 +36,7 @@
     "date-fns": "^4.4.0",
     "dom-to-image-more": "^3.10.2",
     "dotenv": "^17.4.2",
+    "fast-xml-parser": "^5.11.1",
     "formidable": "^3.5.4",
     "framer-motion": "^12.42.2",
     "html2canvas": "^1.4.1",

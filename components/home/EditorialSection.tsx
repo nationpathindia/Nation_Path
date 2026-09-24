@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import SectionHeader from "@/components/common/SectionHeader";
@@ -40,6 +39,7 @@ export default function EditorialSection({
           typeof image === "string" &&
           image.trim()
       ) ||
+      article?.primaryImage ||
       null
     );
   }
@@ -51,15 +51,32 @@ export default function EditorialSection({
           image?.isPrimary &&
           typeof image?.alt === "string" &&
           image.alt.trim()
-      )?.alt ||
+      )?.alt?.trim() ||
       article?.imageGallery?.find(
         (image: any) =>
           typeof image?.alt === "string" &&
           image.alt.trim()
-      )?.alt ||
+      )?.alt?.trim() ||
+      article?.primaryImageAlt?.trim() ||
       `${article?.title || "Editorial"} - Nation Path India`
     );
   }
+
+  /* =====================================================
+     IMAGE DELIVERY
+
+     Cloudinary:
+       cloudinaryImageUrl()
+       → Cloudinary transformation
+
+     R2:
+       original media.nationpathindia.com URL unchanged
+
+     IMPORTANT:
+       No next/image.
+       Direct browser delivery prevents Vercel
+       Image Optimization transformations.
+  ===================================================== */
 
   function getDeliveryImage(article: any): string | null {
     const source = getPrimaryImage(article);
@@ -68,16 +85,6 @@ export default function EditorialSection({
       return null;
     }
 
-    /*
-      Cloudinary:
-      → f_auto,q_auto,w_720
-
-      R2:
-      → original URL unchanged
-
-      Next/Image:
-      → handles final responsive optimization
-    */
     return cloudinaryImageUrl(source, 720);
   }
 
@@ -106,7 +113,8 @@ export default function EditorialSection({
       : clean;
   }
 
-  const featuredImage = getDeliveryImage(featured);
+  const featuredImage =
+    getDeliveryImage(featured);
 
   return (
     <section
@@ -167,16 +175,16 @@ export default function EditorialSection({
             "
           >
             {featuredImage ? (
-              <Image
+              <img
                 src={featuredImage}
                 alt={getImageAlt(featured)}
-                fill
-                sizes="
-                  (max-width: 768px) 100vw,
-                  58vw
-                "
                 loading="lazy"
+                decoding="async"
                 className="
+                  absolute
+                  inset-0
+                  h-full
+                  w-full
                   object-cover
                   transition-transform
                   duration-700
@@ -376,16 +384,16 @@ export default function EditorialSection({
                     "
                   >
                     {image ? (
-                      <Image
+                      <img
                         src={image}
                         alt={getImageAlt(article)}
-                        fill
-                        sizes="
-                          (max-width: 640px) 120px,
-                          145px
-                        "
                         loading="lazy"
+                        decoding="async"
                         className="
+                          absolute
+                          inset-0
+                          h-full
+                          w-full
                           object-cover
                           transition-transform
                           duration-500
@@ -498,3 +506,4 @@ export default function EditorialSection({
     </section>
   );
 }
+

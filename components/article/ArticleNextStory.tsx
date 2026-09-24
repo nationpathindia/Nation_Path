@@ -1,4 +1,5 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 
@@ -17,6 +18,12 @@ interface GalleryImage {
 
 /* =====================================================
    IMAGE RESOLVER
+
+   Priority:
+   1. Primary gallery image
+   2. First valid gallery image
+   3. First valid images[] entry
+   4. primaryImage
 ===================================================== */
 
 function getPrimaryImage(
@@ -38,17 +45,47 @@ function getPrimaryImage(
     ) || gallery[0];
 
   if (primary?.url) {
-    return primary;
+    return {
+      ...primary,
+      url: primary.url.trim(),
+    };
   }
 
   if (
-    Array.isArray(article?.images) &&
-    typeof article.images[0] === "string" &&
-    article.images[0].trim().length > 0
+    Array.isArray(article?.images)
+  ) {
+    const firstImage =
+      article.images.find(
+        (image: any) =>
+          typeof image === "string" &&
+          image.trim().length > 0,
+      );
+
+    if (firstImage) {
+      return {
+        url: firstImage.trim(),
+        alt:
+          typeof article?.primaryImageAlt === "string" &&
+          article.primaryImageAlt.trim()
+            ? article.primaryImageAlt.trim()
+            : article?.title ||
+              "NationPath News",
+      };
+    }
+  }
+
+  if (
+    typeof article?.primaryImage === "string" &&
+    article.primaryImage.trim().length > 0
   ) {
     return {
-      url: article.images[0],
-      alt: article?.title || "NationPath News",
+      url: article.primaryImage.trim(),
+      alt:
+        typeof article?.primaryImageAlt === "string" &&
+        article.primaryImageAlt.trim()
+          ? article.primaryImageAlt.trim()
+          : article?.title ||
+            "NationPath News",
     };
   }
 
@@ -98,7 +135,8 @@ export default function ArticleNextStory({
   ===================================================== */
 
   const articleUrl =
-    article?.category?.slug && article?.slug
+    article?.category?.slug &&
+    article?.slug
       ? `/${article.category.slug}/${article.slug}`
       : null;
 
@@ -113,6 +151,12 @@ export default function ArticleNextStory({
   const primaryImage =
     getPrimaryImage(article);
 
+  /*
+   * Cloudinary URLs are transformed by the existing
+   * helper. R2 URLs pass through unchanged.
+   *
+   * Native <img> means no Vercel /_next/image request.
+   */
   const imageSrc = primaryImage?.url
     ? cloudinaryImageUrl(
         primaryImage.url,
@@ -122,9 +166,12 @@ export default function ArticleNextStory({
 
   const imageAlt =
     primaryImage?.alt?.trim() ||
-    (typeof article?.title === "string"
-      ? article.title
-      : "NationPath News");
+    (typeof article?.primaryImageAlt === "string" &&
+    article.primaryImageAlt.trim()
+      ? article.primaryImageAlt.trim()
+      : typeof article?.title === "string"
+        ? article.title
+        : "NationPath News");
 
   const categoryName =
     article?.category?.name || "News";
@@ -235,17 +282,16 @@ export default function ArticleNextStory({
                 md:min-h-[250px]
               "
             >
-              <Image
+              <img
                 src={imageSrc}
                 alt={imageAlt}
-                fill
                 loading="lazy"
-                sizes="
-                  (max-width: 768px) 100vw,
-                  (max-width: 1280px) 320px,
-                  380px
-                "
+                decoding="async"
                 className="
+                  absolute
+                  inset-0
+                  h-full
+                  w-full
                   object-cover
                   transition-transform
                   duration-700
@@ -462,7 +508,8 @@ export default function ArticleNextStory({
                   text-gray-400
                 "
               >
-                {publishedDate || "Latest Story"}
+                {publishedDate ||
+                  "Latest Story"}
               </div>
 
               <div
@@ -500,3 +547,4 @@ export default function ArticleNextStory({
     </section>
   );
 }
+

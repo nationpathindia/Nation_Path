@@ -1,4 +1,5 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -17,6 +18,12 @@ interface GalleryImage {
 
 /* =====================================================
    PRIMARY IMAGE
+
+   Priority:
+   1. Primary gallery image
+   2. First valid gallery image
+   3. First valid images[] entry
+   4. primaryImage
 ===================================================== */
 
 function getPrimaryImage(
@@ -38,17 +45,43 @@ function getPrimaryImage(
     ) || gallery[0];
 
   if (primary?.url) {
-    return primary;
+    return {
+      ...primary,
+      url: primary.url.trim(),
+    };
+  }
+
+  if (Array.isArray(article?.images)) {
+    const firstImage =
+      article.images.find(
+        (image: any) =>
+          typeof image === "string" &&
+          image.trim().length > 0,
+      );
+
+    if (firstImage) {
+      return {
+        url: firstImage.trim(),
+        alt:
+          typeof article?.primaryImageAlt === "string" &&
+          article.primaryImageAlt.trim()
+            ? article.primaryImageAlt.trim()
+            : article?.title || "NationPath News",
+      };
+    }
   }
 
   if (
-    Array.isArray(article?.images) &&
-    typeof article.images[0] === "string" &&
-    article.images[0].trim().length > 0
+    typeof article?.primaryImage === "string" &&
+    article.primaryImage.trim().length > 0
   ) {
     return {
-      url: article.images[0],
-      alt: article?.title || "NationPath News",
+      url: article.primaryImage.trim(),
+      alt:
+        typeof article?.primaryImageAlt === "string" &&
+        article.primaryImageAlt.trim()
+          ? article.primaryImageAlt.trim()
+          : article?.title || "NationPath News",
     };
   }
 
@@ -65,9 +98,12 @@ function getImageAlt(
 ): string {
   return (
     primaryImage?.alt?.trim() ||
-    (typeof article?.title === "string"
-      ? article.title
-      : "NationPath News")
+    (typeof article?.primaryImageAlt === "string" &&
+    article.primaryImageAlt.trim()
+      ? article.primaryImageAlt.trim()
+      : typeof article?.title === "string"
+        ? article.title
+        : "NationPath News")
   );
 }
 
@@ -118,7 +154,8 @@ export default function ArticleRelated({
     return null;
   }
 
-  const relatedArticles = articles.slice(0, 6);
+  const relatedArticles =
+    articles.slice(0, 6);
 
   return (
     <section
@@ -214,13 +251,14 @@ export default function ArticleRelated({
 
             /*
              * Cloudinary:
-             *   helper adds delivery transformation.
+             *   Existing helper adds delivery transformation.
              *
              * R2:
-             *   URL remains untouched.
+             *   Public R2 URL remains unchanged.
              *
-             * Next/Image:
-             *   handles final delivery optimization.
+             * Native <img>:
+             *   Direct browser delivery.
+             *   No Vercel /_next/image request.
              */
             const imageSrc =
               primaryImage?.url
@@ -288,20 +326,19 @@ export default function ArticleRelated({
                         ring-black/5
                       "
                     >
-                      <Image
+                      <img
                         src={imageSrc}
                         alt={getImageAlt(
                           article,
                           primaryImage,
                         )}
-                        fill
-                        sizes="
-                          (max-width: 640px) 100vw,
-                          (max-width: 1024px) 50vw,
-                          33vw
-                        "
                         loading="lazy"
+                        decoding="async"
                         className="
+                          absolute
+                          inset-0
+                          h-full
+                          w-full
                           object-cover
                           transition-transform
                           duration-700
@@ -533,3 +570,4 @@ export default function ArticleRelated({
     </section>
   );
 }
+

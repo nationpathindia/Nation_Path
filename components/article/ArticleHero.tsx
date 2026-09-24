@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
@@ -57,17 +56,20 @@ export default function ArticleHero({
             url.trim().length > 0,
         )
         .map((url) => ({
-          url,
+          url: url.trim(),
           alt: title,
           caption: "",
           isPrimary: false,
         }));
     }
 
-    if (image) {
+    if (
+      typeof image === "string" &&
+      image.trim().length > 0
+    ) {
       return [
         {
-          url: image,
+          url: image.trim(),
           alt: title,
           caption: "",
           isPrimary: true,
@@ -87,7 +89,9 @@ export default function ArticleHero({
       (item) => item.isPrimary === true,
     );
 
-    return primaryIndex >= 0 ? primaryIndex : 0;
+    return primaryIndex >= 0
+      ? primaryIndex
+      : 0;
   }, [gallery]);
 
   const [activeIndex, setActiveIndex] =
@@ -117,11 +121,15 @@ export default function ArticleHero({
 
   /* =====================================================
      DELIVERY IMAGE
-     Cloudinary → optimized transformation
-     R2 → original public URL
+
+     Cloudinary → existing Cloudinary transformation
+     R2 → original public URL unchanged
+
+     Native <img> → browser direct delivery
+     No Next.js /_next/image optimization.
   ===================================================== */
 
-  const optimizedImage = useMemo(() => {
+  const deliveryImage = useMemo(() => {
     if (!activeImage?.url) {
       return null;
     }
@@ -186,7 +194,10 @@ export default function ArticleHero({
      SAFETY RENDER
   ===================================================== */
 
-  if (!activeImage?.url || !optimizedImage) {
+  if (
+    !activeImage?.url ||
+    !deliveryImage
+  ) {
     return null;
   }
 
@@ -221,27 +232,30 @@ export default function ArticleHero({
             sm:aspect-[16/9]
           "
         >
-          <Image
+          <img
             key={activeImage.url}
-            src={optimizedImage}
+            src={deliveryImage}
             alt={
-              activeImage.alt ||
+              activeImage.alt?.trim() ||
               title ||
               "NationPath article image"
             }
-            fill
-            priority={safeActiveIndex === initialIndex}
             loading={
               safeActiveIndex === initialIndex
-                ? undefined
+                ? "eager"
                 : "lazy"
             }
-            sizes="
-              (max-width: 640px) 100vw,
-              (max-width: 1024px) 90vw,
-              1200px
-            "
+            fetchPriority={
+              safeActiveIndex === initialIndex
+                ? "high"
+                : "auto"
+            }
+            decoding="async"
             className="
+              absolute
+              inset-0
+              h-full
+              w-full
               object-cover
               transition-transform
               duration-1000
@@ -329,7 +343,8 @@ export default function ArticleHero({
                 sm:top-5
               "
             >
-              {safeActiveIndex + 1} / {gallery.length}
+              {safeActiveIndex + 1} /{" "}
+              {gallery.length}
             </div>
           )}
 
@@ -441,34 +456,36 @@ export default function ArticleHero({
                 backdrop-blur-md
               "
             >
-              {gallery.map((item, index) => (
-                <button
-                  key={`${index}-${item.url}`}
-                  type="button"
-                  onClick={() =>
-                    setActiveIndex(index)
-                  }
-                  aria-label={`Go to image ${
-                    index + 1
-                  }`}
-                  aria-current={
-                    safeActiveIndex === index
-                      ? "true"
-                      : undefined
-                  }
-                  className={`
-                    h-1.5
-                    rounded-full
-                    transition-all
-                    duration-300
-                    ${
-                      safeActiveIndex === index
-                        ? "w-6 bg-white"
-                        : "w-1.5 bg-white/50 hover:bg-white/80"
+              {gallery.map(
+                (item, index) => (
+                  <button
+                    key={`${index}-${item.url}`}
+                    type="button"
+                    onClick={() =>
+                      setActiveIndex(index)
                     }
-                  `}
-                />
-              ))}
+                    aria-label={`Go to image ${
+                      index + 1
+                    }`}
+                    aria-current={
+                      safeActiveIndex === index
+                        ? "true"
+                        : undefined
+                    }
+                    className={`
+                      h-1.5
+                      rounded-full
+                      transition-all
+                      duration-300
+                      ${
+                        safeActiveIndex === index
+                          ? "w-6 bg-white"
+                          : "w-1.5 bg-white/50 hover:bg-white/80"
+                      }
+                    `}
+                  />
+                ),
+              )}
             </div>
           )}
 
@@ -587,3 +604,4 @@ export default function ArticleHero({
     </div>
   );
 }
+

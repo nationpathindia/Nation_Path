@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -20,17 +19,36 @@ function getImage(article: any): string | null {
     : [];
 
   return (
-    gallery.find((image: any) => image?.isPrimary)?.url ||
-    gallery[0]?.url ||
-    article?.images?.[0] ||
+    gallery.find(
+      (image: any) =>
+        image?.isPrimary &&
+        typeof image?.url === "string" &&
+        image.url.trim()
+    )?.url ||
+    gallery.find(
+      (image: any) =>
+        typeof image?.url === "string" &&
+        image.url.trim()
+    )?.url ||
+    article?.images?.find(
+      (image: any) =>
+        typeof image === "string" &&
+        image.trim()
+    ) ||
+    article?.primaryImage ||
     null
   );
 }
 
 /* =====================================================
    DELIVERY IMAGE
-   - Cloudinary → optimized delivery URL
-   - R2 → original public URL
+
+   Cloudinary → optimized Cloudinary delivery URL
+   R2 → original public URL unchanged
+
+   IMPORTANT:
+   Native <img> is used below.
+   No Next.js Image Optimization.
 ===================================================== */
 
 function getDeliveryImage(
@@ -51,18 +69,23 @@ function getDeliveryImage(
 ===================================================== */
 
 function getDate(article: any): string {
-  const date = article?.publishedAt || article?.createdAt;
+  const date =
+    article?.publishedAt ||
+    article?.createdAt;
 
   if (!date) {
     return "";
   }
 
   try {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      "en-IN",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
   } catch {
     return "";
   }
@@ -90,17 +113,21 @@ function getViews(article: any): string | null {
 export default function EditorialHero({
   articles,
 }: EditorialHeroProps) {
-  if (!Array.isArray(articles) || articles.length === 0) {
+  if (
+    !Array.isArray(articles) ||
+    articles.length === 0
+  ) {
     return null;
   }
 
   const featured = articles[0];
   const secondary = articles.slice(1, 4);
 
-  const featuredImage = getDeliveryImage(
-    featured,
-    1200
-  );
+  const featuredImage =
+    getDeliveryImage(
+      featured,
+      1200
+    );
 
   return (
     <section className="space-y-7">
@@ -188,20 +215,20 @@ export default function EditorialHero({
                 bg-gray-100
               "
             >
-              <Image
+              <img
                 src={featuredImage}
                 alt={
                   featured.title ||
                   "NationPath Featured Insight"
                 }
-                fill
-                priority
-                sizes="
-                  (max-width: 768px) 100vw,
-                  (max-width: 1280px) 66vw,
-                  1200px
-                "
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 className="
+                  absolute
+                  inset-0
+                  h-full
+                  w-full
                   object-cover
                   transition-transform
                   duration-700
@@ -346,20 +373,24 @@ export default function EditorialHero({
                 text-gray-500
               "
             >
-              {!featuredImage && getDate(featured) && (
-                <span>{getDate(featured)}</span>
-              )}
+              {!featuredImage &&
+                getDate(featured) && (
+                  <span>
+                    {getDate(featured)}
+                  </span>
+                )}
 
               {getViews(featured) && (
                 <>
-                  {getDate(featured) && !featuredImage && (
-                    <span
-                      aria-hidden="true"
-                      className="text-gray-300"
-                    >
-                      •
-                    </span>
-                  )}
+                  {getDate(featured) &&
+                    !featuredImage && (
+                      <span
+                        aria-hidden="true"
+                        className="text-gray-300"
+                      >
+                        •
+                      </span>
+                    )}
 
                   <span>
                     {getViews(featured)} views
@@ -378,6 +409,7 @@ export default function EditorialHero({
                 "
               >
                 Read Insight
+
                 <span
                   aria-hidden="true"
                   className="
@@ -408,181 +440,185 @@ export default function EditorialHero({
             lg:grid-cols-3
           "
         >
-          {secondary.map((article, index) => {
-            const image = getDeliveryImage(
-              article,
-              700
-            );
+          {secondary.map(
+            (article, index) => {
+              const image =
+                getDeliveryImage(
+                  article,
+                  700
+                );
 
-            return (
-              <motion.article
-                key={
-                  article?.id ||
-                  article?.slug ||
-                  `editorial-${index}`
-                }
-                initial={{
-                  opacity: 0,
-                  y: 15,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.4,
-                  delay: index * 0.06,
-                  ease: "easeOut",
-                }}
-                className="
-                  group
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-black/10
-                  bg-white
-                  shadow-[0_5px_20px_rgba(0,0,0,0.035)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-0.5
-                  hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]
-                "
-              >
-                <Link
-                  href={`/editorial/${article.slug}`}
-                  className="block"
+              return (
+                <motion.article
+                  key={
+                    article?.id ||
+                    article?.slug ||
+                    `editorial-${index}`
+                  }
+                  initial={{
+                    opacity: 0,
+                    y: 15,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.06,
+                    ease: "easeOut",
+                  }}
+                  className="
+                    group
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    border-black/10
+                    bg-white
+                    shadow-[0_5px_20px_rgba(0,0,0,0.035)]
+                    transition-all
+                    duration-300
+                    hover:-translate-y-0.5
+                    hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+                  "
                 >
-                  {image && (
-                    <div
-                      className="
-                        relative
-                        aspect-[16/9]
-                        overflow-hidden
-                        bg-gray-100
-                      "
-                    >
-                      <Image
-                        src={image}
-                        alt={
-                          article.title ||
-                          "NationPath Insight"
-                        }
-                        fill
-                        sizes="
-                          (max-width: 640px) 100vw,
-                          (max-width: 1024px) 50vw,
-                          33vw
-                        "
-                        className="
-                          object-cover
-                          transition-transform
-                          duration-600
-                          ease-out
-                          group-hover:scale-[1.04]
-                        "
-                      />
-
+                  <Link
+                    href={`/editorial/${article.slug}`}
+                    className="block"
+                  >
+                    {image && (
                       <div
-                        aria-hidden="true"
                         className="
-                          absolute
-                          inset-x-0
-                          bottom-0
-                          h-20
-                          bg-gradient-to-t
-                          from-black/45
-                          to-transparent
-                        "
-                      />
-
-                      <span
-                        className="
-                          absolute
-                          left-4
-                          top-4
-                          rounded-full
-                          bg-white/90
-                          px-2.5
-                          py-1
-                          text-[9px]
-                          font-bold
-                          uppercase
-                          tracking-[0.16em]
-                          text-[#163C80]
-                          backdrop-blur-sm
+                          relative
+                          aspect-[16/9]
+                          overflow-hidden
+                          bg-gray-100
                         "
                       >
-                        Insight
-                      </span>
-                    </div>
-                  )}
+                        <img
+                          src={image}
+                          alt={
+                            article.title ||
+                            "NationPath Insight"
+                          }
+                          loading="lazy"
+                          decoding="async"
+                          className="
+                            absolute
+                            inset-0
+                            h-full
+                            w-full
+                            object-cover
+                            transition-transform
+                            duration-600
+                            ease-out
+                            group-hover:scale-[1.04]
+                          "
+                        />
 
-                  <div className="p-4 sm:p-5">
-                    {!image && (
-                      <p
-                        className="
-                          mb-2
-                          text-[10px]
-                          font-bold
-                          uppercase
-                          tracking-[0.18em]
-                          text-[#EA661B]
-                        "
-                      >
-                        Insight
-                      </p>
+                        <div
+                          aria-hidden="true"
+                          className="
+                            absolute
+                            inset-x-0
+                            bottom-0
+                            h-20
+                            bg-gradient-to-t
+                            from-black/45
+                            to-transparent
+                          "
+                        />
+
+                        <span
+                          className="
+                            absolute
+                            left-4
+                            top-4
+                            rounded-full
+                            bg-white/90
+                            px-2.5
+                            py-1
+                            text-[9px]
+                            font-bold
+                            uppercase
+                            tracking-[0.16em]
+                            text-[#163C80]
+                            backdrop-blur-sm
+                          "
+                        >
+                          Insight
+                        </span>
+                      </div>
                     )}
 
-                    <h3
-                      className="
-                        text-base
-                        font-bold
-                        leading-snug
-                        text-gray-950
-                        transition-colors
-                        duration-300
-                        group-hover:text-[#163C80]
-                        sm:text-lg
-                      "
-                    >
-                      {article.title}
-                    </h3>
+                    <div className="p-4 sm:p-5">
+                      {!image && (
+                        <p
+                          className="
+                            mb-2
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.18em]
+                            text-[#EA661B]
+                          "
+                        >
+                          Insight
+                        </p>
+                      )}
 
-                    <div
-                      className="
-                        mt-3
-                        flex
-                        items-center
-                        justify-between
-                        gap-3
-                        text-xs
-                        text-gray-500
-                      "
-                    >
-                      <span>
-                        {getDate(article)}
-                      </span>
-
-                      <span
+                      <h3
                         className="
-                          font-semibold
-                          text-[#163C80]
-                          opacity-0
-                          transition-opacity
+                          text-base
+                          font-bold
+                          leading-snug
+                          text-gray-950
+                          transition-colors
                           duration-300
-                          group-hover:opacity-100
+                          group-hover:text-[#163C80]
+                          sm:text-lg
                         "
                       >
-                        Read →
-                      </span>
+                        {article.title}
+                      </h3>
+
+                      <div
+                        className="
+                          mt-3
+                          flex
+                          items-center
+                          justify-between
+                          gap-3
+                          text-xs
+                          text-gray-500
+                        "
+                      >
+                        <span>
+                          {getDate(article)}
+                        </span>
+
+                        <span
+                          className="
+                            font-semibold
+                            text-[#163C80]
+                            opacity-0
+                            transition-opacity
+                            duration-300
+                            group-hover:opacity-100
+                          "
+                        >
+                          Read →
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </motion.article>
-            );
-          })}
+                  </Link>
+                </motion.article>
+              );
+            }
+          )}
         </div>
       )}
     </section>
   );
 }
+

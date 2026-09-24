@@ -1,3 +1,4 @@
+
 //////////////////////////////////////////////////////////////
 //
 // NATIONPATH ASTRO
@@ -24,7 +25,6 @@
 //
 //////////////////////////////////////////////////////////////
 
-import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -49,11 +49,6 @@ export const dynamic = "force-dynamic";
 
 //////////////////////////////////////////////////////////////
 // ZODIAC META
-//
-// UI ONLY.
-// No calculations.
-// No generated syllables.
-// No CMS/backend modification.
 //////////////////////////////////////////////////////////////
 
 const zodiacMeta: Record<
@@ -157,17 +152,13 @@ export default async function HoroscopeArchivePage({
 
   ////////////////////////////////////////////////////////////
   // ARCHIVE DATA
-  //
-  // EXISTING CMS SERVICE.
-  //
-  // DO NOT CHANGE.
   ////////////////////////////////////////////////////////////
 
   const archives =
     await getHoroscopeArchiveDates(
       sign,
       "daily",
-      "english"
+      "english",
     );
 
   ////////////////////////////////////////////////////////////
@@ -203,8 +194,6 @@ export default async function HoroscopeArchivePage({
           overflow-hidden
         "
       >
-        {/* Primary violet glow */}
-
         <div
           className="
             absolute
@@ -219,8 +208,6 @@ export default async function HoroscopeArchivePage({
           "
         />
 
-        {/* Gold glow */}
-
         <div
           className="
             absolute
@@ -234,8 +221,6 @@ export default async function HoroscopeArchivePage({
           "
         />
 
-        {/* Blue glow */}
-
         <div
           className="
             absolute
@@ -248,8 +233,6 @@ export default async function HoroscopeArchivePage({
             blur-[150px]
           "
         />
-
-        {/* Observatory light */}
 
         <div
           className="
@@ -354,8 +337,6 @@ export default async function HoroscopeArchivePage({
             sm:py-12
           "
         >
-          {/* Hero glow */}
-
           <div
             className="
               pointer-events-none
@@ -391,8 +372,6 @@ export default async function HoroscopeArchivePage({
                 lg:text-left
               "
             >
-              {/* Label */}
-
               <div
                 className="
                   inline-flex
@@ -424,8 +403,6 @@ export default async function HoroscopeArchivePage({
                 Horoscope Observatory
               </div>
 
-              {/* Title */}
-
               <h1
                 className="
                   mt-5
@@ -453,8 +430,6 @@ export default async function HoroscopeArchivePage({
                 Daily Horoscope Archive
               </div>
 
-              {/* Description */}
-
               <p
                 className="
                   mx-auto
@@ -471,8 +446,6 @@ export default async function HoroscopeArchivePage({
                 readings and explore the journey preserved
                 in the NationPath Astro archive.
               </p>
-
-              {/* Meta */}
 
               <div
                 className="
@@ -560,8 +533,6 @@ export default async function HoroscopeArchivePage({
                   shadow-[0_0_70px_rgba(139,92,246,0.10)]
                 "
               >
-                {/* Subtle outer glow */}
-
                 <div
                   className="
                     pointer-events-none
@@ -572,8 +543,6 @@ export default async function HoroscopeArchivePage({
                     border-violet-400/[0.08]
                   "
                 />
-
-                {/* Small observatory points */}
 
                 <span
                   className="
@@ -611,8 +580,6 @@ export default async function HoroscopeArchivePage({
                   "
                 />
 
-                {/* Zodiac symbol */}
-
                 <div
                   className="
                     relative
@@ -627,12 +594,14 @@ export default async function HoroscopeArchivePage({
                     bg-white/[0.025]
                   "
                 >
-                  <Image
+                  <img
                     src={zodiacImage}
                     alt={`${zodiac.name} zodiac`}
                     width={120}
                     height={120}
-                    priority
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="
                       h-[105px]
                       w-[105px]
@@ -701,8 +670,6 @@ export default async function HoroscopeArchivePage({
                 {` ${zodiac.name}`} daily horoscope.
               </p>
             </div>
-
-            {/* Archive count */}
 
             <div
               className="
@@ -798,10 +765,6 @@ export default async function HoroscopeArchivePage({
               </p>
             </div>
           ) : (
-            /* =================================================
-               ARCHIVE LIST
-            ================================================= */
-
             <div
               className="
                 mt-8
@@ -812,7 +775,7 @@ export default async function HoroscopeArchivePage({
               {archives.map(
                 (
                   item: any,
-                  index: number
+                  index: number,
                 ) => {
                   const archiveDate =
                     item.meta?.slugDate ||
@@ -845,8 +808,6 @@ export default async function HoroscopeArchivePage({
                         sm:p-5
                       "
                     >
-                      {/* Hover glow */}
-
                       <div
                         className="
                           pointer-events-none
@@ -875,8 +836,6 @@ export default async function HoroscopeArchivePage({
                           gap-4
                         "
                       >
-                        {/* Left */}
-
                         <div
                           className="
                             flex
@@ -901,15 +860,13 @@ export default async function HoroscopeArchivePage({
                               bg-[#080B1D]
                             "
                           >
-                            <Image
-                              src={
-                                zodiacImage
-                              }
-                              alt={
-                                zodiac.name
-                              }
+                            <img
+                              src={zodiacImage}
+                              alt={zodiac.name}
                               width={42}
                               height={42}
+                              loading="lazy"
+                              decoding="async"
                               className="
                                 h-9
                                 w-9
@@ -963,8 +920,6 @@ export default async function HoroscopeArchivePage({
                           </div>
                         </div>
 
-                        {/* Arrow */}
-
                         <div
                           className="
                             flex
@@ -989,7 +944,7 @@ export default async function HoroscopeArchivePage({
                       </div>
                     </Link>
                   );
-                }
+                },
               )}
             </div>
           )}
@@ -1019,8 +974,6 @@ export default async function HoroscopeArchivePage({
             sm:px-10
           "
         >
-          {/* CTA glow */}
-
           <div
             className="
               pointer-events-none
@@ -1085,8 +1038,6 @@ export default async function HoroscopeArchivePage({
                 gap-3
               "
             >
-              {/* Today's Horoscope */}
-
               <Link
                 href={`/astro/horoscope/${sign}`}
                 className="
@@ -1105,8 +1056,6 @@ export default async function HoroscopeArchivePage({
               >
                 Today's Horoscope
               </Link>
-
-              {/* Explore Zodiac */}
 
               <Link
                 href="/astro/horoscope"

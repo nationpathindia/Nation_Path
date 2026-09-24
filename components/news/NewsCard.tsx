@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
@@ -27,11 +26,12 @@ export default function NewsCard({
 
   /* =====================================================
      IMAGE INTELLIGENCE
-     
+
      Priority:
      1. Primary gallery image
      2. First gallery image
      3. Legacy images array
+     4. primaryImage field
 
      Original database URL is NEVER modified.
   ===================================================== */
@@ -53,6 +53,7 @@ export default function NewsCard({
         typeof image === "string" &&
         image.trim()
     ) ||
+    article?.primaryImage ||
     null;
 
   /* =====================================================
@@ -65,12 +66,13 @@ export default function NewsCard({
         image?.isPrimary &&
         typeof image?.alt === "string" &&
         image.alt.trim()
-    )?.alt ||
+    )?.alt?.trim() ||
     article?.imageGallery?.find(
       (image: any) =>
         typeof image?.alt === "string" &&
         image.alt.trim()
-    )?.alt ||
+    )?.alt?.trim() ||
+    article?.primaryImageAlt?.trim() ||
     `${article?.title || "News article"} - Nation Path India`;
 
   /* =====================================================
@@ -118,8 +120,6 @@ export default function NewsCard({
       excerpt: true,
       spacing: "mb-6",
       imageWidth: 1200,
-      imageSizes:
-        "(max-width: 768px) 100vw, 58vw",
     },
 
     default: {
@@ -129,8 +129,6 @@ export default function NewsCard({
       excerpt: true,
       spacing: "mb-5",
       imageWidth: 900,
-      imageSizes:
-        "(max-width: 768px) 100vw, 46vw",
     },
 
     compact: {
@@ -140,8 +138,6 @@ export default function NewsCard({
       excerpt: false,
       spacing: "mb-4",
       imageWidth: 600,
-      imageSizes:
-        "(max-width: 768px) 100vw, 38vw",
     },
   };
 
@@ -150,25 +146,21 @@ export default function NewsCard({
 
   /* =====================================================
      IMAGE DELIVERY
-     
+
      Existing Cloudinary:
        cloudinaryImageUrl()
        → f_auto,q_auto,w_<width>
 
      New R2:
-       cloudinaryImageUrl()
-       → URL unchanged
-
-     Next/Image:
-       → responsive optimization
-       → AVIF/WebP based on next.config
-       → browser-sized delivery
+       URL remains unchanged.
 
      IMPORTANT:
-       No `unoptimized`.
+       Do NOT use next/image here.
+       Direct <img> prevents Vercel Image Optimization
+       and sends R2 images directly to the browser.
   ===================================================== */
 
-  const optimizedImage =
+  const deliveryImage =
     primaryImage
       ? cloudinaryImageUrl(
           primaryImage,
@@ -234,7 +226,7 @@ export default function NewsCard({
             IMAGE
         ================================================= */}
 
-        {optimizedImage ? (
+        {deliveryImage ? (
           <div
             className={`
               relative
@@ -245,13 +237,16 @@ export default function NewsCard({
               ${style.spacing}
             `}
           >
-            <Image
-              src={optimizedImage}
+            <img
+              src={deliveryImage}
               alt={imageAlt}
-              fill
-              sizes={style.imageSizes}
               loading="lazy"
+              decoding="async"
               className="
+                absolute
+                inset-0
+                h-full
+                w-full
                 object-cover
                 transition-transform
                 duration-700

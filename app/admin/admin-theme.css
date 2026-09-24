@@ -1,0 +1,764 @@
+/* =========================================================
+   NATIONPATH ADMIN THEME
+   Admin-only visual system
+   Does not affect public NationPath UI
+   ========================================================= */
+
+/* =========================================================
+   FONT
+   ========================================================= */
+
+/*
+  Manrope is loaded by the application.
+  The font stack keeps the Admin UI stable if the webfont
+  is temporarily unavailable.
+*/
+
+.admin-theme {
+  --admin-font:
+    var(--font-admin-manrope),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-family: var(--admin-font);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+
+/* =========================================================
+   DESIGN TOKENS
+   ========================================================= */
+
+.admin-theme {
+
+  /* -------------------------------------------------------
+     Workspace
+     ------------------------------------------------------- */
+
+  --admin-workspace: #f3fafb;
+  --admin-surface: #ffffff;
+  --admin-surface-soft: #f7fcfc;
+  --admin-surface-hover: #eef9fa;
+
+
+  /* -------------------------------------------------------
+     Sidebar
+     ------------------------------------------------------- */
+
+  --admin-sidebar-start: #061b20;
+  --admin-sidebar-mid: #08343b;
+  --admin-sidebar-end: #075765;
+
+
+  /* -------------------------------------------------------
+     Primary Brand
+     ------------------------------------------------------- */
+
+  --admin-primary: #13b8c8;
+  --admin-primary-dark: #087d8a;
+  --admin-primary-soft: #e4f8fa;
+
+
+  /* -------------------------------------------------------
+     Typography
+     ------------------------------------------------------- */
+
+  --admin-text: #172326;
+  --admin-text-secondary: #53666b;
+  --admin-text-muted: #7b8b8f;
+
+  --admin-text-on-dark: #edfafa;
+  --admin-text-dark-muted: #9bb2b6;
+
+
+  /* -------------------------------------------------------
+     Borders
+     ------------------------------------------------------- */
+
+  --admin-border: #dcecef;
+  --admin-border-strong: #c7e1e5;
+  --admin-border-dark: rgba(255, 255, 255, 0.09);
+
+
+  /* -------------------------------------------------------
+     Status
+     ------------------------------------------------------- */
+
+  --admin-success: #21a477;
+  --admin-success-soft: #e7f7f1;
+
+  --admin-warning: #e5a72f;
+  --admin-warning-soft: #fff6df;
+
+  --admin-danger: #ef5350;
+  --admin-danger-soft: #fff0ef;
+
+  --admin-info: #3986d7;
+  --admin-info-soft: #edf5fd;
+
+
+  /* -------------------------------------------------------
+     Editorial
+     ------------------------------------------------------- */
+
+  --admin-breaking: #ef5350;
+  --admin-scheduled: #e5a72f;
+  --admin-draft: #87959a;
+  --admin-review: #3986d7;
+  --admin-published: #21a477;
+
+
+  /* -------------------------------------------------------
+     Modules
+     ------------------------------------------------------- */
+
+  --admin-ai: #8b5cf6;
+  --admin-ai-soft: #f2edff;
+
+  --admin-analytics: #087d8a;
+
+  --admin-media: #d97706;
+
+  --admin-publishing: #21a477;
+
+
+  /* -------------------------------------------------------
+     Radius
+     ------------------------------------------------------- */
+
+  --admin-radius-sm: 8px;
+  --admin-radius-md: 12px;
+  --admin-radius-lg: 16px;
+  --admin-radius-xl: 20px;
+
+
+  /* -------------------------------------------------------
+     Shadows
+     ------------------------------------------------------- */
+
+  --admin-shadow-sm:
+    0 2px 8px rgba(7, 52, 59, 0.05);
+
+  --admin-shadow-md:
+    0 8px 24px rgba(7, 52, 59, 0.08);
+
+  --admin-shadow-lg:
+    0 16px 40px rgba(7, 52, 59, 0.11);
+
+
+  /* -------------------------------------------------------
+     Typography Scale
+     ------------------------------------------------------- */
+
+  --admin-font-xs: 10px;
+  --admin-font-sm: 12px;
+  --admin-font-body: 13px;
+  --admin-font-md: 14px;
+  --admin-font-lg: 16px;
+  --admin-font-xl: 20px;
+  --admin-font-2xl: 24px;
+  --admin-font-3xl: 30px;
+
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.admin-theme {
+  background: var(--admin-workspace);
+  color: var(--admin-text);
+  min-height: 100vh;
+}
+
+
+/* =========================================================
+   BASE ADMIN TYPOGRAPHY
+   ========================================================= */
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3,
+.admin-theme h4,
+.admin-theme h5,
+.admin-theme h6 {
+  font-family: var(--admin-font);
+  color: var(--admin-text);
+  letter-spacing: -0.02em;
+}
+
+.admin-theme p,
+.admin-theme span,
+.admin-theme label,
+.admin-theme button,
+.admin-theme input,
+.admin-theme textarea,
+.admin-theme select {
+  font-family: var(--admin-font);
+}
+
+.admin-theme button,
+.admin-theme input,
+.admin-theme textarea,
+.admin-theme select {
+  font-size: var(--admin-font-md);
+}
+
+
+/* =========================================================
+   CMS HEADING HELPERS
+   ========================================================= */
+
+.admin-page-title {
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.admin-section-title {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.admin-section-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--admin-text-muted);
+}
+
+.admin-label {
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.admin-body-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--admin-text-secondary);
+}
+
+.admin-small-text {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--admin-text-muted);
+}
+
+
+/* =========================================================
+   METRIC / NUMBER TYPOGRAPHY
+   ========================================================= */
+
+.admin-metric {
+  font-family: var(--admin-font);
+  font-size: 21px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-text);
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.admin-sidebar {
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(19, 184, 200, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 85%,
+      rgba(8, 125, 138, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      160deg,
+      var(--admin-sidebar-start) 0%,
+      var(--admin-sidebar-mid) 52%,
+      var(--admin-sidebar-end) 100%
+    );
+
+  color: var(--admin-text-on-dark);
+}
+
+
+/* =========================================================
+   SIDEBAR ACTIVE ITEM
+   ========================================================= */
+
+.admin-nav-active {
+  background:
+    linear-gradient(
+      100deg,
+      rgba(19, 184, 200, 0.95),
+      rgba(8, 125, 138, 0.95)
+    );
+
+  box-shadow:
+    0 8px 22px rgba(19, 184, 200, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+
+  color: #ffffff;
+}
+
+.admin-nav-active::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+
+  width: 3px;
+
+  border-radius: 999px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   SIDEBAR HOVER
+   ========================================================= */
+
+.admin-nav-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.admin-nav-item:hover svg {
+  color: var(--admin-primary);
+}
+
+
+/* =========================================================
+   WORKSPACE CARD
+   ========================================================= */
+
+.admin-card {
+  background: var(--admin-surface);
+
+  border: 1px solid var(--admin-border);
+
+  border-radius: var(--admin-radius-lg);
+
+  box-shadow: var(--admin-shadow-sm);
+
+  color: var(--admin-text);
+
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-card:hover {
+  box-shadow: var(--admin-shadow-md);
+}
+
+
+/* =========================================================
+   CARD TITLE / META
+   ========================================================= */
+
+.admin-card-title {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.admin-card-meta {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--admin-text-muted);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.admin-header {
+  background: rgba(255, 255, 255, 0.94);
+
+  border-bottom: 1px solid var(--admin-border);
+
+  color: var(--admin-text);
+
+  backdrop-filter: blur(18px);
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.admin-search {
+  background: var(--admin-surface-soft);
+
+  border: 1px solid var(--admin-border);
+
+  color: var(--admin-text);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-search:focus-within {
+  border-color: var(--admin-primary);
+
+  box-shadow:
+    0 0 0 3px rgba(19, 184, 200, 0.10);
+
+  background: #ffffff;
+}
+
+.admin-search input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.admin-avatar {
+  background:
+    linear-gradient(
+      135deg,
+      var(--admin-primary),
+      var(--admin-primary-dark)
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 5px 16px rgba(19, 184, 200, 0.22);
+}
+
+.admin-profile-menu {
+  background: #ffffff;
+
+  border: 1px solid var(--admin-border);
+
+  box-shadow: var(--admin-shadow-lg);
+
+  color: var(--admin-text);
+}
+
+
+/* =========================================================
+   BUTTON SYSTEM
+   ========================================================= */
+
+.admin-button-primary {
+  background: var(--admin-primary);
+  color: #ffffff;
+
+  border: 1px solid var(--admin-primary);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-button-primary:hover {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+
+  box-shadow:
+    0 6px 16px rgba(19, 184, 200, 0.18);
+
+  transform: translateY(-1px);
+}
+
+.admin-button-secondary {
+  background: #ffffff;
+
+  color: var(--admin-text);
+
+  border: 1px solid var(--admin-border);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-button-secondary:hover {
+  background: var(--admin-primary-soft);
+  border-color: var(--admin-primary);
+}
+
+.admin-button-danger {
+  background: var(--admin-danger-soft);
+
+  color: var(--admin-danger);
+
+  border: 1px solid rgba(239, 83, 80, 0.12);
+}
+
+.admin-button-danger:hover {
+  background: var(--admin-danger);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  width: fit-content;
+
+  padding:
+    4px
+    8px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.admin-status-success {
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.admin-status-warning {
+  background: var(--admin-warning-soft);
+  color: #9a6b00;
+}
+
+.admin-status-danger {
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.admin-status-info {
+  background: var(--admin-info-soft);
+  color: var(--admin-info);
+}
+
+.admin-status-draft {
+  background: #f1f4f5;
+  color: var(--admin-draft);
+}
+
+.admin-status-ai {
+  background: var(--admin-ai-soft);
+  color: var(--admin-ai);
+}
+
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.admin-input,
+.admin-select,
+.admin-textarea {
+  width: 100%;
+
+  background: #ffffff;
+
+  color: var(--admin-text);
+
+  border: 1px solid var(--admin-border);
+
+  border-radius: var(--admin-radius-md);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+  border-color: var(--admin-primary);
+
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px rgba(19, 184, 200, 0.10);
+}
+
+.admin-input::placeholder,
+.admin-textarea::placeholder {
+  color: var(--admin-text-muted);
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: #ffffff;
+
+  border: 1px solid var(--admin-border);
+
+  border-radius: var(--admin-radius-lg);
+
+  overflow: hidden;
+}
+
+.admin-table th {
+  background: var(--admin-surface-soft);
+
+  color: var(--admin-text-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.admin-table td {
+  color: var(--admin-text-secondary);
+
+  font-size: 12px;
+
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:hover {
+  background: var(--admin-surface-hover);
+}
+
+
+/* =========================================================
+   MOBILE SIDEBAR BUTTON
+   ========================================================= */
+
+.admin-mobile-menu {
+  background: var(--admin-sidebar-mid);
+
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+
+  box-shadow: var(--admin-shadow-md);
+}
+
+
+/* =========================================================
+   DIVIDERS
+   ========================================================= */
+
+.admin-divider {
+  height: 1px;
+  width: 100%;
+  background: var(--admin-border);
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.admin-theme ::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.admin-theme ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-theme ::-webkit-scrollbar-thumb {
+  background: #b8d5d9;
+  border-radius: 999px;
+}
+
+.admin-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary-dark);
+}
+
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.admin-theme :focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+
+.admin-theme ::selection {
+  background: rgba(19, 184, 200, 0.20);
+  color: var(--admin-text);
+}
+
+
+/* =========================================================
+   RESPONSIVE TYPOGRAPHY
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .admin-page-title {
+    font-size: 22px;
+  }
+
+  .admin-section-title {
+    font-size: 15px;
+  }
+
+  .admin-body-text {
+    font-size: 12px;
+  }
+
+  .admin-metric {
+    font-size: 19px;
+  }
+}
+

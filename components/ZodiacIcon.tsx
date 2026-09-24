@@ -1,13 +1,14 @@
 // components/ZodiacIcon.tsx
 
-import Image from "next/image";
-
 interface Props {
   sign?: string | null;
   className?: string;
 }
 
-export default function ZodiacIcon({ sign, className = "" }: Props) {
+export default function ZodiacIcon({
+  sign,
+  className = "",
+}: Props) {
   const normalized =
     sign?.trim()
       ? sign.trim().toLowerCase()
@@ -62,12 +63,16 @@ export default function ZodiacIcon({ sign, className = "" }: Props) {
           justify-center
         "
       >
-        <Image
+        <img
           src={`/zodiac/${normalized}.png`}
           alt={normalized}
-          fill
-          sizes="96px"
+          width={96}
+          height={96}
+          loading="lazy"
+          decoding="async"
           className="
+            h-full
+            w-full
             object-contain
             p-3
             transition-transform
@@ -79,3 +84,4 @@ export default function ZodiacIcon({ sign, className = "" }: Props) {
     </div>
   );
 }
+

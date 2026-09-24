@@ -26,6 +26,66 @@ enum PostStatus {
   draft
   archived
 }
+//////////////////////////////////////////////////////
+// LIVE CENTER ENUMS
+//////////////////////////////////////////////////////
+
+enum LiveSegment {
+  sports
+  india
+  world
+  business
+  breaking
+}
+
+enum LiveEventStatus {
+  draft
+  scheduled
+  live
+  paused
+  completed
+  archived
+}
+
+enum LiveUpdateStatus {
+  draft
+  scheduled
+  published
+  corrected
+  archived
+}
+
+enum LiveUpdateType {
+  update
+  breaking
+  analysis
+  statement
+  result
+  alert
+  correction
+  summary
+}
+
+enum LiveVerificationStatus {
+  unverified
+  under_review
+  verified
+  partially_verified
+  correction_required
+}
+
+enum LiveSourceType {
+  rss
+  api
+  manual
+  newsroom
+}
+
+enum LiveAutomationStatus {
+  active
+  paused
+  disabled
+}
 
 //////////////////////////////////////////////////////
 // AD SYSTEM ENUMS
@@ -112,6 +172,7 @@ model Category {
   articles        Article[]
   analyticsEvents CategoryAnalyticsEvent[]
 
+ 
   //////////////////////////////////////////////////////
   // INDEXES
   //////////////////////////////////////////////////////
@@ -148,13 +209,13 @@ model Article {
   // ✅ NEW: IMAGE INTELLIGENCE
   //////////////////////////////////////////////////////
 
-  primaryImage     String?        // Main featured image URL
-  primaryImageAlt  String?        // Accessibility text
-  primaryImageMeta Json?          // { width, height, size, format, optimized }
-  
-  imageSource      String?        // "rss", "unsplash", "pexels", "ai-generated", "manual"
-  imageLicense     String?        // "royalty-free", "creative-commons", "editorial"
-  imageCredit      String?        // "Photo by John Doe on Unsplash"
+  primaryImage     String? // Main featured image URL
+  primaryImageAlt  String? // Accessibility text
+  primaryImageMeta Json? // { width, height, size, format, optimized }
+
+  imageSource  String? // "rss", "unsplash", "pexels", "ai-generated", "manual"
+  imageLicense String? // "royalty-free", "creative-commons", "editorial"
+  imageCredit  String? // "Photo by John Doe on Unsplash"
 
   //////////////////////////////////////////////////////
   // ANALYTICS
@@ -298,76 +359,85 @@ model Article {
   // ✅ ENHANCED: AI METADATA
   //////////////////////////////////////////////////////
 
-  aiGenerated      Boolean   @default(false)
-  aiVersion        String?
-  aiPrompt         String?
-  aiPromptVersion  String?   // "v1", "v2", "v2-legal"
-  aiModel          String?   // "gemini-pro", "gpt-4", etc.
-  aiConfidence     Float?    // 0.0 to 1.0
-  generatedAt      DateTime?
-  aiSummary        Json?
-  wordCount        Int       @default(0)
+  aiGenerated     Boolean   @default(false)
+  aiVersion       String?
+  aiPrompt        String?
+  aiPromptVersion String? // "v1", "v2", "v2-legal"
+  aiModel         String? // "gemini-pro", "gpt-4", etc.
+  aiConfidence    Float? // 0.0 to 1.0
+  generatedAt     DateTime?
+  aiSummary       Json?
+  wordCount       Int       @default(0)
+
+  aiQualityScore       Int?
+  aiQualityBreakdown   Json?
+  aiQualityFlags       String[]
+  aiEnhanced           Boolean   @default(false)
+  aiEnhancedAt         DateTime?
+  aiEnhancementVersion String?
+  aiOriginalSnapshot   Json?
+  aiChangeLog          Json?
 
   //////////////////////////////////////////////////////
   // ✅ NEW: LEGAL & ATTRIBUTION
   //////////////////////////////////////////////////////
 
-  sourceAttribution  String?   // "(Source: PIB. NationPath Intelligence Bureau)"
-  originalSourceUrl  String?   // Original RSS article URL
-  factCheckStatus    String?   @default("pending") // "verified", "pending", "flagged"
-  factCheckNotes     String?   // Internal notes for editors
-  copyrightClearance Boolean   @default(false)
+  sourceAttribution  String? // "(Source: PIB. NationPath Intelligence Bureau)"
+  originalSourceUrl  String? // Original RSS article URL
+  factCheckStatus    String? @default("pending") // "verified", "pending", "flagged"
+  factCheckNotes     String? // Internal notes for editors
+  copyrightClearance Boolean @default(false)
 
   //////////////////////////////////////////////////////
   // ✅ ENHANCED: SEO INTELLIGENCE
   //////////////////////////////////////////////////////
 
-  readingTime        Int?
-  metaTitle          String?
-  metaDescription    String?
-  metaKeywords       String?
-  faqItems           Json?
-  canonicalUrl       String?
-  
+  readingTime     Int?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  faqItems        Json?
+  canonicalUrl    String?
+
   // Open Graph
-  ogImage            String?
-  ogTitle            String?
-  ogDescription      String?
-  ogType             String?   @default("article")
-  
+  ogImage       String?
+  ogTitle       String?
+  ogDescription String?
+  ogType        String? @default("article")
+
   // Twitter Card
-  twitterCard        String?   @default("summary_large_image")
+  twitterCard        String? @default("summary_large_image")
   twitterTitle       String?
   twitterDescription String?
-  
+
   // Structured Data
-  structuredData     Json?     // JSON-LD schema markup
-  schemaValidated    Boolean   @default(false)
+  structuredData  Json? // JSON-LD schema markup
+  schemaValidated Boolean @default(false)
 
   //////////////////////////////////////////////////////
   // ✅ NEW: CONTENT STRUCTURE
   //////////////////////////////////////////////////////
 
-  executiveSummary   String?   // 2-3 line summary for homepage
-  relatedTopics      String[]  // For internal linking
-  contentSections    Json?     // [{ heading, content, type }]
-  tableOfContents    Json?     // Auto-generated TOC
+  executiveSummary String? // 2-3 line summary for homepage
+  relatedTopics    String[] // For internal linking
+  contentSections  Json? // [{ heading, content, type }]
+  tableOfContents  Json? // Auto-generated TOC
 
   //////////////////////////////////////////////////////
   // INTERNAL
   //////////////////////////////////////////////////////
 
-  astrologyVersion   Int?      @default(1)
-  lastAstroUpdate    DateTime?
-  ingestedFeeds      IngestedFeed[] @relation("FeedToArticle")
+  astrologyVersion Int?           @default(1)
+  lastAstroUpdate  DateTime?
+  ingestedFeeds    IngestedFeed[] @relation("FeedToArticle")
 
   //////////////////////////////////////////////////////
   // ✅ NEW: VERSION CONTROL
   //////////////////////////////////////////////////////
 
-  lastEditedAt       DateTime?
-  publishedVersion   Int       @default(1)
-  editHistory        Json?     // Track major edits
+  lastEditedAt     DateTime?
+  publishedVersion Int       @default(1)
+  editHistory      Json? // Track major edits
 
   //////////////////////////////////////////////////////
   // STATUS
@@ -416,17 +486,22 @@ model Article {
   // ✅ NEW: MULTI-LANGUAGE SUPPORT
   //////////////////////////////////////////////////////
 
-  translations       Json?     // { hi: {...}, ta: {...} }
-  primaryLanguage    String?   @default("en")
-  availableLanguages String[]  @default(["en"])
+  translations       Json? // { hi: {...}, ta: {...} }
+  primaryLanguage    String?  @default("en")
+  availableLanguages String[] @default(["en"])
 
   //////////////////////////////////////////////////////
-  // TRENDING
+  // TRENDING / POPULARITY INTELLIGENCE
   //////////////////////////////////////////////////////
 
-  trendingScore Int       @default(0)
-  lastViewAt    DateTime?
-
+  trendingScore   Int       @default(0)
+  popularityScore Int       @default(0)
+  coverageCount   Int       @default(0)
+  sourceCount     Int       @default(0)
+  trendRank       Int?
+  firstDetectedAt DateTime?
+  lastDetectedAt  DateTime?
+  lastViewAt      DateTime?
   //////////////////////////////////////////////////////
   // TAGS
   //////////////////////////////////////////////////////
@@ -449,7 +524,7 @@ model Article {
 
   authorId String? @db.ObjectId
   author   User?   @relation(fields: [authorId], references: [id])
-
+liveArticleLinks LiveArticleLink[]
   //////////////////////////////////////////////////////
   // INDEXES
   //////////////////////////////////////////////////////
@@ -460,6 +535,10 @@ model Article {
   @@index([views])
   @@index([likes])
   @@index([trendingScore])
+  @@index([popularityScore])
+  @@index([trendRank])
+  @@index([firstDetectedAt])
+  @@index([lastDetectedAt])
   @@index([breaking])
   @@index([flash])
   @@index([featured])
@@ -475,6 +554,7 @@ model Article {
   @@index([breaking, isDeleted, status, breakingEnd, breakingPriority, createdAt])
   @@map("Article")
 }
+
 //////////////////////////////////////////////////////
 // ARTICLE ANALYTICS EVENT
 //////////////////////////////////////////////////////
@@ -575,8 +655,6 @@ model ArticleAnalyticsEvent {
   @@index([articleId, eventType, createdAt])
   @@map("ArticleAnalyticsEvent")
 }
-
-
 
 //////////////////////////////////////////////////////
 // CATEGORY ANALYTICS EVENT
@@ -767,6 +845,15 @@ model User {
   //////////////////////////////////////////////////////
 
   activity ActivityLog[]
+
+  //////////////////////////////////////////////////////
+  // LIVE CENTER
+  //////////////////////////////////////////////////////
+
+  liveEvents          LiveEvent[]
+  liveUpdates         LiveUpdate[]
+  liveSourcesCreated  LiveSource[]
+  liveAutomationRules LiveAutomationRule[]
 
   //////////////////////////////////////////////////////
   // POLLS
@@ -1325,19 +1412,19 @@ model PollVote {
 //////////////////////////////////////////////////////
 
 model NewsSource {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  
-  name           String   
-  rssUrl         String   @unique 
-  category       String?  
-  region         String?  
-  priorityWeight Int      @default(5) 
-  isActive       Boolean  @default(true) 
-  
-  feeds          IngestedFeed[]
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name           String
+  rssUrl         String  @unique
+  category       String?
+  region         String?
+  priorityWeight Int     @default(5)
+  isActive       Boolean @default(true)
+
+  feeds IngestedFeed[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([isActive])
   @@index([priorityWeight])
@@ -1345,31 +1432,570 @@ model NewsSource {
 }
 
 model IngestedFeed {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  
-  sourceId           String?  @db.ObjectId
-  source             NewsSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
-  
-  title              String
-  description        String   
-  sourceUrl          String   @unique 
-  
-  imageUrl           String?  
-  priorityScore      Int      @default(0) 
-  keywords           String[] 
-  
-  status             String   @default("pending") 
-  
-  // ✅ FIX: No @unique. Relation name "FeedToArticle"
-  generatedArticleId String?  @db.ObjectId 
-  generatedArticle   Article? @relation("FeedToArticle", fields: [generatedArticleId], references: [id], onDelete: SetNull)
-  
-  publishedAt        DateTime 
-  fetchedAt          DateTime @default(now()) 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  @@index([status, fetchedAt]) 
-  @@index([status, priorityScore]) 
+  sourceId String?     @db.ObjectId
+  source   NewsSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  title       String
+  description String
+  sourceUrl   String @unique
+
+  imageUrl      String?
+  priorityScore Int      @default(0)
+  keywords      String[]
+  //////////////////////////////////////////////////////
+  // NEWS TREND / POPULARITY INTELLIGENCE
+  //////////////////////////////////////////////////////
+
+  trendingScore   Int       @default(0)
+  popularityScore Int       @default(0)
+  coverageCount   Int       @default(1)
+  sourceCount     Int       @default(1)
+  trendRank       Int?
+  clusterKey      String?
+  firstDetectedAt DateTime?
+  lastDetectedAt  DateTime?
+
+  status String @default("pending")
+
+  // ✅ FIX: No @unique. Relation name "FeedToArticle"
+  generatedArticleId String?  @db.ObjectId
+  generatedArticle   Article? @relation("FeedToArticle", fields: [generatedArticleId], references: [id], onDelete: SetNull)
+
+  publishedAt DateTime
+  fetchedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, fetchedAt])
+  @@index([status, priorityScore])
+  @@index([trendingScore])
+  @@index([popularityScore])
+  @@index([clusterKey])
+  @@index([trendRank])
+  @@index([lastDetectedAt])
   @@map("IngestedFeed")
+}
+
+//////////////////////////////////////////////////////
+// NEWS AI INGESTION RUN
+//////////////////////////////////////////////////////
+
+model IngestionRun {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  status String @default("running")
+  // running | completed | failed | partial
+
+  trigger String @default("manual")
+  // manual | cron | scheduled
+
+  sourcesChecked    Int @default(0)
+  storiesFound      Int @default(0)
+  newItems          Int @default(0)
+  duplicatesRemoved Int @default(0)
+  clustersCreated   Int @default(0)
+  draftsCreated     Int @default(0)
+
+  errors Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([trigger])
+  @@index([startedAt])
+  @@index([completedAt])
+  @@map("IngestionRun")
+}
+//////////////////////////////////////////////////////
+// LIVE CENTER
+//////////////////////////////////////////////////////
+
+model LiveEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // BASIC INFORMATION
+  //////////////////////////////////////////////////////
+
+  title       String
+  slug        String @unique
+  description String?
+
+  segment LiveSegment
+
+  //////////////////////////////////////////////////////
+  // MEDIA
+  //////////////////////////////////////////////////////
+
+  coverImage    String?
+  coverImageAlt String?
+
+  //////////////////////////////////////////////////////
+  // EVENT STATUS
+  //////////////////////////////////////////////////////
+
+  status LiveEventStatus @default(draft)
+
+  isFeatured        Boolean @default(false)
+  showOnHomepage    Boolean @default(false)
+  showInLiveCenter  Boolean @default(true)
+  enableAutomation  Boolean @default(false)
+
+  //////////////////////////////////////////////////////
+  // TIME CONTROL
+  //////////////////////////////////////////////////////
+
+  startAt DateTime?
+  endAt   DateTime?
+
+  //////////////////////////////////////////////////////
+  // LIVE METADATA
+  //////////////////////////////////////////////////////
+
+  updateCount    Int @default(0)
+  lastUpdateAt   DateTime?
+  lastPublishedAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
+
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+
+  canonicalUrl String?
+
+  //////////////////////////////////////////////////////
+  // CREATOR
+  //////////////////////////////////////////////////////
+
+  createdById String? @db.ObjectId
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  updates          LiveUpdate[]
+  sources          LiveEventSource[]
+  articleLinks     LiveArticleLink[]
+  automationRules  LiveAutomationRule[]
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([segment])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([showOnHomepage])
+  @@index([showInLiveCenter])
+  @@index([startAt])
+  @@index([endAt])
+  @@index([lastUpdateAt])
+  @@index([createdAt])
+
+  @@map("LiveEvent")
+}
+
+
+//////////////////////////////////////////////////////
+// LIVE UPDATE
+//////////////////////////////////////////////////////
+
+model LiveUpdate {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // EVENT
+  //////////////////////////////////////////////////////
+
+  eventId String     @db.ObjectId
+  event   LiveEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  //////////////////////////////////////////////////////
+  // CONTENT
+  //////////////////////////////////////////////////////
+
+  headline String?
+  content  String
+
+  type LiveUpdateType @default(update)
+
+  //////////////////////////////////////////////////////
+  // STATUS
+  //////////////////////////////////////////////////////
+
+  status LiveUpdateStatus @default(draft)
+
+  verificationStatus LiveVerificationStatus @default(unverified)
+
+  //////////////////////////////////////////////////////
+  // FLAGS
+  //////////////////////////////////////////////////////
+
+  isBreaking Boolean @default(false)
+  isPinned  Boolean @default(false)
+
+  //////////////////////////////////////////////////////
+  // PUBLISH CONTROL
+  //////////////////////////////////////////////////////
+
+  publishedAt DateTime?
+  scheduledAt DateTime?
+
+  //////////////////////////////////////////////////////
+  // SOURCE
+  //////////////////////////////////////////////////////
+sourceName String?
+sourceUrl  String?
+
+sourceType LiveSourceType?
+
+sourceId String? @db.ObjectId
+source   LiveSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  //////////////////////////////////////////////////////
+  // MEDIA
+  //////////////////////////////////////////////////////
+
+  imageUrl       String?
+  imageAlt       String?
+  videoUrl       String?
+  embedUrl       String?
+
+  //////////////////////////////////////////////////////
+  // EDITORIAL
+  //////////////////////////////////////////////////////
+
+  authorId String? @db.ObjectId
+  author   User?   @relation(fields: [authorId], references: [id])
+
+  verificationNotes String?
+  correctionOfId    String? @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // AUTOMATION
+  //////////////////////////////////////////////////////
+
+  isAutomated Boolean @default(false)
+
+  automationMeta Json?
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([eventId, createdAt])
+  @@index([eventId, status, publishedAt])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([isBreaking])
+  @@index([isPinned])
+  @@index([publishedAt])
+  @@index([scheduledAt])
+  @@index([sourceId])
+  @@index([authorId])
+
+  @@map("LiveUpdate")
+}
+
+
+//////////////////////////////////////////////////////
+// LIVE SOURCE
+//////////////////////////////////////////////////////
+
+model LiveSource {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // SOURCE INFORMATION
+  //////////////////////////////////////////////////////
+
+  name String
+
+  type LiveSourceType
+
+  url    String?
+  rssUrl String?
+  apiUrl String?
+
+  //////////////////////////////////////////////////////
+  // SOURCE CONTROL
+  //////////////////////////////////////////////////////
+
+  isActive Boolean @default(true)
+
+  priority Int @default(5)
+
+  trustLevel Int @default(5)
+
+  //////////////////////////////////////////////////////
+  // FETCH CONTROL
+  //////////////////////////////////////////////////////
+
+  fetchIntervalSeconds Int @default(300)
+
+  lastFetchedAt DateTime?
+  nextFetchAt DateTime?
+
+  lastSuccessAt DateTime?
+  lastErrorAt   DateTime?
+
+  consecutiveErrors Int @default(0)
+
+  //////////////////////////////////////////////////////
+  // DEFAULT ROUTING
+  //////////////////////////////////////////////////////
+
+  defaultSegment LiveSegment?
+
+  //////////////////////////////////////////////////////
+  // CREATOR
+  //////////////////////////////////////////////////////
+
+  createdById String? @db.ObjectId
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  events LiveEventSource[]
+  updates LiveUpdate[]
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([isActive])
+  @@index([type])
+  @@index([priority])
+  @@index([trustLevel])
+  @@index([nextFetchAt])
+  @@index([defaultSegment])
+
+  @@map("LiveSource")
+}
+
+
+//////////////////////////////////////////////////////
+// LIVE EVENT ↔ SOURCE
+//////////////////////////////////////////////////////
+
+model LiveEventSource {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  eventId String    @db.ObjectId
+  event   LiveEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  sourceId String     @db.ObjectId
+  source   LiveSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  //////////////////////////////////////////////////////
+  // EVENT-SOURCE CONTROL
+  //////////////////////////////////////////////////////
+
+  enabled Boolean @default(true)
+
+  priority Int @default(5)
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, sourceId])
+
+  @@index([eventId])
+  @@index([sourceId])
+  @@index([enabled])
+
+  @@map("LiveEventSource")
+}
+
+
+//////////////////////////////////////////////////////
+// LIVE ARTICLE LINK
+//////////////////////////////////////////////////////
+
+model LiveArticleLink {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // LIVE EVENT
+  //////////////////////////////////////////////////////
+
+  eventId String    @db.ObjectId
+  event   LiveEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  //////////////////////////////////////////////////////
+  // NATIONPATH ARTICLE
+  //////////////////////////////////////////////////////
+
+  articleId String  @db.ObjectId
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  //////////////////////////////////////////////////////
+  // DISPLAY
+  //////////////////////////////////////////////////////
+
+  priority Int @default(0)
+
+  isFeatured Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  //////////////////////////////////////////////////////
+  // PREVENT DUPLICATES
+  //////////////////////////////////////////////////////
+
+  @@unique([eventId, articleId])
+
+  @@index([eventId])
+  @@index([articleId])
+  @@index([priority])
+
+  @@map("LiveArticleLink")
+}
+
+
+//////////////////////////////////////////////////////
+// LIVE AUTOMATION RULE
+//////////////////////////////////////////////////////
+
+model LiveAutomationRule {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  //////////////////////////////////////////////////////
+  // EVENT
+  //////////////////////////////////////////////////////
+
+  eventId String    @db.ObjectId
+  event   LiveEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  //////////////////////////////////////////////////////
+  // RULE INFORMATION
+  //////////////////////////////////////////////////////
+
+  name String
+
+  status LiveAutomationStatus @default(active)
+
+  //////////////////////////////////////////////////////
+  // SOURCE FILTER
+  //////////////////////////////////////////////////////
+
+  sourceIds String[] @default([])
+
+  //////////////////////////////////////////////////////
+  // MATCHING
+  //////////////////////////////////////////////////////
+
+  keywords String[] @default([])
+
+  excludeKeywords String[] @default([])
+
+  matchMode String @default("any")
+  // any | all
+
+  //////////////////////////////////////////////////////
+  // FETCH SETTINGS
+  //////////////////////////////////////////////////////
+
+  fetchIntervalSeconds Int @default(300)
+
+  //////////////////////////////////////////////////////
+  // PUBLISH POLICY
+  //////////////////////////////////////////////////////
+
+  autoPublish Boolean @default(false)
+
+  requireVerification Boolean @default(true)
+
+  autoBreaking Boolean @default(false)
+
+  //////////////////////////////////////////////////////
+  // AI / PROCESSING
+  //////////////////////////////////////////////////////
+
+  autoSummarize Boolean @default(true)
+
+  autoClassify Boolean @default(true)
+
+  autoDeduplicate Boolean @default(true)
+
+  autoEventMatch Boolean @default(true)
+
+  //////////////////////////////////////////////////////
+  // RUN STATUS
+  //////////////////////////////////////////////////////
+
+  lastRunAt DateTime?
+  nextRunAt DateTime?
+
+  totalRuns      Int @default(0)
+  totalFetched   Int @default(0)
+  totalPublished Int @default(0)
+  totalRejected  Int @default(0)
+
+  lastError String?
+
+  //////////////////////////////////////////////////////
+  // CREATOR
+  //////////////////////////////////////////////////////
+
+  createdById String? @db.ObjectId
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([eventId])
+  @@index([status])
+  @@index([nextRunAt])
+  @@index([lastRunAt])
+  @@index([autoPublish])
+
+  @@map("LiveAutomationRule")
 }

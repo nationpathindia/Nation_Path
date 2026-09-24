@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import SectionHeader from "@/components/common/SectionHeader";
@@ -49,6 +48,7 @@ export default function CategoryBlock({
           typeof image === "string" &&
           image.trim()
       ) ||
+      article?.primaryImage ||
       null
     );
   }
@@ -60,12 +60,13 @@ export default function CategoryBlock({
           image?.isPrimary &&
           typeof image?.alt === "string" &&
           image.alt.trim()
-      )?.alt ||
+      )?.alt?.trim() ||
       article?.imageGallery?.find(
         (image: any) =>
           typeof image?.alt === "string" &&
           image.alt.trim()
-      )?.alt ||
+      )?.alt?.trim() ||
+      article?.primaryImageAlt?.trim() ||
       `${article?.title || "News article"} - Nation Path India`
     );
   }
@@ -75,16 +76,15 @@ export default function CategoryBlock({
 
      Cloudinary:
        cloudinaryImageUrl()
-       → f_auto,q_auto,w_720
+       → transformation applied
 
      R2:
-       cloudinaryImageUrl()
-       → URL unchanged
+       original media.nationpathindia.com URL
+       → returned unchanged
 
-     Next/Image:
-       → handles responsive browser delivery
-       → AVIF/WebP according to next.config
-       → no unoptimized bypass
+     IMPORTANT:
+       No next/image.
+       Images are loaded directly from their source.
   ===================================================== */
 
   function getDeliveryImage(article: any): string | null {
@@ -258,16 +258,16 @@ export default function CategoryBlock({
               "
             >
               {mainImage ? (
-                <Image
+                <img
                   src={mainImage}
                   alt={getImageAlt(main)}
-                  fill
-                  sizes="
-                    (max-width: 768px) 100vw,
-                    58vw
-                  "
                   loading="lazy"
+                  decoding="async"
                   className="
+                    absolute
+                    inset-0
+                    h-full
+                    w-full
                     object-cover
                     transition-transform
                     duration-700
@@ -496,3 +496,4 @@ export default function CategoryBlock({
     </section>
   );
 }
+

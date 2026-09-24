@@ -16,8 +16,63 @@ const DEFAULT_MODULES = [
   'timeline',
   'factChecks',
   'faqs',
-  'seo'
+  'seo',
 ];
+
+// Safe integer helper
+function safeScore(value: unknown, fallback = 0): number {
+  const score = Number(value);
+
+  if (!Number.isFinite(score)) {
+    return fallback;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+// Safe string-array helper
+function safeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+// Normalize quality assessment coming from AI generator
+function normalizeQualityAssessment(
+  qualityAssessment: any
+) {
+  if (!qualityAssessment) {
+    return {
+      score: 0,
+      breakdown: {},
+      flags: ['Quality assessment unavailable'],
+      missingInformation: [],
+      reasoning: undefined,
+    };
+  }
+
+  return {
+    score: safeScore(qualityAssessment.score),
+    breakdown:
+      qualityAssessment.breakdown &&
+      typeof qualityAssessment.breakdown === 'object'
+        ? qualityAssessment.breakdown
+        : {},
+    flags: safeStringArray(qualityAssessment.flags),
+    missingInformation: safeStringArray(
+      qualityAssessment.missingInformation
+    ),
+    reasoning:
+      typeof qualityAssessment.reasoning === 'string'
+        ? qualityAssessment.reasoning.trim()
+        : undefined,
+  };
+}
 
 export async function POST(req: NextRequest) {
   let feedId: string | null = null;
@@ -29,7 +84,8 @@ export async function POST(req: NextRequest) {
 
     // Action, modules, isEditorial accept karein
     const action = body.action || 'save';
-    const modulesToGenerate = body.modulesToGenerate || DEFAULT_MODULES;
+    const modulesToGenerate =
+      body.modulesToGenerate || DEFAULT_MODULES;
     const isEditorial = body.isEditorial === true;
 
     if (!feedId) {
@@ -42,7 +98,7 @@ export async function POST(req: NextRequest) {
     // 1. Fetch the raw feed with source
     const feed = await prisma.ingestedFeed.findUnique({
       where: { id: feedId },
-      include: { source: true }
+      include: { source: true },
     });
 
     if (!feed) {
@@ -71,7 +127,7 @@ export async function POST(req: NextRequest) {
 
     console.log(
       `Starting AI generation for feed: ${feed.title} ` +
-      `(Action: ${action}, Category: ${feedCategory})`
+        `(Action: ${action}, Category: ${feedCategory})`
     );
 
     // 2. Call enhanced AI generator
@@ -83,19 +139,33 @@ export async function POST(req: NextRequest) {
       feedCategory
     );
 
-    // 3. Preview: do not save anything
+    // 3. Normalize AI quality assessment
+    const qualityAssessment =
+      normalizeQualityAssessment(
+        aiResult.qualityAssessment
+      );
+
+    console.log(
+      `AI Quality Score for "${feed.title}": ` +
+        `${qualityAssessment.score}/100`
+    );
+
+    // 4. Preview: do not save anything
     if (action === 'preview') {
       return NextResponse.json({
         success: true,
-        data: aiResult,
-        message: 'Preview generated successfully'
+        data: {
+          ...aiResult,
+          qualityAssessment,
+        },
+        message: 'Preview generated successfully',
       });
     }
 
-    // 4. Mark feed as processing before DB article creation
+    // 5. Mark feed as processing before DB article creation
     await prisma.ingestedFeed.update({
       where: { id: feedId },
-      data: { status: 'processing' }
+      data: { status: 'processing' },
     });
 
     // Safe mapping for database
@@ -104,7 +174,8 @@ export async function POST(req: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
 
-    const targetCategory = aiResult.suggestedCategory || feedCategory;
+    const targetCategory =
+      aiResult.suggestedCategory || feedCategory;
 
     const categorySlug = targetCategory
       .toLowerCase()
@@ -122,7 +193,7 @@ export async function POST(req: NextRequest) {
             .join('\n\n')
         : undefined;
 
-    // 5. Create article
+    // 6. Create article
     const newArticle = await prisma.article.create({
       data: {
         title: aiResult.seoTitle || feed.title,
@@ -137,17 +208,31 @@ export async function POST(req: NextRequest) {
 
         keyHighlights: aiResult.keyHighlights
           ? [
-              `Issue: ${aiResult.keyHighlights.issue || 'N/A'}`,
-              `Location: ${aiResult.keyHighlights.location || 'N/A'}`,
-              `Authority: ${aiResult.keyHighlights.authority || 'N/A'}`,
-              `Action: ${aiResult.keyHighlights.actionTaken || 'N/A'}`,
-              `Impact: ${aiResult.keyHighlights.impact || 'N/A'}`
+              `Issue: ${
+                aiResult.keyHighlights.issue || 'N/A'
+              }`,
+              `Location: ${
+                aiResult.keyHighlights.location || 'N/A'
+              }`,
+              `Authority: ${
+                aiResult.keyHighlights.authority || 'N/A'
+              }`,
+              `Action: ${
+                aiResult.keyHighlights.actionTaken || 'N/A'
+              }`,
+              `Impact: ${
+                aiResult.keyHighlights.impact || 'N/A'
+              }`,
             ]
           : [],
 
         whyItMatters: aiResult.whyItMatters
-          ? `${aiResult.whyItMatters.broaderImpact || ''}\n\n` +
-            `Analysis: ${aiResult.whyItMatters.objectiveAnalysis || ''}`
+          ? `${
+              aiResult.whyItMatters.broaderImpact || ''
+            }\n\n` +
+            `Analysis: ${
+              aiResult.whyItMatters.objectiveAnalysis || ''
+            }`
           : undefined,
 
         background: aiResult.background,
@@ -167,6 +252,7 @@ export async function POST(req: NextRequest) {
           ? aiResult.metaKeywords
               .split(',')
               .map((k: string) => k.trim())
+              .filter(Boolean)
           : feed.keywords || [],
 
         // Metadata & Flags
@@ -174,47 +260,60 @@ export async function POST(req: NextRequest) {
         aiGenerated: true,
         aiVersion: 'cloudflare-llama-3.1-v1',
 
+        // AI Quality Intelligence
+        aiQualityScore: qualityAssessment.score,
+
+        aiQualityBreakdown:
+          qualityAssessment.breakdown,
+
+        aiQualityFlags:
+          qualityAssessment.flags,
+
+        // Enhancement has NOT happened yet.
+        aiEnhanced: false,
+
         // Category relation
-        // CategoryWhereUniqueInput supports unique fields such as slug,
-        // not name. Use the generated category slug here.
         category: {
           connectOrCreate: {
             where: {
-              slug: categorySlug
+              slug: categorySlug,
             },
             create: {
               name: targetCategory,
-              slug: categorySlug
-            }
-          }
+              slug: categorySlug,
+            },
+          },
         },
 
         // Relations
         ingestedFeeds: {
           connect: {
-            id: feedId
-          }
-        }
-      }
+            id: feedId,
+          },
+        },
+      },
     });
 
-    // 6. Mark feed as processed and link generated article
+    // 7. Mark feed as processed and link generated article
     await prisma.ingestedFeed.update({
       where: { id: feedId },
       data: {
         status: 'processed',
-        generatedArticleId: newArticle.id
-      }
+        generatedArticleId: newArticle.id,
+      },
     });
 
     console.log(
-      `Successfully generated and saved article: ${newArticle.id}`
+      `Successfully generated and saved article: ${newArticle.id} ` +
+        `(AI Quality: ${qualityAssessment.score}/100)`
     );
 
     return NextResponse.json({
       success: true,
       articleId: newArticle.id,
-      message: 'Article generated and saved to draft successfully!'
+      qualityAssessment,
+      message:
+        'Article generated and saved to draft successfully!',
     });
   } catch (error: any) {
     console.error(
@@ -227,7 +326,7 @@ export async function POST(req: NextRequest) {
       await prisma.ingestedFeed
         .update({
           where: { id: feedId },
-          data: { status: 'pending' }
+          data: { status: 'pending' },
         })
         .catch((e) =>
           console.error(
@@ -241,10 +340,9 @@ export async function POST(req: NextRequest) {
       {
         error:
           error.message ||
-          'Failed to generate article from feed'
+          'Failed to generate article from feed',
       },
       { status: 500 }
     );
   }
 }
-

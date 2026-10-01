@@ -7,6 +7,22 @@ compatibility_flags = ["nodejs_compat"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[[durable_objects.bindings]]
+name = "NEXT_INC_CACHE_DURABLE_OBJECT"
+class_name = "DOShardedTagCache"
+
+[[durable_objects.bindings]]
+name = "NEXT_INC_QUEUE_DURABLE_OBJECT"
+class_name = "DOQueueHandler"
+
+[exports.DOShardedTagCache]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.DOQueueHandler]
+type = "durable-object"
+storage = "sqlite"
+
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "nationpath-media"

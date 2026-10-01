@@ -5,38 +5,21 @@ export const dynamic = "force-dynamic";
 
 export async function POST(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
 
-    if (!params?.slug) {
+    if (!slug) {
       return NextResponse.json(
         { error: "Article slug required" },
         { status: 400 }
       );
     }
 
-    const article = await prisma.article.findUnique({
-      where: {
-        slug: params.slug,
-      },
-      select: {
-        id: true,
-        views: true
-      }
-    });
-
-    if (!article) {
-      return NextResponse.json(
-        { error: "Article not found" },
-        { status: 404 }
-      );
-    }
-
+    // Direct single-query update (No double database hits)
     const updated = await prisma.article.update({
-      where: {
-        slug: params.slug,
-      },
+      where: { slug },
       data: {
         views: {
           increment: 1,
@@ -44,16 +27,22 @@ export async function POST(
         lastViewAt: new Date(),
       },
       select: {
-        views: true
-      }
+        views: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       views: updated.views,
     });
-
-  } catch (error) {
+  } catch (error: any) {
+    // Record not found in Prisma throws P2025
+    if (error?.code === "P2025") {
+      return NextResponse.json(
+        { error: "Article not found" },
+        { status: 404 }
+      );
+    }
 
     console.error("View update error:", error);
 
@@ -61,6 +50,5 @@ export async function POST(
       { error: "Server error" },
       { status: 500 }
     );
-
   }
 }

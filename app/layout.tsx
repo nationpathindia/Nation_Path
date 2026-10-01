@@ -18,37 +18,45 @@ export const metadata: Metadata = {
 
   title: {
     default:
-      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+      "Nation Path India | Independent News, Astro Intelligence & Knowledge Platform",
     template: "%s | Nation Path India",
   },
 
   description:
-    "Nation Path India is an independent digital platform delivering trusted journalism, national affairs, defence, technology, economy, sports, astrology intelligence and knowledge experiences from India.",
+    "Nation Path India is an independent digital news and knowledge platform delivering trusted journalism, national affairs, defence, technology, economy, and Vedic astro intelligence from India.",
 
   keywords: [
+    // Core Brand & News Keywords
     "Nation Path India",
-    "India news",
+    "India news analysis",
+     "World news analysis",
+    "independent digital journalism",
+    "national affairs and defence news",
+    "technology and economy updates",
+    "verified daily news India",
     "breaking news India",
-    "latest news India",
-    "national affairs India",
-    "politics news India",
-    "defence news India",
-    "world news",
-    "business news India",
-    "technology news India",
-    "science news India",
-    "sports news India",
-    "astrology India",
-    "horoscope",
-    "AI astrology",
-    "editorial analysis",
+    "editorial news analysis",
+
+    // Astro Intelligence Keywords
+    "Vedic astrology insights",
+    "daily horoscope and planetary transits",
+    "astro intelligence and predictions",
+    "astrology analysis India",
+    "horoscope and career astro analysis",
+
+    // High-Authority Knowledge Keywords
+    "in-depth editorial news",
+    "explained news India",
+    "fact verified journalism",
+    "knowledge platform India",
   ],
 
   applicationName: "Nation Path India",
 
   authors: [
     {
-      name: "Nation Path India",
+      name: "Nation Path India Editorial Desk",
+      url: "https://nationpathindia.com/about",
     },
   ],
 
@@ -85,10 +93,10 @@ export const metadata: Metadata = {
     siteName: "Nation Path India",
 
     title:
-      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+      "Nation Path India | Independent News, Astro Intelligence & Knowledge Platform",
 
     description:
-      "Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
+      "Independent journalism, national affairs, Vedic astrology intelligence and knowledge experiences from India.",
 
     images: [
       {
@@ -104,10 +112,10 @@ export const metadata: Metadata = {
     card: "summary_large_image",
 
     title:
-      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+      "Nation Path India | Independent News, Astro Intelligence & Knowledge Platform",
 
     description:
-      "Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
+      "Independent journalism, national affairs, Vedic astrology intelligence and knowledge experiences from India.",
 
     images: ["/og-image.png"],
   },
@@ -123,6 +131,7 @@ export default function RootLayout({
   return (
     <html lang="en-IN" className={cn("font-sans")}>
       <head>
+        {/* AdSense Publisher Verification Meta Tag */}
         <meta
           name="google-adsense-account"
           content="ca-pub-3337012180933768"
@@ -133,12 +142,13 @@ export default function RootLayout({
           content="d06hwjzyxi36yd1x6ulvtat176a412"
         />
 
+        {/* AdSense Script - strategy afterInteractive fix for fast AdSense Crawler detection */}
         <Script
           id="google-adsense"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3337012180933768"
           crossOrigin="anonymous"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
       </head>
 
@@ -150,13 +160,10 @@ export default function RootLayout({
           antialiased
         "
       >
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
 
         {gaEnabled && <GoogleAnalytics />}
       </body>
     </html>
   );
 }
-

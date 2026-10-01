@@ -21,12 +21,9 @@ import ArticleAstroBanner from "@/components/article/ArticleAstroBanner";
 import ArticleShortBrief from "@/components/article/ArticleShortBrief";
 import ArticleWhatsNext from "@/components/article/ArticleWhatsNext";
 
-import {
-  cloudinaryImageUrl,
-} from "@/lib/cloudinary-image";
+import { cloudinaryImageUrl } from "@/lib/cloudinary-image";
 
 export const dynamic = "force-dynamic";
-
 export const revalidate = 0;
 
 /*
@@ -51,13 +48,13 @@ type ImageGalleryItem = {
 
 /*
 |--------------------------------------------------------------------------
-| SITE URL
+| SITE CONFIGURATION
 |--------------------------------------------------------------------------
 */
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://nationpathindia.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://nationpathindia.com";
+const SITE_NAME = "Nation Path India";
 
 /*
 |--------------------------------------------------------------------------
@@ -89,927 +86,497 @@ function cleanText(html: string) {
     .trim();
 }
 
-/*
-|--------------------------------------------------------------------------
-| PRIMARY IMAGE
-|--------------------------------------------------------------------------
-|
-| Priority:
-| 1. imageGallery primary image
-| 2. first imageGallery image
-| 3. legacy images[0]
-|
-*/
-
 function getPrimaryImage(article: any) {
-  const gallery: ImageGalleryItem[] = Array.isArray(
-    article?.imageGallery
-  )
+  const gallery: ImageGalleryItem[] = Array.isArray(article?.imageGallery)
     ? article.imageGallery
     : [];
 
   return (
-    gallery.find(
-      (img: ImageGalleryItem) => img?.isPrimary
-    )?.url ||
+    gallery.find((img: ImageGalleryItem) => img?.isPrimary)?.url ||
     gallery[0]?.url ||
     article?.images?.[0] ||
     null
   );
 }
 
-/*
-|--------------------------------------------------------------------------
-| GALLERY
-|--------------------------------------------------------------------------
-*/
+function getGallery(article: any): ImageGalleryItem[] {
+  return Array.isArray(article?.imageGallery) ? article.imageGallery : [];
+}
 
-function getGallery(
-  article: any
-): ImageGalleryItem[] {
-  return Array.isArray(article?.imageGallery)
-    ? article.imageGallery
-    : [];
+function getOptimizedGallery(gallery: ImageGalleryItem[]): ImageGalleryItem[] {
+  return gallery.map((image: ImageGalleryItem) => ({
+    ...image,
+    url: cloudinaryImageUrl(image.url, 1200),
+  }));
+}
+
+function getOptimizedPrimaryImage(article: any) {
+  const primaryImage = getPrimaryImage(article);
+  if (!primaryImage) return null;
+  return cloudinaryImageUrl(primaryImage, 1200);
 }
 
 /*
 |--------------------------------------------------------------------------
-| OPTIMIZED GALLERY
-|--------------------------------------------------------------------------
-|
-| Cloudinary:
-|   f_auto
-|   q_auto
-|   responsive width
-|
-| Non-Cloudinary URLs remain untouched.
-|
-*/
-
-function getOptimizedGallery(
-  gallery: ImageGalleryItem[]
-): ImageGalleryItem[] {
-  return gallery.map(
-    (image: ImageGalleryItem) => ({
-      ...image,
-      url: cloudinaryImageUrl(
-        image.url,
-        1200
-      ),
-    })
-  );
-}
-
-/*
-|--------------------------------------------------------------------------
-| OPTIMIZED PRIMARY IMAGE
+| METADATA GENERATOR (ADVANCED SEO & OPENGRAPH)
 |--------------------------------------------------------------------------
 */
 
-function getOptimizedPrimaryImage(
-  article: any
-) {
-  const primaryImage =
-    getPrimaryImage(article);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { category: categorySlug, slug } = await params;
 
-  if (!primaryImage) {
-    return null;
-  }
-
-  return cloudinaryImageUrl(
-    primaryImage,
-    1200
-  );
-}
-
-/*
-|--------------------------------------------------------------------------
-| METADATA
-|--------------------------------------------------------------------------
-*/
-
-export async function generateMetadata({
-  params,
-}: Props): Promise<Metadata> {
-  const {
-    category: categorySlug,
-    slug,
-  } = await params;
-
-  const category =
-    await prisma.category.findUnique({
-      where: {
-        slug: categorySlug,
-      },
-    });
+  const category = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+  });
 
   if (!category) {
     return {
-      title: "Nation Path India",
+      title: SITE_NAME,
+      robots: { index: false, follow: false },
     };
   }
 
-  const article =
-    await prisma.article.findFirst({
-      where: {
-        slug,
-        categoryId: category.id,
-        status: "approved",
-        isDeleted: false,
-        isAstrology: false,
-        ...isPublishedFilter(),
-      },
-    });
+  const article = await prisma.article.findFirst({
+    where: {
+      slug,
+      categoryId: category.id,
+      status: "approved",
+      isDeleted: false,
+      isAstrology: false,
+      ...isPublishedFilter(),
+    },
+    include: {
+      author: true,
+    },
+  });
 
   if (!article) {
     return {
-      title: "Nation Path India",
+      title: SITE_NAME,
+      robots: { index: false, follow: false },
     };
   }
 
-  const primaryImage =
-    getOptimizedPrimaryImage(article);
-
-  const canonical =
-    `${SITE_URL}/${category.slug}/${article.slug}`;
-
-  const title =
-    article.metaTitle ||
-    article.title;
-
+  const primaryImage = getOptimizedPrimaryImage(article) || `${SITE_URL}/og-default.jpg`;
+  const canonical = `${SITE_URL}/${category.slug}/${article.slug}`;
+  const title = article.metaTitle || `${article.title} | ${category.name} - ${SITE_NAME}`;
   const description =
     article.metaDescription ||
     article.excerpt ||
-    `Read latest ${category.name} updates from Nation Path India.`;
+    `Read the latest ${category.name} news on ${article.title} at ${SITE_NAME}.`;
+
+  const authorName = article.author?.name || "Nation Path Desk";
+
+  const keywords = [
+    category.name,
+    `${category.name} news`,
+    article.title,
+    "Nation Path India",
+    "Latest News India",
+    "Breaking News",
+    authorName,
+  ];
 
   return {
     title,
-
     description,
-
-    keywords: [
-      category.name,
-      article.title,
-      "Nation Path India",
-      "India News",
-      "Breaking News",
-    ],
-
+    keywords,
+    authors: [{ name: authorName }],
+    creator: authorName,
+    publisher: SITE_NAME,
     alternates: {
       canonical,
     },
-
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-
     openGraph: {
       type: "article",
-
-      title,
-
+      title: article.title,
       description,
-
       url: canonical,
-
-      siteName: "Nation Path India",
-
+      siteName: SITE_NAME,
       locale: "en_IN",
-
-      publishedTime:
-        article.publishedAt?.toISOString(),
-
-      modifiedTime:
-        article.updatedAt?.toISOString(),
-
-      images: primaryImage
-        ? [
-            {
-              url: primaryImage,
-              width: 1200,
-              height: 675,
-              alt: article.title,
-            },
-          ]
-        : [],
+      publishedTime: (article.publishedAt || article.createdAt).toISOString(),
+      modifiedTime: (article.updatedAt || article.createdAt).toISOString(),
+      authors: [authorName],
+      section: category.name,
+      images: [
+        {
+          url: primaryImage,
+          width: 1200,
+          height: 675,
+          alt: article.title,
+        },
+      ],
     },
-
     twitter: {
       card: "summary_large_image",
-
-      title,
-
+      title: article.title,
       description,
-
-      images: primaryImage
-        ? [primaryImage]
-        : [],
+      images: [primaryImage],
+      creator: "@NationPathIndia",
+      site: "@NationPathIndia",
     },
   };
 }
 
 /*
 |--------------------------------------------------------------------------
-| PAGE
+| MAIN ARTICLE PAGE COMPONENT
 |--------------------------------------------------------------------------
 */
 
-export default async function ArticlePage({
-  params,
-}: Props) {
-  const {
-    category: categorySlug,
-    slug,
-  } = await params;
+export default async function ArticlePage({ params }: Props) {
+  const { category: categorySlug, slug } = await params;
 
-/*
-|--------------------------------------------------------------------------
-| CATEGORY
-|--------------------------------------------------------------------------
-*/
-
-  const category =
-    await prisma.category.findUnique({
-      where: {
-        slug: categorySlug,
-      },
-    });
+  const category = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+  });
 
   if (!category) {
     return notFound();
   }
 
-/*
-|--------------------------------------------------------------------------
-| ARTICLE FETCH
-|--------------------------------------------------------------------------
-*/
-
-  const article =
-    await prisma.article.findFirst({
-      where: {
-        slug,
-        categoryId: category.id,
-        status: "approved",
-        isDeleted: false,
-        isAstrology: false,
-        ...isPublishedFilter(),
-      },
-
-      include: {
-        category: true,
-      },
-    });
+  const article = await prisma.article.findFirst({
+    where: {
+      slug,
+      categoryId: category.id,
+      status: "approved",
+      isDeleted: false,
+      isAstrology: false,
+      ...isPublishedFilter(),
+    },
+    include: {
+      category: true,
+      author: true,
+    },
+  });
 
   if (!article) {
     return notFound();
   }
 
-  if (
-    article.publishedAt &&
-    article.publishedAt > new Date()
-  ) {
+  if (article.publishedAt && article.publishedAt > new Date()) {
     return notFound();
   }
-/* =====================================================
-   ARTICLE VIEW COUNT
-===================================================== */
 
-const updatedArticle = await prisma.article.update({
-  where: {
-    id: article.id,
-  },
+  /* INCREMENT VIEWS */
+  const updatedArticle = await prisma.article.update({
+    where: { id: article.id },
+    data: { views: { increment: 1 } },
+    select: { views: true },
+  });
+  article.views = updatedArticle.views;
 
-  data: {
-    views: {
-      increment: 1,
+  /* IMAGES & ASSETS */
+  const gallery = getGallery(article);
+  const optimizedGallery = getOptimizedGallery(gallery);
+  const primaryImage = getOptimizedPrimaryImage(article);
+
+  /* SIDEBAR & RELATED DATA */
+  const mostRead = await prisma.article.findMany({
+    where: {
+      status: "approved",
+      isDeleted: false,
+      isAstrology: false,
+      ...isPublishedFilter(),
+      NOT: { id: article.id },
     },
-  },
+    orderBy: [
+      { trendingScore: "desc" },
+      { views: "desc" },
+      { createdAt: "desc" },
+    ],
+    take: 5,
+    include: { category: true },
+  });
 
-  select: {
-    views: true,
-  },
-});
+  const related = await prisma.article.findMany({
+    where: {
+      status: "approved",
+      isDeleted: false,
+      isAstrology: false,
+      ...isPublishedFilter(),
+      categoryId: category.id,
+      NOT: { id: article.id },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+    include: { category: true },
+  });
 
-article.views = updatedArticle.views;
-/*
-|--------------------------------------------------------------------------
-| IMAGE DATA
-|--------------------------------------------------------------------------
-*/
+  const nextArticle = await prisma.article.findFirst({
+    where: {
+      status: "approved",
+      isDeleted: false,
+      isAstrology: false,
+      ...isPublishedFilter(),
+      categoryId: category.id,
+      id: { not: article.id },
+    },
+    orderBy: { createdAt: "desc" },
+    include: { category: true },
+  });
 
-  const gallery =
-    getGallery(article);
+  /* READ TIME CALCULATION */
+  const wordCount = cleanText(article.content || "")
+    .split(" ")
+    .filter(Boolean).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
-  const optimizedGallery =
-    getOptimizedGallery(gallery);
+  const articleUrl = `${SITE_URL}/${category.slug}/${article.slug}`;
+  const authorName = article.author?.name || "Nation Path Desk";
 
-  const primaryImage =
-    getOptimizedPrimaryImage(article);
-
-  const mostRead =
-    await prisma.article.findMany({
-      where: {
-        status: "approved",
-        isDeleted: false,
-        isAstrology: false,
-        ...isPublishedFilter(),
-
-        NOT: {
-          id: article.id,
-        },
-      },
-
-      orderBy: [
-        {
-          trendingScore: "desc",
-        },
-
-        {
-          views: "desc",
-        },
-
-        {
-          createdAt: "desc",
-        },
-      ],
-
-      take: 5,
-
-      include: {
-        category: true,
-      },
-    });
-
-/*
-|--------------------------------------------------------------------------
-| RELATED STORIES
-|--------------------------------------------------------------------------
-*/
-
-  const related =
-    await prisma.article.findMany({
-      where: {
-        status: "approved",
-        isDeleted: false,
-        isAstrology: false,
-        ...isPublishedFilter(),
-
-        categoryId: category.id,
-
-        NOT: {
-          id: article.id,
-        },
-      },
-
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      take: 6,
-
-      include: {
-        category: true,
-      },
-    });
-
-/*
-|--------------------------------------------------------------------------
-| NEXT STORY
-|--------------------------------------------------------------------------
-*/
-
-  const nextArticle =
-    await prisma.article.findFirst({
-      where: {
-        status: "approved",
-        isDeleted: false,
-        isAstrology: false,
-        ...isPublishedFilter(),
-
-        categoryId: category.id,
-
-        id: {
-          not: article.id,
-        },
-      },
-
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      include: {
-        category: true,
-      },
-    });
-
-/*
-|--------------------------------------------------------------------------
-| READING TIME
-|--------------------------------------------------------------------------
-*/
-
-  const wordCount =
-    cleanText(
-      article.content || ""
-    )
-      .split(" ")
-      .filter(Boolean)
-      .length;
-
-  const readingTime = Math.max(
-    1,
-    Math.ceil(wordCount / 200)
-  );
-
-/*
-|--------------------------------------------------------------------------
-| ARTICLE URL
-|--------------------------------------------------------------------------
-*/
-
-  const articleUrl =
-    `${SITE_URL}/${category.slug}/${article.slug}`;
-
-  const keywords = [
-    category.name,
-    article.title,
-    article.excerpt || "",
-    "Nation Path India",
-    "India News",
-    "Breaking News",
-  ];
-
-/*
-|--------------------------------------------------------------------------
-| NEWS SCHEMA
-|--------------------------------------------------------------------------
-*/
-
+  /*
+  |--------------------------------------------------------------------------
+  | GOOGLE NEWS & DISCOVER SCHEMA (NewsArticle, Breadcrumb, FAQ)
+  |--------------------------------------------------------------------------
+  */
   const newsSchema = {
     "@context": "https://schema.org",
-
     "@type": "NewsArticle",
-
-    "@id": articleUrl,
-
+    "@id": `${articleUrl}#article`,
     headline: article.title,
-
-    description:
-      article.metaDescription ||
-      article.excerpt ||
-      "",
-
-    keywords,
-
+    description: article.metaDescription || article.excerpt || article.title,
+    keywords: [category.name, article.title, "Nation Path India"],
     image: primaryImage
       ? [
           {
             "@type": "ImageObject",
-
             url: primaryImage,
-
             width: 1200,
-
             height: 675,
-
             caption: article.title,
           },
         ]
       : [],
-
-    datePublished: (
-      article.publishedAt ||
-      article.createdAt
-    ).toISOString(),
-
-    dateModified: (
-      article.updatedAt ||
-      article.createdAt
-    ).toISOString(),
-
+    datePublished: (article.publishedAt || article.createdAt).toISOString(),
+    dateModified: (article.updatedAt || article.createdAt).toISOString(),
     articleSection: category.name,
-
     inLanguage: "en-IN",
-
     wordCount,
-
-    timeRequired:
-      `PT${readingTime}M`,
-
+    timeRequired: `PT${readingTime}M`,
     mainEntityOfPage: {
       "@type": "WebPage",
-
       "@id": articleUrl,
     },
-
     author: {
-      "@type": "Organization",
-
-      name: "Nation Path India",
-
+      "@type": "Person",
+      name: authorName,
       url: SITE_URL,
     },
-
     publisher: {
-      "@type": "Organization",
-
-      name: "Nation Path India",
-
+      "@type": "NewsMediaOrganization",
+      name: SITE_NAME,
       url: SITE_URL,
-
       logo: {
         "@type": "ImageObject",
-
         url: `${SITE_URL}/logo.png`,
+        width: 600,
+        height: 60,
       },
     },
   };
 
-/*
-|--------------------------------------------------------------------------
-| BREADCRUMB SCHEMA
-|--------------------------------------------------------------------------
-*/
-
   const breadcrumbSchema = {
     "@context": "https://schema.org",
-
     "@type": "BreadcrumbList",
-
     itemListElement: [
       {
         "@type": "ListItem",
-
         position: 1,
-
         name: "Home",
-
         item: SITE_URL,
       },
-
       {
         "@type": "ListItem",
-
         position: 2,
-
         name: category.name,
-
-        item:
-          `${SITE_URL}/${category.slug}`,
+        item: `${SITE_URL}/${category.slug}`,
       },
-
       {
         "@type": "ListItem",
-
         position: 3,
-
         name: article.title,
-
         item: articleUrl,
       },
     ],
   };
 
-/*
-|--------------------------------------------------------------------------
-| FAQ SCHEMA
-|--------------------------------------------------------------------------
-*/
-
   const faqSchema =
-    Array.isArray(article.faqItems) &&
-    article.faqItems.length > 0
+    Array.isArray(article.faqItems) && article.faqItems.length > 0
       ? {
-          "@context":
-            "https://schema.org",
-
+          "@context": "https://schema.org",
           "@type": "FAQPage",
-
-          mainEntity:
-            article.faqItems
-              .filter(
-                (item: any) =>
-                  item.question &&
-                  item.answer
-              )
-              .map(
-                (item: any) => ({
-                  "@type": "Question",
-
-                  name: item.question,
-
-                  acceptedAnswer: {
-                    "@type": "Answer",
-
-                    text:
-                      item.answer.replace(
-                        /<[^>]+>/g,
-                        ""
-                      ),
-                  },
-                })
-              ),
+          mainEntity: article.faqItems
+            .filter((item: any) => item.question && item.answer)
+            .map((item: any) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.answer.replace(/<[^>]+>/g, ""),
+              },
+            })),
         }
       : null;
 
-/*
-|--------------------------------------------------------------------------
-| RENDER
-|--------------------------------------------------------------------------
-*/
-
   return (
-    <div
-      className="
-        mx-auto
-        max-w-7xl
-        px-4
-        py-8
-        sm:px-6
-        sm:py-12
-        lg:px-8
-      "
-    >
-
-      {/* ================= SCHEMA ================= */}
-
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      {/* STRUCTURED DATA MARKUP */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html:
-            JSON.stringify(newsSchema),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(newsSchema) }}
       />
-
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html:
-            JSON.stringify(
-              breadcrumbSchema
-            ),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-
       {faqSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html:
-              JSON.stringify(
-                faqSchema
-              ),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          gap-10
-          lg:grid-cols-[minmax(0,1fr)_360px]
-          lg:gap-14
-        "
-      >
-
-        <main>
-
-          {/* READING PROGRESS */}
-
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-14">
+        {/* SEMANTIC ARTICLE CONTAINER */}
+        <article itemScope itemType="https://schema.org/NewsArticle">
           <ArticleReadingProgress />
- <ArticleAnalyticsTracker
-  type="article"
-  articleId={article.id}
-  articleUrl={articleUrl}
-/>
-          {/* ================= BREADCRUMB ================= */}
+          <ArticleAnalyticsTracker
+            type="article"
+            articleId={article.id}
+            articleUrl={articleUrl}
+          />
 
+          {/* BREADCRUMBS */}
           <nav
-            className="
-              mb-6
-              text-xs
-              uppercase
-              tracking-wide
-              text-gray-500
-            "
+            aria-label="Breadcrumb"
+            className="mb-6 text-xs uppercase tracking-wide text-gray-500"
           >
-
-            <Link
-              href="/"
-              className="
-                transition
-                hover:text-[#163C80]
-              "
-            >
+            <Link href="/" className="transition hover:text-[#163C80]">
               Home
             </Link>
-
-            <span className="mx-2">
-              /
-            </span>
-
+            <span className="mx-2">/</span>
             <Link
               href={`/${category.slug}`}
-              className="
-                transition
-                hover:text-[#163C80]
-              "
+              className="transition hover:text-[#163C80]"
             >
               {category.name}
             </Link>
-
-            <span className="mx-2">
-              /
-            </span>
-
-            <span>
-              {article.title}
-            </span>
-
+            <span className="mx-2">/</span>
+            <span className="line-clamp-1">{article.title}</span>
           </nav>
 
-          {/* ================= TOP AD ================= */}
-
-          <div
-            className="
-              my-8
-              flex
-              justify-center
-            "
-          >
-            <AdRenderer
-              placement="article_top"
-            />
+          {/* AD: TOP */}
+          <div className="my-8 flex justify-center">
+            <AdRenderer placement="article_top" />
           </div>
 
-          {/* ================= HEADER ================= */}
+          {/* ARTICLE HEADER */}
+          <header>
+            <ArticleHeader
+              article={article}
+              category={category}
+              readingTime={readingTime}
+            />
+          </header>
 
-          <ArticleHeader
-            article={article}
-            category={category}
-            readingTime={readingTime}
+          {/* HERO MEDIA */}
+          <ArticleHero
+            imageGallery={optimizedGallery}
+            images={article.images}
+            title={article.title}
+            shareUrl={articleUrl}
+            articleId={article.id}
           />
 
-          {/* ================= HERO ================= */}
-
-          <ArticleHero
-  imageGallery={optimizedGallery}
-  images={article.images}
-  title={article.title}
-  shareUrl={articleUrl}
-  articleId={article.id}
-/>
-
-          {/* ================= AI SUMMARY ================= */}
-
+          {/* AI SUMMARY */}
           {article.aiSummary && (
             <ArticleAISummary
-              categoryName={
-                category.name
-              }
-              summary={
-                article.aiSummary as any
-              }
+              categoryName={category.name}
+              summary={article.aiSummary as any}
             />
           )}
 
-          {/* ================= SHORT BRIEF ================= */}
+          {/* SHORT BRIEF */}
+          <ArticleShortBrief shortBrief={article.shortBrief || ""} />
 
-          <ArticleShortBrief
-            shortBrief={
-              article.shortBrief || ""
-            }
-          />
-
-          {/* ================= ARTICLE INTELLIGENCE ================= */}
-
+          {/* ARTICLE INTELLIGENCE */}
           <ArticleIntelligence
-            background={
-              article.background
-            }
-            timeline={
-              article.timeline
-            }
-            expertOpinion={
-              article.expertOpinion
-            }
-            factCheck={
-              article.factCheck
-            }
-            keyTakeaways={
-              article.keyTakeaways
-            }
+            background={article.background}
+            timeline={article.timeline}
+            expertOpinion={article.expertOpinion}
+            factCheck={article.factCheck}
+            keyTakeaways={article.keyTakeaways}
             sourceDesk={
-              typeof article.sourceDesk ===
-              "string"
-                ? article.sourceDesk
-                : null
+              typeof article.sourceDesk === "string" ? article.sourceDesk : null
             }
           />
 
-          {/* ================= ARTICLE BODY ================= */}
-
-          <ArticleBody
-            content={
-              article.content
-            }
-            keyHighlights={
-              article.keyHighlights
-            }
-            whyItMatters={
-              article.whyItMatters
-            }
-            video={
-              article.videoUrl
-                ? {
-                    url:
-                      article.videoUrl,
-
-                    title:
-                      article.videoTitle,
-
-                    position:
-                      article.videoPosition as
+          {/* ARTICLE MAIN BODY */}
+          <main itemProp="articleBody">
+            <ArticleBody
+              content={article.content}
+              keyHighlights={article.keyHighlights}
+              whyItMatters={article.whyItMatters}
+              video={
+                article.videoUrl
+                  ? {
+                      url: article.videoUrl,
+                      title: article.videoTitle,
+                      position: article.videoPosition as
                         | "top"
                         | "middle"
                         | "bottom",
-                  }
-                : null
-            }
-          />
-
-          {/* ================= WHAT'S NEXT ================= */}
-
-          <ArticleWhatsNext
-            whatsNext={
-              article.whatsNext || ""
-            }
-          />
-
-          {/* ================= FAQ ================= */}
-
-          {Array.isArray(
-            article.faqItems
-          ) &&
-            article.faqItems.length > 0 && (
-              <ArticleFAQ
-                faqItems={
-                  article.faqItems as any
-                }
-              />
-            )}
-
-          {/* ================= BOTTOM AD ================= */}
-
-          <div
-            className="
-              mt-7
-              mb-0
-              flex
-              justify-center
-            "
-          >
-            <AdRenderer
-              placement="article_bottom"
+                    }
+                  : null
+              }
             />
+          </main>
+
+          {/* WHAT'S NEXT */}
+          <ArticleWhatsNext whatsNext={article.whatsNext || ""} />
+
+          {/* FAQ */}
+          {Array.isArray(article.faqItems) && article.faqItems.length > 0 && (
+            <ArticleFAQ faqItems={article.faqItems as any} />
+          )}
+
+          {/* AD: BOTTOM */}
+          <div className="mt-7 mb-0 flex justify-center">
+            <AdRenderer placement="article_bottom" />
           </div>
 
-          {/* ================= NEXT STORY ================= */}
+          {/* NEXT STORY */}
+          <ArticleNextStory article={nextArticle} />
 
-          <ArticleNextStory
-            article={nextArticle}
-          />
-
-          {/* ================= ASTRO CROSS PRODUCT ================= */}
-
+          {/* CROSS PRODUCT BANNER */}
           <ArticleAstroBanner
-            categoryName={
-              category.name
-            }
-            categorySlug={
-              category.slug
-            }
+            categoryName={category.name}
+            categorySlug={category.slug}
           />
 
-          {/* ================= RELATED ================= */}
+          {/* RELATED CONTENT */}
+          <footer className="mt-8">
+            <ArticleRelated articles={related} />
+          </footer>
+        </article>
 
-          <ArticleRelated
-            articles={related}
-          />
-
-        </main>
-
-        {/* ================= SIDEBAR ================= */}
-
-        <ArticleSidebar
-          mostRead={mostRead}
-        />
-
+        {/* SIDEBAR */}
+        <aside>
+          <ArticleSidebar mostRead={mostRead} />
+        </aside>
       </div>
     </div>
   );
 }
-

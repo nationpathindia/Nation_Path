@@ -11,68 +11,32 @@ import {
  HOMEPAGE COMPONENTS
 ====================================================
 */
-
-import FuturePlatformBanner
-  from "@/components/home/FuturePlatformBanner";
-
-import AdRenderer
-  from "@/components/ads/AdRendererClient";
-
-import LeadStory
-  from "@/components/home/LeadStory";
-
-import BreakingSpotlight
-  from "@/components/home/BreakingSpotlight";
-
-import FeaturedGrid
-  from "@/components/home/FeaturedGrid";
-
-import CategoryBlock
-  from "@/components/home/CategoryBlock";
-
-import PollOfDay
-  from "@/components/home/PollOfDay";
-
-import LatestNews
-  from "@/components/home/LatestNews";
-
-import EditorialSection
-  from "@/components/home/EditorialSection";
-
-import dynamic from "next/dynamic";
+import FuturePlatformBanner from "@/components/home/FuturePlatformBanner";
+import AdRenderer from "@/components/ads/AdRendererClient";
+import LeadStory from "@/components/home/LeadStory";
+import BreakingSpotlight from "@/components/home/BreakingSpotlight";
+import FeaturedGrid from "@/components/home/FeaturedGrid";
+import CategoryBlock from "@/components/home/CategoryBlock";
+import PollOfDay from "@/components/home/PollOfDay";
+import LatestNews from "@/components/home/LatestNews";
+import EditorialSection from "@/components/home/EditorialSection";
 
 /*
 ====================================================
  SIDEBAR COMPONENTS
 ====================================================
 */
-
-const TrendingTopics = dynamic(
-  () => import("@/components/sidebar/TrendingTopics")
-);
-
-const WeatherWidget = dynamic(
-  () => import("@/components/sidebar/WeatherWidget")
-);
-
-const TrendingNews = dynamic(
-  () => import("@/components/sidebar/TrendingNews")
-);
-
-const MostRead = dynamic(
-  () => import("@/components/sidebar/MostRead")
-);
-
-const TopStories = dynamic(
-  () => import("@/components/sidebar/TopStories")
-);
+import TrendingTopics from "@/components/sidebar/TrendingTopics";
+import WeatherWidget from "@/components/sidebar/WeatherWidget";
+import TrendingNews from "@/components/sidebar/TrendingNews";
+import MostRead from "@/components/sidebar/MostRead";
+import TopStories from "@/components/sidebar/TopStories";
 
 /*
 ====================================================
  PAGE CONFIG
 ====================================================
 */
-
 export const revalidate = 60;
 
 const SITE_URL =
@@ -84,7 +48,6 @@ const SITE_URL =
  PUBLISHED ARTICLE FILTER
 ====================================================
 */
-
 function publishedFilter() {
   const now = new Date();
 
@@ -108,13 +71,12 @@ function publishedFilter() {
  SEO METADATA
 ====================================================
 */
-
 export const metadata: Metadata = {
   title:
     "Nation Path India | Breaking News, India Updates & Trusted Stories",
 
   description:
-    "Nation Path India brings breaking news, India updates, politics, defence, business, technology, science, sports and trusted stories from across India.",
+    "Nation Path India brings breaking news, India updates, politics, defence, business, technology, science, sports, and astro intelligence stories from across India.",
 
   metadataBase: new URL(SITE_URL),
 
@@ -128,20 +90,32 @@ export const metadata: Metadata = {
   },
 
   keywords: [
-    "India news",
+    // Core Brand & Primary Identity
+    "Nation Path India",
+    "independent digital journalism India",
+    "trusted news platform India",
+
+    // High CTR & Volume News Keywords
     "breaking news India",
+    "national affairs India",
     "politics news India",
     "defence news India",
-    "international news",
-    "economy news",
-    "business news",
-    "technology news",
-    "science news",
-    "health news",
-    "education news",
-    "environment news",
-    "sports news",
-    "Nation Path India",
+    "Indian economy and business updates",
+    "technology news India",
+    "science and space updates India",
+    "sports news India",
+
+    // Astro Intelligence Keywords
+    "Vedic astrology insights",
+    "daily horoscope India",
+    "planetary transits and horoscope",
+    "astro intelligence predictions",
+
+    // High E-E-A-T & Editorial Keywords
+    "editorial news analysis India",
+    "in-depth news explained",
+    "fact verified digital journalism",
+    "knowledge platform India",
   ],
 
   openGraph: {
@@ -150,7 +124,7 @@ export const metadata: Metadata = {
     siteName: "Nation Path India",
 
     title:
-      "Nation Path India | News, Astro Intelligence & Knowledge Platform",
+      "Nation Path India | Independent News, Astro Intelligence & Knowledge Platform",
 
     description:
       "Independent journalism, intelligence-based content and future digital experiences from India.",
@@ -174,9 +148,7 @@ export const metadata: Metadata = {
     description:
       "Independent journalism, national affairs, astrology intelligence and knowledge experiences from India.",
 
-    images: [
-      `${SITE_URL}/logo.png`,
-    ],
+    images: [`${SITE_URL}/logo.png`],
   },
 };
 
@@ -185,7 +157,6 @@ export const metadata: Metadata = {
  HOMEPAGE COMPONENT
 ====================================================
 */
-
 export default async function Home() {
   let articles: any[] = [];
   let mostRead: any[] = [];
@@ -196,14 +167,7 @@ export default async function Home() {
   ====================================================
    OPTIMIZED HOMEPAGE DATABASE FETCH
   ====================================================
-
-   Existing News queries remain unchanged.
-
-   Live Center is a completely separate query and
-   does NOT use the existing News ingestion pipeline.
-  ====================================================
   */
-
   try {
     const [
       articlesData,
@@ -216,7 +180,6 @@ export default async function Home() {
        LATEST NEWS
       ==================================================
       */
-
       prisma.article.findMany({
         where: {
           status: PostStatus.approved,
@@ -225,15 +188,12 @@ export default async function Home() {
           isAstrology: false,
           ...publishedFilter(),
         },
-
         include: {
           category: true,
         },
-
         orderBy: {
           createdAt: "desc",
         },
-
         take: 40,
       }),
 
@@ -242,22 +202,18 @@ export default async function Home() {
        MOST READ
       ==================================================
       */
-
       prisma.article.findMany({
         where: {
           status: PostStatus.approved,
           isDeleted: false,
           ...publishedFilter(),
         },
-
         include: {
           category: true,
         },
-
         orderBy: {
           views: "desc",
         },
-
         take: 5,
       }),
 
@@ -266,7 +222,6 @@ export default async function Home() {
        EDITORIAL
       ==================================================
       */
-
       prisma.article.findMany({
         where: {
           status: PostStatus.approved,
@@ -274,15 +229,12 @@ export default async function Home() {
           isEditorial: true,
           ...publishedFilter(),
         },
-
         include: {
           category: true,
         },
-
         orderBy: {
           createdAt: "desc",
         },
-
         take: 6,
       }),
 
@@ -290,25 +242,12 @@ export default async function Home() {
       ==================================================
        LIVE CENTER — HOMEPAGE SPOTLIGHT
       ==================================================
-
-       Only currently LIVE events are considered.
-
-       Priority:
-       1. Featured Live Event
-       2. Most recently updated Live Event
-       3. Latest started Live Event
-
-       This is intentionally separate from Article/News
-       ingestion.
-      ==================================================
       */
-
       prisma.liveEvent.findFirst({
         where: {
           status: "live",
           showInLiveCenter: true,
         },
-
         select: {
           id: true,
           title: true,
@@ -321,7 +260,6 @@ export default async function Home() {
           isFeatured: true,
           showOnHomepage: true,
         },
-
         orderBy: [
           {
             isFeatured: "desc",
@@ -336,21 +274,12 @@ export default async function Home() {
       }),
     ]);
 
-    /*
-    ==================================================
-     ASSIGN HOMEPAGE DATA
-    ==================================================
-    */
-
-    articles = articlesData;
-    mostRead = mostReadData;
-    editorials = editorialsData;
-    liveEvent = liveEventData;
+    articles = articlesData || [];
+    mostRead = mostReadData || [];
+    editorials = editorialsData || [];
+    liveEvent = liveEventData || null;
   } catch (error) {
-    console.error(
-      "Homepage Data Error",
-      error
-    );
+    console.error("Homepage Data Error:", error);
   }
 
   /*
@@ -358,21 +287,12 @@ export default async function Home() {
    HOMEPAGE DATA PREPARATION
   ====================================================
   */
+  const hero = articles[0] || null;
+  const topStories = articles.slice(1, 5);
+  const featureGrid = articles.slice(5, 10);
+  const latest = articles.slice(10, 22);
 
-  const hero =
-    articles[0] || null;
-
-  const topStories =
-    articles.slice(1, 5);
-
-  const featureGrid =
-    articles.slice(5, 10);
-
-  const latest =
-    articles.slice(10, 22);
-
-  const homepageCategories =
-    getActiveHomepageCategories();
+  const homepageCategories = getActiveHomepageCategories();
 
   const getCategoryArticles = (
     slug: string,
@@ -380,8 +300,7 @@ export default async function Home() {
   ) => {
     return articles
       .filter(
-        (article: any) =>
-          article?.category?.slug === slug
+        (article: any) => article?.category?.slug === slug
       )
       .slice(0, limit);
   };
@@ -390,133 +309,77 @@ export default async function Home() {
   ====================================================
    BREAKING NEWS DATA
   ====================================================
-
-   Existing breaking-news pipeline remains unchanged.
-  ====================================================
   */
-
-  const breaking =
-    articles
-      .slice(0, 10)
-      .map(
-        (article: any) => ({
-          id: String(article.id),
-
-          title:
-            article.title,
-
-          slug:
-            article.slug,
-
-          excerpt:
-            article.excerpt ||
-            article.content
-              ?.replace(/<[^>]+>/g, "")
-              .slice(0, 160) ||
-            "",
-
-          category: {
-            name:
-              article.category?.name ||
-              "News",
-
-            slug:
-              article.category?.slug ||
-              "",
-          },
-
-          views:
-            article.views || 0,
-        })
-      );
+  const breaking = articles
+    .slice(0, 10)
+    .map((article: any) => ({
+      id: String(article.id),
+      title: article.title,
+      slug: article.slug,
+      excerpt:
+        article.excerpt ||
+        article.content
+          ?.replace(/<[^>]+>/g, "")
+          .slice(0, 160) ||
+        "",
+      category: {
+        name: article.category?.name || "News",
+        slug: article.category?.slug || "",
+      },
+      views: article.views || 0,
+    }));
 
   /*
   ====================================================
    SEO STRUCTURED DATA
   ====================================================
   */
-
-  const itemList =
-    articles
-      .slice(0, 10)
-      .map(
-        (article: any, index: number) => ({
-          "@type": "ListItem",
-
-          "position":
-            index + 1,
-
-          "name":
-            article.title,
-
-          "url":
-            `${SITE_URL}/${article.category?.slug || "news"}/${article.slug}`,
-        })
-      );
+  const itemList = articles
+    .slice(0, 10)
+    .map((article: any, index: number) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: article.title,
+      url: `${SITE_URL}/${article.category?.slug || "news"}/${article.slug}`,
+    }));
 
   const homepageSchema = {
     "@context": "https://schema.org",
-
     "@graph": [
       {
         "@type": "NewsMediaOrganization",
-
-        "name":
-          "Nation Path India",
-
-        "url":
-          SITE_URL,
-
-        "description":
+        name: "Nation Path India",
+        url: SITE_URL,
+        description:
           "Nation Path India is an independent digital newsroom delivering trusted journalism, national affairs coverage and meaningful stories from India.",
-
-        "sameAs": [
+        sameAs: [
           "https://www.youtube.com/@NationPathIndia",
           "https://www.facebook.com/profile.php?id=61587529251948",
           "https://www.instagram.com/nationpathindia/",
           "https://x.com/nationpathindia",
         ],
-
-        "logo": {
+        logo: {
           "@type": "ImageObject",
-
-          "url":
-            `${SITE_URL}/logo.png`,
+          url: `${SITE_URL}/logo.png`,
         },
       },
-
       {
         "@type": "WebSite",
-
-        "name":
-          "Nation Path India",
-
-        "url":
-          SITE_URL,
-
-        "potentialAction": {
+        name: "Nation Path India",
+        url: SITE_URL,
+        potentialAction: {
           "@type": "SearchAction",
-
-          "target": {
+          target: {
             "@type": "EntryPoint",
-
-            "urlTemplate":
-              `${SITE_URL}/search?q={search_term_string}`,
+            urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
           },
-
-          "query-input":
-            "required name=search_term_string",
+          "query-input": "required name=search_term_string",
         },
       },
-
       {
         "@type": "ItemList",
-
-        "name":
-          "Latest News from Nation Path India",
-
-        "itemListElement":
-          itemList,
+        name: "Latest News from Nation Path India",
+        itemListElement: itemList,
       },
     ],
   };
@@ -526,14 +389,12 @@ export default async function Home() {
    RENDER
   ====================================================
   */
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html:
-            JSON.stringify(homepageSchema),
+          __html: JSON.stringify(homepageSchema),
         }}
       />
 
@@ -541,238 +402,96 @@ export default async function Home() {
         id="main-content"
         className="news-container"
       >
-        {/* ==================================================
-            TOP AD
-        ================================================== */}
-
-        <div
-          className="
-            flex
-            justify-center
-            mb-8
-          "
-        >
-          <AdRenderer
-            placement="homepage_top"
-          />
+        {/* TOP AD SLOT */}
+        <div className="flex justify-center mb-8">
+          <AdRenderer placement="homepage_top" />
         </div>
 
-        {/* ==================================================
-            BRAND INTRO
-        ================================================== */}
-
-        <section
-          className="mb-12"
-        >
-          <h1
-            className="
-              font-[var(--news-heading-font)]
-              text-3xl
-              sm:text-4xl
-              lg:text-5xl
-              font-semibold
-              leading-tight
-              tracking-[-0.02em]
-              text-[var(--news-text)]
-              max-w-5xl
-            "
-          >
-            Nation Path India -
-            Independent Journalism,
-            News & Intelligence Platform.
+        {/* BRAND INTRO */}
+        <section className="mb-12">
+          <h1 className="font-[var(--news-heading-font)] text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight tracking-[-0.02em] text-[var(--news-text)] max-w-5xl">
+            Nation Path India - Independent Journalism, News & Intelligence Platform
           </h1>
 
-          <p
-            className="
-              news-body
-              mt-4
-              max-w-3xl
-            "
-          >
-            Covering politics, defence,
-            international affairs, economy,
-            business, technology, science,
-            sports, astrology intelligence
-            and knowledge experiences
-            shaping India.
+          <p className="news-body mt-4 max-w-3xl">
+            Covering politics, defence, international affairs, economy, business, technology, science, sports, astrology intelligence and knowledge experiences shaping India.
           </p>
         </section>
 
-        {/* ==================================================
-            MAIN GRID
-        ================================================== */}
-
-        <div
-          className="
-            grid
-            grid-cols-1
-            lg:grid-cols-12
-            gap-8
-            lg:gap-12
-          "
-        >
-          {/* ================= LEFT CONTENT ================= */}
-
-          <div
-            className="
-              lg:col-span-8
-              space-y-14
-            "
-          >
-            <LeadStory
-              article={hero}
-            />
-
-            {/* ==================================================
-                BREAKING / LIVE SPOTLIGHT
-
-                Active Live Event gets priority.
-                Otherwise existing Breaking News remains.
-            ================================================== */}
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* LEFT CONTENT AREA */}
+          <div className="lg:col-span-8 space-y-14">
+            {hero && <LeadStory article={hero} />}
 
             <BreakingSpotlight
               items={breaking}
               liveEvent={liveEvent}
             />
 
-            <FeaturedGrid
-              articles={featureGrid}
-            />
-
-            {/* ==================================================
-                DYNAMIC CATEGORY SECTIONS
-            ================================================== */}
-
-            {homepageCategories.map(
-              (category) => {
-                const categoryArticles =
-                  getCategoryArticles(
-                    category.slug
-                  );
-
-                if (
-                  !categoryArticles.length
-                ) {
-                  return null;
-                }
-
-                return (
-                  <CategoryBlock
-                    key={category.slug}
-                    title={category.title}
-                    slug={category.slug}
-                    description={
-                      category.description
-                    }
-                    articles={
-                      categoryArticles
-                    }
-                  />
-                );
-              }
+            {featureGrid.length > 0 && (
+              <FeaturedGrid articles={featureGrid} />
             )}
 
-            {/* ==================================================
-                ENGAGEMENT MODULE
-            ================================================== */}
+            {/* DYNAMIC CATEGORY SECTIONS */}
+            {homepageCategories.map((category) => {
+              const categoryArticles = getCategoryArticles(
+                category.slug
+              );
 
+              if (!categoryArticles.length) return null;
+
+              return (
+                <CategoryBlock
+                  key={category.slug}
+                  title={category.title}
+                  slug={category.slug}
+                  description={category.description}
+                  articles={categoryArticles}
+                />
+              );
+            })}
+
+            {/* ENGAGEMENT MODULE */}
             <section className="mt-0">
               <PollOfDay />
             </section>
 
-            <div
-              className="
-                flex
-                justify-center
-                py-3
-                sm:py-4
-              "
-            >
-              <AdRenderer
-                placement="homepage_mid"
-              />
+            <div className="flex justify-center py-3 sm:py-4">
+              <AdRenderer placement="homepage_mid" />
             </div>
 
-            <LatestNews
-              articles={latest}
-            />
+            {latest.length > 0 && (
+              <LatestNews articles={latest} />
+            )}
 
-            <EditorialSection
-              articles={editorials}
-            />
+            {editorials.length > 0 && (
+              <EditorialSection articles={editorials} />
+            )}
           </div>
 
-          {/* ================= SIDEBAR ================= */}
-
-          <aside
-            className="
-              lg:col-span-4
-              space-y-6
-              lg:sticky
-              lg:top-24
-              h-fit
-            "
-          >
+          {/* SIDEBAR AREA */}
+          <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit">
             <TrendingTopics />
-
             <WeatherWidget />
-
             <TrendingNews />
+            <MostRead articles={mostRead} />
+            <TopStories articles={topStories} />
 
-            <MostRead
-              articles={mostRead}
-            />
-
-            <TopStories
-              articles={topStories}
-            />
-
-            <div
-              className="
-                flex
-                justify-center
-              "
-            >
-              <AdRenderer
-                placement="homepage_sidebar_top"
-              />
+            <div className="flex justify-center">
+              <AdRenderer placement="homepage_sidebar_top" />
             </div>
           </aside>
         </div>
 
-        {/* ==================================================
-            ASTRO INTELLIGENCE WIDGET
-        ================================================== */}
-
-        <section
-          className="mt-8"
-        />
-
-        {/* ==================================================
-            FUTURE KNOWLEDGE PLATFORM
-        ================================================== */}
-
-        <section
-          className="mt-16"
-        >
+        {/* FUTURE PLATFORM BANNER */}
+        <section className="mt-16">
           <FuturePlatformBanner />
         </section>
 
-        {/* ==================================================
-            BOTTOM AD
-        ================================================== */}
-
-        <div
-          className="
-            flex
-            justify-center
-            my-4
-            sm:my-6
-          "
-        >
-          <AdRenderer
-            placement="homepage_bottom"
-          />
+        {/* BOTTOM AD SLOT */}
+        <div className="flex justify-center my-4 sm:my-6">
+          <AdRenderer placement="homepage_bottom" />
         </div>
       </main>
     </>

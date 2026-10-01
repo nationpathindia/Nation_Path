@@ -3,10 +3,6 @@ main = ".open-next/worker.js"
 compatibility_date = "2026-09-24"
 compatibility_flags = ["nodejs_compat"]
 
-[observability]
-enabled = true
-head_sampling_rate = 1
-
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
@@ -14,3 +10,7 @@ binding = "ASSETS"
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "nationpath-media"
+
+[observability]
+enabled = true
+head_sampling_rate = 1

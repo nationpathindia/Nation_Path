@@ -27,6 +27,14 @@ storage = "sqlite"
 binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "nationpath-media"
 
+[vars]
+CONTACT_EMAIL = "info@nationpathindia.com"
+NEXT_PUBLIC_BASE_URL = "https://nationpathindia.com"
+R2_ACCOUNT_ID = "f0fde36ad591698670ce20c2e798494e"
+R2_BUCKET_NAME = "nationpath-media"
+R2_PUBLIC_URL = "https://media.nationpathindia.com"
+SECURITY_EMAIL = "security@nationpathindia.com"
+
 [observability]
 enabled = true
 head_sampling_rate = 1
